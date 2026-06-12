@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Unit 4A – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section {
+    background: var(--white);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track {
+    height: 10px;
+    background: var(--gray-light);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+  .motivation-bar span { opacity: 0.8; }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* ── DAY HEADER ── */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange);
+    color: var(--white);
+    font-size: 1.1rem;
+    font-weight: 800;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.listening { border-left-color: #8b5cf6; }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── WORD BOX ── */
+  .word-box {
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--white);
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* ── FILL IN THE BLANKS ── */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line {
+    display: inline;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    line-height: 2;
+  }
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 2px 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--purple);
+    background: transparent;
+    min-width: 100px;
+    max-width: 160px;
+    width: auto;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 90px;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-teal { background: var(--teal); color: var(--white); }
+  .btn-teal:hover { background: #0f766e; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem;
+    font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── ANSWER KEY ── */
+  .answer-key {
+    display: none;
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--purple);
+  }
+  .answer-key.show { display: block; }
+  .answer-key strong { color: var(--orange); }
+
+  /* ── MATCHING / SELECT ── */
+  .match-select {
+    border: 2px solid var(--gray-light);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--purple);
+    outline: none;
+    transition: border-color 0.2s;
+    background: var(--white);
+  }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .tf-item { margin-bottom: 10px; }
+  .tf-line {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.88rem; font-weight: 500; color: var(--purple);
+    flex-wrap: wrap;
+  }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn {
+    padding: 4px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.80rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    transition: all 0.2s;
+  }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.correct-t { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.correct-f { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── ERROR CORRECTION ── */
+  .error-item { margin-bottom: 16px; }
+  .error-wrong {
+    background: #fef2f2;
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .error-label { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; font-weight: 500; }
+
+  /* ── LISTENING ── */
+  audio { width: 100%; border-radius: var(--radius-sm); margin-bottom: 12px; }
+  .transcript-box {
+    display: none;
+    background: var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 10px;
+    font-size: 0.83rem;
+    color: var(--purple);
+    line-height: 1.7;
+    border-left: 3px solid #8b5cf6;
+  }
+  .transcript-box.show { display: block; }
+
+  /* ── DIALOGUE ── */
+  .dialogue-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+    flex-wrap: wrap;
+  }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; min-width: 20px; }
+
+  /* ── VOCAB / GRAMMAR BANK ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th {
+    background: var(--purple);
+    color: var(--white);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .grammar-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gray-light);
+    color: var(--purple);
+    font-weight: 500;
+  }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── CHALLENGE ── */
+  .challenge-icon { font-size: 2.5rem; text-align: center; margin-bottom: 12px; }
+  .checklist { list-style: none; margin: 14px 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-size: 1rem; }
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 14px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* ── CLICK-TO-FILL GAPS ── */
+  .ctf-wordbank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 14px; padding: 10px 12px;
+    background: var(--cream); border-radius: var(--radius-sm);
+  }
+  .ctf-chip {
+    background: var(--purple);
+    color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+    user-select: none;
+  }
+  .ctf-chip:hover  { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used   { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-gap {
+    display: inline-block;
+    min-width: 72px; text-align: center;
+    border-bottom: 2.5px solid var(--purple-light);
+    color: var(--orange); font-weight: 700;
+    font-size: 0.88rem; padding: 0 4px;
+    cursor: pointer; margin: 0 2px;
+    transition: border-color 0.2s, background 0.2s;
+    border-radius: 4px 4px 0 0;
+    vertical-align: middle; line-height: 1.8;
+  }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready  { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap   { border-bottom-color: var(--red);  color: var(--red);  background: #fef2f2; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 14px; min-height: 38px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); background: #f0fdfa; }
+  .sb-zone.wrong-zone   { border-color: var(--red);  background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-item { margin-bottom: 18px; }
+  .sb-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+
+  /* ── LISTEN TEXT BUTTON ── */
+  .listen-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1rem; padding: 2px 4px; line-height: 1;
+    opacity: 0.65; transition: opacity 0.2s;
+    vertical-align: middle;
+  }
+  .listen-btn:hover { opacity: 1; }
+
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .btn-row { gap: 8px; }
+    .fill-input { min-width: 70px; max-width: 120px; font-size: 0.82rem; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
+    .vocab-chip { padding: 8px 8px; font-size: 0.78rem; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .tf-line { font-size: 0.82rem; }
+    .writing-area { font-size: 0.85rem; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+    .transcript-box { font-size: 0.78rem; }
+    .tip-box { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly exercise<br><strong>Unit 4A – Beginner</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Digite seu nome..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Unit 4A – Weekly Practice</h1>
+      <div class="subtitle">Beginner</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Progresso da semana</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  🌟 <span id="motivation-text">Carregando motivação do dia...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">📚 Day 1</button>
+    <button class="tab-btn" data-tab="day2">✏️ Day 2</button>
+    <button class="tab-btn" data-tab="day3">💬 Day 3</button>
+    <button class="tab-btn" data-tab="day4">📖 Day 4</button>
+    <button class="tab-btn" data-tab="day5">🖊 Day 5</button>
+    <button class="tab-btn" data-tab="day6">🎧 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🚀 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<!-- ════════════════════════ CONTENT ════════════════════════ -->
+<div class="content">
+
+<!-- ── DAY 1 – REVIEW ── -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Review</div>
+      <div class="day-desc">Multiple Choice · Complete the Dialogue · Complete the Text · Error Correction</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Multiple Choice -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Multiple Choice</div>
+    <div class="ex-instruction">Choose the correct answer. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a alternativa correta.</span></div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Complete the Dialogue -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Complete the Dialogue</div>
+    <div class="ex-instruction">Complete with: <strong>What – Where – Who – How old – When</strong><br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete o diálogo com as palavras do quadro.</span></div>
+    <div class="word-box">What &nbsp;·&nbsp; Where &nbsp;·&nbsp; Who &nbsp;·&nbsp; How old &nbsp;·&nbsp; When</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Complete the Text -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Complete the Text</div>
+    <div class="ex-instruction">Use the words in the box. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Use as palavras do quadro para completar o texto.</span></div>
+    <div class="word-box">from &nbsp;·&nbsp; friends &nbsp;·&nbsp; These &nbsp;·&nbsp; is &nbsp;·&nbsp; are &nbsp;·&nbsp; umbrella &nbsp;·&nbsp; Brazil &nbsp;·&nbsp; photos</div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Error Correction -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 4 – Error Correction</div>
+    <div class="ex-instruction">Correct the mistakes. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Corrija os erros nas frases abaixo.</span></div>
+    <div id="d1e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e4-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e4-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d1e4-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e4-fb"></div>
+    <div class="answer-key" id="d1e4-key">
+      <strong>Gabarito:</strong><br>
+      1. My books <strong>are</strong> on the table.<br>
+      2. <strong>Are</strong> you from Mexico?<br>
+      3. I have <strong>an</strong> umbrella.<br>
+      4. <strong>These</strong> are my photos.
+    </div>
+  </div>
+</div>
+
+<!-- ── DAY 2 – FAMILY VOCABULARY ── -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Family Vocabulary</div>
+      <div class="day-desc">Family tree · Who am I? · Complete the sentences · Error Correction</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Complete the Text (family tree) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete the Text</div>
+    <div class="ex-instruction">Look at the family tree and complete the texts. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Olhe a árvore genealógica e complete os textos.</span></div>
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/imagesbeginnerweeklyplan/main/unit%204a%20family%20tree%20exercises.png" alt="Family tree" style="width:100%;max-width:100%;border-radius:8px;margin-bottom:16px;display:block;" onerror="this.style.display='none'"/>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Who Am I? -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Who Am I?</div>
+    <div class="ex-instruction">Look at the family tree and write the correct name. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Olhe a árvore genealógica e escreva o nome correto.</span></div>
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/imagesbeginnerweeklyplan/main/unit%204a%20family%20tree%20exercises.png" alt="Family tree" style="width:100%;max-width:100%;border-radius:8px;margin-bottom:16px;display:block;" onerror="this.style.display='none'"/>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Complete the Sentences -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the Sentences</div>
+    <div class="ex-instruction">Look at the family tree and complete the sentences. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete as frases olhando a árvore genealógica.</span></div>
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/imagesbeginnerweeklyplan/main/unit%204a%20family%20tree%20exercises.png" alt="Family tree" style="width:100%;max-width:100%;border-radius:8px;margin-bottom:16px;display:block;" onerror="this.style.display='none'"/>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+
+</div>
+
+<!-- ── DAY 3 – POSSESSIVE ADJECTIVES ── -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Possessive Adjectives</div>
+      <div class="day-desc">my · his · her · its · our · their · your</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete the Text</div>
+    <div class="ex-instruction">Click a word, then click the gap to fill it. Click a filled gap to return the word. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em uma palavra e depois no espaço para preencher. Clique no espaço preenchido para devolver.</span></div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Complete the Text</div>
+    <div class="ex-instruction">Click a word, then click the gap to fill it. Click a filled gap to return the word. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em uma palavra e depois no espaço para preencher. Clique no espaço preenchido para devolver.</span></div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the Text</div>
+    <div class="ex-instruction">Click a word, then click the gap to fill it. Click a filled gap to return the word. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em uma palavra e depois no espaço para preencher. Clique no espaço preenchido para devolver.</span></div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Multiple Choice -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Multiple Choice</div>
+    <div class="ex-instruction">Choose the correct possessive adjective. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha o adjetivo possessivo correto.</span></div>
+    <div id="d3e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e4-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e4-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e4-fb"></div>
+  </div>
+
+  <!-- EX 5 – Sentence Builder (click) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 5 – Build the Sentences</div>
+    <div class="ex-instruction">Click the words in the correct order to build each sentence. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique nas palavras na ordem correta para montar a frase.</span></div>
+    <div id="d3e5"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e5-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e5-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d3e5-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e5-fb"></div>
+    <div class="answer-key" id="d3e5-key">
+      <strong>Gabarito:</strong><br>
+      1. My sister's name is Ana.<br>
+      2. Her car is blue.<br>
+      3. Is it your ID card?<br>
+      4. Are you Bob's father?<br>
+      5. This is my mother.
+    </div>
+  </div>
+</div>
+
+<!-- ── DAY 4 – READING + ERROR CORRECTION ── -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Reading + Error Correction</div>
+      <div class="day-desc">Possessive 's · Comprehension · Find the mistakes</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Possessive or Is? -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Possessive or Is?</div>
+    <div class="ex-instruction">Read the sentences. Write <strong>P</strong> (Possessive) or <strong>IS</strong> ('s = is). <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia as frases. Escreva P (Possessivo) ou IS ('s = is).</span></div>
+    <div class="tip-box" style="margin-bottom:14px;">💡 <em>David's wife</em> → 's = possessivo &nbsp;|&nbsp; <em>Emma's from the US</em> → 's = is</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d4e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Complete the Sentences (reverse relationship) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Complete the Sentences</div>
+    <div class="ex-instruction">Complete the sentences using the family tree. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete as frases usando a árvore genealógica.</span></div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d4e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 5 – WRITING ── -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Writing</div>
+      <div class="day-desc">Reading comprehension · True or False · Answer the questions</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Read the Text -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 1 – Read and Answer</div>
+    <div class="ex-instruction">Read the text and answer the questions. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto e responda as perguntas.</span></div>
+    <div class="reading-text" id="rt-emma">
+      <button class="listen-btn" onclick="speakEl('rt-emma')" title="Listen">🔊</button><br>
+      Hello! My name is Emma.<br>
+      I am from the US.<br>
+      This is my family.<br>
+      My father's name is David and my mother's name is Julia.<br>
+      I have a brother. His name is Noah.<br>
+      My grandparents are George and Margaret.<br>
+      This is a photo of my family. Their house is big and beautiful.<br>
+      My father's car is blue. His car is new.<br>
+      My brother's phone is black. This is his tablet.<br>
+      I love my family!
+    </div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d5e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – True or False -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 2 – True or False?</div>
+    <div class="ex-instruction">Read the text again and answer T (True) or F (False). <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto novamente e responda V (Verdadeiro) ou F (Falso).</span></div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d5e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Writing about Alice -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Answer the Questions</div>
+    <div class="ex-instruction">Read the text and answer the questions. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto e responda as perguntas. Envie suas respostas para a Teacher Mari!</span></div>
+    <div class="reading-text" id="rt-alice">
+      <button class="listen-btn" onclick="speakEl('rt-alice')" title="Listen">🔊</button><br>
+      Hello!<br>
+      My name is Alice and I'm from Toulouse in France.<br>
+      This is a photo of my family.<br>
+      I have a sister, Pauline, and a brother, Olivier.<br>
+      My father's name is Henri and my mother's name is Cécile.<br>
+      We have a dog. His name is Toto.<br>
+      Do you like my photo?
+    </div>
+    <div id="d5e3-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d5-whatsapp">📲 Enviar para Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 6 – LISTENING ── -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Listening</div>
+      <div class="day-desc">Listen and answer the questions</div>
+    </div>
+  </div>
+
+  <!-- Audio 1 – True or False -->
+  <div class="ex-card listening">
+    <div class="ex-title">Exercise 1 – True or False</div>
+    <div class="ex-instruction">Listen to Noah talking about his family. Answer T (True) or F (False). <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Ouça Noah falar sobre sua família. Responda V ou F.</span></div>
+    <audio controls style="width:100%;border-radius:8px;margin-bottom:12px;">
+      <source src="https://raw.githubusercontent.com/cruzmarianagama-ux/audiosbeginnerweeklyplans/main/beg%20unit%204a%20listening%20exe%201.mp3" type="audio/mpeg">
+    </audio>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-teal" id="transcript1-btn">📄 Ver transcrição</button>
+    </div>
+    <div class="transcript-box" id="transcript1">
+      <strong>Transcrição:</strong> <button class="listen-btn" onclick="speakEl('transcript1')" title="Listen">🔊</button><br>
+      Hello!<br>
+      My name is Noah.<br>
+      This is my family.<br>
+      My grandfather's name is George and my grandmother's name is Margaret.<br>
+      My father's name is David and my mother's name is Julia.<br>
+      I have one sister. Her name is Emma.<br>
+      I love my family!
+    </div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d6e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 7 – CHALLENGE ── -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">🚀 Challenge</div>
+      <div class="day-desc">Talk about your family!</div>
+    </div>
+  </div>
+  <div class="ex-card challenge">
+    <div class="challenge-icon">🎤</div>
+    <div class="ex-title" style="text-align:center;font-size:1.1rem;">My Family</div>
+    <div class="ex-instruction" style="text-align:center;margin-top:6px;">Prepare a short presentation and tell your teacher at the beginning of your next live lesson.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Prepare uma apresentação curta e fale para a professora no início da próxima aula ao vivo.</span></div>
+    <ul class="checklist">
+      <li><span class="check-icon">✔</span> My name is...</li>
+      <li><span class="check-icon">✔</span> I'm from...</li>
+      <li><span class="check-icon">✔</span> My father's name is...</li>
+      <li><span class="check-icon">✔</span> My mother's name is...</li>
+      <li><span class="check-icon">✔</span> I have a brother / sister...</li>
+      <li><span class="check-icon">✔</span> His / Her name is...</li>
+      <li><span class="check-icon">✔</span> I have a friend...</li>
+      <li><span class="check-icon">✔</span> His / Her name is...</li>
+    </ul>
+    <div class="example-box" id="ex-challenge">
+      <div class="ex-label">✨ Exemplo <button class="listen-btn" onclick="speakEl('ex-challenge')" title="Listen">🔊</button></div>
+      Hello!<br>
+      My name is Emma.<br>
+      I'm from the US.<br>
+      My father's name is David and my mother's name is Julia.<br>
+      I have a brother. His name is Noah.<br>
+      I have a friend. Her name is Ana.
+    </div>
+    <div class="tip-box" style="margin-top:16px;">
+      💡 <strong>Dica:</strong> Tente falar por 30–60 segundos. Quanto mais você pratica em voz alta, mais natural fica! Você consegue! 🧡
+    </div>
+    <div class="btn-row" style="margin-top:18px;justify-content:center;">
+      <button class="btn btn-primary" id="challenge-done">🎉 Estou pronto(a)!</button>
+    </div>
+    <div class="feedback" id="challenge-fb"></div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Semana concluída!</h3>
+    <p>Você completou a Unit 4A. Incrível!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.7;margin-top:4px;margin-bottom:18px;">exercícios verificados</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">📲 Compartilhar com Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ── VOCAB BANK ── -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Unit 4A – Family · Possessive Adjectives</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">👨‍👩‍👧‍👦 Family</div>
+    <div class="vocab-grid" id="vocab-family"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">📌 Possessive Adjectives</div>
+    <div class="vocab-grid" id="vocab-poss"></div>
+  </div>
+</div>
+
+<!-- ── GRAMMAR BANK ── -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Possessive Adjectives · Possessive 's</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Possessive Adjectives (Adjetivos Possessivos)</div>
+    <table class="grammar-table">
+      <tr><th>Pronoun</th><th>Possessive Adjective</th><th>Português</th><th>Example</th></tr>
+      <tr><td>I</td><td class="orange">my</td><td>meu / minha</td><td>my passport</td></tr>
+      <tr><td>you</td><td class="orange">your</td><td>seu / sua</td><td>your phone</td></tr>
+      <tr><td>he</td><td class="orange">his</td><td>dele</td><td>his car</td></tr>
+      <tr><td>she</td><td class="orange">her</td><td>dela</td><td>her bag</td></tr>
+      <tr><td>it</td><td class="orange">its</td><td>dele/dela (coisa)</td><td>its name</td></tr>
+      <tr><td>we</td><td class="orange">our</td><td>nosso / nossa</td><td>our classroom</td></tr>
+      <tr><td>they</td><td class="orange">their</td><td>deles / delas</td><td>their house</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Dica:</strong> Os adjetivos possessivos em inglês não mudam de acordo com o substantivo. <em>his car</em>, <em>his phone</em>, <em>his umbrella</em> — sempre <em>his</em>!</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">🔑 Possessive 's (Possessivo com 's)</div>
+    <table class="grammar-table">
+      <tr><th>English</th><th>Português</th></tr>
+      <tr><td class="teal">David's wife</td><td>a esposa do David</td></tr>
+      <tr><td class="teal">Emma's brother</td><td>o irmão da Emma</td></tr>
+      <tr><td class="teal">my father's car</td><td>o carro do meu pai</td></tr>
+      <tr><td class="teal">Noah's phone</td><td>o telefone do Noah</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Atenção:</strong> Em inglês, dizemos <em>David's wife</em> (a esposa do David), não <em>the wife of David</em>. O 's mostra posse!</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">⚠️ Possessive 's vs. is</div>
+    <table class="grammar-table">
+      <tr><th>Sentence</th><th>Meaning</th><th>'s =</th></tr>
+      <tr><td>David's wife is Julia.</td><td>a esposa do David é Julia</td><td class="orange">Possessive</td></tr>
+      <tr><td>Emma's from the US.</td><td>Emma é dos EUA</td><td class="teal">is</td></tr>
+      <tr><td>George's phone is black.</td><td>o telefone do George é preto</td><td class="orange">Possessive</td></tr>
+      <tr><td>Noah's in the classroom.</td><td>Noah está na sala</td><td class="teal">is</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Dica:</strong> Se der para substituir 's por <em>is</em> e a frase continuar fazendo sentido, então 's = is. Caso contrário, é possessivo!</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">👨‍👩‍👧‍👦 Family Vocabulary</div>
+    <table class="grammar-table">
+      <tr><th>English</th><th>Português</th></tr>
+      <tr><td>grandfather</td><td>avô</td></tr>
+      <tr><td>grandmother</td><td>avó</td></tr>
+      <tr><td>father</td><td>pai</td></tr>
+      <tr><td>mother</td><td>mãe</td></tr>
+      <tr><td>brother</td><td>irmão</td></tr>
+      <tr><td>sister</td><td>irmã</td></tr>
+      <tr><td>son</td><td>filho</td></tr>
+      <tr><td>daughter</td><td>filha</td></tr>
+      <tr><td>husband</td><td>marido</td></tr>
+      <tr><td>wife</td><td>esposa</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  WELCOME SCREEN
+// ══════════════════════════════════════════════
+const STUDENT_KEY = 'teachermari_unit4a_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = `Hello, ${studentName}! 👋 Let's study and improve! 🧡`;
+  banner.classList.add('show');
+}
+
+if (studentName) startSession(studentName);
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) {
+    document.getElementById('student-name-input').focus();
+    document.getElementById('student-name-input').style.borderColor = 'var(--red)';
+    return;
+  }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('welcome-start-btn').click();
+});
+document.getElementById('student-name-input').addEventListener('input', () => {
+  document.getElementById('student-name-input').style.borderColor = '';
+});
+
+// ══════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════
+const VOCAB_FAMILY = [
+  {en:'grandfather',pt:'avô'},{en:'grandmother',pt:'avó'},
+  {en:'father',pt:'pai'},{en:'mother',pt:'mãe'},
+  {en:'brother',pt:'irmão'},{en:'sister',pt:'irmã'},
+  {en:'son',pt:'filho'},{en:'daughter',pt:'filha'},
+  {en:'husband',pt:'marido'},{en:'wife',pt:'esposa'}
+];
+const VOCAB_POSS = [
+  {en:'my',pt:'meu/minha'},{en:'your',pt:'seu/sua'},
+  {en:'his',pt:'dele'},{en:'her',pt:'dela'},
+  {en:'its',pt:'dele/dela (coisa)'},{en:'our',pt:'nosso/nossa'},
+  {en:'their',pt:'deles/delas'}
+];
+
+const MOTIVATIONS = [
+  "You are doing great! Keep going! 🌟",
+  "Every day you learn something new! 💪",
+  "Small steps, big results! 🏆",
+  "Mistakes are part of learning. Try again! 🌱",
+  "You can do it! Teacher Mari believes in you! 🧡",
+  "Practice every day and you will improve! ⭐",
+  "Great job! Keep up the good work! 🎯"
+];
+
+// ══════════════════════════════════════════════
+//  PROGRESS & STORAGE
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_unit4a';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const total = 15;
+  const pct = Math.min(100, Math.round((totalChecked / total) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const dayIdx = new Date().getDay();
+document.getElementById('motivation-text').textContent = MOTIVATIONS[dayIdx % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Perfeito! Você acertou todos os ${total} itens! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Muito bem! ${correct}/${total} corretos. Revise os erros e tente novamente!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} corretos. Continue praticando — você vai conseguir!`, type: 'err' };
+}
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">` +
+      item.opts.map((o,j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else opts[item.ans].classList.add('correct');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    let html = `<div class="fill-line">${i+1}. ${parts[0]}`;
+    for (let k = 1; k < parts.length; k++) {
+      html += `<input class="fill-input" id="${prefix}_${i}_${k-1}" placeholder="...">${parts[k]}`;
+    }
+    html += '</div>';
+    div.innerHTML = html;
+    wrap.appendChild(div);
+  });
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((ans, k) => {
+      total++;
+      const inp = document.getElementById(`${prefix}_${i}_${k}`);
+      if (!inp) return;
+      inp.classList.remove('correct','wrong');
+      const val = inp.value.trim().toLowerCase();
+      const ok = Array.isArray(ans) ? ans.map(a=>a.toLowerCase()).includes(val) : val === ans.toLowerCase();
+      if (ok) { inp.classList.add('correct'); correct++; }
+      else inp.classList.add('wrong');
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((_, k) => {
+      const inp = document.getElementById(`${prefix}_${i}_${k}`);
+      if (inp) { inp.value = ''; inp.className = 'fill-input'; }
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(`${prefix}t_`,'').replace(`${prefix}f_`,'');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${idx}`); if(b){ b.classList.remove('selected-t','selected-f'); }});
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => { if (sel[i] === item.ans) correct++; });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_,i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f','correct-t','correct-f'); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1 – REVIEW
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Multiple Choice
+const d1e1Data = [
+  {q:'A: Where is Emma from?<br>B: She is from ______.', opts:['Monday','Spain','Seven'], ans:1},
+  {q:'______ are my glasses.', opts:['This','These','That'], ans:1},
+  {q:'I have ______ umbrella.', opts:['a','an','the'], ans:1},
+  {q:'A: What day is it today?<br>B: ______.', opts:['Brazil','Friday','Mexican'], ans:1},
+  {q:'That is my ______.', opts:['keys','glasses','passport'], ans:2},
+  {q:'A: How old are you?<br>B: ______.', opts:["I'm 25.","I'm from Mexico.","It's Tuesday."], ans:0},
+  {q:'These are my ______.', opts:['notebook','notebooks',"notebooks'"], ans:1},
+  {q:'A: Who is she?<br>B: ______.', opts:['She is my friend.','She is from Friday.','She is 55 years old.'], ans:0},
+  {q:'I am from ______.', opts:['Thursday','Germany','German'], ans:1},
+  {q:'______ is my football shirt.', opts:['This','These','Those'], ans:0},
+];
+buildMC('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb'));
+
+// Exercise 2 – Complete the Dialogue
+const d1e2Data = [
+  {line:'Lucas: ___ are you from?', ans:['Where'], single:true},
+  {line:'Lucas: ___ are you?', ans:['How old'], single:true},
+  {line:'Lucas: ___ is your best friend?', ans:['Who'], single:true},
+  {line:'Lucas: ___ is your English lesson?', ans:['When'], single:true},
+  {line:'Lucas: And ___ is your phone number?', ans:['What'], single:true},
+];
+(function(){
+  const wrap = document.getElementById('d1e2');
+  const dialogue = [
+    {speaker:'Emma', text:'Hi! My name is Emma.'},
+    {speaker:'Lucas', text:'Hi Emma! Nice to meet you.'},
+    {speaker:'Emma', text:'Nice to meet you too.'},
+  ];
+  dialogue.forEach(d => {
+    const div = document.createElement('div'); div.className = 'dialogue-line';
+    div.innerHTML = `<span class="speaker">${d.speaker}:</span> ${d.text}`;
+    wrap.appendChild(div);
+  });
+  d1e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    div.innerHTML = `<div class="fill-line dialogue-line"><span class="speaker">Lucas:</span> ${parts[0]}<input class="fill-input" id="d1e2_${i}_0" placeholder="...">${parts[1]||''}</div>`;
+    const extraLines = [
+      {speaker:'Emma', text:"I'm from Mexico."},
+      {speaker:'Lucas', text:'Oh, nice!'},
+      {speaker:'Emma', text:"I'm 24 years old."},
+      {speaker:'Lucas', text:'Cool!'},
+      {speaker:'Emma', text:'My best friend is Ana.'},
+      {speaker:'Lucas', text:''},
+      {speaker:'Emma', text:"It's on Tuesday."},
+      {speaker:'Lucas', text:'And'},
+      {speaker:'Emma', text:"It's 9876-5432."},
+    ];
+    wrap.appendChild(div);
+    if (i < 4) {
+      const resp = document.createElement('div'); resp.className = 'dialogue-line';
+      resp.innerHTML = `<span class="speaker">Emma:</span> ${["I'm from Mexico.","I'm 24 years old.","My best friend is Ana.","It's on Tuesday."][i]}`;
+      wrap.appendChild(resp);
+    }
+  });
+})();
+document.getElementById('d1e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d1e2Data.forEach((item, i) => {
+    const inp = document.getElementById('d1e2_' + i + '_0');
+    inp.classList.remove('correct','wrong');
+    if (inp.value.trim().toLowerCase() === item.ans[0].toLowerCase()) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const r = scoreText(correct, d1e2Data.length);
+  showFeedback('d1e2-fb', r.msg, r.type);
+  incrementChecked('d1e2');
+});
+document.getElementById('d1e2-reset').addEventListener('click', () => {
+  d1e2Data.forEach((_, i) => { const inp = document.getElementById('d1e2_' + i + '_0'); if(inp){inp.value='';inp.className='fill-input';} });
+  document.getElementById('d1e2-fb').className = 'feedback';
+});
+
+// Exercise 3 – Complete the Text
+const d1e3Data = [
+  {line:'Hello! My name ___ Emma.', ans:['is']},
+  {line:'I am ___ ___.', ans:['from','Brazil']},
+  {line:'Lucas and Ana ___ my friends.', ans:['are']},
+  {line:'___ are two ___ of us.', ans:['These','photos']},
+  {line:'This ___ my new ___.', ans:['is','umbrella']},
+];
+(function(){
+  const wrap = document.getElementById('d1e3');
+  const flatData = [
+    {line:'Hello! My name ___ Emma.', inputs:[{id:'d1e3_0_0',ans:['is']}]},
+    {line:'I am ___ ___.', inputs:[{id:'d1e3_1_0',ans:['from']},{id:'d1e3_1_1',ans:['Brazil','brazil']}]},
+    {line:'Lucas and Ana ___ my friends.', inputs:[{id:'d1e3_2_0',ans:['are']}]},
+    {line:'___ are two ___ of us.', inputs:[{id:'d1e3_3_0',ans:['These','these']},{id:'d1e3_3_1',ans:['photos']}]},
+    {line:'This ___ my new ___.', inputs:[{id:'d1e3_4_0',ans:['is']},{id:'d1e3_4_1',ans:['umbrella']}]},
+  ];
+  flatData.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    let text = item.line;
+    item.inputs.forEach((inp, k) => {
+      text = text.replace('___', `<input class="fill-input" id="${inp.id}" placeholder="..." style="min-width:90px;">`);
+    });
+    div.innerHTML = `<div class="fill-line">${i+1}. ${text}</div>`;
+    wrap.appendChild(div);
+  });
+  window._d1e3flat = flatData;
+})();
+document.getElementById('d1e3-check').addEventListener('click', () => {
+  let correct = 0, total = 0;
+  window._d1e3flat.forEach(item => {
+    item.inputs.forEach(inp => {
+      total++;
+      const el = document.getElementById(inp.id);
+      el.classList.remove('correct','wrong');
+      if (inp.ans.map(a=>a.toLowerCase()).includes(el.value.trim().toLowerCase())) { el.classList.add('correct'); correct++; }
+      else el.classList.add('wrong');
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback('d1e3-fb', r.msg, r.type);
+  incrementChecked('d1e3');
+});
+document.getElementById('d1e3-reset').addEventListener('click', () => {
+  window._d1e3flat.forEach(item => {
+    item.inputs.forEach(inp => { const el=document.getElementById(inp.id); if(el){el.value='';el.className='fill-input';} });
+  });
+  document.getElementById('d1e3-fb').className = 'feedback';
+});
+
+// Exercise 4 – Error Correction
+const d1e4Errors = [
+  {wrong:'My books is on the table.', ans:['My books are on the table.']},
+  {wrong:'You are from Mexico?', ans:['Are you from Mexico?']},
+  {wrong:'I have a umbrella.', ans:['I have an umbrella.']},
+  {wrong:'This are my photos.', ans:['These are my photos.']},
+];
+(function(){
+  const wrap = document.getElementById('d1e4');
+  d1e4Errors.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'error-item';
+    div.innerHTML = `<div class="error-wrong">${i+1}. ${item.wrong}</div><div class="error-label">Correct answer:</div><input class="fill-input" id="d1e4_${i}" placeholder="..." style="min-width:260px;border:2px solid var(--gray-light);border-radius:6px;padding:8px 12px;width:100%;max-width:100%;text-align:left;">`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d1e4-check').addEventListener('click', () => {
+  let correct = 0;
+  d1e4Errors.forEach((item, i) => {
+    const inp = document.getElementById('d1e4_' + i);
+    inp.classList.remove('correct','wrong');
+    const val = inp.value.trim().toLowerCase();
+    if (item.ans.map(a=>a.toLowerCase()).includes(val)) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const r = scoreText(correct, d1e4Errors.length);
+  showFeedback('d1e4-fb', r.msg, r.type);
+  incrementChecked('d1e4');
+});
+document.getElementById('d1e4-show').addEventListener('click', () => document.getElementById('d1e4-key').classList.toggle('show'));
+document.getElementById('d1e4-reset').addEventListener('click', () => {
+  d1e4Errors.forEach((_,i) => { const inp=document.getElementById('d1e4_'+i); inp.value=''; inp.className='fill-input'; });
+  document.getElementById('d1e4-fb').className = 'feedback';
+  document.getElementById('d1e4-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 2 – FAMILY VOCABULARY
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Complete the Text (family tree)
+(function(){
+  const wrap = document.getElementById('d2e1');
+  const texts = [
+    {
+      label:'Text 1 — Noah',
+      lines:[
+        {text:'Emma is my ___.', id:'d2e1_0', ans:['sister']},
+        {text:'David is my ___ and Julia is my ___.', id:'d2e1_1', id2:'d2e1_2', ans:['father'], ans2:['mother']},
+        {text:'George is my ___ and Margaret is my ___.', id:'d2e1_3', id2:'d2e1_4', ans:['grandfather'], ans2:['grandmother']},
+      ]
+    },
+    {
+      label:'Text 2 — George',
+      lines:[
+        {text:'Margaret is my ___.', id:'d2e1_5', ans:['wife']},
+        {text:'David is my ___ and Laura is my ___.', id:'d2e1_6', id2:'d2e1_7', ans:['son'], ans2:['daughter']},
+      ]
+    },
+    {
+      label:'Text 3 — David',
+      lines:[
+        {text:'Laura is my ___.', id:'d2e1_8', ans:['sister']},
+        {text:'Julia is my ___.', id:'d2e1_9', ans:['wife']},
+        {text:'Emma is my ___ and Noah is my ___.', id:'d2e1_10', id2:'d2e1_11', ans:['daughter'], ans2:['son']},
+      ]
+    }
+  ];
+  texts.forEach(block => {
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:0.8rem;font-weight:700;color:var(--orange);text-transform:uppercase;margin:14px 0 6px;letter-spacing:0.5px;';
+    title.textContent = block.label;
+    wrap.appendChild(title);
+    block.lines.forEach(line => {
+      const div = document.createElement('div'); div.className = 'fill-item';
+      let html = line.text;
+      if (line.id2) {
+        const parts = html.split('___');
+        html = parts[0] + `<input class="fill-input" id="${line.id}" placeholder="..." style="min-width:110px;">` + parts[1] + `<input class="fill-input" id="${line.id2}" placeholder="..." style="min-width:110px;">` + (parts[2]||'');
+      } else {
+        html = html.replace('___', `<input class="fill-input" id="${line.id}" placeholder="..." style="min-width:110px;">`);
+      }
+      div.innerHTML = `<div class="fill-line">${html}</div>`;
+      wrap.appendChild(div);
+    });
+  });
+  window._d2e1data = [
+    {id:'d2e1_0',ans:['sister']},{id:'d2e1_1',ans:['father']},{id:'d2e1_2',ans:['mother']},
+    {id:'d2e1_3',ans:['grandfather']},{id:'d2e1_4',ans:['grandmother']},{id:'d2e1_5',ans:['wife']},
+    {id:'d2e1_6',ans:['son']},{id:'d2e1_7',ans:['daughter']},{id:'d2e1_8',ans:['sister']},
+    {id:'d2e1_9',ans:['wife']},{id:'d2e1_10',ans:['daughter']},{id:'d2e1_11',ans:['son']}
+  ];
+})();
+document.getElementById('d2e1-check').addEventListener('click', () => {
+  let correct = 0;
+  window._d2e1data.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (!el) return;
+    el.classList.remove('correct','wrong');
+    if (item.ans.map(a=>a.toLowerCase()).includes(el.value.trim().toLowerCase())) { el.classList.add('correct'); correct++; }
+    else el.classList.add('wrong');
+  });
+  const r = scoreText(correct, window._d2e1data.length);
+  showFeedback('d2e1-fb', r.msg, r.type);
+  incrementChecked('d2e1');
+});
+document.getElementById('d2e1-reset').addEventListener('click', () => {
+  window._d2e1data.forEach(item => { const el=document.getElementById(item.id); if(el){el.value='';el.className='fill-input';} });
+  document.getElementById('d2e1-fb').className = 'feedback';
+});
+
+// Exercise 2 – Who Am I?
+const d2e2Questions = [
+  {q:"I am George's wife. Who am I?", ans:['Margaret']},
+  {q:"I am David's sister. Who am I?", ans:['Laura']},
+  {q:"I am Noah's mother. Who am I?", ans:['Julia']},
+  {q:"I am Emma's brother. Who am I?", ans:['Noah']},
+  {q:"I am Laura's father. Who am I?", ans:['George']},
+  {q:"I am Margaret's son. Who am I?", ans:['David']},
+  {q:"I am Julia's daughter. Who am I?", ans:['Emma']},
+];
+(function(){
+  const wrap = document.getElementById('d2e2');
+  d2e2Questions.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.q} <input class="fill-input" id="d2e2_${i}" placeholder="name..." style="min-width:110px;"></div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d2e2Questions.forEach((item, i) => {
+    const inp = document.getElementById('d2e2_' + i);
+    inp.classList.remove('correct','wrong');
+    if (item.ans.map(a=>a.toLowerCase()).includes(inp.value.trim().toLowerCase())) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const r = scoreText(correct, d2e2Questions.length);
+  showFeedback('d2e2-fb', r.msg, r.type);
+  incrementChecked('d2e2');
+});
+document.getElementById('d2e2-reset').addEventListener('click', () => {
+  d2e2Questions.forEach((_,i) => { const inp=document.getElementById('d2e2_'+i); inp.value='';inp.className='fill-input'; });
+  document.getElementById('d2e2-fb').className = 'feedback';
+});
+
+// Exercise 3 – Complete the Sentences
+const d2e3Sentences = [
+  {line:"George is Noah's _____.", ans:['grandfather']},
+  {line:"Margaret is Emma's _____.", ans:['grandmother']},
+  {line:"Julia is Noah's _____.", ans:['mother']},
+  {line:"Laura is David's _____.", ans:['sister']},
+  {line:"Noah is Julia's _____.", ans:['son']},
+  {line:"Emma is David's _____.", ans:['daughter']},
+];
+(function(){
+  const wrap = document.getElementById('d2e3');
+  d2e3Sentences.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('_____');
+    div.innerHTML = `<div class="fill-line">${i+1}. ${parts[0]}<input class="fill-input" id="d2e3_${i}" placeholder="...">${parts[1]||''}</div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e3-check').addEventListener('click', () => {
+  let correct = 0;
+  d2e3Sentences.forEach((item, i) => {
+    const inp = document.getElementById('d2e3_' + i);
+    inp.classList.remove('correct','wrong');
+    if (item.ans.map(a=>a.toLowerCase()).includes(inp.value.trim().toLowerCase())) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const r = scoreText(correct, d2e3Sentences.length);
+  showFeedback('d2e3-fb', r.msg, r.type);
+  incrementChecked('d2e3');
+});
+document.getElementById('d2e3-reset').addEventListener('click', () => {
+  d2e3Sentences.forEach((_,i) => { const inp=document.getElementById('d2e3_'+i); inp.value='';inp.className='fill-input'; });
+  document.getElementById('d2e3-fb').className = 'feedback';
+});
+
+// Exercise 4 – Error Correction (Day 2)
+
+// ══════════════════════════════════════════════
+//  DAY 3 – POSSESSIVE ADJECTIVES
+// ══════════════════════════════════════════════
+
+// ── CLICK-TO-FILL ENGINE ──────────────────────
+function buildCTF(cfg) {
+  // cfg: { wrapId, words, rtId, rtHtml (with ___ placeholders), gapAns[], exId, fbId, checkId, resetId }
+  const wrap = document.getElementById(cfg.wrapId);
+
+  // Build reading text WITH clickable gaps inline
+  const rt = document.createElement('div');
+  rt.className = 'reading-text'; rt.id = cfg.rtId;
+
+  // Replace each ___ with a clickable ctf-gap span, in order
+  let gapIndex = 0;
+  const htmlWithGaps = cfg.rtHtml.replace(/___/g, () => {
+    const ans = cfg.gapAns[gapIndex] || '';
+    const span = `<span class="ctf-gap" data-gi="${gapIndex}" data-ans="${ans}"></span>`;
+    gapIndex++;
+    return span;
+  });
+  rt.innerHTML = htmlWithGaps;
+  wrap.appendChild(rt);
+
+  // Word bank (below the text)
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  // State
+  let selected = null;
+
+  // Click chip → select
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) {
+      chip.classList.remove('active'); selected = null;
+      rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  // Click gap → fill or return
+  rt.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+
+    if (gap.textContent && !selected) {
+      // return word to bank
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${returnWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+
+    if (!selected) return;
+
+    // If gap already filled, return old word first
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${oldWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+    }
+
+    gap.textContent = selected.word;
+    gap.dataset.filled   = selected.word;
+    gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active');
+    selected.chipEl.classList.add('used');
+    selected = null;
+    rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+
+  // Check
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    rt.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans    = (gap.dataset.ans  || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else gap.classList.add('wrong-gap');
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+
+  // Reset
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    rt.querySelectorAll('.ctf-gap').forEach(gap => {
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+    });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// Exercise 1 – my / his / their / our
+buildCTF({
+  wrapId: 'd3e1', exId: 'd3e1', fbId: 'd3e1-fb', checkId: 'd3e1-check', resetId: 'd3e1-reset',
+  rtId: 'rt-d3e1',
+  rtHtml: `<button class='listen-btn' onclick="speakEl('rt-d3e1')" title='Listen'>🔊</button>
+Hello! My name is Emma. I am from the US.<br><br>
+This is ___ passport.<br>
+This is my brother Noah. That is ___ phone.<br>
+George and Margaret are my grandparents. These are ___ photos.<br>
+My brother and I have two umbrellas. They are ___ umbrellas.`,
+  words: ['my','his','their','our'],
+  gapAns: ['my','his','their','our'],
+});
+
+// Exercise 2 – my / her / your / its
+buildCTF({
+  wrapId: 'd3e2', exId: 'd3e2', fbId: 'd3e2-fb', checkId: 'd3e2-check', resetId: 'd3e2-reset',
+  rtId: 'rt-d3e2',
+  rtHtml: `<button class='listen-btn' onclick="speakEl('rt-d3e2')" title='Listen'>🔊</button>
+Hello! My name is Lucas.<br>
+This is ___ wallet.<br>
+My friend Emma is from the US. That is ___ passport.<br>
+Is this ___ photo, Emma? Yes, it is!<br>
+Look at this dog. ___ name is Max.`,
+  words: ['my','your','her','its'],
+  gapAns: ['my','her','your','its'],
+});
+
+// Exercise 3 – our / her / his / their
+buildCTF({
+  wrapId: 'd3e3', exId: 'd3e3', fbId: 'd3e3-fb', checkId: 'd3e3-check', resetId: 'd3e3-reset',
+  rtId: 'rt-d3e3',
+  rtHtml: `<button class='listen-btn' onclick="speakEl('rt-d3e3')" title='Listen'>🔊</button>
+Hello! We are Ana and Pedro. This is ___ classroom.<br>
+Our teacher is Emma. That is ___ notebook.<br>
+And this is David. That is ___ phone.<br>
+George and Margaret are together in this photo. These are ___ sunglasses.`,
+  words: ['our','her','his','their'],
+  gapAns: ['our','her','his','their'],
+});
+
+// Exercise 4 – Multiple Choice
+const d3e4Data = [
+  {q:"George and Margaret have a house in the US. ______ house is very big.", opts:['his','their','her'], ans:1},
+  {q:"Emma's passport is from the US. ______ passport is from the US.", opts:['our','her','his'], ans:1},
+  {q:"The dog is very friendly. ______ name is Max.", opts:['its','their','our'], ans:0},
+  {q:"My brother and I have two photos. ______ photos are on the table.", opts:['his','our','their'], ans:1},
+  {q:"David's phone is black. ______ phone is black.", opts:['her','their','his'], ans:2},
+  {q:"Lucas and Ana are friends. ______ teacher is Emma.", opts:['its','our','their'], ans:2},
+  {q:"This is a beautiful cat. ______ name is Luna.", opts:['her','its','his'], ans:1},
+  {q:"Emma and I are in the same classroom. ______ classroom is very big.", opts:['their','our','his'], ans:1},
+  {q:"Meg's car is new and beautiful. ______ car is new and beautiful.", opts:['their','his','her'], ans:2},
+  {q:"Noah's umbrella is blue. ______ umbrella is blue.", opts:['his','our','her'], ans:0},
+];
+buildMC('d3e4', d3e4Data, 'd3e4');
+document.getElementById('d3e4-check').addEventListener('click', () => checkMC(d3e4Data, 'd3e4', 'd3e4-fb', 'd3e4'));
+document.getElementById('d3e4-reset').addEventListener('click', () => resetMC('d3e4', 'd3e4', d3e4Data, 'd3e4-fb'));
+
+// Exercise 5 – Sentence Builder (click chips)
+const d3e5Items = [
+  {words:["My","sister's","name","is","Ana."],   ans:"My sister's name is Ana."},
+  {words:["Her","car","is","blue."],              ans:"Her car is blue."},
+  {words:["Is","it","your","ID","card?"],         ans:"Is it your ID card?"},
+  {words:["Are","you","Bob's","father?"],         ans:"Are you Bob's father?"},
+  {words:["This","is","my","mother."],            ans:"This is my mother."},
+];
+(function buildD3E5(){
+  const wrap = document.getElementById('d3e5');
+  d3e5Items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    // Shuffle words
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = `
+      <div class="sb-label">${i+1}.</div>
+      <div class="sb-words" id="d3e5-words-${i}">
+        ${shuffled.map(w => `<button class="sb-chip" data-word="${w}" data-item="${i}">${w}</button>`).join('')}
+      </div>
+      <div class="sb-label">Your sentence:</div>
+      <div class="sb-zone" id="d3e5-zone-${i}"></div>`;
+    wrap.appendChild(div);
+  });
+
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById('d3e5-words-' + i);
+    const zone  = document.getElementById('d3e5-zone-'  + i);
+    zone.classList.remove('correct-zone','wrong-zone');
+
+    if (chip.parentElement === words) {
+      // move to zone
+      chip.classList.add('in-zone');
+      zone.appendChild(chip);
+    } else {
+      // return to words
+      chip.classList.remove('in-zone');
+      words.appendChild(chip);
+    }
+  });
+})();
+document.getElementById('d3e5-check').addEventListener('click', () => {
+  let correct = 0;
+  d3e5Items.forEach((item, i) => {
+    const zone = document.getElementById('d3e5-zone-' + i);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    if (built.toLowerCase() === item.ans.toLowerCase()) {
+      zone.classList.add('correct-zone'); correct++;
+    } else {
+      zone.classList.add('wrong-zone');
+    }
+  });
+  const r = scoreText(correct, d3e5Items.length);
+  showFeedback('d3e5-fb', r.msg, r.type);
+  incrementChecked('d3e5');
+});
+document.getElementById('d3e5-show').addEventListener('click', () => document.getElementById('d3e5-key').classList.toggle('show'));
+document.getElementById('d3e5-reset').addEventListener('click', () => {
+  d3e5Items.forEach((item, i) => {
+    const zone  = document.getElementById('d3e5-zone-'  + i);
+    const words = document.getElementById('d3e5-words-' + i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+  });
+  document.getElementById('d3e5-fb').className = 'feedback';
+  document.getElementById('d3e5-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 4 – READING + ERROR CORRECTION
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Possessive or Is?
+const d4e1Data = [
+  {s:"David's wife is Julia.", ans:'P'},
+  {s:"Emma's from the US.", ans:'IS'},
+  {s:"George's phone is black.", ans:'P'},
+  {s:"Noah's in the classroom.", ans:'IS'},
+  {s:"Julia's bag is on the table.", ans:'P'},
+  {s:"Laura's from Mexico.", ans:'IS'},
+  {s:"Margaret's husband is George.", ans:'P'},
+  {s:"David's in the living room.", ans:'IS'},
+];
+(function(){
+  const wrap = document.getElementById('d4e1');
+  const sel = {};
+  d4e1Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="d4e1_p_${i}" data-val="P" style="min-width:44px;">P</button><button class="tf-btn f" id="d4e1_is_${i}" data-val="IS" style="min-width:44px;">IS</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const raw = btn.id;
+      const idx = raw.replace('d4e1_p_','').replace('d4e1_is_','');
+      sel[idx] = btn.dataset.val;
+      ['p','is'].forEach(x => { const b=document.getElementById(`d4e1_${x}_${idx}`); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'P' ? 'selected-t' : 'selected-f');
+    });
+  });
+  window._d4e1sel = sel;
+})();
+document.getElementById('d4e1-check').addEventListener('click', () => {
+  let correct = 0;
+  d4e1Data.forEach((item, i) => { if (window._d4e1sel[i] === item.ans) correct++; });
+  const r = scoreText(correct, d4e1Data.length);
+  showFeedback('d4e1-fb', r.msg, r.type);
+  incrementChecked('d4e1');
+});
+document.getElementById('d4e1-reset').addEventListener('click', () => {
+  Object.keys(window._d4e1sel).forEach(k => delete window._d4e1sel[k]);
+  d4e1Data.forEach((_,i) => {
+    ['p','is'].forEach(x => { const b=document.getElementById(`d4e1_${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f'); });
+  });
+  document.getElementById('d4e1-fb').className = 'feedback';
+});
+
+// Exercise 2 – Complete the Sentences (reverse) — item 1 = example
+const d4e2Data = [
+  {line:"Emma is Noah's sister. Noah is _____.", ans:["Emma's brother.","emma's brother."]},
+  {line:"Julia is David's wife. David is _____.", ans:["Julia's husband.","julia's husband."]},
+  {line:"Laura is George's daughter. George is _____.", ans:["Laura's father.","laura's father."]},
+  {line:"Margaret is David's mother. David is _____.", ans:["Margaret's son.","margaret's son."]},
+  {line:"David is Noah's father. Noah is _____.", ans:["David's son.","david's son."]},
+  {line:"Julia is Emma's mother. Emma is _____.", ans:["Julia's daughter.","julia's daughter."]},
+  {line:"George is Margaret's husband. Margaret is _____.", ans:["George's wife.","george's wife."]},
+  {line:"Noah is Julia's son. Julia is _____.", ans:["Noah's mother.","noah's mother."]},
+];
+(function(){
+  const wrap = document.getElementById('d4e2');
+  d4e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('_____');
+    if (i === 0) {
+      // Example item — show answer pre-filled, styled, not editable
+      div.innerHTML = `<div class="fill-line" style="font-size:0.8rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Example</div>
+        <div class="fill-line">${i+1}. ${parts[0]}<span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Emma's brother.</span>${parts[1]||''}</div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i+1}. ${parts[0]}<input class="fill-input" id="d4e2_${i}" placeholder="..." style="min-width:150px;">${parts[1]||''}</div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d4e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d4e2Data.forEach((item, i) => {
+    if (i === 0) return; // skip example
+    const inp = document.getElementById('d4e2_' + i);
+    inp.classList.remove('correct','wrong');
+    const val = inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+    if (item.ans.map(a=>a.toLowerCase()).includes(val)) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const total = d4e2Data.length - 1;
+  const r = scoreText(correct, total);
+  showFeedback('d4e2-fb', r.msg, r.type);
+  incrementChecked('d4e2');
+});
+document.getElementById('d4e2-reset').addEventListener('click', () => {
+  d4e2Data.forEach((_,i) => {
+    if (i === 0) return;
+    const inp=document.getElementById('d4e2_'+i); if(inp){inp.value='';inp.className='fill-input';}
+  });
+  document.getElementById('d4e2-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 5 – WRITING
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Find the Information
+const d5e1Data = [
+  {label:'Name:', id:'d5e1_0', ans:['Emma']},
+  {label:'Country:', id:'d5e1_1', ans:['the US','the us','US']},
+  {label:'Father:', id:'d5e1_2', ans:['David']},
+  {label:'Mother:', id:'d5e1_3', ans:['Julia']},
+  {label:'Brother:', id:'d5e1_4', ans:['Noah']},
+  {label:'Grandfather:', id:'d5e1_5', ans:['George']},
+  {label:'Grandmother:', id:'d5e1_6', ans:['Margaret']},
+  {label:"Colour of David's car:", id:'d5e1_7', ans:['blue']},
+  {label:'Object 1 (Noah):', id:'d5e1_8', ans:['phone']},
+  {label:'Object 2 (Noah):', id:'d5e1_9', ans:['tablet']},
+];
+(function(){
+  const wrap = document.getElementById('d5e1');
+  d5e1Data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = `<div class="fill-line" style="font-weight:600;">${item.label} <input class="fill-input" id="${item.id}" placeholder="..." style="min-width:120px;"></div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5e1-check').addEventListener('click', () => {
+  let correct = 0;
+  d5e1Data.forEach(item => {
+    const inp = document.getElementById(item.id);
+    inp.classList.remove('correct','wrong');
+    if (item.ans.map(a=>a.toLowerCase()).includes(inp.value.trim().toLowerCase())) { inp.classList.add('correct'); correct++; }
+    else inp.classList.add('wrong');
+  });
+  const r = scoreText(correct, d5e1Data.length);
+  showFeedback('d5e1-fb', r.msg, r.type);
+  incrementChecked('d5e1');
+});
+document.getElementById('d5e1-reset').addEventListener('click', () => {
+  d5e1Data.forEach(item => { const inp=document.getElementById(item.id); inp.value='';inp.className='fill-input'; });
+  document.getElementById('d5e1-fb').className = 'feedback';
+});
+
+// Exercise 2 – True or False
+const d5e2TFData = [
+  {s:'Emma is from Mexico.', ans:'F'},
+  {s:'David is Emma\'s father.', ans:'T'},
+  {s:'Noah is Emma\'s brother.', ans:'T'},
+  {s:'George is Emma\'s grandfather.', ans:'T'},
+  {s:"David's car is blue.", ans:'T'},
+];
+const d5e2sel = buildTF('d5e2', d5e2TFData, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkTF(d5e2TFData, d5e2sel, 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetTF(d5e2TFData, d5e2sel, 'd5e2', 'd5e2-fb'));
+
+// Exercise 3 – Answer the Questions about Alice
+(function(){
+  const wrap = document.getElementById('d5e3-questions');
+  const questions = [
+    "1. What is the author's name?",
+    "2. Where is she from?",
+    "3. Who is her mother?",
+    "4. What is her father's name?",
+    "5. What is the dog's name?",
+  ];
+  questions.forEach((q, i) => {
+    const div = document.createElement('div'); div.style.marginBottom = '14px';
+    div.innerHTML = `<div style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:6px;">${q}</div><textarea class="writing-area" id="d5e3_${i}" placeholder="Write your answer here..." rows="2"></textarea>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5-whatsapp').addEventListener('click', () => {
+  const answers = [0,1,2,3,4].map(i => {
+    const el = document.getElementById('d5e3_' + i);
+    return el ? el.value.trim() : '';
+  });
+  const questions = [
+    "1. What is the author's name?",
+    "2. Where is she from?",
+    "3. Who is her mother?",
+    "4. What is her father's name?",
+    "5. What is the dog's name?",
+  ];
+  let msg = `📖 *Unit 4A – Day 5 Answers*\nOlá, Teacher Mari!\n\n`;
+  questions.forEach((q, i) => {
+    msg += `${q}\n${answers[i] || '(sem resposta)'}\n\n`;
+  });
+  msg += `_Enviado pelo exercício semanal Unit 4A_ 🧡`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+  showFeedback('d5e3-fb', '✅ Abrindo o WhatsApp... Boa sorte com suas respostas! 🧡', 'ok');
+  incrementChecked('d5e3');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 6 – LISTENING
+// ══════════════════════════════════════════════
+document.getElementById('transcript1-btn').addEventListener('click', () => {
+  document.getElementById('transcript1').classList.toggle('show');
+});
+
+const d6e1TFData = [
+  {s:"Noah's grandfather is George.", ans:'T'},
+  {s:"Margaret is Noah's mother.", ans:'F'},
+  {s:"Emma is Noah's sister.", ans:'T'},
+  {s:"David is Noah's father.", ans:'T'},
+  {s:"Julia is Noah's grandmother.", ans:'F'},
+];
+const d6e1sel = buildTF('d6e1', d6e1TFData, 'd6e1');
+document.getElementById('d6e1-check').addEventListener('click', () => checkTF(d6e1TFData, d6e1sel, 'd6e1-fb', 'd6e1'));
+document.getElementById('d6e1-reset').addEventListener('click', () => resetTF(d6e1TFData, d6e1sel, 'd6e1', 'd6e1-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 7 – CHALLENGE
+// ══════════════════════════════════════════════
+document.getElementById('challenge-done').addEventListener('click', () => {
+  showFeedback('challenge-fb', '🎉 Incrível! Você está pronto(a) para a aula. Teacher Mari vai adorar sua apresentação! 🧡', 'ok');
+  document.getElementById('weekly-summary').style.display = 'block';
+  document.getElementById('final-score').textContent = totalChecked;
+  incrementChecked('challenge');
+});
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = `🏆 *Unit 4A concluída!*\n\nOlá, Teacher Mari! Terminei todos os exercícios da Unit 4A.\n\nExercícios verificados: ${totalChecked}\n\n_Enviado pelo exercício semanal_ 🧡`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US';
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+function speakEl(id) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Get text only, strip HTML
+  const text = el.innerText.replace(/🔊/g,'').replace(/Transcrição:/,'').trim();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.82;
+  window.speechSynthesis.speak(utter);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = `
+      <button onclick="speakWord('${item.en}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button>
+      <div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div>
+      <div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-family', VOCAB_FAMILY);
+renderVocabGrid('vocab-poss', VOCAB_POSS);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3','d1e4'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3','d3e4','d3e5'],
+  day4: ['d4e1','d4e2'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1'],
+  day7: ['challenge'],
+};
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_unit4a_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_unit4a_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_unit4a_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_unit4a_days', JSON.stringify([...completedDays]));
+        if (day === 'day7' || completedDays.size === 7) setTimeout(() => celebrateWeek(), 400);
+        else setTimeout(() => celebrateDay(), 400);
+      }
+    }
+  }
+}
+function launchConfetti(count = 120, duration = 180) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('🏆 Week complete! You are amazing! 🧡'); }
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+</script>
+</body>
+</html>
