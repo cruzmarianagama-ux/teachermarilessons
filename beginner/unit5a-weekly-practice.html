@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Unit 5A – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position:fixed; inset:0; background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%); display:flex; align-items:center; justify-content:center; z-index:1000; padding:24px; }
+  #welcome-screen.hidden { display:none; }
+  .welcome-card { background:var(--white); border-radius:20px; padding:36px 28px; max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .welcome-logo { height:48px; object-fit:contain; margin-bottom:16px; }
+  .welcome-hi { font-size:1.5rem; font-weight:800; color:var(--purple); margin-bottom:6px; }
+  .welcome-sub { font-size:0.82rem; color:var(--gray); margin-bottom:24px; line-height:1.5; }
+  .welcome-input { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 16px; font-family:'Poppins',sans-serif; font-size:1rem; font-weight:600; color:var(--purple); text-align:center; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
+  .welcome-input:focus { border-color:var(--purple-light); }
+  .welcome-btn { width:100%; padding:13px; background:var(--orange); color:var(--white); border:none; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(255,92,35,0.35); transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18; transform:translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display:none; background:linear-gradient(90deg,var(--orange),#ff8c5a); color:var(--white); text-align:center; padding:12px 16px; font-size:1rem; font-weight:700; letter-spacing:0.2px; }
+  #hello-banner.show { display:block; }
+
+  /* HEADER */
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%); padding:28px 24px 22px; text-align:center; position:relative; overflow:hidden; }
+  .header::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,92,35,0.18); }
+  .header::after  { content:''; position:absolute; bottom:-30px; left:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem; font-weight:800; color:var(--white); letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem; font-weight:500; color:rgba(255,255,255,0.70); margin-top:4px; text-transform:uppercase; letter-spacing:1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background:var(--white); padding:16px 20px; box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600; color:var(--purple); margin-bottom:8px; }
+  .progress-track { height:10px; background:var(--gray-light); border-radius:99px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),#ff8c5a); border-radius:99px; transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655); color:var(--white); text-align:center; padding:10px 16px; font-size:0.82rem; font-weight:500; }
+
+  /* TABS */
+  .tabs-wrap { background:var(--white); overflow-x:auto; border-bottom:2px solid var(--gray-light); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
+  .tabs { display:flex; min-width:max-content; padding:0 8px; }
+  .tab-btn { padding:14px 16px; font-size:0.78rem; font-weight:600; color:var(--gray); background:none; border:none; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; transition:all 0.2s; letter-spacing:0.3px; font-family:'Poppins',sans-serif; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange); border-bottom-color:var(--orange); }
+
+  /* CONTENT */
+  .content { max-width:780px; margin:0 auto; padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  /* DAY HEADER */
+  .day-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+  .day-number { background:var(--orange); color:var(--white); font-size:1.1rem; font-weight:800; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem; font-weight:700; color:var(--purple); }
+  .day-desc  { font-size:0.82rem; color:var(--gray); margin-top:2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background:var(--white); border-radius:var(--radius); padding:22px; margin-bottom:20px; box-shadow:var(--shadow); border-left:4px solid var(--purple-light); }
+  .ex-card.grammar   { border-left-color:var(--orange); }
+  .ex-card.reading   { border-left-color:var(--teal); }
+  .ex-card.writing   { border-left-color:var(--green); }
+  .ex-card.listening { border-left-color:#8b5cf6; }
+  .ex-card.challenge { border-left-color:var(--orange); background:linear-gradient(135deg,#fff8f0,#fff); }
+  .ex-title { font-size:0.98rem; font-weight:700; color:var(--purple); margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem; color:var(--gray); margin-bottom:18px; line-height:1.5; }
+
+  /* WORD BOX */
+  .word-box { background:var(--cream); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem; font-weight:600; color:var(--purple); text-align:center; letter-spacing:0.5px; }
+
+  /* MC */
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem; font-weight:600; color:var(--purple); margin-bottom:10px; line-height:1.5; }
+  .mc-options { display:flex; flex-direction:column; gap:8px; }
+  .mc-option { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--radius-sm); border:2px solid var(--gray-light); cursor:pointer; transition:all 0.2s; font-size:0.85rem; font-weight:500; background:var(--white); font-family:'Poppins',sans-serif; }
+  .mc-option:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.correct  { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .mc-option.wrong    { border-color:var(--red);  background:#fef2f2; color:var(--red);  }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom:14px; }
+  .fill-line { font-size:0.88rem; font-weight:500; color:var(--purple); line-height:2.2; }
+  .fill-input { border:none; border-bottom:2px solid var(--purple-light); padding:2px 6px; font-family:'Poppins',sans-serif; font-size:0.88rem; font-weight:600; color:var(--purple); background:transparent; min-width:90px; max-width:160px; text-align:center; outline:none; transition:border-color 0.2s; display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal); color:var(--teal); }
+  .fill-input.wrong   { border-bottom-color:var(--red);  color:var(--red);  }
+
+  /* MATCHING SELECT */
+  .match-item { margin-bottom:10px; }
+  .match-line { display:flex; align-items:center; gap:10px; font-size:0.88rem; font-weight:500; color:var(--purple); flex-wrap:wrap; }
+  .match-select { border:2px solid var(--gray-light); border-radius:6px; padding:5px 10px; font-family:'Poppins',sans-serif; font-size:0.85rem; font-weight:600; color:var(--purple); outline:none; transition:border-color 0.2s; background:var(--white); }
+  .match-select:focus { border-color:var(--purple-light); }
+  .match-select.correct { border-color:var(--teal); color:var(--teal); background:#f0fdfa; }
+  .match-select.wrong   { border-color:var(--red);  color:var(--red);  background:#fef2f2; }
+
+  /* ERROR CORRECTION */
+  .error-item { margin-bottom:16px; }
+  .error-wrong { background:#fef2f2; border-left:3px solid var(--red); padding:8px 12px; border-radius:0 6px 6px 0; font-size:0.88rem; font-weight:600; color:var(--red); margin-bottom:6px; }
+  .error-label { font-size:0.75rem; color:var(--gray); margin-bottom:4px; font-weight:500; }
+  .error-correct-input { width:100%; border:2px solid var(--gray-light); border-radius:6px; padding:8px 12px; font-family:'Poppins',sans-serif; font-size:0.88rem; color:var(--purple); outline:none; transition:border-color 0.2s; }
+  .error-correct-input:focus { border-color:var(--purple-light); }
+  .error-correct-input.correct { border-color:var(--teal); color:var(--teal); }
+  .error-correct-input.wrong   { border-color:var(--red);  color:var(--red);  }
+
+  /* SENTENCE BUILDER */
+  .sb-item { margin-bottom:10px; }
+  .sb-line { font-size:0.88rem; font-weight:500; color:var(--gray); margin-bottom:4px; }
+
+  /* READING */
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6); border-radius:var(--radius-sm); padding:18px; margin-bottom:18px; font-size:0.9rem; line-height:1.75; color:var(--purple); font-weight:500; border-left:4px solid var(--teal); }
+  .tf-item { margin-bottom:10px; }
+  .tf-line { display:flex; align-items:center; gap:10px; font-size:0.88rem; font-weight:500; color:var(--purple); flex-wrap:wrap; }
+  .tf-btns { display:flex; gap:6px; }
+  .tf-btn { padding:4px 14px; border-radius:99px; border:2px solid var(--gray-light); font-family:'Poppins',sans-serif; font-size:0.80rem; font-weight:700; cursor:pointer; background:var(--white); transition:all 0.2s; }
+  .tf-btn.t:hover { border-color:var(--teal); color:var(--teal); }
+  .tf-btn.f:hover { border-color:var(--red);  color:var(--red);  }
+  .tf-btn.selected-t { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .tf-btn.selected-f { border-color:var(--red);  background:#fef2f2; color:var(--red);  }
+  .tf-btn.correct-t  { border-color:var(--teal); background:var(--teal); color:#fff; }
+  .tf-btn.correct-f  { border-color:var(--red);  background:var(--red);  color:#fff; }
+
+  /* TEXTAREA */
+  .writing-area { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 14px; font-family:'Poppins',sans-serif; font-size:0.88rem; color:var(--purple); resize:vertical; outline:none; min-height:100px; transition:border-color 0.2s; margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; border:none; transition:all 0.2s; text-decoration:none; }
+  .btn-primary   { background:var(--orange); color:var(--white); box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18; transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light); color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp  { background:#25D366; color:var(--white); box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855; transform:translateY(-1px); }
+  .btn-teal { background:var(--teal); color:var(--white); }
+  .btn-teal:hover { background:#0f766e; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+
+  /* FEEDBACK */
+  .feedback { display:none; padding:12px 16px; border-radius:var(--radius-sm); font-size:0.83rem; font-weight:600; margin-top:14px; line-height:1.5; }
+  .feedback.show    { display:block; }
+  .feedback.ok      { background:#f0fdfa; color:var(--teal); border:1px solid #99f6e4; }
+  .feedback.err     { background:#fef2f2; color:var(--red);  border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb; color:#b45309;     border:1px solid #fde68a; }
+
+  /* ANSWER KEY */
+  .answer-key { display:none; background:var(--cream); border-radius:var(--radius-sm); padding:14px 16px; margin-top:14px; font-size:0.82rem; line-height:1.8; color:var(--purple); }
+  .answer-key.show { display:block; }
+  .answer-key strong { color:var(--orange); }
+
+  /* AUDIO */
+  audio { width:100%; border-radius:var(--radius-sm); margin-bottom:12px; }
+  .transcript-box { display:none; background:var(--gray-light); border-radius:var(--radius-sm); padding:14px 16px; margin-top:10px; font-size:0.83rem; color:var(--purple); line-height:1.7; border-left:3px solid #8b5cf6; }
+  .transcript-box.show { display:block; }
+  .dialogue-line { display:flex; align-items:flex-start; gap:8px; padding:7px 0; font-size:0.88rem; font-weight:500; color:var(--purple); border-bottom:1px solid var(--gray-light); flex-wrap:wrap; }
+  .dialogue-line:last-child { border-bottom:none; }
+  .speaker { font-weight:700; color:var(--orange); flex-shrink:0; }
+
+  /* TIP */
+  .tip-box { background:#fffbeb; border-left:4px solid #f59e0b; border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:12px 16px; font-size:0.82rem; color:#92400e; margin-top:12px; line-height:1.6; }
+  .example-box { background:linear-gradient(135deg,var(--cream),#fff5e6); border-radius:var(--radius-sm); padding:16px; margin-top:14px; font-size:0.88rem; line-height:1.8; color:var(--purple); font-weight:500; border:2px dashed var(--orange); }
+  .example-box .ex-label { font-size:0.72rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+
+  /* CHALLENGE */
+  .challenge-icon { font-size:2.5rem; text-align:center; margin-bottom:12px; }
+  .checklist { list-style:none; margin:14px 0; }
+  .checklist li { display:flex; align-items:center; gap:10px; padding:7px 0; font-size:0.88rem; font-weight:500; color:var(--purple); border-bottom:1px solid var(--gray-light); }
+  .checklist li:last-child { border-bottom:none; }
+  .check-icon { color:var(--teal); font-size:1rem; }
+
+  /* SUMMARY */
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light)); border-radius:var(--radius); padding:24px; text-align:center; color:var(--white); margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem; font-weight:800; margin-bottom:6px; }
+  .summary-card p  { font-size:0.82rem; opacity:0.8; margin-bottom:16px; }
+  .score-big { font-size:2.8rem; font-weight:800; color:var(--orange); }
+
+  /* VOCAB / GRAMMAR BANK */
+  .bank-section { margin-bottom:28px; }
+  .bank-title { font-size:0.9rem; font-weight:700; color:var(--purple); margin-bottom:12px; padding-bottom:6px; border-bottom:2px solid var(--gray-light); }
+  .vocab-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .vocab-chip { background:var(--white); border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:10px 12px; text-align:center; font-size:0.82rem; font-weight:600; color:var(--purple); cursor:pointer; transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem; color:var(--gray); font-weight:500; margin-top:2px; }
+  .grammar-table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+  .grammar-table th { background:var(--purple); color:var(--white); padding:8px 12px; text-align:left; font-weight:600; }
+  .grammar-table td { padding:8px 12px; border-bottom:1px solid var(--gray-light); color:var(--purple); font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange); font-weight:700; }
+  .grammar-table .teal   { color:var(--teal); font-weight:700; }
+  .grammar-table .red    { color:var(--red); font-weight:700; }
+
+  /* CONFETTI */
+  #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+
+  /* SENTENCE BUILDER (tap) */
+  .sb-item { margin-bottom:22px; }
+  .sb-number { font-size:0.82rem; font-weight:700; color:var(--purple); margin-bottom:6px; }
+  .sb-drop-zone {
+    min-height:44px; border:2px dashed var(--purple-light); border-radius:var(--radius-sm);
+    padding:8px 10px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px;
+    align-items:center; background:#f5f3ff;
+  }
+  .sb-drop-zone.correct { border-color:var(--teal) !important; background:#f0fdfa; }
+  .sb-drop-zone.wrong   { border-color:var(--red)  !important; background:#fef2f2; }
+  .sb-word-bank { display:flex; flex-wrap:wrap; gap:6px; }
+  .sb-word {
+    padding:7px 13px; border-radius:99px;
+    font-family:'Poppins',sans-serif; font-size:0.83rem; font-weight:600;
+    cursor:pointer; border:2px solid var(--purple-light);
+    background:var(--white); color:var(--purple);
+    transition:all 0.15s; user-select:none; -webkit-user-select:none;
+  }
+  .sb-word:hover, .sb-word:active { background:var(--purple-light); color:#fff; }
+  .sb-word.used { opacity:0.3; pointer-events:none; }
+  .sb-word-placed {
+    padding:7px 13px; border-radius:99px;
+    font-family:'Poppins',sans-serif; font-size:0.83rem; font-weight:600;
+    cursor:pointer; border:2px solid var(--orange);
+    background:var(--orange); color:#fff;
+    transition:all 0.15s; user-select:none; -webkit-user-select:none;
+  }
+  .sb-word-placed:hover, .sb-word-placed:active { background:#e84d18; border-color:#e84d18; }
+
+  /* ODD ONE OUT grid */
+  .ooo-grid { display:flex; flex-wrap:wrap; gap:8px; }
+  .ooo-btn { padding:8px 16px; border-radius:99px; border:2px solid var(--gray-light); font-family:'Poppins',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; background:var(--white); color:var(--purple); transition:all 0.2s; }
+  .ooo-btn:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .ooo-btn.selected { border-color:var(--purple-light); background:#f5f3ff; }
+  .ooo-btn.correct  { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .ooo-btn.wrong    { border-color:var(--red);  background:#fef2f2; color:var(--red);  }
+
+  /* MOBILE */
+  @media (max-width:600px) {
+    .header h1 { font-size:1.1rem; }
+    .header { padding:20px 16px 16px; }
+    .content { padding:14px 10px 50px; }
+    .ex-card { padding:14px 12px; }
+    .day-header { gap:10px; margin-bottom:16px; }
+    .day-number { width:42px; height:42px; font-size:0.95rem; }
+    .day-title { font-size:1rem; }
+    .tab-btn { padding:12px 10px; font-size:0.72rem; }
+    .mc-option { font-size:0.82rem; padding:8px 10px; }
+    .btn { font-size:0.78rem; padding:9px 16px; }
+    .btn-row { gap:8px; }
+    .fill-input { min-width:70px; max-width:120px; font-size:0.82rem; }
+    .grammar-table { font-size:0.75rem; }
+    .grammar-table th, .grammar-table td { padding:6px 8px; }
+    .vocab-grid { grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; }
+    .vocab-chip { padding:8px 8px; font-size:0.78rem; }
+    .reading-text { font-size:0.85rem; padding:14px; }
+    .tf-line { font-size:0.82rem; }
+    .writing-area { font-size:0.85rem; }
+    .example-box { font-size:0.82rem; padding:12px; }
+    .summary-card { padding:18px; }
+    .score-big { font-size:2.2rem; }
+    .progress-section { padding:12px 14px; }
+    audio { border-radius:6px; }
+    .transcript-box { font-size:0.78rem; }
+    .tip-box { font-size:0.78rem; }
+    .ooo-btn { font-size:0.78rem; padding:6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly practice<br><strong>Unit 5A – Beginner</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Digite seu nome..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:60px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Unit 5A – Weekly Practice</h1>
+      <div class="subtitle">Beginner · My favourite meal</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Progresso da semana</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar">
+  🌟 <span id="motivation-text">Carregando motivação do dia...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">🔁 Day 1</button>
+    <button class="tab-btn" data-tab="day2">🍎 Day 2</button>
+    <button class="tab-btn" data-tab="day3">✏️ Day 3</button>
+    <button class="tab-btn" data-tab="day4">💬 Day 4</button>
+    <button class="tab-btn" data-tab="day5">📖 Day 5</button>
+    <button class="tab-btn" data-tab="day6">🎧 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🚀 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ DAY 1 – REVIEW ═══════════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Review</div>
+      <div class="day-desc">Units 1–4 · Verb be · Possessives · Plurals · Question words</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Multiple Choice -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Multiple Choice</div>
+    <div class="ex-instruction">Choose the correct answer. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a resposta correta.</span></div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Error Correction -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Error Correction</div>
+    <div class="ex-instruction">Find and correct the mistake in each sentence. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Encontre e corrija o erro em cada frase.</span></div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e2-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+    <div class="answer-key" id="d1e2-key">
+      <strong>Gabarito:</strong><br>
+      1. You <strong>are</strong> from Brazil.<br>
+      2. She <strong>is</strong> from Spain.<br>
+      3. These <strong>are</strong> my glasses.<br>
+      4. My mother<strong>'s</strong> name is Ana.
+    </div>
+  </div>
+
+  <!-- EX 3 – Reading True/False -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Reading: True or False?</div>
+    <div class="ex-instruction">Read the text and choose True or False. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto e escolha Verdadeiro ou Falso.</span></div>
+    <div class="reading-text" id="reading-d1e3">
+      Hello! My name is Sarah. This is my family. My father's name is David and my mother's name is Emma.
+      My brother's room is small, but it is very clean. My room is big and beautiful.
+      David's car is blue and Emma's car is red. We have two dogs. Their names are Max and Toby. They are very friendly.
+    </div>
+    <div class="btn-row" style="margin-bottom:4px;">
+      <button class="btn btn-teal" onclick="readText('reading-d1e3',this)">🔊 Listen to the text</button>
+    </div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Complete the Questions -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 4 – Complete the Questions</div>
+    <div class="ex-instruction">Complete with: <strong>What – Where – Who – How – How old – When – How much</strong> <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete com as palavras interrogativas.</span></div>
+    <div id="d1e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e4-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e4-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d1e4-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e4-fb"></div>
+    <div class="answer-key" id="d1e4-key">
+      <strong>Gabarito:</strong><br>
+      1. <strong>Where</strong> are your parents from? — They're from Spain.<br>
+      2. <strong>Who</strong> is your best friend? — My best friend is Lucas.<br>
+      3. <strong>What</strong> day is it today? — It's Thursday.<br>
+      4. <strong>How</strong> are you? — I'm fine, thanks.<br>
+      5. <strong>When</strong> is your English lesson? — It's on Tuesday.<br>
+      6. <strong>How old</strong> are you? — I'm 32.<br>
+      7. <strong>How much</strong> is the orange juice? — It's £2.50.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 2 – VOCABULARY ═══════════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Vocabulary</div>
+      <div class="day-desc">Food & Drink · Matching · Categories · Odd One Out</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Match -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Match the Words</div>
+    <div class="ex-instruction">Match each food or drink to the correct emoji. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Conecte cada palavra ao emoji correto.</span></div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Food or Drink -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Food or Drink?</div>
+    <div class="ex-instruction">Choose Food or Drink for each item. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha Comida ou Bebida para cada item.</span></div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Odd One Out -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Odd One Out</div>
+    <div class="ex-instruction">Choose the word that is <strong>different</strong>. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a palavra diferente em cada grupo.</span></div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e3-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d2e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+    <div class="answer-key" id="d2e3-key">
+      <strong>Gabarito:</strong><br>
+      1. <strong>bread</strong> — The others are drinks.<br>
+      2. <strong>water</strong> — The others are food.<br>
+      3. <strong>chocolate</strong> — The others are drinks.<br>
+      4. <strong>wine</strong> — The others are food.<br>
+      5. <strong>beer</strong> — The others are food.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 3 – GRAMMAR ═══════════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Grammar</div>
+      <div class="day-desc">Present Simple (+/−) · I, you, we, they · eat / drink / have</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Multiple Choice</div>
+    <div class="ex-instruction">Choose the correct answer. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a resposta correta.</span></div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Breakfast/Lunch/Dinner -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Breakfast, Lunch or Dinner?</div>
+    <div class="ex-instruction">Choose B (Breakfast), L (Lunch) or D (Dinner). <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha B (café da manhã), L (almoço) ou D (jantar).</span></div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e2-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+    <div class="answer-key" id="d3e2-key">
+      <strong>Gabarito:</strong><br>
+      1. B &nbsp;2. L/D &nbsp;3. L/D &nbsp;4. B &nbsp;5. L/D &nbsp;6. B
+    </div>
+  </div>
+
+  <!-- EX 3 – Sentence Builder (tap to build) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Sentence Builder</div>
+    <div class="ex-instruction">Tap the words in the correct order to build the sentence. Tap a word in your sentence to remove it. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Toque nas palavras na ordem correta para montar a frase. Toque em uma palavra na frase para removê-la.</span></div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Complete (+/−) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Complete the Sentences</div>
+    <div class="ex-instruction">Complete with the + or − form of the verb in brackets. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete com a forma afirmativa (+) ou negativa (−) do verbo.</span></div>
+    <div id="d3e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e4-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e4-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d3e4-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e4-fb"></div>
+    <div class="answer-key" id="d3e4-key">
+      <strong>Gabarito:</strong><br>
+      1. My friends <strong>don't eat</strong> healthy food.<br>
+      2. I <strong>don't have</strong> breakfast at home.<br>
+      3. You <strong>drink</strong> a lot of water.<br>
+      4. I <strong>like</strong> fish.<br>
+      5. I <strong>don't drink</strong> coffee in the afternoon.<br>
+      6. We <strong>have</strong> a salad for lunch.<br>
+      7. I <strong>don't like</strong> it.<br>
+      8. My children <strong>eat</strong> a lot of fruit.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 4 – LANGUAGE IN USE ═══════════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Language in Use</div>
+      <div class="day-desc">Conversation · Best answers · Restaurant order</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Complete the Conversation -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete the Conversation</div>
+    <div class="ex-instruction">Use the words in the box to complete the dialogue. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Use as palavras do quadro para completar o diálogo.</span></div>
+    <div class="word-box">coffee &nbsp;·&nbsp; bread &nbsp;·&nbsp; drink &nbsp;·&nbsp; lunch &nbsp;·&nbsp; don't</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d4e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Choose the Best Answer -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Choose the Best Answer</div>
+    <div class="ex-instruction">Choose the most appropriate response. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a resposta mais adequada.</span></div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d4e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Restaurant Order -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Complete the Restaurant Order</div>
+    <div class="ex-instruction">Complete with the words in the box. More than one answer is possible! <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete com as palavras do quadro. Mais de uma resposta é possível!</span></div>
+    <div class="word-box">sandwich &nbsp;·&nbsp; salad &nbsp;·&nbsp; coffee &nbsp;·&nbsp; tea &nbsp;·&nbsp; orange juice</div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d4e3-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d4e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+    <div class="answer-key" id="d4e3-key">
+      <strong>Gabarito (possíveis combinações):</strong><br>
+      sandwich + coffee / sandwich + tea / sandwich + orange juice<br>
+      salad + coffee / salad + tea / salad + orange juice
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 5 – READING ═══════════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Reading</div>
+      <div class="day-desc">Emma's meals · Find the information</div>
+    </div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read the Text</div>
+    <div class="ex-instruction">Read Emma's text and answer the questions below. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto e responda às perguntas.</span></div>
+    <div class="reading-text" id="reading-d5e1">
+      Hello, my name is Emma and I am from Mexico. I live in Mexico with my parents and we have breakfast together every day.
+      My mom and dad always have coffee for breakfast, but I don't like coffee, so I never have coffee. I usually have milk, chocolate, or cereal with fruit. My mom and dad eat fruit too, but they don't eat fruit in their cereal.
+      For lunch, we all have the same thing: rice, salad, vegetables, and meat. On Saturdays, we usually have fish for lunch. My mom and dad don't drink water with lunch, but I love water.
+      For dinner, my parents usually have dinner together at home, and I have dinner at college. I have a sandwich and juice or water.
+      My favourite food is chocolate, but I don't eat chocolate every day. My favourite drink is water.
+    </div>
+    <div class="btn-row" style="margin-bottom:4px;">
+      <button class="btn btn-teal" onclick="readText('reading-d5e1',this)">🔊 Listen to the text</button>
+    </div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d5e1-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d5e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+    <div class="answer-key" id="d5e1-key">
+      <strong>Gabarito:</strong><br>
+      Country: <strong>Mexico</strong><br>
+      People: <strong>Her parents</strong><br>
+      Breakfast drink (Emma): <strong>Milk</strong><br>
+      Breakfast drink (parents): <strong>Coffee</strong><br>
+      Lunch drink (Emma): <strong>Water</strong><br>
+      Saturday food: <strong>Fish</strong><br>
+      Dinner (Emma): <strong>A sandwich</strong><br>
+      Favourite food: <strong>Chocolate</strong><br>
+      Favourite drink: <strong>Water</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 6 – LISTENING & WRITING ═══════════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Listening &amp; Writing</div>
+      <div class="day-desc">Breakfasts around the world · and / but / or</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Listening -->
+  <div class="ex-card listening">
+    <div class="ex-title">Exercise 1 – Listening</div>
+    <div class="ex-instruction">Listen to the audio. Match each person to the correct breakfast (use the image). <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Ouça o áudio. Conecte cada pessoa ao café da manhã correto (use a imagem).</span></div>
+    <audio controls>
+      <source src="https://raw.githubusercontent.com/cruzmarianagama-ux/audiosbeginnerweeklyplans/main/beg%205a%20audio%20exercise%201.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/imagesbeginnerweeklyplan/main/beg%205a%20image%20listening%20exe%201.png" alt="Breakfast options" style="width:100%;max-width:100%;border-radius:8px;margin-bottom:14px;" onerror="this.style.display='none'"/>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-teal" id="transcript-btn">📄 Ver transcrição</button>
+    </div>
+    <div class="transcript-box" id="transcript-box">
+      <strong>Transcrição:</strong><br><br>
+      <strong style="color:var(--orange);">Nadine, France</strong><br>
+      I have breakfast in a great café near my office. I have a croissant and coffee – an espresso with hot milk. Mmmm. I love breakfast! It's my favourite meal.<br><br>
+      <strong style="color:var(--orange);">Pablo, Argentina</strong><br>
+      I have breakfast at home, but I don't have a big breakfast. I have fruit and yogurt, and sometimes toast. It's a healthy breakfast. That's a good thing at the beginning of the day.<br><br>
+      <strong style="color:var(--orange);">Rob, UK</strong><br>
+      I don't eat in the morning – I'm not hungry. I just have a coffee at work. But I have lunch early, at about 12.30.<br><br>
+      <strong style="color:var(--orange);">Sakura, Japan</strong><br>
+      I really like breakfast. It's an important meal for Japanese people. I have breakfast at home with my family. We have a traditional breakfast. It isn't very different from lunch and dinner. We have rice, fish, and miso soup and we drink green tea. We don't drink a lot of coffee in my family.
+    </div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d6e1-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d6e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+    <div class="answer-key" id="d6e1-key">
+      <strong>Gabarito:</strong><br>
+      Nadine → Breakfast <strong>2</strong><br>
+      Pablo → Breakfast <strong>3</strong><br>
+      Rob → Breakfast <strong>1</strong><br>
+      Sakura → Breakfast <strong>5</strong>
+    </div>
+  </div>
+
+  <!-- EX 2 – Read Marcos's Comment -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Read Marcos's Comment</div>
+    <div class="ex-instruction">Read the text below. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto abaixo.</span></div>
+    <div class="reading-text" id="reading-d6e2">
+      <strong>TODAY'S QUESTION:</strong> Is breakfast important for you? What do you have? Where do you have it?<br><br>
+      <strong style="color:var(--orange);">Marcos, Cuenca, Spain</strong><br>
+      Breakfast is very important for me! I have fruit, usually an orange or an apple. Then I have bread with butter and jam and a cup of coffee. I usually have breakfast at home, but at the weekend I have it in a bar near my house. I think my breakfast is very healthy.
+    </div>
+    <div class="btn-row" style="margin-bottom:4px;">
+      <button class="btn btn-teal" onclick="readText('reading-d6e2',this)">🔊 Listen to the text</button>
+    </div>
+  </div>
+
+  <!-- EX 3 – and / but / or -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete with <em>and</em>, <em>or</em>, or <em>but</em></div>
+    <div class="ex-instruction">Choose the correct connector. <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha o conector correto.</span></div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d6e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Write About Your Breakfast -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Write About Your Breakfast</div>
+    <div class="ex-instruction">Answer the questions and write a short comment. Use <em>and</em>, <em>but</em>, and <em>or</em>. Then send it to Teacher Mari! <br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Responda às perguntas e escreva um comentário curto. Use <em>and</em>, <em>but</em> e <em>or</em>. Depois envie para a Teacher Mari!</span></div>
+    <div class="tip-box" style="margin-bottom:14px;">
+      💡 <strong>Guide:</strong> Is breakfast important for you? · What do you have? · Where do you have breakfast? · Is your breakfast healthy?
+    </div>
+    <textarea class="writing-area" id="d6e4-text" placeholder="Write here... / Escreva aqui..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d6-whatsapp">📲 Enviar para Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d6e4-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 7 – CHALLENGE ═══════════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">🚀 Challenge</div>
+      <div class="day-desc">Breakfast Expert – speak for 30–60 seconds!</div>
+    </div>
+  </div>
+  <div class="ex-card challenge">
+    <div class="challenge-icon">🍳</div>
+    <div class="ex-title" style="text-align:center;font-size:1.1rem;">Breakfast Expert</div>
+    <div class="ex-instruction" style="text-align:center;margin-top:6px;">Prepare a short talk about your breakfast and present it at the beginning of your next live lesson. Try to speak for 30–60 seconds!</div>
+    <ul class="checklist">
+      <li><span class="check-icon">✔</span> Is breakfast important for you?</li>
+      <li><span class="check-icon">✔</span> What do you have for breakfast?</li>
+      <li><span class="check-icon">✔</span> What do you drink?</li>
+      <li><span class="check-icon">✔</span> Where do you have breakfast?</li>
+      <li><span class="check-icon">✔</span> Is your breakfast healthy?</li>
+    </ul>
+    <div class="example-box">
+      <div class="ex-label">✨ Exemplo</div>
+      Breakfast is very important for me!<br>
+      I usually have bread and cheese and I drink coffee.<br>
+      I have breakfast at home.<br>
+      I think my breakfast is healthy, but I don't eat fruit every day.
+    </div>
+    <div class="tip-box" style="margin-top:16px;">
+      💡 <strong>Dica:</strong> Pratique em voz alta antes da aula! Use <em>and</em>, <em>but</em> e <em>or</em> para conectar suas ideias. Você consegue! 🏆
+    </div>
+    <div class="btn-row" style="margin-top:18px;justify-content:center;">
+      <button class="btn btn-primary" id="challenge-done">🎉 Estou pronto(a)!</button>
+    </div>
+    <div class="feedback" id="challenge-fb"></div>
+  </div>
+
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Semana concluída!</h3>
+    <p>Você completou a Unit 5A. Incrível!</p>
+    <div class="score-big" id="final-score">0</div>
+    <p style="margin-top:4px;">exercícios verificados</p>
+    <button class="btn btn-whatsapp" id="summary-whatsapp" style="margin-top:16px;">📲 Avisar a Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ═══════════════ VOCAB BANK ═══════════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number">🔤</div>
+    <div>
+      <div class="day-title">Vocab Bank</div>
+      <div class="day-desc">Food · Drink · Meals · Connectors</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🍽️ Food</div>
+    <div class="vocab-grid" id="vocab-food"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🥤 Drink</div>
+    <div class="vocab-grid" id="vocab-drink"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🕐 Meals</div>
+    <div class="vocab-grid" id="vocab-meals"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🔗 Connectors</div>
+    <div class="vocab-grid" id="vocab-connectors"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ GRAMMAR BANK ═══════════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Present Simple (+/−) · I, you, we, they</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Present Simple – Affirmative (+)</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Verb</th><th>Example</th></tr>
+      <tr><td>I</td><td class="orange">eat / drink / like / have</td><td>I <span class="orange">eat</span> rice for lunch.</td></tr>
+      <tr><td>You</td><td class="orange">eat / drink / like / have</td><td>You <span class="orange">drink</span> coffee.</td></tr>
+      <tr><td>We</td><td class="orange">eat / drink / like / have</td><td>We <span class="orange">have</span> fish on Saturdays.</td></tr>
+      <tr><td>They</td><td class="orange">eat / drink / like / have</td><td>They <span class="orange">like</span> salad.</td></tr>
+    </table>
+    <div class="tip-box">💡 Com I, you, we e they o verbo não muda! Sem -s.</div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Present Simple – Negative (−)</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Auxiliary</th><th>Example</th></tr>
+      <tr><td>I</td><td class="red">don't</td><td>I <span class="red">don't</span> eat meat.</td></tr>
+      <tr><td>You</td><td class="red">don't</td><td>You <span class="red">don't</span> drink beer.</td></tr>
+      <tr><td>We</td><td class="red">don't</td><td>We <span class="red">don't</span> like coffee.</td></tr>
+      <tr><td>They</td><td class="red">don't</td><td>They <span class="red">don't</span> have fish.</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>don't</strong> = do not. Use com I, you, we, they para a forma negativa.</div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Connectors</div>
+    <table class="grammar-table">
+      <tr><th>Word</th><th>Use</th><th>Example</th></tr>
+      <tr><td class="orange">and</td><td>addition (adição)</td><td>I have bread <span class="orange">and</span> cheese.</td></tr>
+      <tr><td class="orange">but</td><td>contrast (contraste)</td><td>I like coffee, <span class="orange">but</span> I don't drink it every day.</td></tr>
+      <tr><td class="orange">or</td><td>choice (escolha)</td><td>Do you want tea <span class="orange">or</span> coffee?</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════
+const STUDENT_KEY = 'teachermari_unit5a_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const b = document.getElementById('hello-banner');
+  b.textContent = `Hello, ${studentName}! 👋 Let's practise and improve! 🧡`;
+  b.classList.add('show');
+}
+if (studentName) startSession(studentName);
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const v = document.getElementById('student-name-input').value.trim();
+  if (!v) { document.getElementById('student-name-input').style.borderColor='var(--red)'; return; }
+  startSession(v);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('welcome-start-btn').click(); });
+document.getElementById('student-name-input').addEventListener('input', () => { document.getElementById('student-name-input').style.borderColor=''; });
+
+// ══════════════════════════════════════════
+//  PROGRESS & STORAGE
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_unit5a';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++; state.totalChecked = totalChecked; saveState();
+  updateProgress(); if (exId) markExerciseDone(exId);
+}
+const TOTAL_EX = 18;
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EX) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// MOTIVATION
+const MOTIVATIONS = [
+  "You can do it! Every day is a new chance to learn. 💪",
+  "Let's go! You are doing amazing! 🚀",
+  "I believe in you! Keep going! 🧡",
+  "Great job! Small steps make big progress. ⭐",
+  "Don't give up! Practice makes perfect. 🎯",
+  "You've got this! Teacher Mari is proud of you. 🏆",
+  "Every word you learn is a win. Well done! 🌟"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg:`✅ Perfeito! Você acertou todos os ${total} itens! 🎉`, type:'ok' };
+  if (correct >= total * 0.7) return { msg:`🌟 Muito bem! ${correct}/${total} corretos. Revise os erros!`, type:'partial' };
+  return { msg:`💪 ${correct}/${total} corretos. Continue praticando — você vai conseguir!`, type:'err' };
+}
+function buildMC(wrap, data, prefix) {
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    const qHtml = item.q.replace(/\n/g,'<br>');
+    div.innerHTML = `<div class="mc-question">${i+1}. ${qHtml}</div><div class="mc-options">`
+      + item.opts.map((o,j)=>`<label class="mc-option" data-g="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('')
+      + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-g="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++; else opts[item.ans].classList.add('correct');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(wrap, fbId) {
+  wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  wrap.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════════════════════
+//  DAY 1
+// ══════════════════════════════════════════
+
+// D1 E1 – Multiple Choice Review
+const d1e1Data = [
+  {q:"A: Hello! My name is Emma. What's your name?\nB: Hi Emma! _____ Lucas.", opts:['You are','I\'m','He is'], ans:1},
+  {q:'A: Where is Anna from?\nB: _____ from Switzerland.', opts:["She's","He's","They're"], ans:0},
+  {q:'A: Are you and your friend from Brazil?\nB: No, _____ from Mexico.', opts:['I am','she is','we\'re'], ans:2},
+  {q:'A: What day is it today?\nB: _____ Wednesday.', opts:['They are','This is','It\'s'], ans:2},
+  {q:"A: Excuse me. _____ your passport?\nB: It's in my bag.", opts:['Who is','What is','Where is'], ans:2},
+  {q:'A: Look! _____ my new sunglasses.', opts:['This is','These are','Those is'], ans:1},
+  {q:"A: Is your hotel room big?\nB: No, it isn't. It's _____.", opts:['beautiful','small','old'], ans:1},
+  {q:'A: Who is she?\nB: She\'s _____ sister.', opts:['I','me','my'], ans:2},
+  {q:"A: What colour is Emma's car?\nB: _____ car is red.", opts:['He','Her','She'], ans:1},
+  {q:'A: Which sentence is correct?', opts:['My brother are from Spain.','My brother from Spain.','My brother is from Spain.'], ans:2},
+  {q:'A: What are these?\nB: They\'re _____.', opts:['key','keys','keyses'], ans:1},
+  {q:"A: Is that your watch?\nB: Yes, _____.", opts:['that is','it is','it\'s'], ans:1},
+  {q:"A: Who are they?\nB: They're my _____.", opts:['friend','friends','friend\'s'], ans:1},
+  {q:"A: Is your phone old?\nB: No, it isn't. It's _____.", opts:['ugly','clean','new'], ans:2},
+  {q:'A: Where are your parents from?\nB: _____ from England.', opts:['We are','You are','They are'], ans:2},
+];
+(function(){ buildMC(document.getElementById('d1e1'), d1e1Data, 'r1e1'); })();
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data,'r1e1','d1e1-fb','d1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC(document.getElementById('d1e1'),'d1e1-fb'));
+
+// D1 E2 – Error Correction
+const d1e2Data = [
+  {wrong:'You is from Brazil.',    ans:'you are from brazil.'},
+  {wrong:'She are from Spain.',    ans:'she is from spain.'},
+  {wrong:'These is my glasses.',   ans:'these are my glasses.'},
+  {wrong:"My mother name is Ana.", ans:"my mother's name is ana."},
+];
+(function(){
+  const wrap = document.getElementById('d1e2');
+  d1e2Data.forEach((item,i) => {
+    const div = document.createElement('div'); div.className = 'error-item';
+    div.innerHTML = `<div class="error-wrong">${item.wrong}</div><div class="error-label">Escreva a frase correta:</div><input class="error-correct-input" id="d1e2_${i}" placeholder="..."/>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d1e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d1e2Data.forEach((item,i) => {
+    const inp = document.getElementById('d1e2_'+i);
+    inp.classList.remove('correct','wrong');
+    if(inp.value.trim().toLowerCase().replace(/\s+/g,' ')===item.ans){inp.classList.add('correct');correct++;}
+    else inp.classList.add('wrong');
+  });
+  const r=scoreText(correct,d1e2Data.length); showFeedback('d1e2-fb',r.msg,r.type); incrementChecked('d1e2');
+});
+document.getElementById('d1e2-show').addEventListener('click',()=>document.getElementById('d1e2-key').classList.toggle('show'));
+document.getElementById('d1e2-reset').addEventListener('click',()=>{
+  d1e2Data.forEach((_,i)=>{const inp=document.getElementById('d1e2_'+i);inp.value='';inp.className='error-correct-input';});
+  document.getElementById('d1e2-fb').className='feedback';
+  document.getElementById('d1e2-key').classList.remove('show');
+});
+
+// D1 E3 – True / False
+const d1e3Data = [
+  {s:"Her brother's room is big.", ans:'F'},
+  {s:"Sarah's room is beautiful.", ans:'T'},
+  {s:"David is Sarah's father.", ans:'T'},
+  {s:"Emma's car is blue.", ans:'F'},
+  {s:'Max and Toby are dogs.', ans:'T'},
+  {s:'Sarah has one dog.', ans:'F'},
+  {s:"David's car is blue.", ans:'T'},
+  {s:"Her brother's room is clean.", ans:'T'},
+];
+(function(){
+  const wrap=document.getElementById('d1e3');
+  const sel={};
+  d1e3Data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='tf-item';
+    div.innerHTML=`<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="d1e3t_${i}">T</button><button class="tf-btn f" id="d1e3f_${i}">F</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const raw=btn.id; const i=raw.replace('d1e3t_','').replace('d1e3f_',''); const v=raw.includes('t_')?'T':'F';
+      sel[i]=v;
+      ['d1e3t_','d1e3f_'].forEach(p=>{const b=document.getElementById(p+i);if(b)b.classList.remove('selected-t','selected-f');});
+      btn.classList.add(v==='T'?'selected-t':'selected-f');
+    });
+  });
+  document.getElementById('d1e3-check').addEventListener('click',()=>{
+    let c=0; d1e3Data.forEach((_,i)=>{if(sel[i]===d1e3Data[i].ans)c++;});
+    const r=scoreText(c,d1e3Data.length); showFeedback('d1e3-fb',r.msg,r.type); incrementChecked('d1e3');
+  });
+  document.getElementById('d1e3-reset').addEventListener('click',()=>{
+    Object.keys(sel).forEach(k=>delete sel[k]);
+    wrap.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('selected-t','selected-f'));
+    document.getElementById('d1e3-fb').className='feedback';
+  });
+})();
+
+// D1 E4 – Complete the Questions
+const d1e4Data = [
+  {line:'___ are your parents from?  — They\'re from Spain.', ans:['where']},
+  {line:'___ is your best friend?  — My best friend is Lucas.', ans:['who']},
+  {line:'___ day is it today?  — It\'s Thursday.', ans:['what']},
+  {line:'___ are you?  — I\'m fine, thanks.', ans:['how']},
+  {line:'___ is your English lesson?  — It\'s on Tuesday.', ans:['when']},
+  {line:'___ are you?  — I\'m 32.', ans:['how old']},
+  {line:'___ is the orange juice?  — It\'s £2.50.', ans:['how much']},
+];
+(function(){
+  const wrap=document.getElementById('d1e4');
+  d1e4Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='fill-item';
+    const parts=item.line.split('___');
+    div.innerHTML=`<div class="fill-line">${i+1}. <input class="fill-input" id="d1e4_${i}" placeholder="..." style="min-width:90px;">${parts[1]||''}</div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d1e4-check').addEventListener('click',()=>{
+  let c=0;
+  d1e4Data.forEach((item,i)=>{
+    const inp=document.getElementById('d1e4_'+i); inp.classList.remove('correct','wrong');
+    if(item.ans.includes(inp.value.trim().toLowerCase())){inp.classList.add('correct');c++;}
+    else inp.classList.add('wrong');
+  });
+  const r=scoreText(c,d1e4Data.length); showFeedback('d1e4-fb',r.msg,r.type); incrementChecked('d1e4');
+});
+document.getElementById('d1e4-show').addEventListener('click',()=>document.getElementById('d1e4-key').classList.toggle('show'));
+document.getElementById('d1e4-reset').addEventListener('click',()=>{
+  d1e4Data.forEach((_,i)=>{const inp=document.getElementById('d1e4_'+i);inp.value='';inp.className='fill-input';});
+  document.getElementById('d1e4-fb').className='feedback';
+  document.getElementById('d1e4-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  DAY 2
+// ══════════════════════════════════════════
+
+// D2 E1 – Match food/drink to emoji
+const d2e1Data = [
+  {word:'Fish',    ans:'b', emoji:'🐟'},
+  {word:'Bread',   ans:'f', emoji:'🍞'},
+  {word:'Coffee',  ans:'e', emoji:'☕'},
+  {word:'Cheese',  ans:'h', emoji:'🧀'},
+  {word:'Water',   ans:'i', emoji:'💧'},
+  {word:'Rice',    ans:'j', emoji:'🍚'},
+  {word:'Tea',     ans:'g', emoji:'🫖'},
+  {word:'Chocolate', ans:'d', emoji:'🍫'},
+  {word:'Milk',    ans:'a', emoji:'🥛'},
+  {word:'Salad',   ans:'c', emoji:'🥗'},
+];
+const d2e1Options = [
+  {val:'a',label:'a) 🥛'},{val:'b',label:'b) 🐟'},{val:'c',label:'c) 🥗'},{val:'d',label:'d) 🍫'},
+  {val:'e',label:'e) ☕'},{val:'f',label:'f) 🍞'},{val:'g',label:'g) 🫖'},{val:'h',label:'h) 🧀'},
+  {val:'i',label:'i) 💧'},{val:'j',label:'j) 🍚'},
+];
+(function(){
+  const wrap=document.getElementById('d2e1');
+  d2e1Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='match-item';
+    div.innerHTML=`<div class="match-line">${i+1}. <strong>${item.word}</strong>
+      <select class="match-select" id="d2e1_${i}">
+        <option value="">—</option>
+        ${d2e1Options.map(o=>`<option value="${o.val}">${o.label}</option>`).join('')}
+      </select>
+    </div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e1-check').addEventListener('click',()=>{
+  let c=0;
+  d2e1Data.forEach((item,i)=>{
+    const sel=document.getElementById('d2e1_'+i); sel.classList.remove('correct','wrong');
+    if(sel.value===item.ans){sel.classList.add('correct');c++;}
+    else sel.classList.add('wrong');
+  });
+  const r=scoreText(c,d2e1Data.length); showFeedback('d2e1-fb',r.msg,r.type); incrementChecked('d2e1');
+});
+document.getElementById('d2e1-reset').addEventListener('click',()=>{
+  d2e1Data.forEach((_,i)=>{const s=document.getElementById('d2e1_'+i);s.value='';s.className='match-select';});
+  document.getElementById('d2e1-fb').className='feedback';
+});
+
+// D2 E2 – Food or Drink?
+const d2e2Data = [
+  {word:'Orange juice', ans:'D'},
+  {word:'Pasta', ans:'F'},
+  {word:'Tea', ans:'D'},
+  {word:'Bread', ans:'F'},
+  {word:'Water', ans:'D'},
+  {word:'Cheese', ans:'F'},
+  {word:'Coffee', ans:'D'},
+  {word:'Rice', ans:'F'},
+  {word:'Milk', ans:'D'},
+  {word:'Chocolate', ans:'F'},
+];
+(function(){
+  const wrap=document.getElementById('d2e2');
+  const sel2={};
+  d2e2Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='tf-item';
+    div.innerHTML=`<div class="tf-line">${i+1}. <strong>${item.word}</strong>
+      <div class="tf-btns">
+        <button class="tf-btn t" id="d2e2f_${i}" style="min-width:56px;">🍽 Food</button>
+        <button class="tf-btn f" id="d2e2d_${i}" style="min-width:56px;">🥤 Drink</button>
+      </div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const raw=btn.id; const i=raw.replace('d2e2f_','').replace('d2e2d_',''); const v=raw.includes('f_')?'F':'D';
+      sel2[i]=v;
+      ['d2e2f_','d2e2d_'].forEach(p=>{const b=document.getElementById(p+i);if(b)b.classList.remove('selected-t','selected-f');});
+      btn.classList.add(v==='F'?'selected-t':'selected-f');
+    });
+  });
+  document.getElementById('d2e2-check').addEventListener('click',()=>{
+    let c=0; d2e2Data.forEach((_,i)=>{if(sel2[i]===d2e2Data[i].ans)c++;});
+    const r=scoreText(c,d2e2Data.length); showFeedback('d2e2-fb',r.msg,r.type); incrementChecked('d2e2');
+  });
+  document.getElementById('d2e2-reset').addEventListener('click',()=>{
+    Object.keys(sel2).forEach(k=>delete sel2[k]);
+    wrap.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('selected-t','selected-f'));
+    document.getElementById('d2e2-fb').className='feedback';
+  });
+})();
+
+// D2 E3 – Odd One Out
+const d2e3Data = [
+  {words:['bread','coffee','tea','milk'], ans:0},
+  {words:['fish','water','meat','eggs'], ans:1},
+  {words:['orange juice','coffee','chocolate','tea'], ans:2},
+  {words:['wine','bread','toast','cheese'], ans:0},
+  {words:['salad','vegetables','beer','fruit'], ans:2},
+];
+(function(){
+  const wrap=document.getElementById('d2e3');
+  d2e3Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='mc-item';
+    div.innerHTML=`<div class="mc-question">${i+1}.</div><div class="ooo-grid">`
+      +item.words.map((w,j)=>`<button class="ooo-btn" data-ooo="${i}" data-idx="${j}">${w}</button>`).join('')
+      +'</div>';
+    wrap.appendChild(div);
+  });
+  const oooSel={};
+  wrap.querySelectorAll('.ooo-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const g=btn.dataset.ooo;
+      wrap.querySelectorAll(`[data-ooo="${g}"]`).forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      oooSel[g]=parseInt(btn.dataset.idx);
+    });
+  });
+  document.getElementById('d2e3-check').addEventListener('click',()=>{
+    let c=0;
+    d2e3Data.forEach((item,i)=>{
+      const btns=wrap.querySelectorAll(`[data-ooo="${i}"]`);
+      btns.forEach(b=>b.classList.remove('correct','wrong'));
+      if(oooSel[i]!==undefined){
+        if(oooSel[i]===item.ans){btns[oooSel[i]].classList.add('correct');c++;}
+        else{btns[oooSel[i]].classList.add('wrong');btns[item.ans].classList.add('correct');}
+      }
+    });
+    const r=scoreText(c,d2e3Data.length); showFeedback('d2e3-fb',r.msg,r.type); incrementChecked('d2e3');
+  });
+  document.getElementById('d2e3-show').addEventListener('click',()=>document.getElementById('d2e3-key').classList.toggle('show'));
+  document.getElementById('d2e3-reset').addEventListener('click',()=>{
+    Object.keys(oooSel).forEach(k=>delete oooSel[k]);
+    wrap.querySelectorAll('.ooo-btn').forEach(b=>b.classList.remove('selected','correct','wrong'));
+    document.getElementById('d2e3-fb').className='feedback';
+    document.getElementById('d2e3-key').classList.remove('show');
+  });
+})();
+
+// ══════════════════════════════════════════
+//  DAY 3
+// ══════════════════════════════════════════
+
+// D3 E1 – MC Present Simple
+const d3e1Data = [
+  {q:'I love coffee. I __________ coffee every morning.', opts:['drink','don\'t drink'], ans:0},
+  {q:'I think beer is not healthy. I __________ beer.', opts:['drink','don\'t drink'], ans:1},
+  {q:'We like rice and vegetables. We __________ rice and vegetables for lunch.', opts:['eat','don\'t eat'], ans:0},
+  {q:"We don't like wine. We __________ wine.", opts:['drink','don\'t drink'], ans:1},
+  {q:'They love fruit. They __________ fruit every day.', opts:['eat','don\'t eat'], ans:0},
+  {q:"They don't like fish. They __________ fish.", opts:['eat','don\'t eat'], ans:1},
+];
+(function(){ buildMC(document.getElementById('d3e1'), d3e1Data, 'mc3e1'); })();
+document.getElementById('d3e1-check').addEventListener('click',()=>checkMC(d3e1Data,'mc3e1','d3e1-fb','d3e1'));
+document.getElementById('d3e1-reset').addEventListener('click',()=>resetMC(document.getElementById('d3e1'),'d3e1-fb'));
+
+// D3 E2 – Breakfast / Lunch / Dinner
+const d3e2Data = [
+  {s:'I have cereal and milk.', ans:['B']},
+  {s:'I have rice and fish.', ans:['L/D']},
+  {s:'I have salad and vegetables.', ans:['L/D']},
+  {s:'I have bread and butter.', ans:['B']},
+  {s:'I have potatoes and meat.', ans:['L/D']},
+  {s:'I have toast and coffee.', ans:['B']},
+];
+(function(){
+  const wrap=document.getElementById('d3e2');
+  const selBLD={};
+  d3e2Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='fill-item';
+    div.innerHTML=`<div class="fill-line" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">${i+1}. <em>${item.s}</em>
+      <select class="match-select" id="d3e2_${i}">
+        <option value="">—</option>
+        <option value="B">B – Breakfast</option>
+        <option value="L/D">L/D – Lunch / Dinner</option>
+      </select></div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d3e2-check').addEventListener('click',()=>{
+    let c=0;
+    d3e2Data.forEach((item,i)=>{
+      const sel=document.getElementById('d3e2_'+i); sel.classList.remove('correct','wrong');
+      if(item.ans.includes(sel.value)){sel.classList.add('correct');c++;}
+      else sel.classList.add('wrong');
+    });
+    const r=scoreText(c,d3e2Data.length); showFeedback('d3e2-fb',r.msg,r.type); incrementChecked('d3e2');
+  });
+  document.getElementById('d3e2-show').addEventListener('click',()=>document.getElementById('d3e2-key').classList.toggle('show'));
+  document.getElementById('d3e2-reset').addEventListener('click',()=>{
+    d3e2Data.forEach((_,i)=>{const s=document.getElementById('d3e2_'+i);s.value='';s.className='match-select';});
+    document.getElementById('d3e2-fb').className='feedback';
+    document.getElementById('d3e2-key').classList.remove('show');
+  });
+})();
+
+// D3 E3 – Sentence Builder (tap to build)
+const d3e3Data = [
+  {words:['coffee','drink','I'],               ans:'i drink coffee.'},
+  {words:["don't",'beer','drink','I'],          ans:"i don't drink beer."},
+  {words:['eat','we','rice','for lunch'],       ans:'we eat rice for lunch.'},
+  {words:["don't",'vegetables','they','eat'],   ans:"they don't eat vegetables."},
+  {words:['orange juice','drink','you'],        ans:'you drink orange juice.'},
+];
+(function(){
+  const wrap = document.getElementById('d3e3');
+  d3e3Data.forEach((item, i) => {
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    const div = document.createElement('div'); div.className = 'sb-item';
+    div.innerHTML = `
+      <div class="sb-number">${i+1}.</div>
+      <div class="sb-drop-zone" id="sb-drop-${i}"></div>
+      <div class="sb-word-bank" id="sb-bank-${i}">
+        ${shuffled.map((w,j)=>`<button class="sb-word" data-item="${i}" data-idx="${j}" data-word="${w}">${w}</button>`).join('')}
+      </div>`;
+    wrap.appendChild(div);
+  });
+
+  // tap bank word → move to drop zone
+  wrap.addEventListener('click', e => {
+    const bankBtn = e.target.closest('.sb-word');
+    const placedBtn = e.target.closest('.sb-word-placed');
+
+    if (bankBtn) {
+      const i = bankBtn.dataset.item;
+      const drop = document.getElementById('sb-drop-' + i);
+      // remove correct/wrong state on edit
+      drop.classList.remove('correct','wrong');
+      // create placed token
+      const placed = document.createElement('button');
+      placed.className = 'sb-word-placed';
+      placed.textContent = bankBtn.dataset.word;
+      placed.dataset.item = i;
+      placed.dataset.src = bankBtn.dataset.idx;
+      drop.appendChild(placed);
+      bankBtn.classList.add('used');
+    }
+
+    if (placedBtn) {
+      const i = placedBtn.dataset.item;
+      const drop = document.getElementById('sb-drop-' + i);
+      drop.classList.remove('correct','wrong');
+      // restore bank word
+      const srcBtn = document.querySelector(`#sb-bank-${i} [data-idx="${placedBtn.dataset.src}"]`);
+      if (srcBtn) srcBtn.classList.remove('used');
+      placedBtn.remove();
+    }
+  });
+})();
+
+document.getElementById('d3e3-check').addEventListener('click', () => {
+  let correct = 0;
+  d3e3Data.forEach((item, i) => {
+    const drop = document.getElementById('sb-drop-' + i);
+    drop.classList.remove('correct','wrong');
+    const placed = drop.querySelectorAll('.sb-word-placed');
+    const built = Array.from(placed).map(b => b.textContent.trim()).join(' ').toLowerCase().replace(/\s+/g,' ');
+    const ans = item.ans.replace(/\.$/, '').toLowerCase();
+    const builtClean = built.replace(/\.$/, '');
+    if (builtClean === ans) { drop.classList.add('correct'); correct++; }
+    else drop.classList.add('wrong');
+  });
+  const r = scoreText(correct, d3e3Data.length);
+  showFeedback('d3e3-fb', r.msg, r.type);
+  incrementChecked('d3e3');
+});
+
+document.getElementById('d3e3-reset').addEventListener('click', () => {
+  d3e3Data.forEach((_, i) => {
+    const drop = document.getElementById('sb-drop-' + i);
+    drop.innerHTML = '';
+    drop.classList.remove('correct','wrong');
+    document.querySelectorAll(`#sb-bank-${i} .sb-word`).forEach(b => b.classList.remove('used'));
+  });
+  document.getElementById('d3e3-fb').className = 'feedback';
+});
+
+// D3 E4 – Complete (+/−)
+const d3e4Data = [
+  {before:"My friends ", blank:"don't eat", after:" healthy food. (− eat)"},
+  {before:"I ", blank:"don't have", after:" breakfast at home. (− have)"},
+  {before:"You ", blank:"drink", after:" a lot of water. (+ drink)"},
+  {before:"I ", blank:"like", after:" fish. (+ like)"},
+  {before:"I ", blank:"don't drink", after:" coffee in the afternoon. (− drink)"},
+  {before:"We ", blank:"have", after:" a salad for lunch. (+ have)"},
+  {before:"I don't drink tea because I ", blank:"don't like", after:" it. (− like)"},
+  {before:"My children ", blank:"eat", after:" a lot of fruit. (+ eat)"},
+];
+(function(){
+  const wrap=document.getElementById('d3e4');
+  d3e4Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='fill-item';
+    div.innerHTML=`<div class="fill-line">${i+1}. ${item.before}<input class="fill-input" id="d3e4_${i}" placeholder="..." style="min-width:110px;">${item.after}</div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e4-check').addEventListener('click',()=>{
+  let c=0;
+  d3e4Data.forEach((item,i)=>{
+    const inp=document.getElementById('d3e4_'+i); inp.classList.remove('correct','wrong');
+    if(inp.value.trim().toLowerCase()===item.blank.toLowerCase()){inp.classList.add('correct');c++;}
+    else inp.classList.add('wrong');
+  });
+  const r=scoreText(c,d3e4Data.length); showFeedback('d3e4-fb',r.msg,r.type); incrementChecked('d3e4');
+});
+document.getElementById('d3e4-show').addEventListener('click',()=>document.getElementById('d3e4-key').classList.toggle('show'));
+document.getElementById('d3e4-reset').addEventListener('click',()=>{
+  d3e4Data.forEach((_,i)=>{const inp=document.getElementById('d3e4_'+i);inp.value='';inp.className='fill-input';});
+  document.getElementById('d3e4-fb').className='feedback';
+  document.getElementById('d3e4-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  DAY 4
+// ══════════════════════════════════════════
+
+// D4 E1 – Complete Conversation
+const d4e1Data = [
+  {before:"A: What do you have for breakfast?\nB: I have ", blank:"bread", after:" and cheese."},
+  {before:"A: Do you ", blank:"drink", after:" coffee?\nB: Yes, I do."},
+  {before:"A: What do you have for ", blank:"lunch", after:"?\nB: I have rice and fish."},
+  {before:"A: Do you drink beer?\nB: No, I ", blank:"don't", after:"."},
+];
+(function(){
+  const wrap=document.getElementById('d4e1');
+  d4e1Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='fill-item';
+    const text=item.before.replace(/\n/g,'<br>')+`<input class="fill-input" id="d4e1_${i}" placeholder="...">`+item.after.replace(/\n/g,'<br>');
+    div.innerHTML=`<div class="fill-line" style="line-height:2.4;">${i+1}. ${text}</div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d4e1-check').addEventListener('click',()=>{
+  let c=0;
+  d4e1Data.forEach((item,i)=>{
+    const inp=document.getElementById('d4e1_'+i); inp.classList.remove('correct','wrong');
+    if(inp.value.trim().toLowerCase()===item.blank.toLowerCase()){inp.classList.add('correct');c++;}
+    else inp.classList.add('wrong');
+  });
+  const r=scoreText(c,d4e1Data.length); showFeedback('d4e1-fb',r.msg,r.type); incrementChecked('d4e1');
+});
+document.getElementById('d4e1-reset').addEventListener('click',()=>{
+  d4e1Data.forEach((_,i)=>{const inp=document.getElementById('d4e1_'+i);inp.value='';inp.className='fill-input';});
+  document.getElementById('d4e1-fb').className='feedback';
+});
+
+// D4 E2 – Best Answer MC
+const d4e2Data = [
+  {q:'A: What do you have for breakfast?', opts:['I drink water.','I have toast and coffee.','It\'s Monday.'], ans:1},
+  {q:'A: Do you drink tea?', opts:['Yes, I do.','I\'m from Brazil.','It is blue.'], ans:0},
+  {q:'A: What do you have for lunch?', opts:['Rice and vegetables.','Coffee and tea.','My brother.'], ans:0},
+  {q:'A: What do you drink with dinner?', opts:['Water.','Bread.','Fish.'], ans:0},
+];
+(function(){ buildMC(document.getElementById('d4e2'), d4e2Data, 'mc4e2'); })();
+document.getElementById('d4e2-check').addEventListener('click',()=>checkMC(d4e2Data,'mc4e2','d4e2-fb','d4e2'));
+document.getElementById('d4e2-reset').addEventListener('click',()=>resetMC(document.getElementById('d4e2'),'d4e2-fb'));
+
+// D4 E3 – Restaurant Order (free text, 2 blanks)
+(function(){
+  const wrap=document.getElementById('d4e3');
+  wrap.innerHTML=`
+    <div class="dialogue-line"><span class="speaker">A:</span> Hello.</div>
+    <div class="dialogue-line"><span class="speaker">B:</span> Can I have a <input class="fill-input" id="d4e3a" placeholder="..." style="min-width:120px;">, please?</div>
+    <div class="dialogue-line"><span class="speaker">A:</span> Anything else?</div>
+    <div class="dialogue-line"><span class="speaker">B:</span> Yes, a <input class="fill-input" id="d4e3b" placeholder="..." style="min-width:120px;">, please.</div>
+    <div class="dialogue-line"><span class="speaker">A:</span> Here you are.</div>`;
+})();
+const d4e3FoodOpts=['sandwich','salad'];
+const d4e3DrinkOpts=['coffee','tea','orange juice'];
+document.getElementById('d4e3-check').addEventListener('click',()=>{
+  const va=document.getElementById('d4e3a').value.trim().toLowerCase();
+  const vb=document.getElementById('d4e3b').value.trim().toLowerCase();
+  const aFood=d4e3FoodOpts.includes(va)||d4e3DrinkOpts.includes(va);
+  const bDrink=d4e3DrinkOpts.includes(vb)||d4e3FoodOpts.includes(vb);
+  const valid=aFood&&bDrink&&va!==vb;
+  document.getElementById('d4e3a').classList.toggle('correct',aFood);
+  document.getElementById('d4e3a').classList.toggle('wrong',!aFood);
+  document.getElementById('d4e3b').classList.toggle('correct',bDrink);
+  document.getElementById('d4e3b').classList.toggle('wrong',!bDrink);
+  if(valid) showFeedback('d4e3-fb','✅ Ótimo pedido! Resposta válida. 🎉','ok');
+  else showFeedback('d4e3-fb','💡 Use uma palavra do quadro (comida + bebida) em cada espaço.','partial');
+  incrementChecked('d4e3');
+});
+document.getElementById('d4e3-show').addEventListener('click',()=>document.getElementById('d4e3-key').classList.toggle('show'));
+document.getElementById('d4e3-reset').addEventListener('click',()=>{
+  ['d4e3a','d4e3b'].forEach(id=>{const inp=document.getElementById(id);inp.value='';inp.className='fill-input';});
+  document.getElementById('d4e3-fb').className='feedback';
+  document.getElementById('d4e3-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  DAY 5
+// ══════════════════════════════════════════
+
+// D5 E1 – Find the information (fill-in)
+const d5e1Data = [
+  {label:'Country',                 ans:['mexico']},
+  {label:'People in Emma\'s family',ans:['her parents','parents']},
+  {label:'Breakfast drink (Emma)', ans:['milk']},
+  {label:'Breakfast drink (parents)',ans:['coffee']},
+  {label:'Lunch drink (Emma)',      ans:['water']},
+  {label:'Saturday food',           ans:['fish']},
+  {label:'Dinner food (Emma)',      ans:['a sandwich','sandwich']},
+  {label:'Favourite food',          ans:['chocolate']},
+  {label:'Favourite drink',         ans:['water']},
+];
+(function(){
+  const wrap=document.getElementById('d5e1');
+  d5e1Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='fill-item';
+    div.innerHTML=`<div class="fill-line"><strong>${item.label}:</strong> <input class="fill-input" id="d5e1_${i}" placeholder="..." style="min-width:130px;max-width:200px;"></div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5e1-check').addEventListener('click',()=>{
+  let c=0;
+  d5e1Data.forEach((item,i)=>{
+    const inp=document.getElementById('d5e1_'+i); inp.classList.remove('correct','wrong');
+    if(item.ans.includes(inp.value.trim().toLowerCase())){inp.classList.add('correct');c++;}
+    else inp.classList.add('wrong');
+  });
+  const r=scoreText(c,d5e1Data.length); showFeedback('d5e1-fb',r.msg,r.type); incrementChecked('d5e1');
+});
+document.getElementById('d5e1-show').addEventListener('click',()=>document.getElementById('d5e1-key').classList.toggle('show'));
+document.getElementById('d5e1-reset').addEventListener('click',()=>{
+  d5e1Data.forEach((_,i)=>{const inp=document.getElementById('d5e1_'+i);inp.value='';inp.className='fill-input';});
+  document.getElementById('d5e1-fb').className='feedback';
+  document.getElementById('d5e1-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  DAY 6
+// ══════════════════════════════════════════
+
+// Transcript toggle
+document.getElementById('transcript-btn').addEventListener('click',()=>{
+  const box=document.getElementById('transcript-box');
+  box.classList.toggle('show');
+  document.getElementById('transcript-btn').textContent=box.classList.contains('show')?'📄 Esconder transcrição':'📄 Ver transcrição';
+});
+
+// D6 E1 – Listening match (select)
+const d6e1Data = [
+  {name:'Nadine', ans:'2'},
+  {name:'Pablo',  ans:'3'},
+  {name:'Rob',    ans:'1'},
+  {name:'Sakura', ans:'5'},
+];
+(function(){
+  const wrap=document.getElementById('d6e1');
+  d6e1Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='match-item';
+    div.innerHTML=`<div class="match-line"><strong>${item.name}</strong> → Breakfast
+      <select class="match-select" id="d6e1_${i}">
+        <option value="">—</option>
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+      </select>
+    </div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d6e1-check').addEventListener('click',()=>{
+  let c=0;
+  d6e1Data.forEach((item,i)=>{
+    const sel=document.getElementById('d6e1_'+i); sel.classList.remove('correct','wrong');
+    if(sel.value===item.ans){sel.classList.add('correct');c++;}
+    else sel.classList.add('wrong');
+  });
+  const r=scoreText(c,d6e1Data.length); showFeedback('d6e1-fb',r.msg,r.type); incrementChecked('d6e1');
+});
+document.getElementById('d6e1-show').addEventListener('click',()=>document.getElementById('d6e1-key').classList.toggle('show'));
+document.getElementById('d6e1-reset').addEventListener('click',()=>{
+  d6e1Data.forEach((_,i)=>{const s=document.getElementById('d6e1_'+i);s.value='';s.className='match-select';});
+  document.getElementById('d6e1-fb').className='feedback';
+  document.getElementById('d6e1-key').classList.remove('show');
+});
+
+// D6 E3 – and / but / or
+const d6e3Data = [
+  {before:'I eat fish, ', blank:'but', after:" I don't eat meat.", opts:['and','but','or'], ans:1},
+  {before:'Do you have tea ', blank:'or', after:' coffee for breakfast?', opts:['and','but','or'], ans:2},
+  {before:'I have a brother ', blank:'and', after:' a sister.', opts:['and','but','or'], ans:0},
+];
+(function(){
+  const wrap=document.getElementById('d6e3');
+  d6e3Data.forEach((item,i)=>{
+    const div=document.createElement('div'); div.className='mc-item';
+    div.innerHTML=`<div class="mc-question">${i+1}. ${item.before}<strong>_____</strong>${item.after}</div>
+      <div class="mc-options">`
+      +item.opts.map((o,j)=>`<label class="mc-option" data-g="g6e3_${i}" data-opt="${j}"><input type="radio" name="g6e3_${i}" value="${j}"> ${o}</label>`).join('')
+      +'</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      opt.querySelector('input').checked=true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+})();
+document.getElementById('d6e3-check').addEventListener('click',()=>{
+  let c=0;
+  d6e3Data.forEach((item,i)=>{
+    const opts=document.querySelectorAll(`[data-g="g6e3_${i}"]`);
+    opts.forEach(o=>o.classList.remove('correct','wrong'));
+    const sel=document.querySelector(`input[name="g6e3_${i}"]:checked`);
+    if(sel){const v=parseInt(sel.value);opts[v].classList.add(v===item.ans?'correct':'wrong');if(v===item.ans)c++;else opts[item.ans].classList.add('correct');}
+  });
+  const r=scoreText(c,d6e3Data.length); showFeedback('d6e3-fb',r.msg,r.type); incrementChecked('d6e3');
+});
+document.getElementById('d6e3-reset').addEventListener('click',()=>{
+  document.getElementById('d6e3').querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected','correct','wrong'));
+  document.getElementById('d6e3').querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById('d6e3-fb').className='feedback';
+});
+
+// D6 E4 – WhatsApp
+document.getElementById('d6-whatsapp').addEventListener('click',()=>{
+  const txt=document.getElementById('d6e4-text').value.trim();
+  if(!txt){showFeedback('d6e4-fb','✏️ Escreva seu comentário antes de enviar!','err');return;}
+  const msg=`🍳 *Unit 5A – Writing Exercise*\n\n*${studentName || 'Aluno'}* wrote:\n\n${txt}\n\n_Enviado pelo Weekly Practice 🧡_`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`,'_blank');
+  showFeedback('d6e4-fb','✅ Abrindo WhatsApp... Teacher Mari vai adorar! 🧡','ok');
+  incrementChecked('d6e4');
+});
+
+// ══════════════════════════════════════════
+//  DAY 7
+// ══════════════════════════════════════════
+document.getElementById('challenge-done').addEventListener('click',()=>{
+  showFeedback('challenge-fb','🎉 Incrível! Você está pronto(a) para a aula. Teacher Mari vai adorar ouvir você! 🧡','ok');
+  document.getElementById('weekly-summary').style.display='block';
+  document.getElementById('final-score').textContent=totalChecked;
+  incrementChecked('challenge');
+});
+document.getElementById('summary-whatsapp').addEventListener('click',()=>{
+  const msg=`🏆 *Unit 5A concluída!*\n\nOlá, Teacher Mari! Terminei todos os exercícios da Unit 5A – My favourite meal.\n\nExercícios verificados: ${totalChecked}\n\n_Enviado pelo Weekly Practice 🧡_`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`,'_blank');
+});
+
+// ══════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════
+const VOCAB_FOOD=[
+  {en:'fish',pt:'peixe'},{en:'bread',pt:'pão'},{en:'cheese',pt:'queijo'},{en:'rice',pt:'arroz'},
+  {en:'salad',pt:'salada'},{en:'meat',pt:'carne'},{en:'eggs',pt:'ovos'},{en:'chocolate',pt:'chocolate'},
+  {en:'fruit',pt:'fruta'},{en:'vegetables',pt:'legumes/verduras'},{en:'pasta',pt:'macarrão'},
+  {en:'toast',pt:'torrada'},{en:'butter',pt:'manteiga'},{en:'jam',pt:'geleia'},
+  {en:'cereal',pt:'cereal'},{en:'potatoes',pt:'batatas'},{en:'soup',pt:'sopa'},
+];
+const VOCAB_DRINK=[
+  {en:'water',pt:'água'},{en:'coffee',pt:'café'},{en:'tea',pt:'chá'},
+  {en:'milk',pt:'leite'},{en:'orange juice',pt:'suco de laranja'},
+  {en:'beer',pt:'cerveja'},{en:'wine',pt:'vinho'},{en:'green tea',pt:'chá verde'},
+];
+const VOCAB_MEALS=[
+  {en:'breakfast',pt:'café da manhã'},{en:'lunch',pt:'almoço'},{en:'dinner',pt:'jantar'},
+  {en:'meal',pt:'refeição'},{en:'favourite meal',pt:'refeição favorita'},
+];
+const VOCAB_CONN=[
+  {en:'and',pt:'e (adição)'},{en:'but',pt:'mas (contraste)'},{en:'or',pt:'ou (escolha)'},
+];
+function renderVocab(id, data) {
+  const wrap=document.getElementById(id);
+  data.forEach(item=>{
+    const div=document.createElement('div'); div.className='vocab-chip';
+    div.innerHTML=`<button onclick="speakWord('${item.en}')" style="background:none;border:none;cursor:pointer;font-size:1rem;" title="Listen">🔊</button>
+      <div style="font-weight:700;font-size:0.85rem;color:var(--purple);">${item.en}</div>
+      <div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+function speakWord(w) {
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(w); u.lang='en-US'; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+function readText(elementId, btn) {
+  if(!window.speechSynthesis) { alert('Seu navegador não suporta leitura de texto.'); return; }
+  if(window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    if(btn) { btn.textContent='🔊 Listen to the text'; btn.style.background=''; }
+    return;
+  }
+  const el = document.getElementById(elementId);
+  if(!el) return;
+  const text = el.innerText || el.textContent;
+  const u = new SpeechSynthesisUtterance(text.replace(/\s+/g,' ').trim());
+  u.lang = 'en-US'; u.rate = 0.82; u.pitch = 1;
+  if(btn) { btn.textContent='⏹ Stop'; btn.style.background='var(--red)'; }
+  u.onend = () => { if(btn) { btn.textContent='🔊 Listen to the text'; btn.style.background=''; } };
+  u.onerror = () => { if(btn) { btn.textContent='🔊 Listen to the text'; btn.style.background=''; } };
+  window.speechSynthesis.speak(u);
+}
+renderVocab('vocab-food', VOCAB_FOOD);
+renderVocab('vocab-drink', VOCAB_DRINK);
+renderVocab('vocab-meals', VOCAB_MEALS);
+renderVocab('vocab-connectors', VOCAB_CONN);
+
+// ══════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1:['d1e1','d1e2','d1e3','d1e4'],
+  day2:['d2e1','d2e2','d2e3'],
+  day3:['d3e1','d3e2','d3e3','d3e4'],
+  day4:['d4e1','d4e2','d4e3'],
+  day5:['d5e1'],
+  day6:['d6e1','d6e3','d6e4'],
+  day7:['challenge'],
+};
+const completedExercises=new Set(JSON.parse(localStorage.getItem('teachermari_unit5a_done')||'[]'));
+const completedDays=new Set(JSON.parse(localStorage.getItem('teachermari_unit5a_days')||'[]'));
+let toast=null;
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_unit5a_done',JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for(const [day,exList] of Object.entries(DAY_EXERCISES)){
+    if(exList.includes(exId)&&!completedDays.has(day)){
+      if(exList.every(e=>completedExercises.has(e))){
+        completedDays.add(day);
+        localStorage.setItem('teachermari_unit5a_days',JSON.stringify([...completedDays]));
+        if(day==='day7'||completedDays.size===7) setTimeout(()=>celebrateWeek(),400);
+        else setTimeout(()=>celebrateDay(),400);
+      }
+    }
+  }
+}
+function launchConfetti(count=120,duration=180){
+  const canvas=document.getElementById('confetti-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const parts=Array.from({length:count},()=>({
+    x:Math.random()*canvas.width, y:Math.random()*-canvas.height,
+    r:Math.random()*7+3,
+    color:['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed:Math.random()*4+1, drift:(Math.random()-0.5)*3,
+    angle:Math.random()*360, spin:(Math.random()-0.5)*6
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    parts.forEach(p=>{
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle=p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y+=p.speed; p.x+=p.drift; p.angle+=p.spin;
+    });
+    frame++; if(frame<duration) requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+function celebrateDay(){ launchConfetti(140,200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek(){ launchConfetti(280,360); showToast('🏆 Week complete! Amazing! 🧡'); }
+function showToast(msg){
+  if(!toast){ toast=document.createElement('div'); toast.id='celebrate-toast';
+    toast.style.cssText=`position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;
+    document.body.appendChild(toast); }
+  toast.textContent=msg;
+  requestAnimationFrame(()=>{ toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(()=>{ toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; },3200);
+}
+</script>
+</body>
+</html>
