@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Mari · Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#FF5C23;--purple:#1D1050;--green:#04392F;--cream:#FAEAD3;
+  --cream2:#f5e0c0;--text:#1D1050;--muted:#7a7090;--border:#e8ddd0;
+  --white:#fff;--radius:12px;--radius-sm:8px
+}
+body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow:hidden}
+
+/* ── HEADER ── */
+.hdr{background:var(--purple);height:56px;display:flex;align-items:center;padding:0 1.5rem;gap:12px;justify-content:space-between}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-dot{width:8px;height:8px;background:var(--orange);border-radius:50%}
+.hdr-title{font-size:0.9rem;font-weight:600;color:white;letter-spacing:-0.01em}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.notion-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;cursor:pointer;transition:background 0.15s}
+.notion-pill:hover{background:rgba(255,255,255,0.18)}
+.notion-pill span{font-size:0.7rem;color:rgba(255,255,255,0.7)}
+.ndot{width:6px;height:6px;border-radius:50%;background:#ccc}
+.ndot.ok{background:#4ade80}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 56px)}
+
+/* ── SIDEBAR ── */
+.sb{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb-top{padding:1rem;border-bottom:1px solid var(--border);display:flex;gap:8px}
+.sb-top input{flex:1;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-family:'Poppins',sans-serif;font-size:0.78rem;color:var(--text);outline:none;background:var(--cream)}
+.sb-top input:focus{border-color:var(--orange)}
+.btn-add{background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-family:'Poppins',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity 0.15s}
+.btn-add:hover{opacity:0.85}
+.sb-list{flex:1;overflow-y:auto;padding:6px 0}
+.sb-item{display:flex;align-items:center;gap:9px;padding:10px 1rem;cursor:pointer;border-left:3px solid transparent;transition:all 0.1s;position:relative}
+.sb-item:hover{background:var(--cream)}
+.sb-item.active{background:#fff5ef;border-left-color:var(--orange)}
+.sb-av{width:32px;height:32px;border-radius:50%;background:var(--purple);color:white;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-name{font-size:0.8rem;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-badge{font-size:0.62rem;background:var(--cream);color:var(--muted);padding:2px 7px;border-radius:20px;flex-shrink:0}
+.sb-item.active .sb-badge{background:var(--orange);color:white}
+.sb-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:0.95rem;padding:2px;opacity:0;transition:opacity 0.15s}
+.sb-item:hover .sb-del{opacity:1}
+.sb-del:hover{color:#e53}
+.sb-empty{padding:1.5rem 1rem;text-align:center;font-size:0.78rem;color:var(--muted);line-height:1.7}
+
+/* ── MAIN ── */
+.main{overflow-y:auto;display:flex;flex-direction:column}
+.main-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;gap:8px}
+.main-empty-icon{font-size:2.5rem;opacity:0.25}
+
+/* ── STUDENT HEADER ── */
+.st-hdr{padding:1.25rem 1.5rem 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.st-hdr-left{display:flex;align-items:center;gap:12px}
+.st-av-lg{width:44px;height:44px;border-radius:50%;background:var(--purple);color:white;font-size:0.9rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.st-name{font-size:1.1rem;font-weight:700;color:var(--text)}
+.st-meta{font-size:0.73rem;color:var(--muted);margin-top:1px}
+
+/* ── TABS ── */
+.tabs{padding:0 1.5rem;margin-top:1rem;display:flex;gap:0;border-bottom:1px solid var(--border)}
+.tab{padding:9px 20px;font-family:'Poppins',sans-serif;font-size:0.78rem;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+
+/* ── CONTENT AREA ── */
+.content{padding:1.25rem 1.5rem 2rem;flex:1}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--orange);margin-bottom:1rem}
+
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:.75rem}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:0.72rem;font-weight:500;color:var(--muted)}
+.fg input,.fg textarea,.fg select{font-family:'Poppins',sans-serif;font-size:0.8rem;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;outline:none;background:var(--cream);width:100%;resize:vertical}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--orange);background:white}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* ── MOOD ── */
+.mood-row{display:flex;gap:6px;flex-wrap:wrap}
+.mood-btn{border:1px solid var(--border);background:var(--cream);border-radius:20px;padding:4px 12px;font-family:'Poppins',sans-serif;font-size:0.72rem;cursor:pointer;color:var(--muted);transition:all 0.12s}
+.mood-btn:hover{border-color:var(--orange);color:var(--orange)}
+.mood-btn.sel{background:var(--orange);color:white;border-color:var(--orange)}
+
+/* ── LESSON HISTORY ── */
+.lesson-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:.75rem;overflow:hidden}
+.lc-head{display:flex;align-items:center;gap:10px;padding:.8rem 1rem;cursor:pointer;user-select:none}
+.lc-head:hover{background:#fafafa}
+.lc-date{font-size:0.78rem;font-weight:600;color:var(--text);white-space:nowrap}
+.lc-sum{font-size:0.72rem;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc-mbadge{font-size:0.65rem;padding:2px 8px;border-radius:20px;background:var(--cream);color:var(--muted);flex-shrink:0}
+.lc-body{display:none;border-top:1px solid var(--border);padding:.9rem 1rem}
+.lc-body.open{display:block}
+.lc-field{margin-bottom:.65rem}
+.lc-field:last-child{margin-bottom:0}
+.lc-flbl{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:2px}
+.lc-fval{font-size:0.78rem;color:var(--text);line-height:1.55}
+.lc-fval.empty{color:var(--muted);font-style:italic}
+.chev{font-size:0.7rem;color:var(--muted);transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+.no-lessons{text-align:center;padding:1.5rem;font-size:0.78rem;color:var(--muted);background:var(--white);border-radius:var(--radius);border:1px dashed var(--border)}
+.fa-row{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:1rem}
+.save-msg{font-size:0.73rem;color:var(--muted)}
+.save-msg.ok{color:#16a34a}
+.save-msg.err{color:#dc2626}
+.btn-save{background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);padding:9px 24px;font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.88}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);padding:4px 12px;font-family:'Poppins',sans-serif;font-size:0.72rem;cursor:pointer;transition:all .15s}
+.btn-sm:hover{border-color:#e53;color:#e53}
+
+/* ── REPORT TAB ── */
+.rpt-form{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.unit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:4px}
+.unit-btn{border:1px solid var(--border);background:var(--cream);border-radius:6px;padding:5px 4px;font-family:'Poppins',sans-serif;font-size:0.68rem;cursor:pointer;color:var(--muted);text-align:center;transition:all .12s;line-height:1.2}
+.unit-btn:hover{border-color:var(--orange);color:var(--orange)}
+.unit-btn.sel{background:var(--orange);color:white;border-color:var(--orange)}
+.btn-gen{background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);padding:10px;width:100%;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:.5rem;transition:opacity .15s}
+.btn-gen:hover{opacity:.88}
+.btn-dl{background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);padding:8px 18px;font-family:'Poppins',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-dl:hover{opacity:.88}
+.prog-hint{font-size:0.68rem;color:var(--muted);margin-top:3px}
+
+/* ── CONFIG MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(29,16,80,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:var(--radius);padding:1.75rem;width:100%;max-width:500px;margin:1rem}
+.modal h2{font-size:.95rem;font-weight:700;margin-bottom:.3rem}
+.modal p{font-size:.75rem;color:var(--muted);line-height:1.7;margin-bottom:1rem}
+.modal-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:1.25rem}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);padding:8px 18px;font-family:'Poppins',sans-serif;font-size:.78rem;cursor:pointer}
+.btn-cfg-save{background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);padding:8px 22px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer}
+.help-link{font-size:.7rem;color:var(--orange);text-decoration:none}
+.help-link:hover{text-decoration:underline}
+.cfg-msg{font-size:.72rem;min-height:1.1rem;margin-top:.4rem}
+
+/* ── PDF STYLES (A4) ── */
+#pdf-canvas{display:none}
+.pdf-page{width:210mm;min-height:297mm;background:white;font-family:'Poppins',sans-serif;color:#1a1a2e;position:relative;overflow:hidden}
+.pdf-hdr{background:#04392F;padding:30px 36px 26px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.pdf-logo-wrap{display:flex;flex-direction:column;gap:2px}
+.pdf-logo-img{height:48px;object-fit:contain}
+.pdf-title-wrap{text-align:right}
+.pdf-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.pdf-month{font-size:30px;font-weight:800;color:#FF5C23;line-height:1;letter-spacing:-0.02em}
+.pdf-report-label{font-size:30px;font-weight:800;color:white;line-height:1;letter-spacing:-0.02em}
+.pdf-meta{display:grid;grid-template-columns:1fr 1fr 1fr;padding:0 36px;background:#f7f2eb;border-bottom:1px solid #e8ddd0}
+.pdf-meta-col{padding:14px 0;border-right:1px solid #e8ddd0}
+.pdf-meta-col:last-child{border-right:none;padding-left:20px}
+.pdf-meta-col:not(:first-child){padding-left:20px}
+.pdf-meta-lbl{font-size:7.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#999;margin-bottom:3px}
+.pdf-meta-val{font-size:12px;font-weight:700;color:#1D1050}
+.pdf-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 36px}
+.pdf-stat{display:flex;align-items:center;justify-content:space-between;border:2px solid #FF5C23;border-radius:40px;padding:9px 12px 9px 18px}
+.pdf-stat-lbl{font-size:10px;font-weight:700;color:#1D1050}
+.pdf-stat-num{width:40px;height:40px;border-radius:50%;border:2px solid #1D9E75;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#1D1050;flex-shrink:0}
+.pdf-sec-bar{background:#1D1050;color:white;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 36px}
+.pdf-journey{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 36px}
+.pdf-unit-title{font-size:10px;font-weight:700;color:#1D1050;margin-bottom:4px;margin-top:10px}
+.pdf-unit-title:first-child{margin-top:0}
+.pdf-unit-item{font-size:9px;color:#333;line-height:1.55;padding-left:14px;position:relative}
+.pdf-unit-item::before{content:'✅';position:absolute;left:0;font-size:8px;line-height:1.55}
+.pdf-bottom{display:grid;grid-template-columns:1fr 1fr}
+.pdf-prog{padding:14px 36px}
+.pdf-prog-title{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1D1050;margin-bottom:8px}
+.pdf-prog-item{font-size:9px;color:#444;line-height:1.7}
+.pdf-prog-bold{font-size:10px;font-weight:700;color:#1D1050;margin-top:6px}
+.pdf-next{padding:14px 20px;background:#f7f2eb;border-left:3px solid #1D1050}
+.pdf-next-title{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1D1050;margin-bottom:8px}
+.pdf-next-aulas{font-size:9.5px;font-weight:700;color:#1D1050;margin-bottom:6px}
+.pdf-next-item{font-size:9px;color:#333;line-height:1.6;padding-left:14px;position:relative}
+.pdf-next-item::before{content:'🚀';position:absolute;left:0;font-size:8px;line-height:1.6}
+.pdf-notes{padding:14px 36px;background:#FAEAD3;border-top:1px solid #e8ddd0}
+.pdf-notes-title{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1D1050;margin-bottom:7px}
+.pdf-note-item{font-size:9px;color:#333;line-height:1.7}
+.pdf-divider{height:1px;background:#e8ddd0;margin:0 36px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-dot"></div>
+    <span class="hdr-title">Teacher Mari · Studio</span>
+  </div>
+  <div class="hdr-right">
+    <div class="notion-pill" onclick="openCfg()">
+      <div class="ndot" id="ndot"></div>
+      <span id="nlbl">Notion não configurado</span>
+      <span style="color:rgba(255,255,255,.4);margin-left:4px">⚙</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sb">
+    <div class="sb-top">
+      <input type="text" id="new-name" placeholder="Nome da aluna…" maxlength="50">
+      <button class="btn-add" onclick="addStudent()">+</button>
+    </div>
+    <div class="sb-list" id="sb-list"></div>
+  </aside>
+  <main class="main" id="main">
+    <div class="main-empty">
+      <div class="main-empty-icon">📓</div>
+      <div style="font-size:.88rem;font-weight:600;color:var(--text)">Selecione uma aluna</div>
+      <div style="font-size:.75rem">ou adicione uma nova para começar</div>
+    </div>
+  </main>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="modal-bg" id="modal-cfg">
+  <div class="modal">
+    <h2>Configurar Notion</h2>
+    <p>Os registros de aula serão salvos automaticamente no Notion. Crie uma integração em <a href="https://notion.so/my-integrations" target="_blank" class="help-link">notion.so/my-integrations</a> e conecte à página desejada.</p>
+    <div class="fg"><label>Token de integração</label><input type="password" id="cfg-token" placeholder="secret_…"></div>
+    <div class="fg"><label>ID da página do Notion</label><input type="text" id="cfg-page" placeholder="32 caracteres no final da URL"></div>
+    <div class="cfg-msg" id="cfg-msg"></div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeCfg()">Cancelar</button>
+      <button class="btn-cfg-save" onclick="testCfg()">Testar e salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HIDDEN PDF -->
+<div id="pdf-canvas"></div>
+
+<script>
+// ═══════════════════════════════════════
+// SYLLABUS
+// ═══════════════════════════════════════
+const SYL = {
+  Beginner:[
+    {id:'1A',t:'1A – Nice to meet you',items:['Apresentar-se e cumprimentar pessoas.','Dizer seu nome.','Perguntar e informar dados pessoais básicos.','Falar números de 0 a 10.','Dizer os dias da semana.','Despedir-se de forma simples.']},
+    {id:'1B',t:'1B – Music round the world',items:['Falar sobre outras pessoas.','Identificar pessoas usando he, she e it.','Dizer de onde alguém é.','Falar sobre países e nacionalidades simples.']},
+    {id:'PE1',t:'Practical English 1',items:['Soletrar palavras e nomes.','Fazer check-in em um hotel.','Reservar uma mesa em um restaurante.']},
+    {id:'2A',t:'2A – Are you on holiday?',items:['Falar sobre grupos de pessoas.','Perguntar e informar nacionalidades.','Descrever de onde pessoas são.']},
+    {id:'2B',t:'2B – What number is the bus?',items:['Fazer perguntas básicas usando What, Where, Who, etc.','Perguntar e informar números de telefone.','Compreender e dizer números até 100.']},
+    {id:'3A',t:'3A – Where\'s my phone?',items:['Identificar e nomear objetos do dia a dia.','Falar sobre quantidades simples.','Utilizar corretamente singular e plural.']},
+    {id:'3B',t:'3B – Souvenirs',items:['Identificar objetos próximos e distantes.','Descrever e apontar objetos.','Falar sobre lembranças e presentes.']},
+    {id:'PE2',t:'Practical English 2',items:['Fazer pedidos em cafés e restaurantes.','Perguntar e compreender preços.','Comprar alimentos e bebidas.']},
+    {id:'4A',t:'4A – This is my family',items:['Apresentar membros da família.','Falar sobre relações familiares.','Indicar posse e pertencimento.']},
+    {id:'4B',t:'4B – The right car for me',items:['Descrever pessoas, objetos e lugares.','Falar sobre cores.','Expressar opiniões simples usando adjetivos.']},
+    {id:'5A',t:'5A – My favourite meal',items:['Falar sobre hábitos alimentares.','Dizer o que gosta e não gosta de comer.','Descrever rotinas relacionadas à alimentação.']},
+    {id:'5B',t:'5B – A very long flight',items:['Fazer perguntas sobre rotina.','Perguntar sobre hábitos e atividades diárias.','Responder perguntas pessoais simples.']},
+    {id:'PE3',t:'Practical English 3',items:['Perguntar e dizer as horas.','Falar sobre sentimentos e estados emocionais.','Compreender horários.']},
+    {id:'6A',t:'6A – Old friends?',items:['Falar sobre profissões.','Descrever a rotina de outras pessoas.','Falar sobre locais de trabalho.']},
+    {id:'6B',t:'6B – Good morning, goodnight',items:['Falar sobre frequência de atividades.','Descrever sua rotina diária.','Compartilhar hábitos e costumes.','Falar sobre a rotina de outras pessoas.']},
+    {id:'7A',t:'7A – At the weekend',items:['Fazer perguntas corretamente.','Conversar sobre tempo livre.','Perguntar sobre hobbies e interesses.']},
+    {id:'7B',t:'7B – Lights, camera, action!',items:['Dar instruções e comandos simples.','Fazer pedidos.','Conversar sobre filmes.']},
+    {id:'PE4',t:'Practical English 4',items:['Perguntar e dizer datas.','Conversar ao telefone.','Falar sobre meses e datas.','Entender números ordinais de 1 a 31.']},
+    {id:'8A',t:'8A – Can I park here?',items:['Pedir e dar permissão.','Falar sobre habilidades.','Explicar o que é permitido ou proibido.']},
+    {id:'8B',t:'8B – I ♥ shopping',items:['Expressar gostos e preferências.','Falar sobre atividades de lazer.','Compartilhar interesses pessoais.']},
+    {id:'9A',t:'9A – What are they really doing?',items:['Descrever ações acontecendo agora.','Falar sobre viagens.','Descrever o que outras pessoas estão fazendo.']},
+    {id:'9B',t:'9B – Watching and waiting',items:['Diferenciar rotina e ações momentâneas.','Descrever roupas e aparência.','Falar sobre situações do momento.']},
+    {id:'PE5',t:'Practical English 5',items:['Fazer convites.','Aceitar e recusar convites.','Fazer e responder ofertas.']},
+    {id:'10A',t:'10A – A room with a view',items:['Descrever lugares e ambientes.','Falar sobre o que existe em um local.','Localizar objetos.']},
+    {id:'10B',t:'10B – Where was he?',items:['Falar sobre onde pessoas estavam.','Descrever situações passadas simples.']},
+    {id:'PE6',t:'Practical English 6',items:['Pedir informações de localização.','Dar direções.','Compreender instruções de caminho.']},
+    {id:'11A',t:'11A – A new life in the USA',items:['Falar sobre acontecimentos passados.','Contar experiências simples.']},
+    {id:'11B',t:'11B – How was your day?',items:['Relatar atividades do dia.','Contar eventos passados.','Fazer perguntas sobre experiências passadas.']},
+    {id:'12A',t:'12A – Strangers on a train',items:['Narrar acontecimentos passados.','Contar histórias simples.','Fazer e responder perguntas sobre o passado.']},
+    {id:'12B',t:'12B – Revise the past',items:['Revisar e consolidar o uso do passado simples.','Compartilhar experiências pessoais.','Narrar eventos e histórias com maior confiança.']},
+  ],
+  Elementary:[
+    {id:'1A',t:'1A – Hello, everybody',items:['Cumprimentar e se despedir de pessoas.','Apresentar-se e apresentar outras pessoas.','Compartilhar informações pessoais básicas.','Informar idade, telefone e outros números simples.','Falar os dias da semana.']},
+    {id:'1B',t:'1B – A world of sport',items:['Dizer de onde você é.','Perguntar de onde outras pessoas são.','Falar sobre países e nacionalidades.','Compartilhar informações pessoais simples.']},
+    {id:'1C',t:'1C – Open your books',items:['Falar sobre objetos pessoais.','Identificar a quem pertencem diferentes objetos.','Compreender e seguir instruções em sala de aula.','Dar instruções simples.']},
+    {id:'PE1',t:'Practical English 1',items:['Fazer check-in em um hotel.','Solicitar informações em uma recepção.','Fornecer dados pessoais em situações reais.']},
+    {id:'2A',t:'2A – Your desk and you',items:['Descrever objetos e pertences.','Dizer onde objetos estão localizados.','Falar sobre itens do dia a dia.']},
+    {id:'2B',t:'2B – Made in the USA',items:['Descrever pessoas, objetos e lugares.','Falar sobre cores e características.','Dar opiniões simples sobre coisas e pessoas.']},
+    {id:'2C',t:'2C – Don\'t worry. Be happy!',items:['Dar instruções simples.','Fazer sugestões.','Expressar emoções e sentimentos.','Reagir a situações cotidianas.']},
+    {id:'3A',t:'3A – Great Britain?',items:['Falar sobre rotina e hábitos.','Descrever atividades do dia a dia.','Comparar estilos de vida.']},
+    {id:'3B',t:'3B – Goodbye to the office?',items:['Falar sobre profissões e trabalho.','Descrever responsabilidades profissionais.','Conversar sobre habilidades e competências.']},
+    {id:'3C',t:'3C – Are you a dog person?',items:['Fazer perguntas sobre outras pessoas.','Descobrir informações pessoais.','Conversar sobre preferências e interesses.']},
+    {id:'PE2',t:'Practical English 2',items:['Pedir bebidas em cafés.','Perguntar e informar as horas.','Interagir em situações sociais simples.']},
+    {id:'4A',t:'4A – Who\'s that in the photo?',items:['Falar sobre família e relacionamentos.','Identificar pessoas em fotos.','Perguntar quem são outras pessoas.']},
+    {id:'4B',t:'4B – Eat, sleep, repeat',items:['Descrever sua rotina diária.','Falar sobre horários e compromissos.','Contar como é um dia típico.']},
+    {id:'4C',t:'4C – Blue Zones',items:['Falar sobre frequência de atividades.','Descrever hábitos e costumes.','Conversar sobre estilo de vida e saúde.']},
+    {id:'5A',t:'5A – Sing me a song',items:['Falar sobre habilidades e capacidades.','Dizer o que sabe ou não sabe fazer.','Fazer pedidos simples.']},
+    {id:'5B',t:'5B – What a noise!',items:['Descrever ações que estão acontecendo agora.','Falar sobre situações do momento.','Descrever sons, atividades e acontecimentos.']},
+    {id:'5C',t:'5C – I ♥ London',items:['Falar sobre clima e estações do ano.','Descrever atividades em andamento.','Comparar rotina e acontecimentos do momento.']},
+    {id:'PE3',t:'Practical English 3',items:['Comprar roupas.','Pedir tamanhos, cores e preços.','Conversar com vendedores.']},
+    {id:'6A',t:'6A – A traditional story',items:['Contar histórias simples.','Falar sobre personagens e acontecimentos.','Recontar uma narrativa.']},
+    {id:'6B',t:'6B – I don\'t like Mondays',items:['Falar sobre gostos e preferências.','Dizer atividades favoritas e menos favoritas.','Conversar sobre datas importantes.']},
+    {id:'6C',t:'6C – Making music',items:['Falar sobre música e entretenimento.','Compartilhar opiniões.','Conversar sobre gostos musicais.']},
+    {id:'7A',t:'7A – This is me',items:['Falar sobre sua vida no passado.','Descrever experiências pessoais.','Compartilhar informações biográficas.']},
+    {id:'7B',t:'7B – Small mistake, big problem',items:['Relatar acontecimentos passados.','Contar histórias simples.','Explicar o que aconteceu em determinada situação.']},
+    {id:'7C',t:'7C – Happy New Year',items:['Compartilhar memórias e experiências.','Narrar eventos importantes do passado.','Falar sobre celebrações e ocasiões especiais.']},
+    {id:'PE4',t:'Practical English 4',items:['Pedir informações de localização.','Perguntar como chegar a um lugar.','Dar e seguir direções.']},
+    {id:'8A',t:'8A – A murder in the family',items:['Fazer perguntas sobre acontecimentos passados.','Investigar e relatar fatos.','Contar histórias mais detalhadas.']},
+    {id:'8B',t:'8B – A house with a history',items:['Descrever casas e apartamentos.','Falar sobre cômodos e móveis.','Apresentar seu lar.']},
+    {id:'8C',t:'8C – Do you believe in ghosts?',items:['Descrever acontecimentos do passado.','Falar sobre lugares e movimentos.','Relatar experiências incomuns.']},
+    {id:'9A',t:'9A – What\'s for dinner?',items:['Falar sobre comida e bebida.','Fazer pedidos em restaurantes.','Conversar sobre hábitos alimentares.']},
+    {id:'9B',t:'9B – White gold',items:['Perguntar e informar quantidades.','Falar sobre compras e consumo.','Descrever recipientes e embalagens.']},
+    {id:'9C',t:'9C – Quizzes and quizzers',items:['Fazer comparações entre pessoas, objetos e lugares.','Participar de quizzes e jogos de perguntas.','Utilizar números grandes em contexto.']},
+    {id:'PE5',t:'Practical English 5',items:['Fazer pedidos em restaurantes.','Ler e entender cardápios.','Interagir com garçons e atendentes.']},
+    {id:'10A',t:'10A – Top of the list',items:['Comparar lugares, pessoas e experiências.','Fazer recomendações.','Destacar características positivas e negativas.']},
+    {id:'10B',t:'10B – In the footsteps of Marco Polo',items:['Falar sobre planos futuros.','Planejar viagens e passeios.','Fazer sugestões.']},
+    {id:'10C',t:'10C – The cards don\'t lie',items:['Fazer previsões sobre o futuro.','Expressar expectativas.','Conversar sobre possibilidades futuras.']},
+    {id:'PE6',t:'Practical English 6',items:['Utilizar transporte público.','Pedir informações sobre trajetos.','Resolver situações comuns durante deslocamentos.']},
+    {id:'11A',t:'11A – Culture shock',items:['Descrever como as pessoas fazem as coisas.','Falar sobre comportamentos e hábitos culturais.','Comparar costumes.']},
+    {id:'11B',t:'11B – It\'s on my list',items:['Falar sobre sonhos e objetivos.','Explicar planos pessoais.','Conversar sobre metas futuras.']},
+    {id:'11C',t:'11C – Download the app',items:['Conversar sobre tecnologia e aplicativos.','Falar sobre uso de celulares.','Expressar opiniões sobre tecnologia.']},
+    {id:'12A',t:'12A – It\'s a classic!',items:['Falar sobre filmes, séries, livros e TV.','Compartilhar recomendações culturais.','Conversar sobre experiências de entretenimento.']},
+    {id:'12B',t:'12B – Let\'s go out for dinner!',items:['Falar sobre experiências de vida.','Perguntar sobre experiências de outras pessoas.','Manter conversas mais longas fazendo perguntas de acompanhamento.']},
+    {id:'12C',t:'12C – National treasures',items:['Falar sobre conquistas e experiências pessoais.','Compartilhar histórias de vida.','Fazer perguntas detalhadas sobre outras pessoas.','Apresentar sua trajetória, interesses e experiências.']},
+  ],
+  'Pre-intermediate':[
+    {id:'1A',t:'1A – All about you',items:['Fazer perguntas para conhecer outras pessoas.','Compartilhar informações pessoais.','Falar sobre hábitos e atividades do dia a dia.']},
+    {id:'1B',t:'1B – Looking good',items:['Descrever a aparência física de pessoas.','Descrever personalidade e características pessoais.','Falar sobre hábitos e rotinas.']},
+    {id:'1C',t:'1C – Remakes',items:['Descrever o que está acontecendo no momento.','Falar sobre roupas e aparência.','Localizar pessoas e objetos.']},
+    {id:'PE1',t:'Practical English 1',items:['Ligar para a recepção de um hotel.','Solicitar ajuda ou informações.','Resolver situações comuns durante uma hospedagem.']},
+    {id:'2A',t:'2A – Lost...and found?',items:['Contar experiências de viagens e férias.','Relatar acontecimentos passados.','Compartilhar histórias e experiências pessoais.']},
+    {id:'2B',t:'2B – On top of the world',items:['Descrever acontecimentos em andamento no passado.','Falar sobre quando e onde eventos aconteceram.','Narrar situações passadas com mais detalhes.']},
+    {id:'2C',t:'2C – One dark October evening',items:['Contar histórias de forma organizada.','Relacionar acontecimentos em sequência.','Conectar ideias e eventos de forma natural.']},
+    {id:'PE2',t:'Practical English 2',items:['Lidar com problemas em restaurantes.','Fazer reclamações educadamente.','Pedir soluções para situações inesperadas.']},
+    {id:'3A',t:'3A – The waiting game',items:['Falar sobre planos futuros.','Fazer previsões.','Conversar sobre viagens e aeroportos.']},
+    {id:'3B',t:'3B – Can we meet?',items:['Marcar encontros e compromissos.','Falar sobre planos já organizados.','Utilizar expressões relacionadas a deslocamento e localização.']},
+    {id:'3C',t:'3C – Word games',items:['Explicar o significado de palavras.','Definir objetos, pessoas e conceitos.','Reformular informações usando outras palavras.']},
+    {id:'PE3',t:'Practical English 3',items:['Trocar ou devolver produtos.','Explicar problemas com compras.','Solicitar reembolso ou substituição.']},
+    {id:'4A',t:'4A – Have you finished yet?',items:['Falar sobre tarefas concluídas recentemente.','Compartilhar responsabilidades domésticas.','Atualizar outras pessoas sobre atividades realizadas.']},
+    {id:'4B',t:'4B – How we shop',items:['Conversar sobre compras e consumo.','Comparar experiências recentes e passadas.','Compartilhar hábitos de compra.']},
+    {id:'4C',t:'4C – Weekendvy',items:['Falar sobre experiências e atividades de lazer.','Expressar opiniões e sentimentos.','Descrever pessoas, lugares e situações.']},
+    {id:'PE4',t:'Practical English 4',items:['Resolver situações em uma farmácia.','Explicar sintomas e problemas de saúde simples.','Pedir medicamentos ou orientações.']},
+    {id:'5A',t:'5A – Fast forward',items:['Fazer comparações.','Comparar números, quantidades e informações.','Expressar semelhanças e diferenças.']},
+    {id:'5B',t:'5B – Superlative cities?',items:['Falar sobre cidades e lugares.','Destacar características positivas e negativas.','Compartilhar experiências marcantes.']},
+    {id:'5C',t:'5C – Too much or not enough?',items:['Falar sobre saúde e bem-estar.','Descrever hábitos saudáveis e não saudáveis.','Expressar excesso ou insuficiência.']},
+    {id:'6A',t:'6A – Optimist or pessimist?',items:['Fazer previsões sobre o futuro.','Expressar expectativas.','Falar sobre possibilidades futuras.']},
+    {id:'6B',t:'6B – Love will find a way',items:['Fazer ofertas e sugestões.','Tomar decisões espontâneas.','Resolver situações do dia a dia.']},
+    {id:'6C',t:'6C – Sweet dreams?',items:['Revisar experiências passadas, presentes e futuras.','Compartilhar informações adicionais.','Falar sobre intensidade, frequência e grau.']},
+    {id:'PE5',t:'Practical English 5',items:['Seguir e compreender instruções.','Pedir esclarecimentos quando necessário.','Confirmar informações recebidas.']},
+    {id:'7A',t:'7A – I will survive',items:['Explicar objetivos e intenções.','Falar sobre decisões e planos.','Descrever ações necessárias para alcançar objetivos.']},
+    {id:'7B',t:'7B – Happy days',items:['Falar sobre hobbies e interesses.','Compartilhar atividades favoritas.','Descrever preferências pessoais.']},
+    {id:'7C',t:'7C – Could you pass the test?',items:['Falar sobre regras e obrigações.','Explicar permissões e proibições.','Descrever responsabilidades.']},
+    {id:'8A',t:'8A – Should I or shouldn\'t I?',items:['Dar e pedir conselhos.','Falar sobre problemas e soluções.','Compartilhar recomendações.']},
+    {id:'8B',t:'8B – Absolutely typical!',items:['Falar sobre consequências e possibilidades.','Explicar resultados de ações.','Imaginar situações futuras.']},
+    {id:'8C',t:'8C – Who is Vivienne?',items:['Falar sobre posse e pertencimento.','Descrever como as pessoas fazem as coisas.','Compartilhar informações sobre outras pessoas.']},
+    {id:'PE6',t:'Practical English 6',items:['Fazer ligações telefônicas.','Deixar e receber recados.','Transmitir informações por telefone.']},
+    {id:'9A',t:'9A – Watch out!',items:['Imaginar situações hipotéticas.','Falar sobre consequências imaginárias.','Conversar sobre animais e natureza.']},
+    {id:'9B',t:'9B – Don\'t panic!',items:['Falar sobre experiências ao longo do tempo.','Descrever medos e preocupações.','Compartilhar experiências pessoais.']},
+    {id:'9C',t:'9C – Born to be stars',items:['Falar sobre a vida de pessoas famosas.','Compartilhar informações biográficas.','Narrar acontecimentos importantes da vida.']},
+    {id:'10A',t:'10A – Winners and losers',items:['Falar sobre esportes e competições.','Descrever movimentos e ações.','Relatar eventos esportivos.']},
+    {id:'10B',t:'10B – Larks and owls',items:['Falar sobre hábitos diários.','Utilizar expressões comuns do cotidiano.','Fazer perguntas e responder naturalmente.']},
+    {id:'10C',t:'10C – Inventions that changed the world',items:['Falar sobre invenções e descobertas.','Descrever processos e fatos históricos.','Compartilhar informações gerais.']},
+    {id:'11A',t:'11A – Live and learn',items:['Comparar o presente com o passado.','Falar sobre experiências da infância.','Compartilhar memórias escolares.']},
+    {id:'11B',t:'11B – Make up your mind!',items:['Expressar possibilidades e incertezas.','Fazer suposições.','Compartilhar opiniões.']},
+    {id:'11C',t:'11C – Find your twin',items:['Identificar semelhanças e diferenças.','Comparar opiniões e preferências.','Encontrar interesses em comum.']},
+    {id:'12A',t:'12A – Strange but true!',items:['Contar histórias surpreendentes.','Organizar acontecimentos do passado.','Utilizar expressões de tempo.']},
+    {id:'12B',t:'12B – Don\'t tell anybody!',items:['Contar o que outras pessoas disseram.','Compartilhar notícias e informações.','Relatar conversas.']},
+    {id:'12C',t:'12C – The English File quiz',items:['Fazer perguntas de forma natural.','Participar de entrevistas e quizzes.','Demonstrar interesse pelas experiências de outras pessoas.']},
+  ]
+};
+
+const MOODS=['😊 Animada','😐 Neutra','😴 Cansada','😤 Tensa','🎯 Focada','🤩 Excelente'];
+const MONTHS_PT={JANEIRO:'fevereiro',FEVEREIRO:'março',MARÇO:'abril',ABRIL:'maio',MAIO:'junho',JUNHO:'julho',JULHO:'agosto',AGOSTO:'setembro',SETEMBRO:'outubro',OUTUBRO:'novembro',NOVEMBRO:'dezembro',DEZEMBRO:'janeiro'};
+
+let data=JSON.parse(localStorage.getItem('tmStudio')||'{"students":[],"lessons":{}}');
+let cfg=JSON.parse(localStorage.getItem('tmCfg')||'{}');
+let activeId=null,activeTab='diary',selMood='',selUnits=[];
+
+function save(){localStorage.setItem('tmStudio',JSON.stringify(data))}
+function saveCfg(){localStorage.setItem('tmCfg',JSON.stringify(cfg))}
+function ini(n){return n.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('')}
+function fmtDate(iso){if(!iso)return'—';const[y,m,d]=iso.split('-');return`${d}/${m}/${y}`}
+function today(){return new Date().toISOString().slice(0,10)}
+
+// ── STATUS BAR ──
+function updateStatus(){
+  const ok=cfg.token&&cfg.pageId;
+  document.getElementById('ndot').className='ndot'+(ok?' ok':'');
+  document.getElementById('nlbl').textContent=ok?'Notion conectado':'Notion não configurado';
+}
+
+// ── SIDEBAR ──
+function renderSB(){
+  const list=document.getElementById('sb-list');
+  if(!data.students.length){list.innerHTML='<div class="sb-empty">Nenhuma aluna ainda.<br>Adicione pelo campo acima.</div>';return}
+  list.innerHTML=data.students.map(s=>{
+    const c=(data.lessons[s.id]||[]).length;
+    return`<div class="sb-item${s.id===activeId?' active':''}" onclick="selectSt('${s.id}')">
+      <div class="sb-av">${ini(s.name)}</div>
+      <span class="sb-name">${s.name}</span>
+      <span class="sb-badge">${c}</span>
+      <button class="sb-del" onclick="delSt(event,'${s.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+function addStudent(){
+  const inp=document.getElementById('new-name');
+  const name=inp.value.trim();if(!name)return;
+  const id='st_'+Date.now();
+  data.students.push({id,name,level:'Beginner'});
+  data.lessons[id]=[];save();inp.value='';
+  renderSB();selectSt(id);
+}
+
+function delSt(e,id){
+  e.stopPropagation();
+  const s=data.students.find(s=>s.id===id);
+  if(!confirm(`Remover "${s.name}" e todas as aulas?`))return;
+  data.students=data.students.filter(s=>s.id!==id);
+  delete data.lessons[id];save();
+  if(activeId===id){activeId=null;document.getElementById('main').innerHTML='<div class="main-empty"><div class="main-empty-icon">📓</div><div style="font-size:.88rem;font-weight:600;color:var(--text)">Selecione uma aluna</div><div style="font-size:.75rem">ou adicione uma nova para começar</div></div>'}
+  renderSB();
+}
+
+function selectSt(id){activeId=id;activeTab='diary';selMood='';selUnits=[];renderSB();renderMain()}
+
+// ── MAIN ──
+function renderMain(){
+  const s=data.students.find(s=>s.id===activeId);
+  const lessons=data.lessons[activeId]||[];
+  const main=document.getElementById('main');
+  main.innerHTML=`
+    <div class="st-hdr">
+      <div class="st-hdr-left">
+        <div class="st-av-lg">${ini(s.name)}</div>
+        <div><div class="st-name">${s.name}</div><div class="st-meta">${lessons.length} aula${lessons.length!==1?'s':''} · ${s.level||'Beginner'}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <select onchange="changeLevel(this.value)" style="font-family:Poppins,sans-serif;font-size:.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:white;color:var(--text);outline:none">
+          ${['Beginner','Elementary','Pre-intermediate'].map(l=>`<option${s.level===l?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <input type="text" value="${s.whatsapp||''}" placeholder="📱 55219..." onchange="saveWhatsapp(this.value)" style="font-family:Poppins,sans-serif;font-size:.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;width:130px;background:white;color:var(--text);outline:none" title="WhatsApp com DDI (ex: 5524999990000)">
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab${activeTab==='diary'?' active':''}" onclick="switchTab('diary')">📓 Diário</button>
+      <button class="tab${activeTab==='report'?' active':''}" onclick="switchTab('report')">📄 Relatório</button>
+    </div>
+    <div class="content" id="tab-content"></div>`;
+  renderTab();
+}
+
+function changeLevel(v){
+  const s=data.students.find(s=>s.id===activeId);
+  s.level=v;save();
+  document.querySelector('.st-meta').textContent=`${(data.lessons[activeId]||[]).length} aula${(data.lessons[activeId]||[]).length!==1?'s':''} · ${v}`;
+}
+
+function saveWhatsapp(v){
+  const s=data.students.find(s=>s.id===activeId);
+  s.whatsapp=v.replace(/\D/g,'');save();
+}
+
+function openWhatsapp(name,month){
+  const s=data.students.find(s=>s.id===activeId);
+  const num=s.whatsapp||'';
+  if(!num){alert('Número de WhatsApp não cadastrado.\nAdicione o número com DDI no campo ao lado do nome da aluna (ex: 5524999990000).');return}
+  const msg=encodeURIComponent(`Olá, ${name}! 🎉\n\nSeu relatório de ${month} está pronto! Segue em anexo o PDF com sua jornada de aprendizagem do mês.\n\nContinue assim — você está indo muito bem! 🚀\n\n– Teacher Mari`);
+  window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
+}
+
+function switchTab(t){activeTab=t;selUnits=[];selMood='';renderTab();document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active')}
+
+function renderTab(){
+  if(activeTab==='diary') renderDiary();
+  else renderReport();
+}
+
+// ── DIARY TAB ──
+function renderDiary(){
+  const lessons=data.lessons[activeId]||[];
+  const moodBtns=MOODS.map(m=>`<button class="mood-btn${selMood===m?' sel':''}" onclick="pickMood(this,'${m}')">${m}</button>`).join('');
+  const history=lessons.length===0
+    ?'<div class="no-lessons">Nenhuma aula registrada ainda.</div>'
+    :lessons.slice().reverse().map((l,i)=>{
+      const idx=lessons.length-1-i;
+      const sync=l.notionId?'<span style="font-size:.62rem;background:#dcfce7;color:#16a34a;padding:2px 7px;border-radius:20px;margin-left:6px">✓ Notion</span>':(l.notionErr?'<span style="font-size:.62rem;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;margin-left:6px">! Notion</span>':'');
+      return`<div class="lesson-card">
+        <div class="lc-head" onclick="toggleLesson(this)">
+          <span class="lc-date">Aula ${lessons.length-i} · ${fmtDate(l.date)}${sync}</span>
+          <span class="lc-sum">${l.content||'Sem conteúdo registrado'}</span>
+          ${l.mood?`<span class="lc-mbadge">${l.mood}</span>`:''}
+          <span class="chev">▾</span>
+        </div>
+        <div class="lc-body">
+          <div class="lc-field"><div class="lc-flbl">Conteúdo dado</div><div class="lc-fval${!l.content?' empty':''}">${l.content||'Não informado'}</div></div>
+          <div class="lc-field"><div class="lc-flbl">Para a próxima aula</div><div class="lc-fval${!l.next?' empty':''}">${l.next||'Não informado'}</div></div>
+          <div class="lc-field"><div class="lc-flbl">Tarefa de casa</div><div class="lc-fval${!l.homework?' empty':''}">${l.homework||'Não informada'}</div></div>
+          <div class="lc-field"><div class="lc-flbl">Observações</div><div class="lc-fval${!l.obs?' empty':''}">${l.obs||'Nenhuma'}</div></div>
+          ${l.mood?`<div class="lc-field"><div class="lc-flbl">Humor</div><div class="lc-fval">${l.mood}</div></div>`:''}
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
+            ${!l.notionId&&cfg.token?`<button class="btn-sm" style="color:var(--orange);border-color:var(--orange);margin-right:8px" onclick="retrySync(${idx})">↑ Notion</button>`:''}
+            <button class="btn-sm" onclick="delLesson(${idx})">Excluir</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('tab-content').innerHTML=`
+    <div class="card">
+      <div class="card-title">Registrar nova aula</div>
+      <div class="form-grid">
+        <div class="fg"><label>Data</label><input type="date" id="f-date" value="${today()}"></div>
+        <div class="fg"><label>Conteúdo dado (unit, tópico, página)</label><input type="text" id="f-content" placeholder="ex: Unit 4A, p.38 – Present continuous"></div>
+        <div class="fg full"><label>Para a próxima aula</label><input type="text" id="f-next" placeholder="ex: Terminar exercício 3"></div>
+        <div class="fg"><label>Tarefa de casa</label><input type="text" id="f-hw" placeholder="ex: Workbook p.30, ex. 1 e 2"></div>
+        <div class="fg"><label>Observações</label><textarea id="f-obs" rows="2" placeholder="ex: Ótima na pronúncia, ainda confunde do/does"></textarea></div>
+        <div class="fg full"><label>Humor / energia</label><div class="mood-row">${moodBtns}</div></div>
+      </div>
+      <div class="fa-row"><span class="save-msg" id="save-msg"></span><button class="btn-save" id="btn-save" onclick="saveLesson()">Salvar aula</button></div>
+    </div>
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem">Histórico de aulas</div>
+    ${history}`;
+}
+
+function pickMood(btn,m){
+  selMood=selMood===m?'':m;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  if(selMood)btn.classList.add('sel');
+}
+
+function toggleLesson(head){
+  const body=head.nextElementSibling;
+  const chev=head.querySelector('.chev');
+  body.classList.toggle('open');chev.classList.toggle('open');
+}
+
+async function saveLesson(){
+  const lesson={date:document.getElementById('f-date').value,content:document.getElementById('f-content').value.trim(),next:document.getElementById('f-next').value.trim(),homework:document.getElementById('f-hw').value.trim(),obs:document.getElementById('f-obs').value.trim(),mood:selMood,savedAt:Date.now()};
+  if(!lesson.content&&!lesson.obs&&!lesson.next){alert('Preencha pelo menos um campo.');return}
+  const btn=document.getElementById('btn-save');
+  const msg=document.getElementById('save-msg');
+  btn.disabled=true;btn.textContent='Salvando…';
+  data.lessons[activeId].push(lesson);save();
+  const s=data.students.find(s=>s.id===activeId);
+  if(cfg.token&&cfg.pageId){
+    msg.className='save-msg';msg.textContent='Sincronizando…';
+    const ok=await notionSave(s,lesson);
+    const idx=data.lessons[activeId].length-1;
+    if(ok){data.lessons[activeId][idx].notionId='synced';msg.className='save-msg ok';msg.textContent='✓ Salvo no Notion!'}
+    else{data.lessons[activeId][idx].notionErr=true;msg.className='save-msg err';msg.textContent='! Erro no Notion. Salvo localmente.'}
+    save();
+  } else {msg.className='save-msg';msg.textContent='Salvo localmente'}
+  selMood='';
+  setTimeout(()=>{renderSB();renderMain()},1200);
+}
+
+async function retrySync(idx){
+  const s=data.students.find(s=>s.id===activeId);
+  const ok=await notionSave(s,data.lessons[activeId][idx]);
+  if(ok){data.lessons[activeId][idx].notionId='synced';delete data.lessons[activeId][idx].notionErr;save();renderMain()}
+  else alert('Erro ao sincronizar. Verifique a configuração do Notion.');
+}
+
+function delLesson(idx){
+  if(!confirm('Excluir esta aula?'))return;
+  data.lessons[activeId].splice(idx,1);save();renderSB();renderMain();
+}
+
+// ── REPORT TAB ──
+function renderReport(){
+  const s=data.students.find(s=>s.id===activeId);
+  const level=s.level||'Beginner';
+  const units=SYL[level];
+  const total=units.length;
+  // Pre-populate selUnits from student's saved progress
+  if(selUnits.length===0 && s.lastUnit && s.lastUnitLevel===level){
+    const lastIdx=units.findIndex(u=>u.id===s.lastUnit);
+    if(lastIdx>=0) selUnits=units.slice(0,lastIdx+1).map(u=>u.id);
+  }
+  const unitGrid=units.map(u=>{
+    const isSel=selUnits.includes(u.id);
+    const isLast=s.lastUnit===u.id&&s.lastUnitLevel===level;
+    const style=isLast?' style="outline:2px solid #1D9E75;outline-offset:1px"':'';
+    return`<button class="unit-btn${isSel?' sel':''}"${style} onclick="toggleUnit('${u.id}',this)" title="${u.t}">${u.id}</button>`;
+  }).join('');
+
+  document.getElementById('tab-content').innerHTML=`
+    <div class="card">
+      <div class="card-title">Dados do relatório</div>
+      <div class="rpt-form">
+        <div class="fg"><label>Mês</label>
+          <select id="r-month">
+            ${['JANEIRO 2026','FEVEREIRO 2026','MARÇO 2026','ABRIL 2026','MAIO 2026','JUNHO 2026','JULHO 2026','AGOSTO 2026','SETEMBRO 2026','OUTUBRO 2026','NOVEMBRO 2026','DEZEMBRO 2026'].map(m=>`<option${m.startsWith('JUNHO')?' selected':''}>${m}</option>`).join('')}
+          </select>
+        </div>
+        <div class="fg"><label>Dia das aulas</label><input type="text" id="r-days" value="" placeholder="ex: 3ª / 5ª"></div>
+        <div class="fg"><label>Aulas programadas</label><input type="number" id="r-sched" value="4" min="0"></div>
+        <div class="fg"><label>Aulas realizadas</label><input type="number" id="r-done" value="4" min="0"></div>
+        <div class="fg"><label>Frequência (%)</label><input type="number" id="r-att" value="100" min="0" max="100"></div>
+        <div class="fg"><label>A repor</label><input type="number" id="r-repos" value="0" min="0"></div>
+        <div class="fg"><label>Aulas programadas (próximo mês)</label><input type="number" id="r-next-sched" value="5" min="0"></div>
+        <div class="fg"><label>Unidades concluídas (início do mês)</label><input type="number" id="r-pstart" value="0" min="0" oninput="updateProgHint()"></div>
+        <div class="fg"><label>Unidades concluídas (final do mês)</label><input type="number" id="r-pend" value="2" min="0" oninput="updateProgHint()"></div>
+        <div class="fg" style="grid-column:1/-1"><div class="prog-hint" id="prog-hint"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Unidades dadas este mês · ${level} (${total} no total)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+        <p style="font-size:.72rem;color:var(--muted)">${s.lastUnit&&s.lastUnitLevel===level?`Retomando da <strong>${s.lastUnit}</strong> — desmarque o que não foi dado este mês`:'Selecione as unidades dadas este mês'}</p>
+        <button onclick="clearUnits()" style="font-size:.68rem;border:1px solid var(--border);background:none;border-radius:6px;padding:3px 10px;cursor:pointer;color:var(--muted)">Limpar seleção</button>
+      </div>
+      <div class="unit-grid">${unitGrid}</div>
+    </div>
+    <button class="btn-gen" onclick="buildReport()">Gerar relatório →</button>
+    <div id="rpt-preview" style="margin-top:1rem"></div>`;
+
+  updateProgHint();
+}
+
+function updateProgHint(){
+  const s=data.students.find(s=>s.id===activeId);
+  const total=SYL[s.level||'Beginner'].length;
+  const ps=parseInt(document.getElementById('r-pstart')?.value)||0;
+  const pe=parseInt(document.getElementById('r-pend')?.value)||0;
+  const hint=document.getElementById('prog-hint');
+  if(hint) hint.textContent=`${Math.round(ps/total*100)}% → ${Math.round(pe/total*100)}% (avanço de ${Math.round((pe-ps)/total*100)}%) · Nível tem ${total} unidades`;
+}
+
+function toggleUnit(id,btn){
+  if(selUnits.includes(id)){selUnits=selUnits.filter(u=>u!==id);btn.classList.remove('sel')}
+  else{selUnits.push(id);btn.classList.add('sel')}
+}
+
+function clearUnits(){
+  selUnits=[];
+  document.querySelectorAll('.unit-btn').forEach(b=>b.classList.remove('sel'));
+}
+
+function buildReport(){
+  const s=data.students.find(s=>s.id===activeId);
+  const level=s.level||'Beginner';
+  const units=SYL[level];
+  const month=document.getElementById('r-month').value;
+  const days=document.getElementById('r-days').value.trim()||'—';
+  const sched=document.getElementById('r-sched').value;
+  const done=document.getElementById('r-done').value;
+  const att=document.getElementById('r-att').value;
+  const repos=document.getElementById('r-repos').value;
+  const nextSched=document.getElementById('r-next-sched').value;
+  // Auto-fill progress from selUnits if fields are 0
+  const psEl=document.getElementById('r-pstart');
+  const peEl=document.getElementById('r-pend');
+  if(s.lastUnit&&s.lastUnitLevel===level&&parseInt(psEl.value)===0&&parseInt(peEl.value)===0){
+    const prevIdx=units.findIndex(u=>u.id===s.lastUnit);
+    const newSelCount=selUnits.length;
+    if(prevIdx>=0){peEl.value=prevIdx+1;psEl.value=Math.max(0,prevIdx+1-newSelCount)}
+  }
+  const ps=parseInt(psEl.value)||0;
+  const pe=parseInt(peEl.value)||0;
+  const pctS=Math.round(ps/total*100);
+  const pctE=Math.round(pe/total*100);
+  const pctD=pctE-pctS;
+  const monthWord=month.split(' ')[0];
+  const nextMWord=MONTHS_PT[monthWord]||'próximo mês';
+
+  const doneUnits=selUnits.map(id=>units.find(u=>u.id===id)).filter(Boolean);
+  const lastIdx=selUnits.length?units.findIndex(u=>u.id===selUnits[selUnits.length-1]):-1;
+  const nextUnits=[];
+  if(lastIdx+1<total)nextUnits.push(units[lastIdx+1]);
+  if(lastIdx+2<total)nextUnits.push(units[lastIdx+2]);
+
+  const col1=doneUnits.filter((_,i)=>i%2===0);
+  const col2=doneUnits.filter((_,i)=>i%2===1);
+  const renderUB=u=>`<div class="pdf-unit-title">${u.t}</div>${u.items.map(it=>`<div class="pdf-unit-item">${it}</div>`).join('')}`;
+  const renderNI=u=>u.items.map(it=>`<div class="pdf-next-item">${it}</div>`).join('');
+
+  const attNum=parseInt(att);
+  const notes=[];
+  if(attNum===100)notes.push('🎉 Parabéns pela excelente frequência neste mês!');
+  else if(attNum>=75)notes.push('👍 Boa frequência este mês! Continue assim!');
+  else notes.push('💪 Vamos reforçar a frequência no próximo mês!');
+  notes.push('📚 Não se esqueça dos homework e exercícios disponíveis no Portal do Aluno. Practice makes perfect!');
+  notes.push('🚀 Continue assim! Seu esforço está trazendo ótimos resultados.');
+
+  const html=`<div class="pdf-page">
+  <div class="pdf-hdr">
+    <div class="pdf-logo-wrap">
+      <img class="pdf-logo-img" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" onerror="this.style.display='none'" alt="Teacher Mari">
+    </div>
+    <div class="pdf-title-wrap">
+      <div class="pdf-title">Monthly Report</div>
+      <div class="pdf-report-label">Monthly Report</div>
+      <div class="pdf-month">${monthWord} ${month.split(' ')[1]||''}</div>
+    </div>
+  </div>
+  <div class="pdf-meta">
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Aluno</div><div class="pdf-meta-val">${s.name}</div></div>
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Dia das Aulas</div><div class="pdf-meta-val">${days}</div></div>
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Nível Atual</div><div class="pdf-meta-val">${level}</div></div>
+  </div>
+  <div class="pdf-sec-bar">Resumo do Mês</div>
+  <div class="pdf-summary">
+    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas Programadas:</span><div class="pdf-stat-num">${sched}</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas realizadas:</span><div class="pdf-stat-num">${done}</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">Frequência:</span><div class="pdf-stat-num">${att}%</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas a repor:</span><div class="pdf-stat-num">${repos}</div></div>
+  </div>
+  <div class="pdf-sec-bar">Jornada de aprendizagem do mês</div>
+  <div class="pdf-journey">
+    <div>${col1.map(renderUB).join('')}</div>
+    <div>${col2.map(renderUB).join('')}</div>
+  </div>
+  <div class="pdf-divider"></div>
+  <div class="pdf-bottom">
+    <div class="pdf-prog">
+      <div class="pdf-prog-title">Progresso no Nível</div>
+      <div class="pdf-prog-item">• Início de ${monthWord.toLowerCase()}: ${pctS}% concluído do nível ${level}</div>
+      <div class="pdf-prog-item">• Final de ${monthWord.toLowerCase()}: ${pctE}% concluído do nível ${level}</div>
+      <div class="pdf-prog-bold">Você avançou ${pctD}% do nível ${level} este mês.</div>
+    </div>
+    <div>
+      <div class="pdf-sec-bar">O que você vai conquistar em ${nextMWord}</div>
+      <div class="pdf-next">
+        <div class="pdf-next-aulas">Aulas programadas: ${nextSched}</div>
+        ${nextUnits.map(renderNI).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="pdf-notes">
+    <div class="pdf-notes-title">Notas da Teacher:</div>
+    ${notes.map(n=>`<div class="pdf-note-item">${n}</div>`).join('')}
+  </div>
+</div>`;
+
+  // Make all text elements editable directly on the preview
+  const editableHtml = html
+    .replace(/<div class="pdf-month">/g, '<div class="pdf-month" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-report-label">/g, '<div class="pdf-report-label" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-meta-val">/g, '<div class="pdf-meta-val" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-stat-lbl">/g, '<div class="pdf-stat-lbl" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-stat-num">/g, '<div class="pdf-stat-num" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-unit-title">/g, '<div class="pdf-unit-title" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-unit-item">/g, '<div class="pdf-unit-item" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-prog-item">/g, '<div class="pdf-prog-item" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-prog-bold">/g, '<div class="pdf-prog-bold" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-next-aulas">/g, '<div class="pdf-next-aulas" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-next-item">/g, '<div class="pdf-next-item" contenteditable="true" data-edit="true">')
+    .replace(/<div class="pdf-note-item">/g, '<div class="pdf-note-item" contenteditable="true" data-edit="true">');
+
+  // Save progress: remember last unit taught for this student
+  if(selUnits.length>0){
+    const s2=data.students.find(s=>s.id===activeId);
+    s2.lastUnit=selUnits[selUnits.length-1];
+    s2.lastUnitLevel=level;
+    // Auto-calc prog end from selUnits if not manually set
+    save();
+  }
+
+  document.getElementById('rpt-preview').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
+      <div>
+        <span style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Pré-visualização editável</span>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:2px">Clique em qualquer texto para editar antes de baixar</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-dl" onclick="downloadPDF('${s.name}','${month}')" style="background:var(--purple)">⬇ Baixar PDF</button>
+        <button class="btn-dl" onclick="openWhatsapp('${s.name}','${month}')" style="background:#25D366">💬 WhatsApp</button>
+      </div>
+    </div>
+    <div style="border:2px dashed #e0d4c0;border-radius:8px;padding:8px;background:#faf5ee">
+      <div id="pdf-editable" style="transform:scale(0.6);transform-origin:top left;width:167%;margin-bottom:-118mm">${editableHtml}</div>
+    </div>`;
+
+  // Add edit highlight styles dynamically
+  if(!document.getElementById('edit-style')){
+    const st=document.createElement('style');
+    st.id='edit-style';
+    st.textContent=`
+      [contenteditable="true"]{outline:none;cursor:text;border-radius:2px;transition:background .15s}
+      [contenteditable="true"]:hover{background:rgba(255,92,35,.08)!important}
+      [contenteditable="true"]:focus{background:rgba(255,92,35,.13)!important;outline:1px solid rgba(255,92,35,.4)!important}
+    `;
+    document.head.appendChild(st);
+  }
+}
+
+function downloadPDF(name,month){
+  const editable=document.getElementById('pdf-editable');
+  if(!editable)return;
+  // Clone the inner pdf-page, strip contenteditable attributes
+  const page=editable.querySelector('.pdf-page');
+  if(!page)return;
+  const clone=page.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el=>{
+    el.removeAttribute('contenteditable');
+    el.removeAttribute('data-edit');
+  });
+  clone.style.cssText='width:210mm;min-height:297mm;background:white;font-family:Poppins,sans-serif;color:#1a1a2e;position:relative;overflow:hidden';
+  document.getElementById('pdf-canvas').appendChild(clone);
+  const fname=`relatorio_${name.replace(/\s/g,'_')}_${month.replace(/\s/g,'_')}.pdf`;
+  html2pdf().set({margin:0,filename:fname,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(clone).save().then(()=>{clone.remove()});
+}
+
+// ── NOTION ──
+async function notionSave(student,lesson){
+  try{
+    if(!cfg.dbId)cfg.dbId=await ensureDB();
+    const rt=t=>t?[{type:'text',text:{content:t.slice(0,2000)}}]:[];
+    await fetch('https://api.notion.com/v1/pages',{method:'POST',headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({parent:{database_id:cfg.dbId},properties:{'Aluna':{title:rt(student.name)},'Data':lesson.date?{date:{start:lesson.date}}:{date:null},'Conteúdo':{rich_text:rt(lesson.content)},'Próxima aula':{rich_text:rt(lesson.next)},'Tarefa':{rich_text:rt(lesson.homework)},'Observações':{rich_text:rt(lesson.obs)},'Humor':lesson.mood?{select:{name:lesson.mood}}:{select:null}}})});
+    return true;
+  }catch(e){console.error(e);return false}
+}
+async function ensureDB(){
+  const s=await(await fetch('https://api.notion.com/v1/search',{method:'POST',headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({query:'Diário Teacher Mari',filter:{property:'object',value:'database'}})})).json();
+  const ex=s.results?.find(r=>r.parent?.page_id?.replace(/-/g,'')===(cfg.pageId||'').replace(/-/g,''));
+  if(ex)return ex.id;
+  const db=await(await fetch('https://api.notion.com/v1/databases',{method:'POST',headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:JSON.stringify({parent:{type:'page_id',page_id:cfg.pageId},title:[{type:'text',text:{content:'Diário Teacher Mari'}}],properties:{Aluna:{title:{}},Data:{date:{}},Conteúdo:{rich_text:{}},'Próxima aula':{rich_text:{}},'Tarefa':{rich_text:{}},'Observações':{rich_text:{}},'Humor':{select:{options:MOODS.map(m=>({name:m,color:'default'}))}}}})})).json();
+  cfg.dbId=db.id;saveCfg();return db.id;
+}
+
+// ── CONFIG MODAL ──
+function openCfg(){document.getElementById('cfg-token').value=cfg.token||'';document.getElementById('cfg-page').value=cfg.pageId||'';document.getElementById('cfg-msg').textContent='';document.getElementById('modal-cfg').classList.add('open')}
+function closeCfg(){document.getElementById('modal-cfg').classList.remove('open')}
+async function testCfg(){
+  const token=document.getElementById('cfg-token').value.trim();
+  const pageId=document.getElementById('cfg-page').value.trim().replace(/-/g,'');
+  const msg=document.getElementById('cfg-msg');
+  if(!token||!pageId){msg.style.color='#dc2626';msg.textContent='Preencha os dois campos.';return}
+  msg.style.color='var(--muted)';msg.textContent='Testando…';
+  try{
+    const r=await fetch(`https://api.notion.com/v1/pages/${pageId}`,{headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28'}});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.message||'Página não encontrada');
+    cfg={token,pageId,dbId:null};saveCfg();updateStatus();
+    msg.style.color='#16a34a';msg.textContent='✓ Conectado! Configuração salva.';
+    setTimeout(closeCfg,1400);
+  }catch(e){msg.style.color='#dc2626';msg.textContent='✗ '+e.message}
+}
+
+// ── INIT ──
+document.getElementById('new-name').addEventListener('keydown',e=>{if(e.key==='Enter')addStudent()});
+document.getElementById('modal-cfg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCfg()});
+updateStatus();renderSB();
+</script>
+</body>
+</html>
