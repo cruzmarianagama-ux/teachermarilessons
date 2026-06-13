@@ -191,6 +191,8 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
     <span class="hdr-title">Teacher Mari · Studio</span>
   </div>
   <div class="hdr-right">
+    <button onclick="exportData()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-sm);padding:5px 12px;font-family:Poppins,sans-serif;font-size:.7rem;cursor:pointer;transition:background .15s" title="Exportar backup">⬇ Backup</button>
+    <label style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-sm);padding:5px 12px;font-family:Poppins,sans-serif;font-size:.7rem;cursor:pointer" title="Importar backup">⬆ Restaurar<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
     <div class="notion-pill" onclick="openCfg()">
       <div class="ndot" id="ndot"></div>
       <span id="nlbl">Google Sheets não configurado</span>
@@ -365,6 +367,8 @@ const SYL = {
 
 const MOODS=['😊 Animada','😐 Neutra','😴 Cansada','😤 Tensa','🎯 Focada','🤩 Excelente'];
 const MONTHS_PT={JANEIRO:'fevereiro',FEVEREIRO:'março',MARÇO:'abril',ABRIL:'maio',MAIO:'junho',JUNHO:'julho',JULHO:'agosto',AGOSTO:'setembro',SETEMBRO:'outubro',OUTUBRO:'novembro',NOVEMBRO:'dezembro',DEZEMBRO:'janeiro'};
+const MONTHS_EN={JANEIRO:'February',FEVEREIRO:'March',MARÇO:'April',ABRIL:'May',MAIO:'June',JUNHO:'July',JULHO:'August',AGOSTO:'September',SETEMBRO:'October',OUTUBRO:'November',NOVEMBRO:'December',DEZEMBRO:'January'};
+const MONTHS_EN_CURR={JANEIRO:'January',FEVEREIRO:'February',MARÇO:'March',ABRIL:'April',MAIO:'May',JUNHO:'June',JULHO:'July',AGOSTO:'August',SETEMBRO:'September',OUTUBRO:'October',NOVEMBRO:'November',DEZEMBRO:'December'};
 
 let data=JSON.parse(localStorage.getItem('tmStudio')||'{"students":[],"lessons":{}}');
 let cfg=JSON.parse(localStorage.getItem('tmCfg')||'{}');
@@ -377,6 +381,44 @@ function fmtDate(iso){if(!iso)return'—';const[y,m,d]=iso.split('-');return`${d
 function today(){return new Date().toISOString().slice(0,10)}
 
 // ── STATUS BAR ──
+function exportData(){
+  const payload=JSON.stringify(data, null, 2);
+  const blob=new Blob([payload],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=`teachermari-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const parsed=JSON.parse(e.target.result);
+      if(!parsed.students||!parsed.lessons){
+        alert('Arquivo inválido. Selecione um backup gerado pelo Teacher Mari Studio.');
+        return;
+      }
+      if(!confirm(`Restaurar backup com ${parsed.students.length} aluna(s)? Os dados atuais serão substituídos.`))return;
+      data=parsed;
+      save();
+      activeId=null;
+      renderSB();
+      document.getElementById('main').innerHTML='<div class="main-empty"><div class="main-empty-icon">📓</div><div style="font-size:.88rem;font-weight:600;color:var(--text)">Backup restaurado!</div><div style="font-size:.75rem">Selecione uma aluna para continuar</div></div>';
+      alert(`✓ ${parsed.students.length} aluna(s) restaurada(s) com sucesso!`);
+    }catch(err){
+      alert('Erro ao ler o arquivo. Verifique se é um backup válido.');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
 function updateStatus(){
   const ok=!!cfg.sheetUrl;
   document.getElementById('ndot').className='ndot'+(ok?' ok':'');
@@ -603,7 +645,7 @@ function renderReport(){
     <div class="card">
       <div class="card-title">Unidades dadas este mês · ${level} (${total} no total)</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap">
-        <p style="font-size:.72rem;color:var(--muted)">${s.lastUnit&&s.lastUnitLevel===level?`Retomando da <strong>${s.lastUnit}</strong> — desmarque o que não foi dado este mês`:'Selecione as unidades dadas este mês'}</p>
+        <p style="font-size:.72rem;color:var(--muted)">${s.lastUnit&&s.lastUnitLevel===level?'Retomando da <strong>'+s.lastUnit+'</strong> — desmarque o que não foi dado este mês':'Selecione as unidades dadas este mês'}</p>
         <button onclick="clearUnits()" style="font-size:.68rem;border:1px solid var(--border);background:none;border-radius:6px;padding:3px 10px;cursor:pointer;color:var(--muted)">Limpar seleção</button>
       </div>
       <div class="unit-grid">${unitGrid}</div>
@@ -672,12 +714,42 @@ function buildReport(){
   const renderNI=u=>u.items.map(it=>`<div class="pdf-next-item">${it}</div>`).join('');
 
   const attNum=parseInt(att);
+  const isBR=level==='Beginner';
+  const nextMWord=isBR?(MONTHS_PT[monthWord]||'próximo mês'):(MONTHS_EN[monthWord]||'next month');
+  const currMWord=isBR?monthWord.toLowerCase():(MONTHS_EN_CURR[monthWord]||monthWord);
   const notes=[];
-  if(attNum===100)notes.push('🎉 Parabéns pela excelente frequência neste mês!');
-  else if(attNum>=75)notes.push('👍 Boa frequência este mês! Continue assim!');
-  else notes.push('💪 Vamos reforçar a frequência no próximo mês!');
-  notes.push('📚 Não se esqueça dos homework e exercícios disponíveis no Portal do Aluno. Practice makes perfect!');
-  notes.push('🚀 Continue assim! Seu esforço está trazendo ótimos resultados.');
+  if(isBR){
+    if(attNum===100)notes.push('🎉 Parabéns pela excelente frequência neste mês!');
+    else if(attNum>=75)notes.push('👍 Boa frequência este mês! Continue assim!');
+    else notes.push('💪 Vamos reforçar a frequência no próximo mês!');
+    notes.push('📚 Não se esqueça dos homework e exercícios disponíveis no Portal do Aluno. Practice makes perfect!');
+    notes.push('🚀 Continue assim! Seu esforço está trazendo ótimos resultados.');
+  } else {
+    if(attNum===100)notes.push('🎉 Congratulations on your perfect attendance this month!');
+    else if(attNum>=75)notes.push('👍 Great attendance this month! Keep it up!');
+    else notes.push('💪 Let's work on improving attendance next month!');
+    notes.push('📚 Don't forget your homework and exercises available on the Student Portal. Practice makes perfect!');
+    notes.push('🚀 Keep going! Your effort is bringing great results.');
+  }
+
+  const L={
+    student:isBR?'Aluno':'Student',
+    classDay:isBR?'Dia das Aulas':'Class Day',
+    level:isBR?'Nível Atual':'Current Level',
+    summary:isBR?'Resumo do Mês':'Monthly Summary',
+    scheduled:isBR?'Aulas Programadas:':'Scheduled Classes:',
+    completed:isBR?'Aulas realizadas:':'Completed Classes:',
+    attendance:isBR?'Frequência:':'Attendance:',
+    reschedule:isBR?'Aulas a repor:':'Classes to Reschedule:',
+    journey:isBR?'Jornada de aprendizagem do mês':'This Month's Learning Journey',
+    progress:isBR?'Progresso no Nível':'Level Progress',
+    progressStart:isBR?`• Início de ${currMWord}: ${pctS}% concluído do nível ${level}`:`• Start of ${currMWord}: ${pctS}% completed of ${level} level`,
+    progressEnd:isBR?`• Final de ${currMWord}: ${pctE}% concluído do nível ${level}`:`• End of ${currMWord}: ${pctE}% completed of ${level} level`,
+    progressBold:isBR?`Você avançou ${pctD}% do nível ${level} este mês.`:`You advanced ${pctD}% of the ${level} level this month.`,
+    nextTitle:isBR?`O que você vai conquistar em ${nextMWord}`:`What You'll Achieve in ${nextMWord}`,
+    nextAulas:isBR?`Aulas programadas: ${nextSched}`:`Scheduled Classes: ${nextSched}`,
+    notes:isBR?'Notas da Teacher:':'Teacher's Notes:'
+  };
 
   const html=`<div class="pdf-page">
   <div class="pdf-hdr">
@@ -687,22 +759,22 @@ function buildReport(){
     <div class="pdf-title-wrap">
       <div class="pdf-title">Monthly Report</div>
       <div class="pdf-report-label">Monthly Report</div>
-      <div class="pdf-month">${monthWord} ${month.split(' ')[1]||''}</div>
+      <div class="pdf-month">${isBR?monthWord:MONTHS_EN_CURR[monthWord]||monthWord} ${month.split(' ')[1]||''}</div>
     </div>
   </div>
   <div class="pdf-meta">
-    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Aluno</div><div class="pdf-meta-val">${s.name}</div></div>
-    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Dia das Aulas</div><div class="pdf-meta-val">${days}</div></div>
-    <div class="pdf-meta-col"><div class="pdf-meta-lbl">Nível Atual</div><div class="pdf-meta-val">${level}</div></div>
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">${L.student}</div><div class="pdf-meta-val">${s.name}</div></div>
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">${L.classDay}</div><div class="pdf-meta-val">${days}</div></div>
+    <div class="pdf-meta-col"><div class="pdf-meta-lbl">${L.level}</div><div class="pdf-meta-val">${level}</div></div>
   </div>
-  <div class="pdf-sec-bar">Resumo do Mês</div>
+  <div class="pdf-sec-bar">${L.summary}</div>
   <div class="pdf-summary">
-    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas Programadas:</span><div class="pdf-stat-num">${sched}</div></div>
-    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas realizadas:</span><div class="pdf-stat-num">${done}</div></div>
-    <div class="pdf-stat"><span class="pdf-stat-lbl">Frequência:</span><div class="pdf-stat-num">${att}%</div></div>
-    <div class="pdf-stat"><span class="pdf-stat-lbl">Aulas a repor:</span><div class="pdf-stat-num">${repos}</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">${L.scheduled}</span><div class="pdf-stat-num">${sched}</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">${L.completed}</span><div class="pdf-stat-num">${done}</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">${L.attendance}</span><div class="pdf-stat-num">${att}%</div></div>
+    <div class="pdf-stat"><span class="pdf-stat-lbl">${L.reschedule}</span><div class="pdf-stat-num">${repos}</div></div>
   </div>
-  <div class="pdf-sec-bar">Jornada de aprendizagem do mês</div>
+  <div class="pdf-sec-bar">${L.journey}</div>
   <div class="pdf-journey">
     <div>${col1.map(renderUB).join('')}</div>
     <div>${col2.map(renderUB).join('')}</div>
@@ -710,21 +782,21 @@ function buildReport(){
   <div class="pdf-divider"></div>
   <div class="pdf-bottom">
     <div class="pdf-prog">
-      <div class="pdf-prog-title">Progresso no Nível</div>
-      <div class="pdf-prog-item">• Início de ${monthWord.toLowerCase()}: ${pctS}% concluído do nível ${level}</div>
-      <div class="pdf-prog-item">• Final de ${monthWord.toLowerCase()}: ${pctE}% concluído do nível ${level}</div>
-      <div class="pdf-prog-bold">Você avançou ${pctD}% do nível ${level} este mês.</div>
+      <div class="pdf-prog-title">${L.progress}</div>
+      <div class="pdf-prog-item">${L.progressStart}</div>
+      <div class="pdf-prog-item">${L.progressEnd}</div>
+      <div class="pdf-prog-bold">${L.progressBold}</div>
     </div>
     <div>
-      <div class="pdf-sec-bar">O que você vai conquistar em ${nextMWord}</div>
+      <div class="pdf-sec-bar">${L.nextTitle}</div>
       <div class="pdf-next">
-        <div class="pdf-next-aulas">Aulas programadas: ${nextSched}</div>
+        <div class="pdf-next-aulas">${L.nextAulas}</div>
         ${nextUnits.map(renderNI).join('')}
       </div>
     </div>
   </div>
   <div class="pdf-notes">
-    <div class="pdf-notes-title">Notas da Teacher:</div>
+    <div class="pdf-notes-title">${L.notes}</div>
     ${notes.map(n=>`<div class="pdf-note-item">${n}</div>`).join('')}
   </div>
 </div>`;
