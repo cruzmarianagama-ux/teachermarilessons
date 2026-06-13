@@ -477,6 +477,8 @@ function renderMain(){
           ${['Beginner','Elementary','Pre-intermediate'].map(l=>`<option${s.level===l?' selected':''}>${l}</option>`).join('')}
         </select>
         <input type="text" value="${s.whatsapp||''}" placeholder="📱 55219..." onchange="saveWhatsapp(this.value)" style="font-family:Poppins,sans-serif;font-size:.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;width:130px;background:white;color:var(--text);outline:none" title="WhatsApp com DDI (ex: 5524999990000)">
+        <button onclick="downloadHistory()" style="font-family:Poppins,sans-serif;font-size:.72rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 12px;background:white;color:var(--text);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">📋 Histórico PDF</button>
+        <button onclick="confirmDelStudent()" style="font-family:Poppins,sans-serif;font-size:.72rem;border:1px solid #fca5a5;border-radius:var(--radius-sm);padding:5px 12px;background:white;color:#dc2626;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='white'">🗑 Excluir aluna</button>
       </div>
     </div>
     <div class="tabs">
@@ -491,6 +493,59 @@ function changeLevel(v){
   const s=data.students.find(s=>s.id===activeId);
   s.level=v;save();
   document.querySelector('.st-meta').textContent=`${(data.lessons[activeId]||[]).length} aula${(data.lessons[activeId]||[]).length!==1?'s':''} · ${v}`;
+}
+
+function confirmDelStudent(){
+  const s=data.students.find(s=>s.id===activeId);
+  if(!confirm(`Excluir "${s.name}" permanentemente?\n\nTodas as aulas registradas serão removidas do app.\nO histórico no Google Sheets não será afetado.`))return;
+  data.students=data.students.filter(st=>st.id!==activeId);
+  delete data.lessons[activeId];
+  save();
+  activeId=null;
+  renderSB();
+  document.getElementById('main').innerHTML='<div class="main-empty"><div class="main-empty-icon">📓</div><div style="font-size:.88rem;font-weight:600;color:var(--text)">Aluna removida</div><div style="font-size:.75rem">Selecione ou adicione uma aluna</div></div>';
+}
+
+function downloadHistory(){
+  const s=data.students.find(s=>s.id===activeId);
+  const lessons=data.lessons[activeId]||[];
+  if(!lessons.length){alert('Nenhuma aula registrada para '+s.name+'.');return}
+
+  const rows=lessons.map((l,i)=>`
+    <div style="margin-bottom:20px;padding:14px 20px;border:1px solid #e8ddd0;border-radius:8px;page-break-inside:avoid">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong style="font-size:12px;color:#1D1050">Aula ${i+1} · ${l.date?l.date.split('-').reverse().join('/'):'—'}</strong>
+        ${l.mood?`<span style="font-size:10px;background:#FAEAD3;padding:2px 8px;border-radius:20px">${l.mood}</span>`:''}
+      </div>
+      ${l.content?`<div style="margin-bottom:6px"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#FF5C23">Conteúdo</span><br><span style="font-size:10px">${l.content}</span></div>`:''}
+      ${l.next?`<div style="margin-bottom:6px"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#FF5C23">Próxima aula</span><br><span style="font-size:10px">${l.next}</span></div>`:''}
+      ${l.homework?`<div style="margin-bottom:6px"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#FF5C23">Tarefa de casa</span><br><span style="font-size:10px">${l.homework}</span></div>`:''}
+      ${l.obs?`<div><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#FF5C23">Observações</span><br><span style="font-size:10px">${l.obs}</span></div>`:''}
+    </div>`).join('');
+
+  const html=`<div style="font-family:Poppins,sans-serif;padding:30px 36px;color:#1D1050;width:210mm">
+    <div style="background:#04392F;padding:20px 24px;border-radius:8px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" style="height:36px;object-fit:contain" onerror="this.style.display='none'">
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:800;color:white">Histórico de Aulas</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">${s.name} · ${s.level||'Beginner'} · ${lessons.length} aulas</div>
+      </div>
+    </div>
+    ${rows}
+  </div>`;
+
+  const el=document.createElement('div');
+  el.innerHTML=html;
+  document.getElementById('pdf-canvas').appendChild(el);
+  html2pdf().set({
+    margin:0,
+    filename:'historico_'+s.name.replace(/\s/g,'_')+'.pdf',
+    image:{type:'jpeg',quality:.97},
+    html2canvas:{scale:2,useCORS:true},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  }).from(el).save().then(()=>el.remove());
 }
 
 function saveWhatsapp(v){
@@ -725,8 +780,8 @@ function buildReport(){
   } else {
     if(attNum===100)notes.push('🎉 Congratulations on your perfect attendance this month!');
     else if(attNum>=75)notes.push('👍 Great attendance this month! Keep it up!');
-    else notes.push('💪 Let's work on improving attendance next month!');
-    notes.push('📚 Don't forget your homework and exercises available on the Student Portal. Practice makes perfect!');
+    else notes.push("💪 Let's work on improving attendance next month!");
+    notes.push("📚 Don't forget your homework and exercises available on the Student Portal. Practice makes perfect!");
     notes.push('🚀 Keep going! Your effort is bringing great results.');
   }
 
