@@ -811,7 +811,7 @@ function buildReport(){
     notes:isBR?"Notas da Teacher:":"Teacher Notes:"
   };
 
-  const html=`<div style="width:794px;min-height:1123px;background:white;font-family:Poppins,sans-serif;color:#1D1050;position:relative;box-sizing:border-box">
+  const html=`<div style="width:794px;min-height:1123px;background:white;font-family:Poppins,sans-serif;color:#1D1050;box-sizing:border-box;display:flex;flex-direction:column">
   <!-- TOP BAR -->
   <div style="height:5px;background:#FF5C23;position:relative">
     <div style="position:absolute;right:0;top:0;width:55%;height:5px;background:#1D1050"></div>
@@ -883,7 +883,7 @@ function buildReport(){
     </div>
   </div>
   <!-- NOTES -->
-  <div style="padding:14px 40px;background:#fff8f0;border-top:2px solid #FF5C23">
+  <div style="padding:14px 40px;background:#fff8f0;border-top:2px solid #FF5C23;margin-top:auto">
     <div style="font-size:7px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#FF5C23;margin-bottom:8px">${L.notes}</div>
     ${notes.map(n=>`<div style="font-size:8.5px;color:#555;line-height:1.7">${n}</div>`).join('')}
   </div>
@@ -895,17 +895,25 @@ function buildReport(){
 </div>`;;
 
   // Make all text elements editable directly on the preview
-  // Make text nodes editable by adding contenteditable to leaf divs
-  const parser = new DOMParser();
-  const doc = parser.parseFromString('<div>'+html+'</div>', 'text/html');
-  // Add contenteditable to all leaf divs and spans that have text content
-  doc.querySelectorAll('div, span').forEach(el => {
-    if(el.children.length === 0 && el.textContent.trim().length > 0) {
-      el.setAttribute('contenteditable', 'true');
-      el.setAttribute('data-edit', 'true');
-    }
-  });
-  const editableHtml = doc.body.firstChild.innerHTML;
+  // Wrap all text content in editable spans
+  // We add contenteditable to key containers using targeted replaces
+  let editableHtml = html
+    // unit titles
+    .replace(/(<div style="font-size:8\.5px;font-weight:700;color:#1D1050;margin-bottom:4px[^"]*">)/g, '$1<span contenteditable="true" style="outline:none;display:inline-block;width:100%" onmouseenter="this.parentElement.style.background='rgba(255,92,35,.06)'" onmouseleave="this.parentElement.style.background=''">').replace(/(<\/div>)/g, (m, p, offset, str) => {
+        return m; // keep as is - we'll do targeted replaces below
+    });
+  
+  // Simpler approach: make the whole sections editable by wrapping content
+  editableHtml = html
+    .replace(/(font-size:8\.5px;font-weight:700;color:#1D1050;margin-bottom:4px[^>]*>)([^<]+)(<)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:8px;color:#555;line-height:1\.55[^>]*><span[^>]*>✓<\/span>)([^<]+)(<)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:8px;color:rgba\(255,255,255,\.85\)[^>]*><span[^>]*>›<\/span>)([^<]+)(<)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:8\.5px;color:#555;line-height:1\.7[^>]*>)([^<]+)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:20px;font-weight:800;color:#1D1050;line-height:1[^>]*>)(\d[^<]*)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none;min-width:10px">$2</span>$3')
+    .replace(/(font-size:9\.5px;font-weight:700;color:#1D1050;margin-top:8px[^>]*>)([^<]+)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:8px;color:#555;line-height:1\.8[^>]*>)([^<]+)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:13px;font-weight:700;color:#1D1050[^>]*>)([^<]+)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3')
+    .replace(/(font-size:8px;font-weight:600;color:rgba\(255,255,255,\.5\)[^>]*>)([^<]+)(<\/div>)/g, '$1<span contenteditable="true" style="outline:none">$2</span>$3');
 
   // Save progress: remember last unit taught for this student
   if(selUnits.length>0){
@@ -954,24 +962,29 @@ function buildReport(){
 
 function downloadPDF(name,month){
   const editable=document.getElementById('pdf-editable');
-  if(!editable)return;
-  // Clone the inner pdf-page, strip contenteditable attributes
-  const page=editable.querySelector('.pdf-page');
-  if(!page)return;
-  const clone=page.cloneNode(true);
+  if(!editable){alert('Gere o relatório primeiro.');return}
+  // Clone the editable div (which contains the pdf page)
+  const clone=editable.cloneNode(true);
+  // Reset transform so it renders at full size
+  clone.style.transform='none';
+  clone.style.width='794px';
+  // Remove contenteditable
   clone.querySelectorAll('[contenteditable]').forEach(el=>{
     el.removeAttribute('contenteditable');
     el.removeAttribute('data-edit');
   });
-  clone.style.cssText='width:210mm;min-height:297mm;background:white;font-family:Poppins,sans-serif;color:#1a1a2e;position:relative;overflow:hidden';
+  clone.querySelectorAll('[onmouseenter],[onmouseleave]').forEach(el=>{
+    el.removeAttribute('onmouseenter');
+    el.removeAttribute('onmouseleave');
+  });
   document.getElementById('pdf-canvas').appendChild(clone);
-  const fname=`relatorio_${name.replace(/\s/g,'_')}_${month.replace(/\s/g,'_')}.pdf`;
+  const fname='relatorio_'+name.replace(/\s/g,'_')+'_'+month.replace(/\s/g,'_')+'.pdf';
   html2pdf().set({
     margin:0,
     filename:fname,
     image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:2,useCORS:true,letterRendering:true},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
+    html2canvas:{scale:2,useCORS:true,letterRendering:true,scrollX:0,scrollY:0},
+    jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'}
   }).from(clone).save().then(()=>{clone.remove()});
 }
 
