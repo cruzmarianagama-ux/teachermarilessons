@@ -28,16 +28,23 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
 .ndot.ok{background:#4ade80}
 
 /* ── LAYOUT ── */
-.layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 56px)}
+.layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 56px);min-height:0;overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sb{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sb{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .sb-top{padding:1rem;border-bottom:1px solid var(--border);display:flex;gap:8px}
 .sb-top input{flex:1;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-family:'Poppins',sans-serif;font-size:0.78rem;color:var(--text);outline:none;background:var(--cream)}
 .sb-top input:focus{border-color:var(--orange)}
+.sb-search{position:relative;padding:0 1rem .75rem;border-bottom:1px solid var(--border)}
+.sb-search-icon{position:absolute;left:1.55rem;top:50%;transform:translateY(-65%);font-size:.72rem;opacity:.5;pointer-events:none}
+.sb-search input{width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 28px 7px 30px;font-family:'Poppins',sans-serif;font-size:0.78rem;color:var(--text);outline:none;background:var(--cream)}
+.sb-search input:focus{border-color:var(--orange)}
+.sb-search-clear{position:absolute;right:1.55rem;top:50%;transform:translateY(-65%);background:none;border:none;color:var(--muted);font-size:1.1rem;line-height:1;cursor:pointer;display:none;padding:0}
+.sb-search-clear:hover{color:var(--orange)}
+.sb-search.has-text .sb-search-clear{display:block}
 .btn-add{background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-family:'Poppins',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity 0.15s}
 .btn-add:hover{opacity:0.85}
-.sb-list{flex:1;overflow-y:auto;padding:6px 0}
+.sb-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0;min-height:0}
 .sb-item{display:flex;align-items:center;gap:9px;padding:10px 1rem;cursor:pointer;border-left:3px solid transparent;transition:all 0.1s;position:relative}
 .sb-item:hover{background:var(--cream)}
 .sb-item.active{background:#fff5ef;border-left-color:var(--orange)}
@@ -51,7 +58,7 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
 .sb-empty{padding:1.5rem 1rem;text-align:center;font-size:0.78rem;color:var(--muted);line-height:1.7}
 
 /* ── MAIN ── */
-.main{overflow-y:auto;display:flex;flex-direction:column}
+.main{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;min-height:0}
 .main-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;gap:8px}
 .main-empty-icon{font-size:2.5rem;opacity:0.25}
 
@@ -212,6 +219,11 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
     <div class="sb-top">
       <input type="text" id="new-name" placeholder="Nome da aluna…" maxlength="50">
       <button class="btn-add" onclick="addStudent()">+</button>
+    </div>
+    <div class="sb-search">
+      <span class="sb-search-icon">🔍</span>
+      <input type="text" id="search-name" placeholder="Buscar aluna…" oninput="renderSB()" autocomplete="off">
+      <button class="sb-search-clear" id="search-clear" onclick="clearSearch()" title="Limpar">×</button>
     </div>
     <div class="sb-list" id="sb-list"></div>
   </aside>
@@ -435,7 +447,21 @@ function updateStatus(){
 function renderSB(){
   const list=document.getElementById('sb-list');
   if(!data.students.length){list.innerHTML='<div class="sb-empty">Nenhuma aluna ainda.<br>Adicione pelo campo acima.</div>';return}
-  list.innerHTML=data.students.map(s=>{
+
+  // Filter by search text (case/accent-insensitive)
+  const searchEl=document.getElementById('search-name');
+  const q=searchEl?searchEl.value.trim():'';
+  const wrap=searchEl?searchEl.closest('.sb-search'):null;
+  if(wrap)wrap.classList.toggle('has-text',q.length>0);
+  const norm=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const nq=norm(q);
+  const filtered=q?data.students.filter(s=>norm(s.name).includes(nq)):data.students;
+
+  if(!filtered.length){
+    list.innerHTML='<div class="sb-empty">Nenhuma aluna encontrada<br>para "'+q.replace(/</g,'&lt;')+'".</div>';
+    return;
+  }
+  list.innerHTML=filtered.map(s=>{
     const c=(data.lessons[s.id]||[]).length;
     return`<div class="sb-item${s.id===activeId?' active':''}" onclick="selectSt('${s.id}')">
       <div class="sb-av">${ini(s.name)}</div>
@@ -446,12 +472,19 @@ function renderSB(){
   }).join('');
 }
 
+function clearSearch(){
+  const el=document.getElementById('search-name');
+  if(el){el.value='';el.focus();}
+  renderSB();
+}
+
 function addStudent(){
   const inp=document.getElementById('new-name');
   const name=inp.value.trim();if(!name)return;
   const id='st_'+Date.now();
   data.students.push({id,name,level:'Beginner'});
   data.lessons[id]=[];save();inp.value='';
+  const se=document.getElementById('search-name');if(se)se.value='';  // clear search so the new student shows
   renderSB();selectSt(id);
 }
 
