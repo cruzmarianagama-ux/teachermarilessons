@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Mari · Gestão de Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS - Identidade visual Teacher Mari
+   ============================================================ */
+:root{
+  --orange:#FF5C23;
+  --purple:#1D1050;
+  --green-dark:#04392F;
+  --green-light:#CAE78D;
+  --lavender:#B4A1FF;
+  --cream:#FAEAD3;
+  --white:#ffffff;
+  --gray-50:#FAFAF8;
+  --gray-100:#F1EFE9;
+  --gray-300:#D8D3C8;
+  --gray-500:#8C8676;
+  --gray-700:#5A5448;
+  --danger:#E2412C;
+  --shadow-sm: 0 1px 2px rgba(29,16,80,0.06);
+  --shadow-md: 0 4px 16px rgba(29,16,80,0.10);
+  --shadow-lg: 0 12px 32px rgba(29,16,80,0.16);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--purple);-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-weight:700;margin:0;}
+button{font-family:inherit;cursor:pointer;border:none;}
+input,select,textarea{font-family:inherit;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:8px;}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar{
+  background:var(--purple);
+  color:var(--white);
+  padding:18px 28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  position:sticky;top:0;z-index:50;
+  box-shadow:var(--shadow-md);
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand .badge{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--orange),var(--lavender));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:18px;color:var(--purple);
+  flex-shrink:0;
+}
+.brand-text h1{font-size:18px;color:var(--white);}
+.brand-text span{font-size:12px;color:var(--lavender);}
+.topbar-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 16px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;transition:transform .15s, box-shadow .15s;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:var(--orange);color:var(--white);box-shadow:0 4px 14px rgba(255,92,35,0.35);}
+.btn-ghost{background:rgba(255,255,255,0.1);color:var(--white);}
+.btn-ghost:hover{background:rgba(255,255,255,0.18);}
+.btn-outline{background:transparent;border:1.5px solid var(--gray-300);color:var(--purple);}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-icon{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container{max-width:1320px;margin:0 auto;padding:24px;}
+.section-title{display:flex;align-items:center;justify-content:space-between;margin:32px 0 14px;}
+.section-title h2{font-size:18px;}
+.section-title .tag-count{
+  background:var(--cream);color:var(--orange);font-weight:700;
+  font-size:12px;padding:3px 10px;border-radius:20px;margin-left:8px;
+}
+
+/* ============================================================
+   DASHBOARD CARDS
+   ============================================================ */
+.dash-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:14px;
+}
+@media (max-width:1100px){.dash-grid{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:680px){.dash-grid{grid-template-columns:repeat(2,1fr);}}
+.dash-card{
+  background:var(--white);
+  border-radius:var(--radius-md);
+  padding:18px 16px;
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--gray-100);
+  position:relative;
+  overflow:hidden;
+  transition:transform .15s, box-shadow .15s;
+}
+.dash-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.dash-card .dc-icon{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;margin-bottom:10px;
+}
+.dash-card .dc-value{font-size:26px;font-weight:800;line-height:1;}
+.dash-card .dc-label{font-size:11.5px;color:var(--gray-700);margin-top:4px;font-weight:600;}
+.dc-1 .dc-icon{background:var(--lavender);} 
+.dc-2 .dc-icon{background:var(--orange);color:#fff;}
+.dc-3 .dc-icon{background:var(--green-light);}
+.dc-4 .dc-icon{background:var(--cream);}
+.dc-5 .dc-icon{background:var(--green-dark);color:#fff;}
+.dc-6 .dc-icon{background:var(--gray-300);}
+.dc-7 .dc-icon{background:var(--orange);color:#fff;}
+.dc-7{border:1.5px solid var(--orange);}
+
+/* ============================================================
+   FOLLOW-UP HOJE
+   ============================================================ */
+.followup-box{
+  background:linear-gradient(135deg,var(--purple),#2a1a6e);
+  border-radius:var(--radius-lg);
+  padding:20px;
+  color:#fff;
+  margin-top:10px;
+}
+.followup-box h2{color:#fff;font-size:17px;display:flex;align-items:center;gap:8px;}
+.followup-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.followup-item{
+  background:rgba(255,255,255,0.08);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;
+  border-left:4px solid var(--green-light);
+}
+.followup-item.atrasado{border-left-color:var(--orange);background:rgba(255,92,35,0.15);}
+.followup-item .fi-name{font-weight:700;font-size:14px;}
+.followup-item .fi-meta{font-size:12px;color:var(--lavender);}
+.followup-item.atrasado .fi-meta{color:#FFD2C2;}
+.followup-empty{opacity:0.7;font-size:13px;padding:10px 0;}
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+.filters-bar{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  background:var(--white);padding:14px;border-radius:var(--radius-md);
+  box-shadow:var(--shadow-sm);border:1px solid var(--gray-100);
+}
+.filters-bar input[type="text"]{
+  flex:1;min-width:180px;padding:10px 14px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--gray-300);font-size:13px;
+}
+.filters-bar select{
+  padding:9px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--gray-300);
+  font-size:13px;background:var(--white);color:var(--purple);
+}
+.filters-bar input:focus,.filters-bar select:focus{outline:none;border-color:var(--orange);}
+
+/* ============================================================
+   LEAD CARDS
+   ============================================================ */
+.leads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-top:16px;}
+.lead-card{
+  background:var(--white);border-radius:var(--radius-md);
+  padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--gray-100);
+  border-top:4px solid var(--gray-300);
+  display:flex;flex-direction:column;gap:10px;
+  transition:box-shadow .15s, transform .15s;
+}
+.lead-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.lead-card.prio-quente{border-top-color:var(--orange);}
+.lead-card.prio-morno{border-top-color:var(--green-light);}
+.lead-card.prio-frio{border-top-color:var(--lavender);}
+.lc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.lc-name{font-size:15px;font-weight:700;}
+.lc-sub{font-size:12px;color:var(--gray-700);margin-top:2px;}
+.lc-prio{font-size:18px;}
+.lc-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+  display:inline-flex;align-items:center;gap:4px;
+}
+.lc-meta{font-size:12px;color:var(--gray-700);display:flex;flex-direction:column;gap:3px;}
+.lc-meta b{color:var(--purple);}
+.lc-actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.lc-actions .btn{flex:1;justify-content:center;}
+
+/* status tag colors */
+.tag-novo{background:#E7E2FF;color:var(--purple);}
+.tag-conversando{background:#FFE7D6;color:var(--orange);}
+.tag-demoagendada{background:#D6F0FF;color:#1462A6;}
+.tag-demorealizada{background:#D9F2D2;color:#2C7A3F;}
+.tag-recebeuvalores{background:var(--cream);color:#9A5A14;}
+.tag-pensando{background:#F1EFE9;color:var(--gray-700);}
+.tag-achoucaro{background:#FFE1DC;color:var(--danger);}
+.tag-querdupla,.tag-quergrupo{background:#EAE3FF;color:#5C3FC9;}
+.tag-semresposta{background:#F4F4F4;color:#8C8676;}
+.tag-matriculado{background:var(--green-light);color:var(--green-dark);}
+.tag-perdido{background:#3a3a3a;color:#fff;}
+
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--gray-500);
+  background:var(--white);border-radius:var(--radius-md);border:1.5px dashed var(--gray-300);
+}
+.empty-state .es-icon{font-size:38px;margin-bottom:10px;}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.overlay{
+  position:fixed;inset:0;background:rgba(29,16,80,0.55);
+  display:none;align-items:flex-start;justify-content:center;
+  z-index:200;padding:30px 16px;overflow-y:auto;
+  backdrop-filter:blur(2px);
+}
+.overlay.active{display:flex;}
+.modal{
+  background:var(--white);border-radius:var(--radius-lg);
+  width:100%;max-width:680px;box-shadow:var(--shadow-lg);
+  animation:popIn .18s ease;
+  margin-bottom:30px;
+}
+@keyframes popIn{from{opacity:0;transform:translateY(12px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-head{
+  padding:20px 24px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--gray-100);position:sticky;top:0;background:var(--white);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+.modal-head h3{font-size:18px;}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;background:var(--gray-100);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--gray-700);
+}
+.modal-close:hover{background:var(--gray-300);}
+.modal-body{padding:24px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.full,.form-field.full{grid-column:1/-1;}
+.form-field label{font-size:12px;font-weight:700;color:var(--gray-700);display:block;margin-bottom:6px;}
+.form-field input,.form-field select,.form-field textarea{
+  width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--gray-300);
+  font-size:13px;color:var(--purple);
+}
+.form-field textarea{resize:vertical;min-height:60px;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:var(--orange);}
+.form-section-label{
+  font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;
+  color:var(--orange);margin:18px 0 4px;grid-column:1/-1;
+}
+.modal-foot{
+  padding:18px 24px;border-top:1px solid var(--gray-100);
+  display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--white);
+  border-radius:0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* histórico de conversas */
+.history-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;}
+.history-entry{
+  background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;
+  border-left:3px solid var(--lavender);font-size:13px;
+}
+.history-entry .he-date{font-size:11px;color:var(--gray-500);font-weight:700;margin-bottom:3px;}
+.history-add{display:flex;gap:8px;margin-top:10px;}
+.history-add input{flex:1;}
+
+/* view modal (somente leitura bonito) */
+.view-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.view-block{background:var(--gray-50);border-radius:var(--radius-sm);padding:12px 14px;}
+.view-block .vb-label{font-size:11px;color:var(--gray-500);font-weight:700;text-transform:uppercase;}
+.view-block .vb-value{font-size:14px;font-weight:600;margin-top:3px;}
+
+/* ============================================================
+   TEMPLATES WHATSAPP
+   ============================================================ */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.tpl-card{
+  background:var(--white);border-radius:var(--radius-md);padding:16px;
+  border:1px solid var(--gray-100);box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:10px;
+}
+.tpl-card h4{font-size:14px;color:var(--orange);}
+.tpl-card p{font-size:12.5px;color:var(--gray-700);line-height:1.5;margin:0;white-space:pre-wrap;max-height:120px;overflow-y:auto;}
+.tpl-card .tpl-actions{display:flex;gap:8px;margin-top:auto;}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--purple);color:#fff;
+  padding:14px 20px;border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);
+  font-size:13px;font-weight:600;z-index:999;opacity:0;transform:translateY(10px);
+  transition:opacity .25s, transform .25s;display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:var(--green-dark);}
+.toast.danger{background:var(--danger);}
+
+/* tabs (Leads / Templates) */
+.tabs{display:flex;gap:8px;margin-top:10px;}
+.tab-btn{
+  padding:10px 18px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  background:var(--gray-100);color:var(--gray-700);font-weight:700;font-size:13px;
+}
+.tab-btn.active{background:var(--white);color:var(--orange);box-shadow:0 -2px 8px rgba(0,0,0,0.04);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.confirm-box{
+  background:var(--white);border-radius:var(--radius-md);padding:24px;max-width:380px;text-align:center;
+}
+.confirm-box .ci{font-size:34px;margin-bottom:8px;}
+.confirm-box p{font-size:13.5px;color:var(--gray-700);margin:8px 0 20px;}
+.confirm-box .confirm-actions{display:flex;gap:10px;justify-content:center;}
+
+@media(max-width:640px){
+  .form-grid,.view-grid{grid-template-columns:1fr;}
+  .topbar{padding:14px 16px;}
+  .container{padding:16px;}
+}
+
+/* ============================================================
+   ÁREA DE IMPRESSÃO / EXPORTAÇÃO PDF
+   ============================================================ */
+#printArea{display:none;}
+.print-summary{display:flex;gap:14px;margin:14px 0 20px;flex-wrap:wrap;}
+.print-summary div{font-size:12px;background:var(--gray-50);padding:8px 12px;border-radius:8px;}
+.print-table{width:100%;border-collapse:collapse;font-size:11px;}
+.print-table th,.print-table td{border:1px solid var(--gray-300);padding:6px 8px;text-align:left;vertical-align:top;}
+.print-table th{background:var(--purple);color:#fff;}
+.print-table tr:nth-child(even){background:var(--gray-50);}
+.print-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.print-header h1{font-size:20px;color:var(--purple);}
+.print-header span{font-size:12px;color:var(--gray-500);}
+
+@media print{
+  body.print-mode > *:not(#printArea){display:none !important;}
+  body.print-mode #printArea{display:block !important;}
+  @page{margin:14mm;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOPBAR
+============================================================ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="badge">TM</div>
+    <div class="brand-text">
+      <h1>Teacher Mari</h1>
+      <span>Gestão de Leads &amp; Follow-up</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" id="btnImport">📥 Importar</button>
+    <button class="btn btn-ghost" id="btnExportCsv">📊 Exportar CSV</button>
+    <button class="btn btn-ghost" id="btnExportPdf">🧾 Exportar PDF</button>
+    <button class="btn btn-ghost" id="btnBackup">💾 Backup JSON</button>
+    <button class="btn btn-primary" id="btnNewLead">➕ Novo Lead</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ============================================================
+       DASHBOARD
+  ============================================================ -->
+  <div class="dash-grid" id="dashGrid"></div>
+
+  <!-- ============================================================
+       FOLLOW-UP HOJE
+  ============================================================ -->
+  <div class="followup-box">
+    <h2>📌 Leads para Contatar Hoje</h2>
+    <div class="followup-list" id="followupList"></div>
+  </div>
+
+  <!-- ============================================================
+       TABS: LEADS / TEMPLATES
+  ============================================================ -->
+  <div class="section-title" style="margin-top:36px;">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="leadsTab">👥 Leads</button>
+      <button class="tab-btn" data-tab="tplTab">💬 Templates WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- LEADS TAB -->
+  <div class="tab-content active" id="leadsTab">
+    <div class="filters-bar">
+      <input type="text" id="searchInput" placeholder="🔎 Buscar por nome...">
+      <input type="text" id="filterDisponibilidade" placeholder="🕒 Filtrar por disponibilidade...">
+      <select id="filterStatus"><option value="">Status (todos)</option></select>
+      <select id="filterPrioridade"><option value="">Prioridade (todas)</option></select>
+      <select id="filterNivel"><option value="">Nível (todos)</option></select>
+      <select id="filterOrigem"><option value="">Origem (todas)</option></select>
+      <select id="filterInteresse"><option value="">Interesse (todos)</option></select>
+      <select id="sortBy">
+        <option value="">Ordenar por...</option>
+        <option value="data_desc">Contato mais recente</option>
+        <option value="data_asc">Contato mais antigo</option>
+        <option value="prioridade">Prioridade (🔥 primeiro)</option>
+        <option value="followup">Próximo follow-up</option>
+      </select>
+    </div>
+    <div class="leads-grid" id="leadsGrid"></div>
+  </div>
+
+  <!-- TEMPLATES TAB -->
+  <div class="tab-content" id="tplTab">
+    <p style="font-size:13px;color:var(--gray-700);margin-bottom:14px;">
+      Clique em <b>Copiar</b> para copiar a mensagem (variáveis preenchidas se você abrir pelo card do lead),
+      ou em <b>Abrir no WhatsApp</b> para enviar direto.
+    </p>
+    <div class="tpl-grid" id="tplGrid"></div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     MODAL: NOVO / EDITAR LEAD
+============================================================ -->
+<div class="overlay" id="overlayForm">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="formTitle">Novo Lead</h3>
+      <button class="modal-close" id="closeForm">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="leadForm">
+        <input type="hidden" id="leadId">
+        <div class="form-grid">
+          <div class="form-field full"><label>Nome *</label><input type="text" id="f_nome" required></div>
+          <div class="form-field"><label>WhatsApp *</label><input type="text" id="f_whatsapp" placeholder="5524999999999" required></div>
+          <div class="form-field"><label>Instagram</label><input type="text" id="f_instagram" placeholder="@usuario"></div>
+          <div class="form-field"><label>Cidade / País</label><input type="text" id="f_cidade"></div>
+          <div class="form-field"><label>Fuso Horário</label><input type="text" id="f_fuso" placeholder="GMT-3"></div>
+          <div class="form-field"><label>Data do 1º Contato</label><input type="date" id="f_data_contato"></div>
+
+          <div class="form-section-label">Perfil do Lead</div>
+          <div class="form-field"><label>Origem</label>
+            <select id="f_origem">
+              <option>Instagram</option><option>Threads</option><option>TikTok</option>
+              <option>Indicação</option><option>Google</option><option>Site</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Objetivo</label>
+            <select id="f_objetivo">
+              <option>Conversação</option><option>Viagem</option><option>Trabalho</option>
+              <option>Entrevista</option><option>Intercâmbio</option><option>Prova de Proficiência</option>
+              <option>Inglês Geral</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Nível</label>
+            <select id="f_nivel">
+              <option>A0</option><option>A1</option><option>A2</option><option>B1</option>
+              <option>B2</option><option>C1</option><option>Não Avaliado</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Interesse</label>
+            <select id="f_interesse">
+              <option>Individual</option><option>Dupla</option><option>Grupo</option><option>Não Definido</option>
+            </select>
+          </div>
+          <div class="form-field full"><label>Disponibilidade</label><input type="text" id="f_disponibilidade" placeholder="Ex: Seg/Qua às 19h"></div>
+
+          <div class="form-section-label">Status &amp; Prioridade</div>
+          <div class="form-field"><label>Status</label>
+            <select id="f_status">
+              <option>Novo Lead</option><option>Conversando</option><option>Demo Agendada</option>
+              <option>Demo Realizada</option><option>Recebeu Valores</option><option>Pensando</option>
+              <option>Achou Caro</option><option>Quer Dupla</option><option>Quer Grupo</option>
+              <option>Sem Resposta</option><option>Matriculado</option><option>Perdido</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Prioridade</label>
+            <select id="f_prioridade">
+              <option value="Quente">🔥 Quente</option>
+              <option value="Morno">🌤️ Morno</option>
+              <option value="Frio">❄️ Frio</option>
+            </select>
+          </div>
+          <div class="form-field full"><label>Objeção</label>
+            <select id="f_objecao">
+              <option value="">Nenhuma</option>
+              <option>Sem tempo</option><option>Sem dinheiro</option><option>Achou caro</option>
+              <option>Vai começar depois</option><option>Comparando opções</option>
+              <option>Não respondeu</option><option>Outro</option>
+            </select>
+          </div>
+
+          <div class="form-section-label">Acompanhamento</div>
+          <div class="form-field"><label>Último Contato</label><input type="date" id="f_ultimo_contato"></div>
+          <div class="form-field"><label>Próximo Follow-up</label><input type="date" id="f_proximo_followup"></div>
+          <div class="form-field full"><label>Observações</label><textarea id="f_observacoes"></textarea></div>
+
+          <div class="form-section-label">Histórico de Conversas</div>
+          <div class="form-field full">
+            <div class="history-list" id="historyList"></div>
+            <div class="history-add">
+              <input type="text" id="historyNewEntry" placeholder="Adicionar nova anotação...">
+              <button type="button" class="btn btn-outline btn-sm" id="btnAddHistory">Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="cancelForm">Cancelar</button>
+      <button class="btn btn-primary" id="saveLead">💾 Salvar Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: VISUALIZAR LEAD (somente leitura)
+============================================================ -->
+<div class="overlay" id="overlayView">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="viewName">Lead</h3>
+      <button class="modal-close" id="closeView">✕</button>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="viewEditBtn">✏️ Editar</button>
+      <button class="btn btn-primary" id="viewWhatsBtn">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CONFIRMAR EXCLUSÃO
+============================================================ -->
+<div class="overlay" id="overlayConfirm">
+  <div class="confirm-box">
+    <div class="ci">⚠️</div>
+    <h3>Excluir este lead?</h3>
+    <p>Essa ação não pode ser desfeita.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" id="cancelDelete">Cancelar</button>
+      <button class="btn btn-primary" style="background:var(--danger);" id="confirmDelete">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: ESCOLHER TEMPLATE PARA UM LEAD ESPECÍFICO
+============================================================ -->
+<div class="overlay" id="overlayTplPick">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Escolher template para <span id="tplPickName"></span></h3>
+      <button class="modal-close" id="closeTplPick">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tpl-grid" id="tplPickGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: NOVO TEMPLATE / NOVA MENSAGEM
+============================================================ -->
+<div class="overlay" id="overlayTplForm">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <h3 id="tplFormTitle">Novo Template</h3>
+      <button class="modal-close" id="closeTplForm">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field full" id="tplFormTitleFieldWrap" style="margin-bottom:14px;">
+        <label>Título do template</label>
+        <input type="text" id="tplFormTitleInput" placeholder="Ex: Convite para grupo">
+      </div>
+      <div class="form-field full">
+        <label>Mensagem</label>
+        <textarea id="tplFormBodyInput" style="min-height:160px;" placeholder="Use {{nome}}, {{objetivo}} ou {{data_demo}} para personalizar automaticamente"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="cancelTplForm">Cancelar</button>
+      <button class="btn btn-primary" id="saveTplForm">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<input type="file" id="importFileInput" accept=".json" style="display:none;">
+
+<script>
+/* ===================================================================
+   DADOS / ESTADO
+=================================================================== */
+const STORAGE_KEY = 'tm_leads_v1';
+let leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let editingHistory = []; // histórico temporário durante edição no form
+let currentDeleteId = null;
+let currentViewId = null;
+let currentTplPickId = null;
+
+function saveLeads(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+}
+
+function uid(){
+  return 'l_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function todayISO(){
+  return new Date().toISOString().slice(0,10);
+}
+
+/* ===================================================================
+   TEMPLATES WHATSAPP
+=================================================================== */
+const TPL_KEY = 'tm_templates_v1';
+
+const defaultTemplates = [
+  {id:'t1', title:'Pós Demo', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Gostei muito da nossa aula hoje. Você tem um ótimo potencial e acredito que podemos evoluir bastante juntos.
+
+Te enviei as informações sobre os planos. Ficou com alguma dúvida ou gostaria que eu te ajudasse a escolher a melhor opção para o seu objetivo?`}]},
+  {id:'t2', title:'Após Enviar Valores', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Só passando para saber se você conseguiu dar uma olhada nas informações que te enviei.
+
+Ficou alguma dúvida sobre as aulas ou sobre os planos?`}]},
+  {id:'t3', title:'Possível Objeção de Preço', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Queria te fazer uma pergunta.
+
+Você já considerou a possibilidade de estudar em dupla ou em grupo?
+
+A metodologia é a mesma, mas o investimento fica mais acessível e você ainda ganha mais oportunidades de interação.
+
+O que você acha?`}]},
+  {id:'t4', title:'Sem Resposta', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Estou passando para saber se aprender inglês continua sendo uma prioridade para você neste momento.
+
+Independentemente da sua resposta, me avise para eu conseguir me organizar por aqui. 😊`}]},
+  {id:'t5', title:'Última Tentativa', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Como não tivemos retorno nos últimos dias, vou encerrar seu atendimento por enquanto.
+
+Mas quando decidir retomar seu inglês, será um prazer conversar novamente.
+
+Desejo muito sucesso para você! ✨`}]},
+  {id:'t6', title:'Quer Começar Depois', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Sem problemas!
+
+Qual período você acredita que seria melhor para começar?
+
+Assim posso anotar aqui e entrar em contato mais próximo dessa data.`}]},
+  {id:'t7', title:'Sem Tempo', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Entendo perfeitamente.
+
+Muitos dos meus alunos começaram justamente porque tinham pouco tempo disponível.
+
+As aulas podem ser adaptadas à sua rotina e você também recebe atividades organizadas para estudar entre os encontros.
+
+Quantas horas por semana você acredita que conseguiria dedicar ao inglês hoje?`}]},
+  {id:'t8', title:'Gostou da Demo', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Fico feliz que você tenha gostado da aula!
+
+Você já conseguiu decidir qual opção faz mais sentido para você neste momento?`}]},
+  {id:'t9', title:'Vaga Disponível', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Abriu uma vaga que acredito combinar com a sua disponibilidade.
+
+Antes de oferecer para outra pessoa, gostaria de saber se você ainda tem interesse em começar suas aulas.`}]},
+  {id:'t10', title:'Reativação', messages:[{id:'m1', body:`Hello, {{nome}}! 😊
+
+Lembrei de você e resolvi passar aqui.
+
+Como está seu inglês desde a nossa última conversa?
+
+Continua nos planos estudar este ano?`}]}
+];
+
+let templates = JSON.parse(localStorage.getItem(TPL_KEY) || 'null') || JSON.parse(JSON.stringify(defaultTemplates));
+function saveTemplates(){ localStorage.setItem(TPL_KEY, JSON.stringify(templates)); }
+
+function fillTemplate(body, lead){
+  if(!lead) return body;
+  return body
+    .replaceAll('{{nome}}', lead.nome || '')
+    .replaceAll('{{objetivo}}', (lead.objetivo || '').toLowerCase())
+    .replaceAll('{{data_demo}}', lead.proximo_followup ? formatDate(lead.proximo_followup) : '');
+}
+
+function whatsLink(numero, mensagem){
+  const clean = (numero || '').replace(/\D/g,'');
+  return `https://wa.me/${clean}?text=${encodeURIComponent(mensagem)}`;
+}
+
+/* ===================================================================
+   HELPERS DE FORMATO
+=================================================================== */
+function formatDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function slug(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'');
+}
+function prioEmoji(p){
+  return p === 'Quente' ? '🔥' : p === 'Morno' ? '🌤️' : '❄️';
+}
+function prioClass(p){
+  return p === 'Quente' ? 'prio-quente' : p === 'Morno' ? 'prio-morno' : 'prio-frio';
+}
+
+/* ===================================================================
+   TOAST
+=================================================================== */
+function showToast(msg, type=''){
+  let t = document.getElementById('toastEl');
+  if(t) t.remove();
+  t = document.createElement('div');
+  t.id = 'toastEl';
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=> t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2600);
+}
+
+/* ===================================================================
+   DASHBOARD
+=================================================================== */
+function renderDashboard(){
+  const total = leads.length;
+  const novos = leads.filter(l=>l.status==='Novo Lead').length;
+  const demoAgendada = leads.filter(l=>l.status==='Demo Agendada').length;
+  const demoRealizada = leads.filter(l=>l.status==='Demo Realizada').length;
+  const matriculados = leads.filter(l=>l.status==='Matriculado').length;
+  const semResposta = leads.filter(l=>l.status==='Sem Resposta').length;
+  const today = todayISO();
+  const followupsHoje = leads.filter(l=> l.proximo_followup && l.proximo_followup <= today && l.status!=='Matriculado' && l.status!=='Perdido').length;
+
+  const cards = [
+    {cls:'dc-1', icon:'👥', value:total, label:'Total de Leads'},
+    {cls:'dc-2', icon:'✨', value:novos, label:'Leads Novos'},
+    {cls:'dc-3', icon:'🗓️', value:demoAgendada, label:'Demos Agendadas'},
+    {cls:'dc-4', icon:'🎓', value:demoRealizada, label:'Demos Realizadas'},
+    {cls:'dc-5', icon:'✅', value:matriculados, label:'Matrículas Fechadas'},
+    {cls:'dc-6', icon:'🔇', value:semResposta, label:'Sem Resposta'},
+    {cls:'dc-7', icon:'⏰', value:followupsHoje, label:'Follow-ups Hoje'},
+  ];
+  document.getElementById('dashGrid').innerHTML = cards.map(c=>`
+    <div class="dash-card ${c.cls}">
+      <div class="dc-icon">${c.icon}</div>
+      <div class="dc-value">${c.value}</div>
+      <div class="dc-label">${c.label}</div>
+    </div>
+  `).join('');
+}
+
+/* ===================================================================
+   FOLLOW-UP HOJE
+=================================================================== */
+function renderFollowups(){
+  const today = todayISO();
+  const list = leads
+    .filter(l => l.proximo_followup && l.proximo_followup <= today && l.status!=='Matriculado' && l.status!=='Perdido')
+    .sort((a,b)=> a.proximo_followup.localeCompare(b.proximo_followup));
+
+  const box = document.getElementById('followupList');
+  if(list.length === 0){
+    box.innerHTML = `<div class="followup-empty">Nenhum follow-up pendente para hoje. 🎉</div>`;
+    return;
+  }
+  box.innerHTML = list.map(l=>{
+    const atrasado = l.proximo_followup < today;
+    return `
+      <div class="followup-item ${atrasado?'atrasado':''}">
+        <div>
+          <div class="fi-name">${l.nome} ${atrasado?'⚠️ atrasado':''}</div>
+          <div class="fi-meta">Follow-up: ${formatDate(l.proximo_followup)} · ${l.status}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-ghost" onclick="markContactedToday('${l.id}')">✓ Contatado hoje</button>
+          <button class="btn btn-sm btn-ghost" onclick="openTplPick('${l.id}')">💬 WhatsApp</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function markContactedToday(id){
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  const today = todayISO();
+  lead.ultimo_contato = today;
+  lead.historico = lead.historico || [];
+  lead.historico.unshift({data: today, texto: 'Contato realizado (marcado via Follow-up Hoje).'});
+  // limpa o follow-up até a teacher definir um novo
+  lead.proximo_followup = '';
+  saveLeads();
+  renderAll();
+  showToast('Lead marcado como contatado hoje ✓', 'success');
+}
+
+/* ===================================================================
+   FILTROS / LISTA DE LEADS
+=================================================================== */
+function populateFilterOptions(){
+  const statusList = ['Novo Lead','Conversando','Demo Agendada','Demo Realizada','Recebeu Valores','Pensando','Achou Caro','Quer Dupla','Quer Grupo','Sem Resposta','Matriculado','Perdido'];
+  const prioList = ['Quente','Morno','Frio'];
+  const nivelList = ['A0','A1','A2','B1','B2','C1','Não Avaliado'];
+  const origemList = ['Instagram','Threads','TikTok','Indicação','Google','Site','Outro'];
+  const interesseList = ['Individual','Dupla','Grupo','Não Definido'];
+
+  fillSelect('filterStatus', statusList);
+  fillSelect('filterPrioridade', prioList);
+  fillSelect('filterNivel', nivelList);
+  fillSelect('filterOrigem', origemList);
+  fillSelect('filterInteresse', interesseList);
+}
+function fillSelect(id, options){
+  const sel = document.getElementById(id);
+  options.forEach(o=>{
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    sel.appendChild(opt);
+  });
+}
+
+function getFilteredLeads(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const fDisponibilidade = document.getElementById('filterDisponibilidade').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fPrio = document.getElementById('filterPrioridade').value;
+  const fNivel = document.getElementById('filterNivel').value;
+  const fOrigem = document.getElementById('filterOrigem').value;
+  const fInteresse = document.getElementById('filterInteresse').value;
+  const sortBy = document.getElementById('sortBy').value;
+
+  let result = leads.filter(l=>{
+    if(search && !l.nome.toLowerCase().includes(search)) return false;
+    if(fDisponibilidade && !(l.disponibilidade||'').toLowerCase().includes(fDisponibilidade)) return false;
+    if(fStatus && l.status !== fStatus) return false;
+    if(fPrio && l.prioridade !== fPrio) return false;
+    if(fNivel && l.nivel !== fNivel) return false;
+    if(fOrigem && l.origem !== fOrigem) return false;
+    if(fInteresse && l.interesse !== fInteresse) return false;
+    return true;
+  });
+
+  const prioOrder = {Quente:0, Morno:1, Frio:2};
+  if(sortBy === 'data_desc') result.sort((a,b)=> (b.data_contato||'').localeCompare(a.data_contato||''));
+  else if(sortBy === 'data_asc') result.sort((a,b)=> (a.data_contato||'').localeCompare(b.data_contato||''));
+  else if(sortBy === 'prioridade') result.sort((a,b)=> prioOrder[a.prioridade]-prioOrder[b.prioridade]);
+  else if(sortBy === 'followup') result.sort((a,b)=> (a.proximo_followup||'9999').localeCompare(b.proximo_followup||'9999'));
+  else result.sort((a,b)=> (b.data_contato||'').localeCompare(a.data_contato||''));
+
+  return result;
+}
+
+function statusTagClass(status){
+  return 'tag-' + slug(status);
+}
+
+function renderLeads(){
+  const grid = document.getElementById('leadsGrid');
+  const list = getFilteredLeads();
+
+  if(leads.length === 0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="es-icon">🌱</div>
+      <h3>Nenhum lead cadastrado ainda</h3>
+      <p style="font-size:13px;color:var(--gray-500);">Clique em "Novo Lead" para começar a acompanhar seus alunos em potencial.</p>
+    </div>`;
+    return;
+  }
+  if(list.length === 0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="es-icon">🔎</div>
+      <h3>Nenhum lead encontrado</h3>
+      <p style="font-size:13px;color:var(--gray-500);">Tente ajustar os filtros ou a busca.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(l=>`
+    <div class="lead-card ${prioClass(l.prioridade)}">
+      <div class="lc-head">
+        <div>
+          <div class="lc-name">${l.nome}</div>
+          <div class="lc-sub">${l.cidade || '—'} ${l.fuso ? '· '+l.fuso : ''}</div>
+        </div>
+        <div class="lc-prio" title="Prioridade: ${l.prioridade}">${prioEmoji(l.prioridade)}</div>
+      </div>
+      <div class="lc-tags">
+        <span class="tag ${statusTagClass(l.status)}">${l.status}</span>
+        <span class="tag" style="background:var(--gray-100);color:var(--gray-700);">${l.nivel}</span>
+        <span class="tag" style="background:var(--gray-100);color:var(--gray-700);">${l.origem}</span>
+      </div>
+      <div class="lc-meta">
+        <span><b>Objetivo:</b> ${l.objetivo}</span>
+        <span><b>Último contato:</b> ${formatDate(l.ultimo_contato)}</span>
+        <span><b>Próximo follow-up:</b> ${l.proximo_followup ? formatDate(l.proximo_followup) : '—'}</span>
+        ${l.objecao ? `<span><b>Objeção:</b> ${l.objecao}</span>` : ''}
+      </div>
+      <div class="lc-actions">
+        <button class="btn btn-sm btn-outline" onclick="openView('${l.id}')">👁️ Ver</button>
+        <button class="btn btn-sm btn-outline" onclick="markContactedToday('${l.id}')">✓ Hoje</button>
+        <button class="btn btn-sm btn-ghost" style="background:#E7E2FF;color:var(--purple);" onclick="openTplPick('${l.id}')">💬</button>
+        <button class="btn btn-sm btn-ghost" style="background:#FFE1DC;color:var(--danger);" onclick="openDeleteConfirm('${l.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAll(){
+  renderDashboard();
+  renderFollowups();
+  renderLeads();
+}
+
+/* ===================================================================
+   FORM: NOVO / EDITAR LEAD
+=================================================================== */
+const overlayForm = document.getElementById('overlayForm');
+
+function openNewLead(){
+  document.getElementById('formTitle').textContent = 'Novo Lead';
+  document.getElementById('leadForm').reset();
+  document.getElementById('leadId').value = '';
+  document.getElementById('f_data_contato').value = todayISO();
+  document.getElementById('f_status').value = 'Novo Lead';
+  document.getElementById('f_prioridade').value = 'Morno';
+  editingHistory = [];
+  renderHistoryList();
+  overlayForm.classList.add('active');
+}
+
+function openEdit(id){
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('formTitle').textContent = 'Editar Lead';
+  document.getElementById('leadId').value = l.id;
+  document.getElementById('f_nome').value = l.nome || '';
+  document.getElementById('f_whatsapp').value = l.whatsapp || '';
+  document.getElementById('f_instagram').value = l.instagram || '';
+  document.getElementById('f_cidade').value = l.cidade || '';
+  document.getElementById('f_fuso').value = l.fuso || '';
+  document.getElementById('f_data_contato').value = l.data_contato || '';
+  document.getElementById('f_origem').value = l.origem || 'Instagram';
+  document.getElementById('f_objetivo').value = l.objetivo || 'Conversação';
+  document.getElementById('f_nivel').value = l.nivel || 'Não Avaliado';
+  document.getElementById('f_interesse').value = l.interesse || 'Não Definido';
+  document.getElementById('f_disponibilidade').value = l.disponibilidade || '';
+  document.getElementById('f_status').value = l.status || 'Novo Lead';
+  document.getElementById('f_prioridade').value = l.prioridade || 'Morno';
+  document.getElementById('f_objecao').value = l.objecao || '';
+  document.getElementById('f_ultimo_contato').value = l.ultimo_contato || '';
+  document.getElementById('f_proximo_followup').value = l.proximo_followup || '';
+  document.getElementById('f_observacoes').value = l.observacoes || '';
+  editingHistory = JSON.parse(JSON.stringify(l.historico || []));
+  renderHistoryList();
+  overlayForm.classList.add('active');
+}
+
+function renderHistoryList(){
+  const box = document.getElementById('historyList');
+  if(editingHistory.length === 0){
+    box.innerHTML = `<div style="font-size:12px;color:var(--gray-500);padding:6px 0;">Nenhuma anotação ainda.</div>`;
+    return;
+  }
+  box.innerHTML = editingHistory.map((h,i)=>`
+    <div class="history-entry">
+      <div class="he-date">${formatDate(h.data)}</div>
+      <div>${h.texto}</div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('btnAddHistory').addEventListener('click', ()=>{
+  const input = document.getElementById('historyNewEntry');
+  const txt = input.value.trim();
+  if(!txt) return;
+  editingHistory.unshift({data: todayISO(), texto: txt});
+  input.value = '';
+  renderHistoryList();
+});
+
+document.getElementById('saveLead').addEventListener('click', ()=>{
+  const nome = document.getElementById('f_nome').value.trim();
+  const whatsapp = document.getElementById('f_whatsapp').value.trim();
+  if(!nome || !whatsapp){
+    showToast('Preencha ao menos Nome e WhatsApp', 'danger');
+    return;
+  }
+  const id = document.getElementById('leadId').value || uid();
+  const existing = leads.find(l=>l.id===id);
+  const leadData = {
+    id,
+    nome,
+    whatsapp,
+    instagram: document.getElementById('f_instagram').value.trim(),
+    cidade: document.getElementById('f_cidade').value.trim(),
+    fuso: document.getElementById('f_fuso').value.trim(),
+    data_contato: document.getElementById('f_data_contato').value,
+    origem: document.getElementById('f_origem').value,
+    objetivo: document.getElementById('f_objetivo').value,
+    nivel: document.getElementById('f_nivel').value,
+    interesse: document.getElementById('f_interesse').value,
+    disponibilidade: document.getElementById('f_disponibilidade').value.trim(),
+    status: document.getElementById('f_status').value,
+    prioridade: document.getElementById('f_prioridade').value,
+    objecao: document.getElementById('f_objecao').value,
+    ultimo_contato: document.getElementById('f_ultimo_contato').value,
+    proximo_followup: document.getElementById('f_proximo_followup').value,
+    observacoes: document.getElementById('f_observacoes').value.trim(),
+    historico: editingHistory
+  };
+  if(existing){
+    Object.assign(existing, leadData);
+  } else {
+    leads.push(leadData);
+  }
+  saveLeads();
+  overlayForm.classList.remove('active');
+  renderAll();
+  showToast(existing ? 'Lead atualizado ✓' : 'Lead cadastrado ✓', 'success');
+});
+
+document.getElementById('closeForm').addEventListener('click', ()=> overlayForm.classList.remove('active'));
+document.getElementById('cancelForm').addEventListener('click', ()=> overlayForm.classList.remove('active'));
+document.getElementById('btnNewLead').addEventListener('click', openNewLead);
+
+/* ===================================================================
+   VISUALIZAR LEAD
+=================================================================== */
+const overlayView = document.getElementById('overlayView');
+
+function openView(id){
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  currentViewId = id;
+  document.getElementById('viewName').textContent = l.nome;
+  const history = (l.historico||[]).map(h=>`
+    <div class="history-entry"><div class="he-date">${formatDate(h.data)}</div><div>${h.texto}</div></div>
+  `).join('') || `<div style="font-size:12px;color:var(--gray-500);">Nenhuma anotação.</div>`;
+
+  document.getElementById('viewBody').innerHTML = `
+    <div class="view-grid">
+      <div class="view-block"><div class="vb-label">WhatsApp</div><div class="vb-value">${l.whatsapp}</div></div>
+      <div class="view-block"><div class="vb-label">Instagram</div><div class="vb-value">${l.instagram || '—'}</div></div>
+      <div class="view-block"><div class="vb-label">Cidade / Fuso</div><div class="vb-value">${l.cidade||'—'} ${l.fuso?'· '+l.fuso:''}</div></div>
+      <div class="view-block"><div class="vb-label">1º Contato</div><div class="vb-value">${formatDate(l.data_contato)}</div></div>
+      <div class="view-block"><div class="vb-label">Origem</div><div class="vb-value">${l.origem}</div></div>
+      <div class="view-block"><div class="vb-label">Objetivo</div><div class="vb-value">${l.objetivo}</div></div>
+      <div class="view-block"><div class="vb-label">Nível</div><div class="vb-value">${l.nivel}</div></div>
+      <div class="view-block"><div class="vb-label">Interesse</div><div class="vb-value">${l.interesse}</div></div>
+      <div class="view-block"><div class="vb-label">Disponibilidade</div><div class="vb-value">${l.disponibilidade||'—'}</div></div>
+      <div class="view-block"><div class="vb-label">Status / Prioridade</div><div class="vb-value">${prioEmoji(l.prioridade)} ${l.status}</div></div>
+      <div class="view-block"><div class="vb-label">Objeção</div><div class="vb-value">${l.objecao||'—'}</div></div>
+      <div class="view-block"><div class="vb-label">Próximo Follow-up</div><div class="vb-value">${l.proximo_followup?formatDate(l.proximo_followup):'—'}</div></div>
+    </div>
+    <div class="view-block full" style="margin-bottom:16px;">
+      <div class="vb-label">Observações</div>
+      <div class="vb-value" style="font-weight:400;">${l.observacoes || '—'}</div>
+    </div>
+    <div class="form-section-label" style="margin:0 0 8px;">Histórico de Conversas</div>
+    <div class="history-list">${history}</div>
+  `;
+  overlayView.classList.add('active');
+}
+
+document.getElementById('closeView').addEventListener('click', ()=> overlayView.classList.remove('active'));
+document.getElementById('viewEditBtn').addEventListener('click', ()=>{
+  overlayView.classList.remove('active');
+  openEdit(currentViewId);
+});
+document.getElementById('viewWhatsBtn').addEventListener('click', ()=>{
+  overlayView.classList.remove('active');
+  openTplPick(currentViewId);
+});
+
+/* ===================================================================
+   EXCLUIR LEAD
+=================================================================== */
+const overlayConfirm = document.getElementById('overlayConfirm');
+function openDeleteConfirm(id){
+  currentDeleteId = id;
+  overlayConfirm.classList.add('active');
+}
+document.getElementById('cancelDelete').addEventListener('click', ()=>{
+  overlayConfirm.classList.remove('active');
+  currentDeleteId = null;
+});
+document.getElementById('confirmDelete').addEventListener('click', ()=>{
+  leads = leads.filter(l=>l.id !== currentDeleteId);
+  saveLeads();
+  overlayConfirm.classList.remove('active');
+  renderAll();
+  showToast('Lead excluído', 'danger');
+});
+
+/* ===================================================================
+   TEMPLATES — ABA GERAL
+=================================================================== */
+function renderTplGrid(){
+  const grid = document.getElementById('tplGrid');
+  grid.innerHTML = templates.map(t=>`
+    <div class="tpl-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <h4 style="margin:0;">${t.title}</h4>
+        <button class="btn btn-icon btn-ghost" style="background:#FFE1DC;color:var(--danger);width:26px;height:26px;font-size:12px;" title="Excluir template" onclick="deleteTemplateCategory('${t.id}')">🗑️</button>
+      </div>
+      ${t.messages.map(m=>`
+        <div style="border-top:1px solid var(--gray-100);padding-top:8px;">
+          <p>${m.body}</p>
+          <div class="tpl-actions">
+            <button class="btn btn-sm btn-outline" onclick="copyTemplate('${t.id}','${m.id}')">📋 Copiar</button>
+            ${t.messages.length>1 ? `<button class="btn btn-sm btn-ghost" style="background:#FFE1DC;color:var(--danger);" onclick="deleteMessage('${t.id}','${m.id}')">🗑️</button>` : ''}
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-sm btn-outline" style="margin-top:4px;" onclick="openNewMessageModal('${t.id}')">➕ Nova mensagem</button>
+    </div>
+  `).join('') + `
+    <div class="tpl-card" style="align-items:center;justify-content:center;text-align:center;border:2px dashed var(--gray-300);background:transparent;box-shadow:none;">
+      <div style="font-size:26px;">➕</div>
+      <button class="btn btn-outline" onclick="openNewTemplateModal()">Novo Template</button>
+    </div>
+  `;
+}
+function copyTemplate(tplId, msgId, leadId){
+  const tpl = templates.find(t=>t.id===tplId);
+  const msg = tpl.messages.find(m=>m.id===msgId);
+  const lead = leadId ? leads.find(l=>l.id===leadId) : null;
+  const text = fillTemplate(msg.body, lead);
+  navigator.clipboard.writeText(text).then(()=> showToast('Mensagem copiada ✓', 'success'));
+}
+function deleteTemplateCategory(tplId){
+  if(!confirm('Excluir este template e todas as suas mensagens?')) return;
+  templates = templates.filter(t=>t.id !== tplId);
+  saveTemplates();
+  renderTplGrid();
+  showToast('Template excluído', 'danger');
+}
+function deleteMessage(tplId, msgId){
+  if(!confirm('Excluir esta mensagem?')) return;
+  const tpl = templates.find(t=>t.id===tplId);
+  tpl.messages = tpl.messages.filter(m=>m.id !== msgId);
+  saveTemplates();
+  renderTplGrid();
+  showToast('Mensagem excluída', 'danger');
+}
+
+/* ===================================================================
+   TEMPLATES — MODAL NOVO TEMPLATE / NOVA MENSAGEM
+=================================================================== */
+const overlayTplForm = document.getElementById('overlayTplForm');
+let tplFormMode = 'newTemplate';
+let tplFormTargetId = null;
+
+function openNewTemplateModal(){
+  tplFormMode = 'newTemplate';
+  tplFormTargetId = null;
+  document.getElementById('tplFormTitle').textContent = 'Novo Template';
+  document.getElementById('tplFormTitleFieldWrap').style.display = 'block';
+  document.getElementById('tplFormTitleInput').value = '';
+  document.getElementById('tplFormBodyInput').value = '';
+  overlayTplForm.classList.add('active');
+}
+function openNewMessageModal(tplId){
+  tplFormMode = 'newMessage';
+  tplFormTargetId = tplId;
+  document.getElementById('tplFormTitle').textContent = 'Nova Mensagem';
+  document.getElementById('tplFormTitleFieldWrap').style.display = 'none';
+  document.getElementById('tplFormBodyInput').value = '';
+  overlayTplForm.classList.add('active');
+}
+document.getElementById('closeTplForm').addEventListener('click', ()=> overlayTplForm.classList.remove('active'));
+document.getElementById('cancelTplForm').addEventListener('click', ()=> overlayTplForm.classList.remove('active'));
+document.getElementById('saveTplForm').addEventListener('click', ()=>{
+  const body = document.getElementById('tplFormBodyInput').value.trim();
+  if(!body){ showToast('Escreva a mensagem antes de salvar', 'danger'); return; }
+  if(tplFormMode === 'newTemplate'){
+    const title = document.getElementById('tplFormTitleInput').value.trim();
+    if(!title){ showToast('Dê um título ao template', 'danger'); return; }
+    templates.push({id: uid(), title, messages:[{id: uid(), body}]});
+    showToast('Template criado ✓', 'success');
+  } else {
+    const tpl = templates.find(t=>t.id === tplFormTargetId);
+    if(tpl) tpl.messages.push({id: uid(), body});
+    showToast('Mensagem adicionada ✓', 'success');
+  }
+  saveTemplates();
+  renderTplGrid();
+  overlayTplForm.classList.remove('active');
+});
+
+/* ===================================================================
+   TEMPLATES — ESCOLHER PARA UM LEAD (com link WhatsApp direto)
+=================================================================== */
+const overlayTplPick = document.getElementById('overlayTplPick');
+function openTplPick(leadId){
+  const lead = leads.find(l=>l.id===leadId);
+  if(!lead) return;
+  currentTplPickId = leadId;
+  document.getElementById('tplPickName').textContent = lead.nome;
+  document.getElementById('tplPickGrid').innerHTML = templates.map(t=>`
+    <div class="tpl-card">
+      <h4 style="margin:0;">${t.title}</h4>
+      ${t.messages.map(m=>{
+        const text = fillTemplate(m.body, lead);
+        return `
+          <div style="border-top:1px solid var(--gray-100);padding-top:8px;">
+            <p>${text}</p>
+            <div class="tpl-actions">
+              <button class="btn btn-sm btn-outline" onclick="copyTemplate('${t.id}','${m.id}','${leadId}')">📋 Copiar</button>
+              <a class="btn btn-sm btn-primary" style="text-decoration:none;text-align:center;" href="${whatsLink(lead.whatsapp, text)}" target="_blank" rel="noopener">📲 Abrir no WhatsApp</a>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `).join('');
+  overlayTplPick.classList.add('active');
+}
+document.getElementById('closeTplPick').addEventListener('click', ()=> overlayTplPick.classList.remove('active'));
+
+/* ===================================================================
+   TABS
+=================================================================== */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ===================================================================
+   FILTROS - LISTENERS
+=================================================================== */
+['searchInput','filterDisponibilidade','filterStatus','filterPrioridade','filterNivel','filterOrigem','filterInteresse','sortBy']
+  .forEach(id=> document.getElementById(id).addEventListener('input', renderLeads));
+['filterStatus','filterPrioridade','filterNivel','filterOrigem','filterInteresse','sortBy']
+  .forEach(id=> document.getElementById(id).addEventListener('change', renderLeads));
+
+/* ===================================================================
+   EXPORTAR CSV
+=================================================================== */
+document.getElementById('btnExportCsv').addEventListener('click', ()=>{
+  if(leads.length === 0){ showToast('Nenhum lead para exportar', 'danger'); return; }
+  const headers = ['Nome','WhatsApp','Instagram','Cidade','Fuso','Data Contato','Origem','Objetivo','Nível','Interesse','Disponibilidade','Status','Prioridade','Objeção','Último Contato','Próximo Follow-up','Observações'];
+  const rows = leads.map(l=>[
+    l.nome,l.whatsapp,l.instagram,l.cidade,l.fuso,l.data_contato,l.origem,l.objetivo,l.nivel,l.interesse,l.disponibilidade,l.status,l.prioridade,l.objecao,l.ultimo_contato,l.proximo_followup,l.observacoes
+  ]);
+  const csvContent = [headers, ...rows].map(r=>
+    r.map(v=> `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF'+csvContent], {type:'text/csv;charset=utf-8;'});
+  downloadBlob(blob, `leads-teacher-mari-${todayISO()}.csv`);
+  showToast('CSV exportado ✓', 'success');
+});
+
+/* ===================================================================
+   EXPORTAR PDF (via impressão do navegador)
+=================================================================== */
+document.getElementById('btnExportPdf').addEventListener('click', ()=>{
+  if(leads.length === 0){ showToast('Nenhum lead para exportar', 'danger'); return; }
+
+  const total = leads.length;
+  const novos = leads.filter(l=>l.status==='Novo Lead').length;
+  const matriculados = leads.filter(l=>l.status==='Matriculado').length;
+  const semResposta = leads.filter(l=>l.status==='Sem Resposta').length;
+
+  const ordenados = [...leads].sort((a,b)=> a.nome.localeCompare(b.nome));
+
+  const linhas = ordenados.map(l=>`
+    <tr>
+      <td>${l.nome}</td>
+      <td>${l.whatsapp||''}</td>
+      <td>${l.status}</td>
+      <td>${prioEmoji(l.prioridade)} ${l.prioridade}</td>
+      <td>${l.nivel}</td>
+      <td>${l.origem}</td>
+      <td>${l.objetivo}</td>
+      <td>${l.disponibilidade||''}</td>
+      <td>${l.ultimo_contato?formatDate(l.ultimo_contato):''}</td>
+      <td>${l.proximo_followup?formatDate(l.proximo_followup):''}</td>
+      <td>${l.observacoes||''}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('printArea').innerHTML = `
+    <div class="print-header">
+      <h1>Teacher Mari · Relatório de Leads</h1>
+      <span>Gerado em ${formatDate(todayISO())}</span>
+    </div>
+    <div class="print-summary">
+      <div><b>${total}</b> Total de Leads</div>
+      <div><b>${novos}</b> Novos</div>
+      <div><b>${matriculados}</b> Matriculados</div>
+      <div><b>${semResposta}</b> Sem Resposta</div>
+    </div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th>Nome</th><th>WhatsApp</th><th>Status</th><th>Prioridade</th><th>Nível</th>
+          <th>Origem</th><th>Objetivo</th><th>Disponibilidade</th><th>Último Contato</th>
+          <th>Próx. Follow-up</th><th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>${linhas}</tbody>
+    </table>
+  `;
+
+  document.body.classList.add('print-mode');
+  window.print();
+});
+window.addEventListener('afterprint', ()=> document.body.classList.remove('print-mode'));
+
+/* ===================================================================
+   BACKUP JSON
+=================================================================== */
+document.getElementById('btnBackup').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(leads, null, 2)], {type:'application/json'});
+  downloadBlob(blob, `backup-leads-${todayISO()}.json`);
+  showToast('Backup JSON gerado ✓', 'success');
+});
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ===================================================================
+   IMPORTAR JSON
+=================================================================== */
+document.getElementById('btnImport').addEventListener('click', ()=>{
+  document.getElementById('importFileInput').click();
+});
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const imported = JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('Formato inválido');
+      // garante IDs únicos para evitar conflito
+      imported.forEach(l=>{ if(!l.id) l.id = uid(); });
+      leads = leads.concat(imported);
+      saveLeads();
+      renderAll();
+      showToast(`${imported.length} leads importados ✓`, 'success');
+    }catch(err){
+      showToast('Arquivo inválido para importação', 'danger');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ===================================================================
+   FECHAR MODAIS CLICANDO FORA
+=================================================================== */
+[overlayForm, overlayView, overlayConfirm, overlayTplPick, overlayTplForm].forEach(ov=>{
+  ov.addEventListener('click', (e)=>{ if(e.target === ov) ov.classList.remove('active'); });
+});
+
+/* ===================================================================
+   INIT
+=================================================================== */
+populateFilterOptions();
+renderTplGrid();
+renderAll();
+</script>
+</body>
+</html>
