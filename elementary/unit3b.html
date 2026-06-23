@@ -1469,12 +1469,27 @@ function checkMC(data, prefix, fbId, exId) {
   data.forEach((item, i) => {
     const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
     opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) {
+      const oldHint = itemDiv.querySelector('.mc-explain');
+      if (oldHint) oldHint.remove();
+    }
     const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
     if (sel) {
       const v = parseInt(sel.value);
       opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
       if (v === item.ans) correct++;
-      else opts[item.ans].classList.add('correct');
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const optionsBox = itemDiv.querySelector('.mc-options');
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = `💡 ${item.why}`;
+          optionsBox.insertAdjacentElement('afterend', hint);
+        }
+      }
     }
   });
   const r = scoreText(correct, data.length);
@@ -1484,6 +1499,7 @@ function checkMC(data, prefix, fbId, exId) {
 function resetMC(containerId, prefix, data, fbId) {
   document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
   document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
   document.getElementById(fbId).className = 'feedback';
 }
 function buildFill(containerId, data, prefix) {
@@ -2058,13 +2074,13 @@ function resetRightWrong(state, prefix, fbId) {
 // Exercise 1 – Choose the Correct Verb (MC, item 1 = example, pre-answered)
 const d1e1Data = [
   {q:'I want to ___ tennis at the weekend. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['go','play'], ans:1},
-  {q:'It often rains here, so I always ___ an umbrella.', opts:['take','wear'], ans:0},
-  {q:'I ___ exercise every morning before work.', opts:['do','make'], ans:0},
-  {q:'My cousin lives in London and she can ___ English very well.', opts:['say','speak'], ans:1},
-  {q:'My grandmother really ___ animals — she has three cats.', opts:['like','live'], ans:0},
-  {q:'I usually ___ a book before I go to sleep.', opts:['read','watch'], ans:0},
-  {q:"It's early, but I really ___ a coffee right now.", opts:['do','want'], ans:1},
-  {q:'My brother ___ history at university.', opts:['work','study'], ans:1},
+  {q:'It often rains here, so I always ___ an umbrella.', opts:['take','wear'], ans:0, why:"We say 'take an umbrella', not 'wear an umbrella'."},
+  {q:'I ___ exercise every morning before work.', opts:['do','make'], ans:0, why:"We say 'do exercise', not 'make exercise'."},
+  {q:'My cousin lives in London and she can ___ English very well.', opts:['say','speak'], ans:1, why:"We say 'speak English', not 'say English'."},
+  {q:'My grandmother really ___ animals — she has three cats.', opts:['likes','lives'], ans:0, why:"'Like' means to enjoy something; 'live' means to have your home somewhere. Also, 'grandmother' needs the -s form: likes."},
+  {q:'I usually ___ a book before I go to sleep.', opts:['read','watch'], ans:0, why:"We 'read' a book, but we 'watch' TV or a film."},
+  {q:"It's early, but I really ___ a coffee right now.", opts:['do','want'], ans:1, why:"We say 'want a coffee', not 'do a coffee'."},
+  {q:'My brother ___ history at university.', opts:['works','studies'], ans:1, why:"We 'study' a subject like history. Also, 'brother' needs the -s form: studies."},
 ];
 (function(){
   buildMC('d1e1', d1e1Data, 'd1e1');
@@ -2129,10 +2145,10 @@ const d1e3Items = [
 
 // Exercise 4 – Odd One Out (verb-noun collocations)
 const d1e4Data = [
-  {label:'drink', group:['water','tea','coffee','homework'], ans:3},
-  {label:'wear', group:['glasses','a uniform','sunglasses','tennis'], ans:3},
-  {label:'play', group:['tennis','football','the guitar','an umbrella'], ans:3},
-  {label:'do', group:['homework','exercise','housework','a coffee'], ans:3},
+  {label:'drink', group:['water','homework','tea','coffee'], ans:1},
+  {label:'wear', group:['tennis','glasses','a uniform','sunglasses'], ans:0},
+  {label:'play', group:['tennis','football','an umbrella','the guitar'], ans:2},
+  {label:'do', group:['homework','a coffee','exercise','housework'], ans:1},
 ];
 buildOddOneOut('d1e4', d1e4Data, 'd1e4');
 document.getElementById('d1e4-check').addEventListener('click', () => checkOddOneOut(d1e4Data, 'd1e4', 'd1e4-fb', 'd1e4'));
@@ -2296,12 +2312,12 @@ document.getElementById('d3e2-reset').addEventListener('click', () => resetMatch
 // Exercise 3 – Choose the Correct Word (MC, job patterns, item 1 = example)
 const d3e3Data = [
   {q:"I'm ___ teacher. <span style=\"color:var(--orange);font-size:0.78rem;\">(example)</span>", opts:['a','an'], ans:0},
-  {q:'I work ___ an IT company.', opts:['for','in'], ans:0},
-  {q:'I work ___ a hospital.', opts:['for','in'], ans:1},
-  {q:"I'm ___ university.", opts:['at','in'], ans:0},
-  {q:"I don't have a job. I'm ___.", opts:['unemployed','retired'], ans:0},
-  {q:"My grandfather is 80. He's ___.", opts:['unemployed','retired'], ans:1},
-  {q:"She's ___ actor.", opts:['a','an'], ans:1},
+  {q:'I work ___ an IT company.', opts:['for','in'], ans:0, why:"We say 'work for a company' when talking about who employs you."},
+  {q:'I work ___ a hospital.', opts:['for','in'], ans:1, why:"We say 'work in a place' like a hospital, shop, or office."},
+  {q:"I'm ___ university.", opts:['at','in'], ans:0, why:"We say 'I'm at university' to talk about studying there."},
+  {q:"I don't have a job. I'm ___.", opts:['unemployed','retired'], ans:0, why:"'Unemployed' means you don't have a job; 'retired' means you stopped working because of your age."},
+  {q:"My grandfather is 80. He's ___.", opts:['unemployed','retired'], ans:1, why:"People usually 'retire' when they reach a certain age, like 80."},
+  {q:"She's ___ actor.", opts:['a','an'], ans:1, why:"We use 'an' before words that start with a vowel sound, like 'actor'."},
 ];
 (function(){
   buildMC('d3e3', d3e3Data, 'd3e3');
@@ -2330,13 +2346,13 @@ document.getElementById('d3e3-reset').addEventListener('click', () => {
 // Exercise 1 – Choose the Correct Answer (MC, item 1 = example)
 const d4e1Data = [
   {q:'A lot of British people ... animals. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['like','likes'], ans:0},
-  {q:'It ... a lot in my country.', opts:["don't rain","doesn't rain"], ans:1},
-  {q:'Lewis ... a fast car.', opts:['drive','drives'], ans:1},
-  {q:'People ... identity cards in Britain.', opts:["don't have","doesn't have"], ans:0},
-  {q:'You ... a lot of books.', opts:['read','reads'], ans:0},
-  {q:'My boyfriend ... English.', opts:["don't speak","doesn't speak"], ans:1},
-  {q:'We ... a new computer.', opts:['need','needs'], ans:0},
-  {q:'Jill ... glasses.', opts:["don't wear","doesn't wear"], ans:1},
+  {q:'It ... a lot in my country.', opts:["don't rain","doesn't rain"], ans:1, why:"'It' is third person singular, so we use 'doesn't', not 'don't'."},
+  {q:'Lewis ... a fast car.', opts:['drive','drives'], ans:1, why:"'Lewis' is third person singular (he/she/it), so the verb needs an -s: drives."},
+  {q:'People ... identity cards in Britain.', opts:["don't have","doesn't have"], ans:0, why:"'People' is plural, so we use 'don't', not 'doesn't'."},
+  {q:'You ... a lot of books.', opts:['read','reads'], ans:0, why:"'You' doesn't take an -s on the verb."},
+  {q:'My boyfriend ... English.', opts:["don't speak","doesn't speak"], ans:1, why:"'My boyfriend' is third person singular, so we use 'doesn't'."},
+  {q:'We ... a new computer.', opts:['need','needs'], ans:0, why:"'We' doesn't take an -s on the verb."},
+  {q:'Jill ... glasses.', opts:["don't wear","doesn't wear"], ans:1, why:"'Jill' is third person singular, so we use 'doesn't'."},
 ];
 (function(){
   buildMC('d4e1', d4e1Data, 'd4e1');
@@ -2640,12 +2656,12 @@ document.getElementById('d5e3-reset').addEventListener('click', () => resetSente
 // Exercise 4 – Is, Are, Do or Does (MC, item 1 = example)
 const d5e4Data = [
   {q:'___ you a student? <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['Are','Do'], ans:0},
-  {q:'___ she like tea?', opts:['Does','Is'], ans:0},
-  {q:'___ they from Canada?', opts:['Are','Do'], ans:0},
-  {q:'___ he work at night?', opts:['Does','Is'], ans:0},
-  {q:'___ you live near here?', opts:['Do','Are'], ans:0},
-  {q:'___ it rain a lot in winter?', opts:['Does','Is'], ans:0},
-  {q:'___ your parents retired?', opts:['Are','Do'], ans:0},
+  {q:'___ she like tea?', opts:['Does','Is'], ans:0, why:"'Like' is an action verb, so we use 'Does', not 'Is'."},
+  {q:'___ they from Canada?', opts:['Are','Do'], ans:0, why:"'From Canada' describes who they are, so we use the verb 'be': Are."},
+  {q:'___ he work at night?', opts:['Does','Is'], ans:0, why:"'Work' is an action verb, so we use 'Does', not 'Is'."},
+  {q:'___ you live near here?', opts:['Do','Are'], ans:0, why:"'Live' is an action verb, so we use 'Do', not 'Are'."},
+  {q:'___ it rain a lot in winter?', opts:['Does','Is'], ans:0, why:"'Rain' is an action verb, so we use 'Does', not 'Is'."},
+  {q:'___ your parents retired?', opts:['Are','Do'], ans:0, why:"'Retired' describes a state, so we use the verb 'be': Are."},
 ];
 (function(){
   buildMC('d5e4', d5e4Data, 'd5e4');
@@ -2795,14 +2811,14 @@ document.getElementById('d6e4-reset').addEventListener('click', () => resetSente
 // Exercise 1 – Reading (MC True/False/Doesn't say, item 1 = example)
 const d7e1Data = [
   {q:'Alicia is from Ireland. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['True','False',"Doesn't say"], ans:0},
-  {q:'Alicia loves her job.', opts:['True','False',"Doesn't say"], ans:0},
-  {q:'Esther is married.', opts:['True','False',"Doesn't say"], ans:2},
-  {q:'Jean-Pierre speaks Russian.', opts:['True','False',"Doesn't say"], ans:2},
-  {q:'Jean-Pierre travels a lot.', opts:['True','False',"Doesn't say"], ans:0},
-  {q:'He has a big car.', opts:['True','False',"Doesn't say"], ans:1},
-  {q:'Mariana and Rosa go to the cinema.', opts:['True','False',"Doesn't say"], ans:1},
-  {q:'Mariana and Rosa work on Sundays.', opts:['True','False',"Doesn't say"], ans:1},
-  {q:'Mariana likes her job.', opts:['True','False',"Doesn't say"], ans:0},
+  {q:'Alicia loves her job.', opts:['True','False',"Doesn't say"], ans:0, why:"The text says she loves it because she helps people."},
+  {q:'Esther is married.', opts:['True','False',"Doesn't say"], ans:2, why:"The text says Alicia isn't married, but it doesn't say anything about Esther."},
+  {q:'Jean-Pierre speaks Russian.', opts:['True','False',"Doesn't say"], ans:2, why:"The text says he speaks four languages, but it doesn't say which ones."},
+  {q:'Jean-Pierre travels a lot.', opts:['True','False',"Doesn't say"], ans:0, why:"The text says he also travels a lot for his work."},
+  {q:'He has a big car.', opts:['True','False',"Doesn't say"], ans:1, why:"The text says his car is small, black, and very fast."},
+  {q:'Mariana and Rosa go to the cinema.', opts:['True','False',"Doesn't say"], ans:1, why:"The text says they don't go to the cinema because it's expensive."},
+  {q:'Mariana and Rosa work on Sundays.', opts:['True','False',"Doesn't say"], ans:1, why:"The text says they work from Monday to Saturday, not on Sundays."},
+  {q:'Mariana likes her job.', opts:['True','False',"Doesn't say"], ans:0, why:"The text says Mariana likes her job."},
 ];
 (function(){
   buildMC('d7e1', d7e1Data, 'd7e1');
@@ -2829,11 +2845,11 @@ document.getElementById('transcript1-btn').addEventListener('click', () => {
   document.getElementById('transcript1').classList.toggle('show');
 });
 const d7e2Data = [
-  {q:'Item 1', opts:['Cooper is a waiter.','Jenny is a waitress.','Cooper and Jenny are friends.'], ans:1},
-  {q:'Item 2', opts:['Cooper is from Sydney.','Jenny is Australian.','Cooper is Scottish.'], ans:0},
-  {q:'Item 3', opts:["Jenny doesn't like Edinburgh.",'Jenny likes Sydney.',"Jenny's brother likes Sydney."], ans:1},
-  {q:'Item 4', opts:['Cooper is a student.','Jenny studies French.','Jenny is a journalist.'], ans:2},
-  {q:'Item 5', opts:["Jenny's brother works in the evenings.","Jenny's brother works in the café.","Jenny's brother and Cooper are friends."], ans:0},
+  {q:'Item 1', opts:['Cooper is a waiter.','Jenny is a waitress.','Cooper and Jenny are friends.'], ans:1, why:"Jenny says 'I work here as a waitress.'"},
+  {q:'Item 2', opts:['Cooper is from Sydney.','Jenny is Australian.','Cooper is Scottish.'], ans:0, why:"Cooper says 'I'm from Sydney.'"},
+  {q:'Item 3', opts:["Jenny doesn't like Edinburgh.",'Jenny likes Sydney.',"Jenny's brother likes Sydney."], ans:1, why:"Jenny says she really likes Sydney."},
+  {q:'Item 4', opts:['Cooper is a student.','Jenny studies French.','Jenny is a journalist.'], ans:2, why:"Jenny says 'I'm a journalist too.'"},
+  {q:'Item 5', opts:["Jenny's brother works in the evenings.","Jenny's brother works in the café.","Jenny's brother and Cooper are friends."], ans:0, why:"Jenny says her brother works in the evenings."},
 ];
 buildMC('d7e2', d7e2Data, 'd7e2');
 document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data, 'd7e2', 'd7e2-fb', 'd7e2'));
