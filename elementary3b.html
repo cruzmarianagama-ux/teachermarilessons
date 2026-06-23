@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Elementary 3B – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section {
+    background: var(--white);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track {
+    height: 10px;
+    background: var(--gray-light);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+  .motivation-bar span { opacity: 0.8; }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-sm);
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* ── DAY HEADER ── */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange);
+    color: var(--white);
+    font-size: 1.1rem;
+    font-weight: 800;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.listening { border-left-color: #8b5cf6; }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── WORD BOX ── */
+  .word-box {
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--white);
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* ── FILL IN THE BLANKS ── */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line {
+    display: inline;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    line-height: 2;
+  }
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 2px 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--purple);
+    background: transparent;
+    min-width: 100px;
+    max-width: 160px;
+    width: auto;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 90px;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-teal { background: var(--teal); color: var(--white); }
+  .btn-teal:hover { background: #0f766e; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem;
+    font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── ANSWER KEY ── */
+  .answer-key {
+    display: none;
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--purple);
+  }
+  .answer-key.show { display: block; }
+  .answer-key strong { color: var(--orange); }
+
+  /* ── MATCHING / SELECT ── */
+  .match-select {
+    border: 2px solid var(--gray-light);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--purple);
+    outline: none;
+    transition: border-color 0.2s;
+    background: var(--white);
+    max-width: min(100%, 260px);
+    vertical-align: middle;
+  }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── CLICK-MATCH (two columns) ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    text-align: center;
+    user-select: none;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px;
+  }
+  @media (max-width: 600px) {
+    .cm-wrap { gap: 12px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 10px; }
+  }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .tf-item { margin-bottom: 10px; }
+  .tf-line {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.88rem; font-weight: 500; color: var(--purple);
+    flex-wrap: wrap;
+  }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn {
+    padding: 4px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.80rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    transition: all 0.2s;
+  }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.correct-t { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.correct-f { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; outline: 2px solid var(--teal); }
+
+  /* ── ERROR CORRECTION ── */
+  .error-item { margin-bottom: 16px; }
+  .error-wrong {
+    background: #fef2f2;
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .error-label { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; font-weight: 500; }
+
+  /* ── LISTENING ── */
+  audio { width: 100%; border-radius: var(--radius-sm); margin-bottom: 12px; }
+  .transcript-box {
+    display: none;
+    background: var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 10px;
+    font-size: 0.83rem;
+    color: var(--purple);
+    line-height: 1.7;
+    border-left: 3px solid #8b5cf6;
+  }
+  .transcript-box.show { display: block; }
+
+  /* ── DIALOGUE ── */
+  .dialogue-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+    flex-wrap: wrap;
+  }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; min-width: 20px; }
+
+  /* ── VOCAB / GRAMMAR BANK ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th {
+    background: var(--purple);
+    color: var(--white);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  .grammar-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gray-light);
+    color: var(--purple);
+    font-weight: 500;
+  }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── CHALLENGE ── */
+  .challenge-icon { font-size: 2.5rem; text-align: center; margin-bottom: 12px; }
+  .checklist { list-style: none; margin: 14px 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-size: 1rem; }
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 14px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* ── CLICK-TO-FILL GAPS ── */
+  .ctf-wordbank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 14px; padding: 10px 12px;
+    background: var(--cream); border-radius: var(--radius-sm);
+  }
+  .ctf-chip {
+    background: var(--purple);
+    color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+    user-select: none;
+  }
+  .ctf-chip:hover  { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used   { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-chip.wrong-pick { background: var(--red); outline: 2px solid var(--red); opacity: 1; }
+  .ctf-chip.correct-pick { background: var(--teal); outline: 2px solid var(--teal); opacity: 1; }
+  .ctf-gap {
+    display: inline-block;
+    min-width: 72px; text-align: center;
+    border-bottom: 2.5px solid var(--purple-light);
+    color: var(--orange); font-weight: 700;
+    font-size: 0.88rem; padding: 0 4px;
+    cursor: pointer; margin: 0 2px;
+    transition: border-color 0.2s, background 0.2s;
+    border-radius: 4px 4px 0 0;
+    vertical-align: middle; line-height: 1.8;
+  }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready  { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap   { border-bottom-color: var(--red);  color: var(--red);  background: #fef2f2; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 14px; min-height: 38px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); background: #f0fdfa; }
+  .sb-zone.wrong-zone   { border-color: var(--red);  background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-item { margin-bottom: 18px; }
+  .sb-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+
+  /* ── LISTEN TEXT BUTTON ── */
+  .listen-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1rem; padding: 2px 4px; line-height: 1;
+    opacity: 0.65; transition: opacity 0.2s;
+    vertical-align: middle;
+  }
+  .listen-btn:hover { opacity: 1; }
+
+  /* ── BONUS / PERSONAL BOX ── */
+  .bonus-box {
+    background: var(--cream-light);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .bonus-box .bonus-title { font-size: 0.85rem; font-weight: 700; color: var(--purple-light); margin-bottom: 10px; }
+
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .btn-row { gap: 8px; }
+    .fill-input { min-width: 70px; max-width: 120px; font-size: 0.82rem; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
+    .vocab-chip { padding: 8px 8px; font-size: 0.78rem; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .tf-line { font-size: 0.82rem; }
+    .writing-area { font-size: 0.85rem; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+    .transcript-box { font-size: 0.78rem; }
+    .tip-box { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly exercise<br><strong>Elementary 3B</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Digite seu nome..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Elementary 3B – Weekly Practice</h1>
+      <div class="subtitle">Elementary</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Progresso da semana</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  🌟 <span id="motivation-text">Carregando motivação do dia...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">🔤 Day 1</button>
+    <button class="tab-btn" data-tab="day2">💼 Day 2</button>
+    <button class="tab-btn" data-tab="day3">🗨️ Day 3</button>
+    <button class="tab-btn" data-tab="day4">📝 Day 4</button>
+    <button class="tab-btn" data-tab="day5">❓ Day 5</button>
+    <button class="tab-btn" data-tab="day6">🧩 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🎧 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<!-- ════════════════════════ CONTENT ════════════════════════ -->
+<div class="content">
+
+<!-- ── DAY 1 – VERB PHRASES (VOCABULARY) ── -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Verb Phrases</div>
+      <div class="day-desc">Choose the Correct Verb · Match the Verbs and Nouns · Complete the Phrases · Odd One Out</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Choose the Correct Verb -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Choose the Correct Verb</div>
+    <div class="ex-instruction">Choose the correct verb to complete the verb phrase.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Match the Verbs and Nouns -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Match the Verbs and Nouns</div>
+    <div class="ex-instruction">Click a verb on the left, then click the noun on the right to make a verb phrase.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Complete the Phrases -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Complete the Phrases with the Correct Word</div>
+    <div class="ex-instruction">Click a word from the box, then click the gap to complete each phrase. The example is already done.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Odd One Out -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 4 – Odd One Out</div>
+    <div class="ex-instruction">In each group, click the word that does not go with the verb shown.</div>
+    <div id="d1e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e4-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e4-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e4-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 2 – JOBS VOCABULARY (VOCABULARY) ── -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Jobs Vocabulary</div>
+      <div class="day-desc">Match the Jobs · Write the Jobs · Complete the Sentences · Match Job to Workplace</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Match the Jobs -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Match the Jobs</div>
+    <div class="ex-instruction">Click a word on the left, then click the matching word on the right to make a job.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Write the Jobs -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Write the Jobs</div>
+    <div class="ex-instruction">Complete the job name. The first letter is already given. The example is already done.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Complete the Sentences -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Complete the Sentences</div>
+    <div class="ex-instruction">Click a word from the box, then click the gap. Item 1 is an example.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Match the Job to the Workplace -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 4 – Match the Job to the Workplace</div>
+    <div class="ex-instruction">Click a job on the left, then click the place where they work on the right.</div>
+    <div id="d2e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e4-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e4-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e4-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 3 – JOBS IN CONTEXT (VOCABULARY) ── -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Jobs in Context</div>
+      <div class="day-desc">Complete the Descriptions · Match Q&amp;A · Choose the Correct Word</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Complete the Job Descriptions -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete the Job Descriptions</div>
+    <div class="ex-instruction">Click a verb from the box, then click the gap. Gap 1 is an example. Can you guess each job?</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Match the Questions and Answers -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Match the Questions and the Answers</div>
+    <div class="ex-instruction">Select the correct answer for each personal question. The example is already done.</div>
+    <div class="fill-item"><div class="fill-line">Example: Who is your favourite actor? &nbsp;<span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Margot Robbie</span></div></div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Choose the Correct Word -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Choose the Correct Word</div>
+    <div class="ex-instruction">Choose a or b to talk about jobs correctly. Item 1 is an example.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 4 – PRESENT SIMPLE: STATEMENTS (GRAMMAR) ── -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Present Simple: Statements</div>
+      <div class="day-desc">Choose the Correct Answer · Complete the Sentences · Right or Wrong? · Make it Negative</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Choose the Correct Answer -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Choose the Correct Answer</div>
+    <div class="ex-instruction">Choose option a or b to complete the sentence correctly. Item 1 is an example.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Complete the Sentences -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Complete the Sentences</div>
+    <div class="ex-instruction">Write the correct present simple form (positive or negative) of the verb in brackets. Item 1 is an example.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Right or Wrong -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Right or Wrong?</div>
+    <div class="ex-instruction">Decide if the sentence is right (✓) or wrong (✗). If it's wrong, write the correct sentence. Item 1 is an example.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Make it Negative -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Make it Negative</div>
+    <div class="ex-instruction">Rewrite each sentence in the negative form. Item 1 is an example.</div>
+    <div id="d4e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e4-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e4-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e4-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 5 – PRESENT SIMPLE: QUESTIONS (GRAMMAR) ── -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Present Simple: Questions</div>
+      <div class="day-desc">Do or Does? · Make Questions · Order the Words · Is, Are, Do or Does?</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Do or Does -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete the Questions with Do or Does</div>
+    <div class="ex-instruction">Write "Do" or "Does" to complete each question. The example is already done.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Make Questions -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Make Questions</div>
+    <div class="ex-instruction">Use a pronoun and the verb in bold to make a question, like in the example.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Order the Words -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Order the Words to Make Questions</div>
+    <div class="ex-instruction">Tap the words in the correct order to make a question. The example is already done.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Is, Are, Do or Does -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Is, Are, Do or Does?</div>
+    <div class="ex-instruction">Choose the correct word to start each question. Item 1 is an example.</div>
+    <div id="d5e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e4-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e4-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e4-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 6 – ASKING ABOUT JOBS (GRAMMAR) ── -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Asking About Jobs</div>
+      <div class="day-desc">Make Questions · Right or Wrong? · True or False? · Order the Words</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Make Questions about Jobs -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Make Questions about Jobs</div>
+    <div class="ex-instruction">Use the word in brackets and a verb from the box to make a question. Item 1 is an example.</div>
+    <div class="word-box">do &nbsp;·&nbsp; earn &nbsp;·&nbsp; like &nbsp;·&nbsp; live &nbsp;·&nbsp; play &nbsp;·&nbsp; speak &nbsp;·&nbsp; wear &nbsp;·&nbsp; work</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Right or Wrong -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Right or Wrong?</div>
+    <div class="ex-instruction">Decide if the question is right (✓) or wrong (✗). If it's wrong, write the correct question. Item 1 is an example.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – True or False -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – True or False?</div>
+    <div class="ex-instruction">Read each sentence about jobs and choose True or False. The example is already done.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Order the Words -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Order the Words to Make Questions</div>
+    <div class="ex-instruction">Tap the words in the correct order to make a question about jobs. The example is already done.</div>
+    <div id="d6e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e4-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e4-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e4-fb"></div>
+  </div>
+</div>
+
+<!-- ── DAY 7 – READING & LISTENING ── -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Reading &amp; Listening</div>
+      <div class="day-desc">Reading: True, False or Doesn't Say · Listening 1 · Listening 2</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Reading -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Reading: True, False, or Doesn't Say?</div>
+    <div class="ex-instruction">Read the text and choose True, False, or Doesn't say. The example is already answered.</div>
+    <div class="reading-text" id="rt-jobs">
+      <button class="listen-btn" onclick="speakEl('rt-jobs')" title="Listen">🔊</button><br>
+      <strong>Alicia Stevens</strong><br>
+      Alicia is Irish. She's 31 years old. Alicia speaks English and German and she's a doctor in a hospital in Dublin. She works at night during the week and at the weekend. She drinks a lot of coffee. She works 60 hours a week. Alicia's job is difficult, but she loves it because she helps people. Alicia isn't married. She lives with her sister, Esther, and they go to the gym together on Tuesdays.<br><br>
+      <strong>Jean-Pierre Chalvet</strong><br>
+      Jean-Pierre is 26 years old, and he's from France. He speaks four languages, and his American accent is very good. He's an actor and he lives in Los Angeles, but he also travels a lot for his work. He doesn't do a lot of exercise because he loves his car and in his free time he drives around the city. His car is small, black, and very fast!<br><br>
+      <strong>Mariana Romero and Rosa Diaz</strong><br>
+      Mariana and Rosa are 22 years old. They're friends and they live in a small flat with Rosa's brother, Jorge. On Sundays they eat together and listen to jazz music. They don't go to the cinema because it's expensive. The two women are hairdressers in a salon in Acapulco, Mexico. They wear a pink uniform and work from Monday to Saturday. Mariana likes her job, but Rosa doesn't want to be a hairdresser. She loves animals, so in the evenings Rosa studies to be a vet at college.
+    </div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Listening 1 -->
+  <div class="ex-card listening">
+    <div class="ex-title">Exercise 2 – Listening 1: Cooper and Jenny</div>
+    <div class="ex-instruction">Cooper and Jenny meet in a café in Sydney, Australia. Listen to their conversation and choose A, B, or C.</div>
+    <audio controls style="width:100%;border-radius:8px;margin-bottom:12px;">
+      <source src="https://raw.githubusercontent.com/cruzmarianagama-ux/audiosbeginnerweeklyplans/main/elementary%203b%20listening%20exe%201.mp3" type="audio/mpeg">
+    </audio>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-teal" id="transcript1-btn">📄 Show transcript</button>
+    </div>
+    <div class="transcript-box" id="transcript1">
+      <strong>Transcript:</strong> <button class="listen-btn" onclick="speakEl('transcript1')" title="Listen">🔊</button><br>
+      <div class="dialogue-line"><span class="speaker">COOPER:</span> Hi! Is this seat free?</div>
+      <div class="dialogue-line"><span class="speaker">JENNY:</span> Yes, sure. Hi, I'm Jenny. I work here as a waitress.</div>
+      <div class="dialogue-line"><span class="speaker">COOPER:</span> Nice to meet you, Jenny. I'm Cooper.</div>
+      <div class="dialogue-line"><span class="speaker">JENNY:</span> Are you from Sydney, Cooper?</div>
+      <div class="dialogue-line"><span class="speaker">COOPER:</span> Yes, I am. I'm from Sydney. Where are you from?</div>
+      <div class="dialogue-line"><span class="speaker">JENNY:</span> I'm from Edinburgh, but I really like Sydney. It's sunny and the people are friendly.</div>
+      <div class="dialogue-line"><span class="speaker">COOPER:</span> What do you do, Jenny? Are you a student?</div>
+      <div class="dialogue-line"><span class="speaker">JENNY:</span> No, I'm not. I work part-time here and I'm a journalist too. I write for a small newspaper.</div>
+      <div class="dialogue-line"><span class="speaker">COOPER:</span> That sounds interesting! Do you have any family here?</div>
+      <div class="dialogue-line"><span class="speaker">JENNY:</span> Yes, my brother lives here. He works in the evenings, at a restaurant near the beach.</div>
+    </div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Listening 2 -->
+  <div class="ex-card listening">
+    <div class="ex-title">Exercise 3 – Listening 2: Five Speakers</div>
+    <div class="ex-instruction">Listen to five speakers. For each speaker, select the question they are answering.</div>
+    <audio controls style="width:100%;border-radius:8px;margin-bottom:12px;">
+      <source src="https://raw.githubusercontent.com/cruzmarianagama-ux/audiosbeginnerweeklyplans/main/elementary%203b%20listening%20exe%202.mp3" type="audio/mpeg">
+    </audio>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-teal" id="transcript2-btn">📄 Show transcript</button>
+    </div>
+    <div class="transcript-box" id="transcript2">
+      <strong>Transcript:</strong> <button class="listen-btn" onclick="speakEl('transcript2')" title="Listen">🔊</button><br>
+      <div class="dialogue-line"><span class="speaker">SPEAKER 1:</span> Yes, I really do. I love helping people every day, and my team is great.</div>
+      <div class="dialogue-line"><span class="speaker">SPEAKER 2:</span> Not really. I usually finish at 5.30, so I have a lot of free time in the evenings.</div>
+      <div class="dialogue-line"><span class="speaker">SPEAKER 3:</span> I work in a small office in the city centre, near the train station.</div>
+      <div class="dialogue-line"><span class="speaker">SPEAKER 4:</span> I'm a nurse. I work in a big hospital and I help doctors with patients.</div>
+      <div class="dialogue-line"><span class="speaker">SPEAKER 5:</span> No, never. I only work from Monday to Friday, so Saturday and Sunday are for my family.</div>
+    </div>
+    <div id="d7e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e3-fb"></div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Semana concluída!</h3>
+    <p>Você completou a Elementary 3B. Incrível!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.7;margin-top:4px;margin-bottom:18px;">exercícios verificados</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">📲 Compartilhar com Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ── VOCAB BANK ── -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Elementary 3B – Jobs · Verb Phrases (revision)</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">💼 Jobs</div>
+    <div class="vocab-grid" id="vocab-jobs"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🔄 Verb Phrases (revision)</div>
+    <div class="vocab-grid" id="vocab-verbs"></div>
+  </div>
+</div>
+
+<!-- ── GRAMMAR BANK ── -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Present Simple (+/–/?) · Talking About Jobs</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Present Simple (Affirmative)</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Verb</th><th>Example</th></tr>
+      <tr><td>I / you / we / they</td><td class="orange">verb (base form)</td><td>I live in a flat.</td></tr>
+      <tr><td>he / she / it</td><td class="orange">verb + s/es</td><td>She works in an office.</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Tip:</strong> With he/she/it, the verb takes -s or -es: <em>study → studies</em>, <em>have → has</em>, <em>do → does</em>.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">🔑 Present Simple (Negative)</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Negative</th><th>Example</th></tr>
+      <tr><td>I / you / we / they</td><td class="teal">don't + verb</td><td>I don't play tennis.</td></tr>
+      <tr><td>he / she / it</td><td class="teal">doesn't + verb</td><td>It doesn't rain a lot here.</td></tr>
+    </table>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">❓ Present Simple (Questions)</div>
+    <table class="grammar-table">
+      <tr><th>Question word</th><th>Auxiliary</th><th>Example</th></tr>
+      <tr><td>–</td><td class="orange">Do / Does</td><td>Do you have a dog?</td></tr>
+      <tr><td>What</td><td class="orange">do / does</td><td>What do you do?</td></tr>
+      <tr><td>Where</td><td class="orange">do / does</td><td>Where does she work?</td></tr>
+      <tr><td>–</td><td class="teal">Is / Are</td><td>Is she a doctor? / Are they pilots?</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Tip:</strong> With <em>be</em>, we don't use do/does: <em>Is he a builder?</em> not "Does he be a builder?".</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">💼 Talking About Jobs</div>
+    <table class="grammar-table">
+      <tr><th>Pattern</th><th>Example</th></tr>
+      <tr><td>I'm a/an + job</td><td>I'm a musician. / I'm an engineer.</td></tr>
+      <tr><td>I work for + company</td><td>I work for an IT company.</td></tr>
+      <tr><td>I work in + place</td><td>I work in a shop. / I work in digital marketing.</td></tr>
+      <tr><td>I work part-time / from home</td><td>I work part-time. / I work from home.</td></tr>
+      <tr><td>I'm a student / at university / at school</td><td>I'm at university.</td></tr>
+      <tr><td>I'm unemployed / retired</td><td>I'm unemployed. / I'm retired.</td></tr>
+    </table>
+  </div>
+</div>
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  WELCOME SCREEN
+// ══════════════════════════════════════════════
+const STUDENT_KEY = 'teachermari_elementary3b_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = `Hello, ${studentName}! 👋 Let's study and improve!`;
+  banner.classList.add('show');
+}
+
+if (studentName) startSession(studentName);
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) {
+    document.getElementById('student-name-input').focus();
+    document.getElementById('student-name-input').style.borderColor = 'var(--red)';
+    return;
+  }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('welcome-start-btn').click();
+});
+document.getElementById('student-name-input').addEventListener('input', () => {
+  document.getElementById('student-name-input').style.borderColor = '';
+});
+
+// ══════════════════════════════════════════════
+//  DATA – VOCAB BANK
+// ══════════════════════════════════════════════
+const VOCAB_JOBS = [
+  {en:'accountant',pt:'works with money and taxes'},{en:'actor',pt:'performs in films or plays'},
+  {en:'architect',pt:'designs buildings'},{en:'builder',pt:'builds houses and buildings'},
+  {en:'chef',pt:'cooks in a restaurant'},{en:'cleaner',pt:'cleans houses or offices'},
+  {en:'dentist',pt:'takes care of teeth'},{en:'doctor',pt:'helps sick people'},
+  {en:'engineer',pt:'designs machines or systems'},{en:'factory worker',pt:'works in a factory'},
+  {en:'flight attendant',pt:'works on a plane'},{en:'hairdresser',pt:'cuts and styles hair'},
+  {en:'journalist',pt:'writes news stories'},{en:'lawyer',pt:'works with the law'},
+  {en:'bank manager',pt:'runs a bank'},{en:'model',pt:'poses for photos'},
+  {en:'musician',pt:'plays an instrument'},{en:'nurse',pt:'helps doctors care for patients'},
+  {en:'pilot',pt:'flies a plane'},{en:'police officer',pt:'keeps people safe'},
+  {en:'receptionist',pt:'welcomes visitors at the front desk'},{en:'shop assistant',pt:'works in a shop'},
+  {en:'soldier',pt:'serves in the army'},{en:'taxi driver',pt:'drives people in a taxi'},
+  {en:'teacher',pt:'teaches students'},{en:'vet',pt:'takes care of animals'},
+  {en:'waiter',pt:'serves food in a restaurant'}
+];
+const VOCAB_VERBS = [
+  {en:'cook dinner',pt:'prepare food to eat'},{en:'do exercise',pt:'practise physical activity'},
+  {en:'drink water',pt:'have a drink'},{en:'drive a car',pt:'control a vehicle'},
+  {en:'go to the cinema',pt:'watch a film'},{en:'have a shower',pt:'wash yourself'},
+  {en:'like animals',pt:'enjoy being with animals'},{en:'listen to music',pt:'hear songs'},
+  {en:'live in a flat',pt:'have your home in a flat'},{en:'need help',pt:'require assistance'},
+  {en:'play tennis',pt:'practise a sport'},{en:'read a book',pt:'look at and understand a text'},
+  {en:'speak English',pt:'communicate in English'},{en:'study history',pt:'learn about the past'},
+  {en:'take a photo',pt:'use a camera'},{en:'want a coffee',pt:'wish to drink coffee'},
+  {en:'watch TV',pt:'look at a TV programme'},{en:'wear glasses',pt:'have glasses on your eyes'},
+  {en:'work in an office',pt:'have your job in an office'}
+];
+
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes are part of learning. Try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practice every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+
+// ══════════════════════════════════════════════
+//  PROGRESS & STORAGE
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_elementary3b';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const total = 26;
+  const pct = Math.min(100, Math.round((totalChecked / total) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const dayIdx = new Date().getDay();
+document.getElementById('motivation-text').textContent = MOTIVATIONS[dayIdx % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Perfeito! Você acertou todos os ${total} itens! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Muito bem! ${correct}/${total} corretos. Revise os erros e tente novamente!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} corretos. Continue praticando — você vai conseguir!`, type: 'err' };
+}
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">` +
+      item.opts.map((o,j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else opts[item.ans].classList.add('correct');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    let html = `<div class="fill-line">${i+1}. ${parts[0]}`;
+    for (let k = 1; k < parts.length; k++) {
+      html += `<input class="fill-input" id="${prefix}_${i}_${k-1}" placeholder="...">${parts[k]}`;
+    }
+    html += '</div>';
+    div.innerHTML = html;
+    wrap.appendChild(div);
+  });
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((ans, k) => {
+      total++;
+      const inp = document.getElementById(`${prefix}_${i}_${k}`);
+      if (!inp) return;
+      inp.classList.remove('correct','wrong');
+      const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+      if (existingHint) existingHint.remove();
+      const val = inp.value.trim().toLowerCase();
+      const ok = Array.isArray(ans) ? ans.map(a=>a.toLowerCase()).includes(val) : val === ans.toLowerCase();
+      if (ok) { inp.classList.add('correct'); correct++; }
+      else {
+        inp.classList.add('wrong');
+        const correctAns = Array.isArray(ans) ? ans[0] : ans;
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint';
+        hint.dataset.for = inp.id;
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = `(✔ ${correctAns})`;
+        inp.insertAdjacentElement('afterend', hint);
+      }
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((_, k) => {
+      const inp = document.getElementById(`${prefix}_${i}_${k}`);
+      if (inp) {
+        inp.value = ''; inp.className = 'fill-input';
+        const hint = inp.parentElement && inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+        if (hint) hint.remove();
+      }
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(`${prefix}t_`,'').replace(`${prefix}f_`,'');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${idx}`); if(b){ b.classList.remove('selected-t','selected-f'); }});
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    if (sel[i] === item.ans) {
+      correct++;
+    } else if (sel[i]) {
+      const wrongBtn = document.getElementById(`${prefix}${sel[i].toLowerCase()}_${i}`);
+      if (wrongBtn) wrongBtn.classList.add('wrong-sel');
+      const rightBtn = document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    } else {
+      const rightBtn = document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_,i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f','correct-t','correct-f','wrong-sel','right-answer'); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── CLICK-TO-FILL ENGINE (word bank + click gaps in standalone sentences) ──
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const list = document.createElement('div');
+  const startIndex = cfg.startIndex || 1;
+
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const html = item.line.replace(/___/g, () => `<span class="ctf-gap" data-ans="${item.ans}"></span>`);
+    div.innerHTML = `<div class="fill-line">${i+startIndex}. ${html}</div>`;
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  let selected = null;
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) {
+      chip.classList.remove('active'); selected = null;
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${returnWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${oldWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+    }
+
+    gap.textContent = selected.word;
+    gap.dataset.filled   = selected.word;
+    gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active');
+    selected.chipEl.classList.add('used');
+    selected = null;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existingHint = gap.parentElement.querySelector('.correct-hint');
+      if (existingHint) existingHint.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans    = (gap.dataset.ans  || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = `(✔ ${gap.dataset.ans})`;
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+    });
+    list.querySelectorAll('.correct-hint').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// ── MATCH THE COLUMNS (dropdown select) ──
+function buildMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const optsHtml = `<option value="">...</option>` + item.options.map((o,j) => `<option value="${j}">${o}</option>`).join('');
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.left} &nbsp;→&nbsp; <select class="match-select" id="${prefix}_${i}">${optsHtml}</select></div>`;
+    wrap.appendChild(div);
+  });
+}
+function checkMatch(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    sel.classList.remove('correct','wrong');
+    const existingHint = sel.parentElement.querySelector('.correct-hint[data-for="' + sel.id + '"]');
+    if (existingHint) existingHint.remove();
+    if (parseInt(sel.value) === item.ans) { sel.classList.add('correct'); correct++; }
+    else {
+      sel.classList.add('wrong');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint';
+      hint.dataset.for = sel.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = `(✔ ${item.options[item.ans]})`;
+      sel.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMatch(data, prefix, fbId) {
+  data.forEach((_, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    sel.value = ''; sel.className = 'match-select';
+    const hint = sel.parentElement.querySelector('.correct-hint[data-for="' + sel.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── CLICK-MATCH (two columns: click left item, then click right item to connect) ──
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]];
+  }
+
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.textContent = item.left;
+    leftCol.appendChild(div);
+  });
+  rightShuffled.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex;
+    div.textContent = item.text;
+    rightCol.appendChild(div);
+  });
+
+  cmWrap.appendChild(leftCol);
+  cmWrap.appendChild(rightCol);
+  wrap.appendChild(cmWrap);
+
+  const links = {};
+  let selectedLeft = null;
+  let pairCount = 0;
+
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) {
+        item.classList.remove('active');
+        selectedLeft = null;
+        return;
+      }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active');
+      selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      const num = pairCount;
+      selectedLeft.classList.remove('active');
+      selectedLeft.classList.add('linked');
+      item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const badgeL = document.createElement('span'); badgeL.className = 'cm-pair-num'; badgeL.textContent = num;
+      const badgeR = document.createElement('span'); badgeR.className = 'cm-pair-num'; badgeR.textContent = num;
+      selectedLeft.appendChild(badgeL);
+      item.appendChild(badgeR);
+      selectedLeft.dataset.pairNum = num;
+      item.dataset.pairNum = num;
+      selectedLeft = null;
+    }
+  });
+
+  return { links, leftCol, rightCol, data };
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector(`.cm-item[data-idx="${i}"]`);
+
+    if (linkedRightIdx === undefined) {
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+      if (leftEl) leftEl.classList.add('wrong-link');
+      return;
+    }
+    if (parseInt(linkedRightIdx) === i) {
+      correct++;
+      leftEl.classList.add('correct-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    } else {
+      leftEl.classList.add('wrong-link');
+      const wrongRightEl = rightCol.querySelector(`.cm-item[data-idx="${linkedRightIdx}"][data-pair-num="${leftEl.dataset.pairNum}"]`)
+        || rightCol.querySelector(`.cm-item[data-idx="${linkedRightIdx}"]`);
+      if (wrongRightEl) wrongRightEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => {
+    col.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active','linked','correct-link','wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      delete el.dataset.pairNum;
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── SENTENCE BUILDER (click words in order to build a sentence) ──
+function buildSentenceBuilder(containerId, items, prefix) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = `
+      <div class="sb-label">${i+1}.</div>
+      <div class="sb-words" id="${prefix}-words-${i}">
+        ${shuffled.map(w => `<button class="sb-chip" data-word="${w}" data-item="${i}">${w}</button>`).join('')}
+      </div>
+      <div class="sb-label">Your question:</div>
+      <div class="sb-zone" id="${prefix}-zone-${i}"></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if (chip.parentElement === words) {
+      chip.classList.add('in-zone');
+      zone.appendChild(chip);
+    } else {
+      chip.classList.remove('in-zone');
+      words.appendChild(chip);
+    }
+  });
+}
+function checkSentenceBuilder(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const zone = document.getElementById(`${prefix}-zone-${i}`);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    const existingHint = document.getElementById(`${prefix}-hint-${i}`);
+    if (existingHint) existingHint.remove();
+    if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      const hint = document.createElement('div');
+      hint.id = `${prefix}-hint-${i}`;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = `✔ ${item.ans}`;
+      zone.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetSentenceBuilder(items, prefix, fbId) {
+  items.forEach((item, i) => {
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    const hint = document.getElementById(`${prefix}-hint-${i}`);
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── ODD ONE OUT (click the word that doesn't belong in the group) ──
+function buildOddOneOut(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const label = item.label ? `<strong>${item.label}</strong> ` : '';
+    const optsHtml = item.group.map((w,j) => `<button class="ctf-chip" data-item="${i}" data-opt="${j}" style="margin-right:6px;margin-bottom:6px;">${w}</button>`).join('');
+    div.innerHTML = `<div class="fill-line" style="display:block;">${i+1}. ${label}${optsHtml}</div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    wrap.querySelectorAll(`.ctf-chip[data-item="${i}"]`).forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+}
+function checkOddOneOut(data, containerId, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    document.querySelectorAll(`#${containerId} .ctf-chip[data-item="${i}"]`).forEach(c => { c.classList.remove('used','wrong-pick','correct-pick'); c.style.outline=''; });
+    const sel = document.querySelector(`#${containerId} .ctf-chip[data-item="${i}"].active`);
+    if (sel) {
+      if (parseInt(sel.dataset.opt) === item.ans) { sel.classList.add('correct-pick'); correct++; }
+      else {
+        sel.classList.add('wrong-pick');
+        const correctChip = document.querySelector(`#${containerId} .ctf-chip[data-item="${i}"][data-opt="${item.ans}"]`);
+        if (correctChip) correctChip.classList.add('correct-pick');
+      }
+    } else {
+      const correctChip = document.querySelector(`#${containerId} .ctf-chip[data-item="${i}"][data-opt="${item.ans}"]`);
+      if (correctChip) correctChip.classList.add('correct-pick');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetOddOneOut(containerId, fbId) {
+  document.querySelectorAll(`#${containerId} .ctf-chip`).forEach(c => { c.classList.remove('active','used','wrong-pick','correct-pick'); c.style.outline=''; });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── RIGHT OR WRONG (T/F + correction input shown when Wrong is chosen) ──
+function buildRightWrong(containerId, items, prefix) {
+  // items: [{s, ans:'T'|'F', fix?, isExample?}]
+  const wrap = document.getElementById(containerId);
+  if (items[0] && items[0].isExample) {
+    const exDiv = document.createElement('div'); exDiv.className = 'tf-item';
+    const exLabel = items[0].ans === 'T' ? '<span style="color:var(--teal);font-weight:700;">✓ Right</span>' : `<span style="color:var(--red);font-weight:700;">✗ Wrong</span> → <span style="color:var(--teal);font-weight:700;">${items[0].fix}</span>`;
+    exDiv.innerHTML = `<div class="tf-line">1. ${items[0].s} ${exLabel} <span style="color:var(--orange);font-size:0.78rem;">(example)</span></div>`;
+    wrap.appendChild(exDiv);
+  }
+  const real = items[0] && items[0].isExample ? items.slice(1) : items;
+  const startIndex = items[0] && items[0].isExample ? 2 : 1;
+  const sel = {};
+  real.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = `<div class="tf-line">${i+startIndex}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">✓ Right</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">✗ Wrong</button></div></div>
+      <div class="error-item" id="${prefix}-correction-${i}" style="display:none;margin-top:6px;margin-left:18px;">
+        <div class="error-label">✏️ If it's wrong, write the correct sentence:</div>
+        <input class="fill-input" id="${prefix}fix_${i}" placeholder="write the correction..." style="min-width:260px;width:100%;max-width:340px;">
+      </div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(`${prefix}t_`,'').replace(`${prefix}f_`,'');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${idx}`); if(b){ b.classList.remove('selected-t','selected-f'); }});
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+      const box = document.getElementById(`${prefix}-correction-${idx}`);
+      if (box) box.style.display = (btn.dataset.val === 'F') ? 'block' : 'none';
+    });
+  });
+  return { real, sel };
+}
+function checkRightWrong(state, prefix, fbId, exId) {
+  const { real, sel } = state;
+  let correct = 0, total = 0;
+  real.forEach((item, i) => {
+    total++;
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    const existingHint = document.getElementById(`${prefix}-hint-${i}`);
+    if (existingHint) existingHint.remove();
+    if (sel[i] === item.ans) {
+      correct++;
+    } else if (sel[i]) {
+      const wrongBtn = document.getElementById(`${prefix}${sel[i].toLowerCase()}_${i}`);
+      if (wrongBtn) wrongBtn.classList.add('wrong-sel');
+      const rightBtn = document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    } else {
+      const rightBtn = document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    }
+    if (item.fix) {
+      total++;
+      const fixInp = document.getElementById(`${prefix}fix_${i}`);
+      fixInp.classList.remove('correct','wrong');
+      const val = fixInp.value.trim().toLowerCase().replace(/\?$/,'').replace(/\s+/g,' ').trim();
+      const expected = item.fix.toLowerCase().replace(/\?$/,'').trim();
+      if (val === expected) { fixInp.classList.add('correct'); correct++; }
+      else {
+        fixInp.classList.add('wrong');
+        const hint = document.createElement('div');
+        hint.id = `${prefix}-hint-${i}`;
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+        hint.textContent = `✔ ${item.fix}`;
+        fixInp.insertAdjacentElement('afterend', hint);
+      }
+    }
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetRightWrong(state, prefix, fbId) {
+  const { real, sel } = state;
+  Object.keys(sel).forEach(k => delete sel[k]);
+  real.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+    const hint = document.getElementById(`${prefix}-hint-${i}`);
+    if (hint) hint.remove();
+    const box = document.getElementById(`${prefix}-correction-${i}`);
+    if (box) box.style.display = 'none';
+    if (item.fix) {
+      const fixInp = document.getElementById(`${prefix}fix_${i}`);
+      if (fixInp) { fixInp.value = ''; fixInp.className = 'fill-input'; }
+    }
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1 – VERB PHRASES (VOCABULARY)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Choose the Correct Verb (MC, item 1 = example, pre-answered)
+const d1e1Data = [
+  {q:'I want to ___ tennis at the weekend. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['go','play'], ans:1},
+  {q:'It often rains here, so I always ___ an umbrella.', opts:['take','wear'], ans:0},
+  {q:'I ___ exercise every morning before work.', opts:['do','make'], ans:0},
+  {q:'My cousin lives in London and she can ___ English very well.', opts:['say','speak'], ans:1},
+  {q:'My grandmother really ___ animals — she has three cats.', opts:['like','live'], ans:0},
+  {q:'I usually ___ a book before I go to sleep.', opts:['read','watch'], ans:0},
+  {q:"It's early, but I really ___ a coffee right now.", opts:['do','want'], ans:1},
+  {q:'My brother ___ history at university.', opts:['work','study'], ans:1},
+];
+(function(){
+  buildMC('d1e1', d1e1Data, 'd1e1');
+  const opts = document.querySelectorAll('[data-q="d1e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d1e1Data[0].ans);
+    if (j === d1e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => {
+  resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb');
+  const opts = document.querySelectorAll('[data-q="d1e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d1e1Data[0].ans);
+    if (j === d1e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+});
+
+// Exercise 2 – Match the Verbs and Nouns (click match)
+const d1e2Data = [
+  {left:'need', right:'a new passport'},
+  {left:'drink', right:'mineral water'},
+  {left:'wear', right:'glasses'},
+  {left:'go', right:'to the cinema'},
+  {left:'live', right:'in a flat'},
+  {left:'do', right:'homework'},
+  {left:'watch', right:'TV'},
+  {left:'drive', right:'a car'},
+];
+const d1e2state = buildClickMatch('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkClickMatch(d1e2state, 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetClickMatch(d1e2state, 'd1e2-fb'));
+
+// Exercise 3 – Complete the Phrases (click-to-fill, item 1 = example)
+const d1e3Items = [
+  {line:'wear ___', ans:'a uniform'},
+  {line:'___ a car', ans:'drive'},
+  {line:'drink ___', ans:'tea'},
+  {line:'___ in a flat', ans:'live'},
+  {line:'do ___', ans:'housework'},
+  {line:'___ an umbrella', ans:'take'},
+  {line:'say ___', ans:'sorry'},
+  {line:'___ Spanish', ans:'speak'},
+];
+(function(){
+  const wrap = document.getElementById('d1e3');
+  const exDiv = document.createElement('div'); exDiv.className = 'fill-item';
+  exDiv.innerHTML = `<div class="fill-line">Example: <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">eat</span> hot dogs</div>`;
+  wrap.appendChild(exDiv);
+
+  buildCTFSentences({
+    containerId: 'd1e3',
+    words: ['housework','a uniform','drive','sorry','take','speak','tea','live'],
+    items: d1e3Items,
+    startIndex: 1,
+    exId: 'd1e3', fbId: 'd1e3-fb', checkId: 'd1e3-check', resetId: 'd1e3-reset'
+  });
+})();
+
+// Exercise 4 – Odd One Out (verb-noun collocations)
+const d1e4Data = [
+  {label:'drink', group:['water','tea','coffee','homework'], ans:3},
+  {label:'wear', group:['glasses','a uniform','sunglasses','tennis'], ans:3},
+  {label:'play', group:['tennis','football','the guitar','an umbrella'], ans:3},
+  {label:'do', group:['homework','exercise','housework','a coffee'], ans:3},
+];
+buildOddOneOut('d1e4', d1e4Data, 'd1e4');
+document.getElementById('d1e4-check').addEventListener('click', () => checkOddOneOut(d1e4Data, 'd1e4', 'd1e4-fb', 'd1e4'));
+document.getElementById('d1e4-reset').addEventListener('click', () => resetOddOneOut('d1e4', 'd1e4-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2 – JOBS VOCABULARY (VOCABULARY)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Match the Jobs (click match)
+const d2e1Data = [
+  {left:'bank', right:'manager'},
+  {left:'factory', right:'worker'},
+  {left:'flight', right:'attendant'},
+  {left:'police', right:'officer'},
+  {left:'shop', right:'assistant'},
+  {left:'taxi', right:'driver'},
+];
+const d2e1state = buildClickMatch('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkClickMatch(d2e1state, 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetClickMatch(d2e1state, 'd2e1-fb'));
+
+// Exercise 2 – Write the Jobs (fill-in, first letter given, item 1 = example)
+const d2e2Data = [
+  {pre:"I work in a shop. I'm a shop a", rest:'ssistant', isExample:true},
+  {pre:"I play the guitar. I'm a m", rest:'usician'},
+  {pre:"I work in a school. I'm a t", rest:'eacher'},
+  {pre:"I work for a magazine. I'm a j", rest:'ournalist'},
+  {pre:"I make food in a restaurant. I'm a c", rest:'hef'},
+  {pre:"I work in a hospital. I'm a d", rest:'octor'},
+  {pre:"I work in a hotel. I'm a r", rest:'eceptionist'},
+];
+(function(){
+  const wrap = document.getElementById('d2e2');
+  d2e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    if (item.isExample) {
+      div.innerHTML = `<div class="fill-line">Example: &nbsp;${item.pre}<span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">${item.rest}</span>.</div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i}. ${item.pre}<input class="fill-input" id="d2e2_${i}" placeholder="..." style="min-width:110px;">.</div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d2e2Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d2e2_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase();
+    if (val === item.rest.toLowerCase()) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = `(✔ ${item.rest})`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d2e2Data.length - 1);
+  showFeedback('d2e2-fb', r.msg, r.type);
+  incrementChecked('d2e2');
+});
+document.getElementById('d2e2-reset').addEventListener('click', () => {
+  d2e2Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d2e2_' + i);
+    inp.value=''; inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d2e2-fb').className = 'feedback';
+});
+
+// Exercise 3 – Complete the Sentences (click-to-fill, item 1 = example)
+const d2e3Items = [
+  {line:'My brother is ___ engineer.', ans:'an'},
+  {line:'We work ___ a Japanese company.', ans:'for'},
+  {line:"I don't have a job. I'm ___.", ans:'unemployed'},
+  {line:'Paola is ___ receptionist.', ans:'a'},
+  {line:'My grandparents are 75. They\'re ___.', ans:'retired'},
+  {line:'They work ___ a factory.', ans:'in'},
+];
+(function(){
+  const wrap = document.getElementById('d2e3');
+  const exDiv = document.createElement('div'); exDiv.className = 'fill-item';
+  exDiv.innerHTML = `<div class="fill-line">1. He studies history <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">at</span> university. <span style="color:var(--orange);font-size:0.78rem;">(example)</span></div>`;
+  wrap.appendChild(exDiv);
+
+  buildCTFSentences({
+    containerId: 'd2e3',
+    words: ['a','an','in','retired','unemployed'],
+    items: d2e3Items,
+    startIndex: 2,
+    exId: 'd2e3', fbId: 'd2e3-fb', checkId: 'd2e3-check', resetId: 'd2e3-reset'
+  });
+})();
+
+// Exercise 4 – Match the Job to the Workplace (click match)
+const d2e4Data = [
+  {left:'doctor', right:'hospital'},
+  {left:'teacher', right:'school'},
+  {left:'chef', right:'kitchen'},
+  {left:'pilot', right:'airplane'},
+  {left:'hairdresser', right:'hair salon'},
+  {left:'shop assistant', right:'shop'},
+];
+const d2e4state = buildClickMatch('d2e4', d2e4Data, 'd2e4');
+document.getElementById('d2e4-check').addEventListener('click', () => checkClickMatch(d2e4state, 'd2e4-fb', 'd2e4'));
+document.getElementById('d2e4-reset').addEventListener('click', () => resetClickMatch(d2e4state, 'd2e4-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 3 – JOBS IN CONTEXT (VOCABULARY)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Complete the Job Descriptions (click-to-fill, gap 1 = example)
+const d3e1Items = [
+  {line:'Sometimes I ___ a car and sometimes I walk.', ans:'drive'},
+  {line:"I don't ___ a lot of money.", ans:'earn'},
+  {line:'I ___ a uniform.', ans:'wear'},
+  {line:'<br><strong>2</strong><br>I work in an office with a computer, or outside with other people.<br>I ___ French and Arabic', ans:'speak'},
+  {line:'and sometimes ___ to different countries.', ans:'travel'},
+  {line:"I don't wear a uniform.<br>I ___ for a newspaper.", ans:'work'},
+  {line:'<br><strong>3</strong><br>I wear a uniform and I work with other people.<br>I ___ special qualifications,', ans:'have'},
+  {line:"but I don't ___ a lot of money.", ans:'earn'},
+  {line:'I work during the day or at night, but I don\'t work outside.<br>I ___ in a hospital.', ans:'work'},
+];
+(function(){
+  const wrap = document.getElementById('d3e1');
+  const exDiv = document.createElement('div'); exDiv.className = 'fill-item';
+  exDiv.innerHTML = `<div class="fill-line"><strong>1</strong><br>I <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">work</span> inside and outside during the day or at night. <span style="color:var(--orange);font-size:0.78rem;">(example)</span></div>`;
+  wrap.appendChild(exDiv);
+
+  buildCTFSentences({
+    containerId: 'd3e1',
+    words: ['drive','earn','earn','have','speak','travel','wear','work','work'],
+    items: d3e1Items,
+    startIndex: 2,
+    exId: 'd3e1', fbId: 'd3e1-fb', checkId: 'd3e1-check', resetId: 'd3e1-reset'
+  });
+})();
+
+// Exercise 2 – Match the Questions and the Answers (dropdown match)
+const D3E2_OPTIONS = ['In a shop','27 years old','In the afternoon','Jazz','Because I like it',"I'm an administrator"];
+const d3e2Data = [
+  {left:'When do you study English?', options: D3E2_OPTIONS, ans: 2},
+  {left:'Why do you play football?', options: D3E2_OPTIONS, ans: 4},
+  {left:'What kind of music do you like?', options: D3E2_OPTIONS, ans: 3},
+  {left:'What do you do?', options: D3E2_OPTIONS, ans: 5},
+  {left:'Where do you work?', options: D3E2_OPTIONS, ans: 0},
+  {left:'How old are you?', options: D3E2_OPTIONS, ans: 1},
+];
+buildMatch('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkMatch(d3e2Data, 'd3e2', 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetMatch(d3e2Data, 'd3e2', 'd3e2-fb'));
+
+// Exercise 3 – Choose the Correct Word (MC, job patterns, item 1 = example)
+const d3e3Data = [
+  {q:"I'm ___ teacher. <span style=\"color:var(--orange);font-size:0.78rem;\">(example)</span>", opts:['a','an'], ans:0},
+  {q:'I work ___ an IT company.', opts:['for','in'], ans:0},
+  {q:'I work ___ a hospital.', opts:['for','in'], ans:1},
+  {q:"I'm ___ university.", opts:['at','in'], ans:0},
+  {q:"I don't have a job. I'm ___.", opts:['unemployed','retired'], ans:0},
+  {q:"My grandfather is 80. He's ___.", opts:['unemployed','retired'], ans:1},
+  {q:"She's ___ actor.", opts:['a','an'], ans:1},
+];
+(function(){
+  buildMC('d3e3', d3e3Data, 'd3e3');
+  const opts = document.querySelectorAll('[data-q="d3e3_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d3e3Data[0].ans);
+    if (j === d3e3Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d3e3-check').addEventListener('click', () => checkMC(d3e3Data, 'd3e3', 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-reset').addEventListener('click', () => {
+  resetMC('d3e3', 'd3e3', d3e3Data, 'd3e3-fb');
+  const opts = document.querySelectorAll('[data-q="d3e3_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d3e3Data[0].ans);
+    if (j === d3e3Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+});
+
+// ══════════════════════════════════════════════
+//  DAY 4 – PRESENT SIMPLE: STATEMENTS (GRAMMAR)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Choose the Correct Answer (MC, item 1 = example)
+const d4e1Data = [
+  {q:'A lot of British people ... animals. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['like','likes'], ans:0},
+  {q:'It ... a lot in my country.', opts:["don't rain","doesn't rain"], ans:1},
+  {q:'Lewis ... a fast car.', opts:['drive','drives'], ans:1},
+  {q:'People ... identity cards in Britain.', opts:["don't have","doesn't have"], ans:0},
+  {q:'You ... a lot of books.', opts:['read','reads'], ans:0},
+  {q:'My boyfriend ... English.', opts:["don't speak","doesn't speak"], ans:1},
+  {q:'We ... a new computer.', opts:['need','needs'], ans:0},
+  {q:'Jill ... glasses.', opts:["don't wear","doesn't wear"], ans:1},
+];
+(function(){
+  buildMC('d4e1', d4e1Data, 'd4e1');
+  const opts = document.querySelectorAll('[data-q="d4e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d4e1Data[0].ans);
+    if (j === d4e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data, 'd4e1', 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => {
+  resetMC('d4e1', 'd4e1', d4e1Data, 'd4e1-fb');
+  const opts = document.querySelectorAll('[data-q="d4e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d4e1Data[0].ans);
+    if (j === d4e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+});
+
+// Exercise 2 – Complete the Sentences (fill-in, item 1 = example)
+const d4e2Data = [
+  {line:"I don't ___ (not play) tennis. <span style=\"color:var(--orange);font-size:0.78rem;\">(example)</span>", ans:['play']},
+  {line:'They ___ (not go) to the cinema.', ans:["don't go"]},
+  {line:'Paul ___ (have) four young children.', ans:['has']},
+  {line:'Her father ___ (not work) in an office.', ans:["doesn't work"]},
+  {line:'It ___ (rain) a lot.', ans:['rains']},
+  {line:'We ___ (live) in a big flat.', ans:['live']},
+  {line:'My parents ___ (not watch) TV.', ans:["don't watch"]},
+  {line:'My brother ___ (study) at Oxford University.', ans:['studies']},
+  {line:'You ___ (not do) your homework.', ans:["don't do"]},
+  {line:'The restaurant ___ (open) at 11.30.', ans:['opens']},
+];
+(function(){
+  const wrap = document.getElementById('d4e2');
+  d4e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    if (i === 0) {
+      div.innerHTML = `<div class="fill-line">1. ${parts[0]}<span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">play</span>${parts[1]||''}</div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i+1}. ${parts[0]}<input class="fill-input" id="d4e2_${i}" placeholder="...">${parts[1]||''}</div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d4e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d4e2Data.forEach((item, i) => {
+    if (i === 0) return;
+    const inp = document.getElementById('d4e2_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase();
+    if (item.ans.map(a=>a.toLowerCase()).includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint';
+      hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = `(✔ ${item.ans[0]})`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d4e2Data.length - 1);
+  showFeedback('d4e2-fb', r.msg, r.type);
+  incrementChecked('d4e2');
+});
+document.getElementById('d4e2-reset').addEventListener('click', () => {
+  d4e2Data.forEach((_,i) => {
+    if (i===0) return;
+    const inp=document.getElementById('d4e2_'+i);
+    inp.value='';inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d4e2-fb').className = 'feedback';
+});
+
+// Exercise 3 – Right or Wrong (statements, with correction input)
+const d4e3Items = [
+  {s:'He works in a bank.', ans:'T', isExample:true},
+  {s:"She don't like coffee.", ans:'F', fix:"She doesn't like coffee."},
+  {s:'They have two children.', ans:'T'},
+  {s:'My sister study English.', ans:'F', fix:'My sister studies English.'},
+  {s:'We live in Brazil.', ans:'T'},
+  {s:"He don't speak French.", ans:'F', fix:"He doesn't speak French."},
+  {s:'I likes pizza.', ans:'F', fix:'I like pizza.'},
+  {s:'The shop opens at 9.', ans:'T'},
+  {s:"Lucy doesn't has a car.", ans:'F', fix:"Lucy doesn't have a car."},
+  {s:"You don't watch much TV.", ans:'T'},
+];
+const d4e3state = buildRightWrong('d4e3', d4e3Items, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkRightWrong(d4e3state, 'd4e3', 'd4e3-fb', 'd4e3'));
+document.getElementById('d4e3-reset').addEventListener('click', () => resetRightWrong(d4e3state, 'd4e3', 'd4e3-fb'));
+
+// Exercise 4 – Make it Negative (fill-in, item 1 = example)
+const d4e4Data = [
+  {line:'I play football. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', ans:["I don't play football."], isExample:true},
+  {line:'He likes tea.', ans:["he doesn't like tea"]},
+  {line:'They live in Spain.', ans:["they don't live in spain"]},
+  {line:'She studies History.', ans:["she doesn't study history"]},
+  {line:'We watch TV every day.', ans:["we don't watch tv every day"]},
+  {line:'It rains a lot here.', ans:["it doesn't rain a lot here"]},
+  {line:'My parents work on Saturdays.', ans:["my parents don't work on saturdays"]},
+];
+(function(){
+  const wrap = document.getElementById('d4e4');
+  d4e4Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    if (item.isExample) {
+      div.innerHTML = `<div class="fill-line">1. ${item.line} &nbsp;→&nbsp; <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">I don't play football.</span></div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i+1}. ${item.line} &nbsp;→&nbsp; <input class="fill-input" id="d4e4_${i}" placeholder="write the negative..." style="min-width:220px;"></div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d4e4-check').addEventListener('click', () => {
+  let correct = 0;
+  d4e4Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d4e4_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/\.$/,'').replace(/\s+/g,' ').trim();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const correctAns = item.ans[0].charAt(0).toUpperCase() + item.ans[0].slice(1) + '.';
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = `✔ ${correctAns}`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d4e4Data.length - 1);
+  showFeedback('d4e4-fb', r.msg, r.type);
+  incrementChecked('d4e4');
+});
+document.getElementById('d4e4-reset').addEventListener('click', () => {
+  d4e4Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d4e4_' + i);
+    inp.value=''; inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d4e4-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 5 – PRESENT SIMPLE: QUESTIONS (GRAMMAR)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Do or Does (fill-in, item 1 = example)
+const d5e1Data = [
+  {line:'Do you work with a computer? <span style="color:var(--orange);font-size:0.78rem;">(example)</span>'},
+  {line:'___ you need a charger?', ans:['do']},
+  {line:'___ you speak a foreign language?', ans:['do']},
+  {line:'___ she have a dog?', ans:['does']},
+  {line:'___ he work or study?', ans:['does']},
+  {line:'___ school children in your country wear uniforms?', ans:['do']},
+  {line:'___ Jamie study French?', ans:['does']},
+  {line:'___ your husband drive?', ans:['does']},
+  {line:'___ it rain a lot in your country?', ans:['does']},
+  {line:'___ people in your country listen to the radio a lot?', ans:['do']},
+  {line:'___ Angela like her job?', ans:['does']},
+];
+(function(){
+  const wrap = document.getElementById('d5e1');
+  const exDiv = document.createElement('div'); exDiv.className = 'fill-item';
+  exDiv.innerHTML = `<div class="fill-line">1. ${d5e1Data[0].line}</div>`;
+  wrap.appendChild(exDiv);
+  d5e1Data.slice(1).forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    div.innerHTML = `<div class="fill-line">${i+2}. <input class="fill-input" id="d5e1_${i}" placeholder="..." style="min-width:80px;">${parts[1]||''}</div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5e1-check').addEventListener('click', () => {
+  let correct = 0;
+  d5e1Data.slice(1).forEach((item, i) => {
+    const inp = document.getElementById('d5e1_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint';
+      hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = `(✔ ${item.ans[0].charAt(0).toUpperCase() + item.ans[0].slice(1)})`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d5e1Data.length - 1);
+  showFeedback('d5e1-fb', r.msg, r.type);
+  incrementChecked('d5e1');
+});
+document.getElementById('d5e1-reset').addEventListener('click', () => {
+  d5e1Data.slice(1).forEach((_, i) => {
+    const inp = document.getElementById('d5e1_' + i);
+    inp.value=''; inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d5e1-fb').className = 'feedback';
+});
+
+// Exercise 2 – Make Questions (write full question, item 1 = example)
+const d5e2Data = [
+  {line:'A: She works at night. <br>B: ___ <span style="color:var(--orange);font-size:0.78rem;">(example: Does she work at the weekend?)</span>', isExample:true},
+  {line:'A: He likes sport. <br>B: ___ tennis?', ans:['does he like tennis']},
+  {line:'A: She speaks foreign languages. <br>B: ___ German?', ans:['does she speak german']},
+  {line:"A: I don't eat fast food. <br>B: ___ pizzas?", ans:['do you eat pizzas']},
+  {line:'A: They cook Italian food. <br>B: ___ lasagne?', ans:['do they cook lasagne']},
+  {line:"A: Teresa doesn't live in a flat. <br>B: ___ in a house?", ans:['does she live in a house']},
+  {line:'A: I want a new phone. <br>B: ___ an iPhone?', ans:['do you want an iphone']},
+  {line:'A: My dad drives a Ferrari. <br>B: ___ fast?', ans:['does he drive fast']},
+  {line:'A: Sarah drinks a lot of coffee. <br>B: ___ it with milk?', ans:['does she drink it with milk']},
+  {line:'A: We have two children. <br>B: ___ boys or girls?', ans:['are they boys or girls']},
+];
+(function(){
+  const wrap = document.getElementById('d5e2');
+  d5e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    if (item.isExample) {
+      div.innerHTML = `<div class="fill-line">1. ${parts[0]}<span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Does she work at the weekend?</span></div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i+1}. ${parts[0]}<input class="fill-input" id="d5e2_${i}" placeholder="write the question..." style="min-width:200px;">${parts[1]||''}</div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d5e2Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d5e2_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/\?$/,'').replace(/\s+/g,' ').trim();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const correctAns = item.ans[0].charAt(0).toUpperCase() + item.ans[0].slice(1) + '?';
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint';
+      hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = `✔ ${correctAns}`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d5e2Data.length - 1);
+  showFeedback('d5e2-fb', r.msg, r.type);
+  incrementChecked('d5e2');
+});
+document.getElementById('d5e2-reset').addEventListener('click', () => {
+  d5e2Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d5e2_' + i);
+    inp.value=''; inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d5e2-fb').className = 'feedback';
+});
+
+// Exercise 3 – Order the Words to Make Questions (sentence builder)
+(function(){
+  const wrap = document.getElementById('d5e3');
+  const exDiv = document.createElement('div'); exDiv.className = 'sb-item';
+  exDiv.innerHTML = `<div class="sb-label">Example:</div><div class="fill-line" style="display:block;"><span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Where do your parents live?</span></div>`;
+  wrap.appendChild(exDiv);
+})();
+const d5e3Items = [
+  {words:['What','kind','of','car','does','she','have?'], ans:'What kind of car does she have?'},
+  {words:['Does','your','wife','play','tennis?'], ans:'Does your wife play tennis?'},
+  {words:['How','many','students','are','in','the','class?'], ans:'How many students are in the class?'},
+  {words:['Do','hairdressers','wear','uniforms?'], ans:'Do hairdressers wear uniforms?'},
+  {words:['When','do','you','use','your','laptop?'], ans:'When do you use your laptop?'},
+  {words:['Is','your','friend','here?'], ans:'Is your friend here?'},
+];
+buildSentenceBuilder('d5e3', d5e3Items, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkSentenceBuilder(d5e3Items, 'd5e3', 'd5e3-fb', 'd5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetSentenceBuilder(d5e3Items, 'd5e3', 'd5e3-fb'));
+
+// Exercise 4 – Is, Are, Do or Does (MC, item 1 = example)
+const d5e4Data = [
+  {q:'___ you a student? <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['Are','Do'], ans:0},
+  {q:'___ she like tea?', opts:['Does','Is'], ans:0},
+  {q:'___ they from Canada?', opts:['Are','Do'], ans:0},
+  {q:'___ he work at night?', opts:['Does','Is'], ans:0},
+  {q:'___ you live near here?', opts:['Do','Are'], ans:0},
+  {q:'___ it rain a lot in winter?', opts:['Does','Is'], ans:0},
+  {q:'___ your parents retired?', opts:['Are','Do'], ans:0},
+];
+(function(){
+  buildMC('d5e4', d5e4Data, 'd5e4');
+  const opts = document.querySelectorAll('[data-q="d5e4_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d5e4Data[0].ans);
+    if (j === d5e4Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d5e4-check').addEventListener('click', () => checkMC(d5e4Data, 'd5e4', 'd5e4-fb', 'd5e4'));
+document.getElementById('d5e4-reset').addEventListener('click', () => {
+  resetMC('d5e4', 'd5e4', d5e4Data, 'd5e4-fb');
+  const opts = document.querySelectorAll('[data-q="d5e4_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d5e4Data[0].ans);
+    if (j === d5e4Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+});
+
+// ══════════════════════════════════════════════
+//  DAY 6 – ASKING ABOUT JOBS (GRAMMAR)
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Make Questions about Jobs (fill-in, item 1 = example)
+const d6e1Data = [
+  {line:'___? (you) <span style="color:var(--orange);font-size:0.78rem;">(example: Do you like your job?)</span>', isExample:true},
+  {line:'___ long hours? (he)', ans:['does he work long hours']},
+  {line:'___ tennis after work? (he)', ans:['does he play tennis after work']},
+  {line:'___ in a flat? (your parents)', ans:['do your parents live in a flat']},
+  {line:'___ housework at weekends? (you)', ans:['do you do housework at weekends']},
+  {line:'___ a uniform? (Miriam)', ans:['does miriam wear a uniform']},
+  {line:'___ good English in your country? (people)', ans:['do people speak good english in your country']},
+  {line:'___ a lot of money? (they)', ans:['do they earn a lot of money']},
+];
+(function(){
+  const wrap = document.getElementById('d6e1');
+  d6e1Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    if (item.isExample) {
+      div.innerHTML = `<div class="fill-line">1. <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Do you like your job?</span> ${parts[1]||''}</div>`;
+    } else {
+      div.innerHTML = `<div class="fill-line">${i+1}. <input class="fill-input" id="d6e1_${i}" placeholder="write the question..." style="min-width:220px;">${parts[1]||''}</div>`;
+    }
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d6e1-check').addEventListener('click', () => {
+  let correct = 0;
+  d6e1Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d6e1_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/\?$/,'').replace(/\s+/g,' ').trim();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const correctAns = item.ans[0].charAt(0).toUpperCase() + item.ans[0].slice(1) + '?';
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = `✔ ${correctAns}`;
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d6e1Data.length - 1);
+  showFeedback('d6e1-fb', r.msg, r.type);
+  incrementChecked('d6e1');
+});
+document.getElementById('d6e1-reset').addEventListener('click', () => {
+  d6e1Data.forEach((item, i) => {
+    if (item.isExample) return;
+    const inp = document.getElementById('d6e1_' + i);
+    inp.value=''; inp.className='fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d6e1-fb').className = 'feedback';
+});
+
+// Exercise 2 – Right or Wrong (jobs questions, with correction)
+const d6e2Items = [
+  {s:'Do you work at weekends?', ans:'T', isExample:true},
+  {s:'Do Hamza travel to different countries?', ans:'F', fix:'Does Hamza travel to different countries?'},
+  {s:'Do they wear a uniform?', ans:'T'},
+  {s:'Do Grace do a lot of overtime?', ans:'F', fix:'Does Grace do a lot of overtime?'},
+  {s:'Do you have special qualifications?', ans:'T'},
+  {s:'Do your room have a desk?', ans:'F', fix:'Does your room have a desk?'},
+  {s:'Do your office have big windows?', ans:'F', fix:'Does your office have big windows?'},
+  {s:'Do you want a coffee?', ans:'T'},
+  {s:'Do your girlfriend drive?', ans:'F', fix:'Does your girlfriend drive?'},
+  {s:'Do your teacher speak Turkish?', ans:'F', fix:'Does your teacher speak Turkish?'},
+];
+const d6e2state = buildRightWrong('d6e2', d6e2Items, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkRightWrong(d6e2state, 'd6e2', 'd6e2-fb', 'd6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetRightWrong(d6e2state, 'd6e2', 'd6e2-fb'));
+
+// Exercise 3 – True or False (job facts, item 1 = example)
+const d6e3Data = [
+  {s:'A teacher works in a school.', ans:'T'},
+  {s:'A vet helps sick animals.', ans:'T'},
+  {s:'A taxi driver flies planes.', ans:'F'},
+  {s:'A chef cooks food in a restaurant.', ans:'T'},
+  {s:'A dentist cuts hair.', ans:'F'},
+  {s:'A pilot works on a plane.', ans:'T'},
+  {s:'A receptionist drives a taxi.', ans:'F'},
+  {s:'A nurse helps doctors in a hospital.', ans:'T'},
+  {s:'A journalist builds houses.', ans:'F'},
+];
+(function(){
+  const wrap = document.getElementById('d6e3');
+  const exDiv = document.createElement('div'); exDiv.className = 'tf-item';
+  exDiv.innerHTML = `<div class="tf-line">1. ${d6e3Data[0].s} <span style="color:var(--teal);font-weight:700;">True</span> <span style="color:var(--orange);font-size:0.78rem;">(example)</span></div>`;
+  wrap.appendChild(exDiv);
+})();
+const d6e3sel = buildTF('d6e3', d6e3Data.slice(1), 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkTF(d6e3Data.slice(1), d6e3sel, 'd6e3-fb', 'd6e3', 'd6e3'));
+document.getElementById('d6e3-reset').addEventListener('click', () => resetTF(d6e3Data.slice(1), d6e3sel, 'd6e3', 'd6e3-fb'));
+
+// Exercise 4 – Order the Words to Make Questions (jobs, sentence builder)
+(function(){
+  const wrap = document.getElementById('d6e4');
+  const exDiv = document.createElement('div'); exDiv.className = 'sb-item';
+  exDiv.innerHTML = `<div class="sb-label">Example:</div><div class="fill-line" style="display:block;"><span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">Do you like your job?</span></div>`;
+  wrap.appendChild(exDiv);
+})();
+const d6e4Items = [
+  {words:['What','do','you','do?'], ans:'What do you do?'},
+  {words:['Where','do','you','work?'], ans:'Where do you work?'},
+  {words:['Is','she','a','teacher?'], ans:'Is she a teacher?'},
+  {words:['Are','they','lawyers?'], ans:'Are they lawyers?'},
+  {words:['How','much','does','he','earn?'], ans:'How much does he earn?'},
+  {words:['Do','you','wear','a','uniform?'], ans:'Do you wear a uniform?'},
+];
+buildSentenceBuilder('d6e4', d6e4Items, 'd6e4');
+document.getElementById('d6e4-check').addEventListener('click', () => checkSentenceBuilder(d6e4Items, 'd6e4', 'd6e4-fb', 'd6e4'));
+document.getElementById('d6e4-reset').addEventListener('click', () => resetSentenceBuilder(d6e4Items, 'd6e4', 'd6e4-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 7 – READING & LISTENING
+// ══════════════════════════════════════════════
+
+// Exercise 1 – Reading (MC True/False/Doesn't say, item 1 = example)
+const d7e1Data = [
+  {q:'Alicia is from Ireland. <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:['True','False',"Doesn't say"], ans:0},
+  {q:'Alicia loves her job.', opts:['True','False',"Doesn't say"], ans:0},
+  {q:'Esther is married.', opts:['True','False',"Doesn't say"], ans:2},
+  {q:'Jean-Pierre speaks Russian.', opts:['True','False',"Doesn't say"], ans:2},
+  {q:'Jean-Pierre travels a lot.', opts:['True','False',"Doesn't say"], ans:0},
+  {q:'He has a big car.', opts:['True','False',"Doesn't say"], ans:1},
+  {q:'Mariana and Rosa go to the cinema.', opts:['True','False',"Doesn't say"], ans:1},
+  {q:'Mariana and Rosa work on Sundays.', opts:['True','False',"Doesn't say"], ans:1},
+  {q:'Mariana likes her job.', opts:['True','False',"Doesn't say"], ans:0},
+];
+(function(){
+  buildMC('d7e1', d7e1Data, 'd7e1');
+  const opts = document.querySelectorAll('[data-q="d7e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d7e1Data[0].ans);
+    if (j === d7e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => {
+  resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb');
+  const opts = document.querySelectorAll('[data-q="d7e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d7e1Data[0].ans);
+    if (j === d7e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+});
+
+// Exercise 2 – Listening 1 (MC)
+document.getElementById('transcript1-btn').addEventListener('click', () => {
+  document.getElementById('transcript1').classList.toggle('show');
+});
+const d7e2Data = [
+  {q:'Item 1', opts:['Cooper is a waiter.','Jenny is a waitress.','Cooper and Jenny are friends.'], ans:1},
+  {q:'Item 2', opts:['Cooper is from Sydney.','Jenny is Australian.','Cooper is Scottish.'], ans:0},
+  {q:'Item 3', opts:["Jenny doesn't like Edinburgh.",'Jenny likes Sydney.',"Jenny's brother likes Sydney."], ans:1},
+  {q:'Item 4', opts:['Cooper is a student.','Jenny studies French.','Jenny is a journalist.'], ans:2},
+  {q:'Item 5', opts:["Jenny's brother works in the evenings.","Jenny's brother works in the café.","Jenny's brother and Cooper are friends."], ans:0},
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data, 'd7e2', 'd7e2-fb', 'd7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2', 'd7e2', d7e2Data, 'd7e2-fb'));
+
+// Exercise 3 – Listening 2 (dropdown match, full question text for clarity)
+document.getElementById('transcript2-btn').addEventListener('click', () => {
+  document.getElementById('transcript2').classList.toggle('show');
+});
+const D7E3_QUESTIONS = ['Do you work long hours?','What do you do?','Do you work at the weekend?','Where do you work?','Do you like your job?'];
+const d7e3Data = [
+  {left:'Speaker 1', options: D7E3_QUESTIONS, ans:4},
+  {left:'Speaker 2', options: D7E3_QUESTIONS, ans:0},
+  {left:'Speaker 3', options: D7E3_QUESTIONS, ans:3},
+  {left:'Speaker 4', options: D7E3_QUESTIONS, ans:1},
+  {left:'Speaker 5', options: D7E3_QUESTIONS, ans:2},
+];
+buildMatch('d7e3', d7e3Data, 'd7e3');
+document.getElementById('d7e3-check').addEventListener('click', () => checkMatch(d7e3Data, 'd7e3', 'd7e3-fb', 'd7e3'));
+document.getElementById('d7e3-reset').addEventListener('click', () => resetMatch(d7e3Data, 'd7e3', 'd7e3-fb'));
+
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = `🏆 *Elementary 3B concluída!*\n\nOlá, Teacher Mari! Terminei todos os exercícios da Elementary 3B.\n\nExercícios verificados: ${totalChecked}\n\n_Enviado pelo exercício semanal_`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US';
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+function speakEl(id) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.innerText.replace(/🔊/g,'').replace(/Transcript:/,'').trim();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.82;
+  window.speechSynthesis.speak(utter);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = `
+      <button onclick="speakWord('${item.en}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button>
+      <div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div>
+      <div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-jobs', VOCAB_JOBS);
+renderVocabGrid('vocab-verbs', VOCAB_VERBS);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3','d1e4'],
+  day2: ['d2e1','d2e2','d2e3','d2e4'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3','d4e4'],
+  day5: ['d5e1','d5e2','d5e3','d5e4'],
+  day6: ['d6e1','d6e2','d6e3','d6e4'],
+  day7: ['d7e1','d7e2','d7e3'],
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_elementary3b_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_elementary3b_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_elementary3b_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_elementary3b_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count = 120, duration = 180) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('🏆 Week complete! You are amazing!'); }
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+</script>
+</body>
+</html>
