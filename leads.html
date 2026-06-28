@@ -95,10 +95,10 @@ input,select,textarea{font-family:inherit;}
    ============================================================ */
 .dash-grid{
   display:grid;
-  grid-template-columns:repeat(7,1fr);
+  grid-template-columns:repeat(8,1fr);
   gap:14px;
 }
-@media (max-width:1100px){.dash-grid{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:1200px){.dash-grid{grid-template-columns:repeat(4,1fr);}}
 @media (max-width:680px){.dash-grid{grid-template-columns:repeat(2,1fr);}}
 .dash-card{
   background:var(--white);
@@ -126,6 +126,8 @@ input,select,textarea{font-family:inherit;}
 .dc-6 .dc-icon{background:var(--gray-300);}
 .dc-7 .dc-icon{background:var(--orange);color:#fff;}
 .dc-7{border:1.5px solid var(--orange);}
+.dc-8 .dc-icon{background:var(--green-light);color:var(--green-dark);}
+.dc-8{border:1.5px solid var(--green-dark);}
 
 /* ============================================================
    FOLLOW-UP HOJE
@@ -148,10 +150,18 @@ input,select,textarea{font-family:inherit;}
   border-left:4px solid var(--green-light);
 }
 .followup-item.atrasado{border-left-color:var(--orange);background:rgba(255,92,35,0.15);}
+.followup-item.muito-atrasado{border-left-color:var(--danger);background:rgba(226,65,44,0.22);animation:pulseAlert 2s infinite;}
+.followup-item.pausado-expirado{border-left-color:var(--lavender);background:rgba(180,161,255,0.18);}
+.followup-item.pausado-expirado .fi-meta{color:#E5DEFF;}
 .followup-item .fi-name{font-weight:700;font-size:14px;}
 .followup-item .fi-meta{font-size:12px;color:var(--lavender);}
 .followup-item.atrasado .fi-meta{color:#FFD2C2;}
+.followup-item.muito-atrasado .fi-meta{color:#FFC9C2;font-weight:700;}
 .followup-empty{opacity:0.7;font-size:13px;padding:10px 0;}
+@keyframes pulseAlert{
+  0%,100%{box-shadow:0 0 0 0 rgba(226,65,44,0.0);}
+  50%{box-shadow:0 0 0 4px rgba(226,65,44,0.25);}
+}
 
 /* ============================================================
    FILTROS
@@ -205,12 +215,15 @@ input,select,textarea{font-family:inherit;}
 .tag-conversando{background:#FFE7D6;color:var(--orange);}
 .tag-demoagendada{background:#D6F0FF;color:#1462A6;}
 .tag-demorealizada{background:#D9F2D2;color:#2C7A3F;}
+.tag-demonaocompareceu{background:#FFE1DC;color:var(--danger);}
 .tag-recebeuvalores{background:var(--cream);color:#9A5A14;}
 .tag-pensando{background:#F1EFE9;color:var(--gray-700);}
 .tag-achoucaro{background:#FFE1DC;color:var(--danger);}
 .tag-querdupla,.tag-quergrupo{background:#EAE3FF;color:#5C3FC9;}
 .tag-semresposta{background:#F4F4F4;color:#8C8676;}
+.tag-pausado{background:#E7E2FF;color:#5C3FC9;}
 .tag-matriculado{background:var(--green-light);color:var(--green-dark);}
+.tag-encerrado{background:#5A5448;color:#fff;}
 .tag-perdido{background:#3a3a3a;color:#fff;}
 
 .empty-state{
@@ -317,6 +330,78 @@ input,select,textarea{font-family:inherit;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 
+/* ============================================================
+   CALENDÁRIO
+   ============================================================ */
+.cal-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-bottom:16px;
+}
+.cal-nav{display:flex;align-items:center;gap:12px;}
+.cal-nav h3{font-size:16px;color:var(--purple);text-transform:capitalize;min-width:160px;text-align:center;}
+.cal-legend{display:flex;gap:14px;font-size:12px;color:var(--gray-700);font-weight:600;}
+.cal-legend span{display:flex;align-items:center;gap:5px;}
+.cal-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.cal-dot.atrasado{background:var(--danger);}
+.cal-dot.muito-atrasado{background:var(--danger);box-shadow:0 0 0 2px rgba(226,65,44,0.3);}
+.cal-dot.hoje{background:var(--orange);}
+.cal-dot.futuro{background:var(--lavender);}
+
+.cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
+.cal-weekday{
+  text-align:center;font-size:11.5px;font-weight:700;color:var(--gray-700);
+  padding:6px 0;text-transform:uppercase;letter-spacing:.03em;
+}
+.cal-day{
+  background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius-sm);
+  min-height:96px;padding:8px;display:flex;flex-direction:column;gap:6px;
+  cursor:default;transition:box-shadow .15s, transform .15s;
+}
+.cal-day.empty{background:transparent;border:none;}
+.cal-day.has-leads{cursor:pointer;border-color:var(--lavender);}
+.cal-day.has-leads:hover{box-shadow:var(--shadow-sm);transform:translateY(-2px);}
+.cal-day.is-today{border:2px solid var(--orange);}
+.cal-day-num{font-size:12.5px;font-weight:700;color:var(--purple);}
+.cal-day-pills{display:flex;flex-direction:column;gap:3px;overflow:hidden;}
+.cal-pill{
+  font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:var(--cream);color:var(--purple);
+}
+.cal-pill.atrasado{background:#FFE1DC;color:var(--danger);}
+.cal-pill.muito-atrasado{background:var(--danger);color:#fff;animation:pulseAlert 2s infinite;}
+.cal-pill.hoje{background:var(--orange);color:#fff;}
+.cal-pill.futuro{background:#EDE8FF;color:var(--purple);}
+.cal-pill.demo{background:var(--green-light);color:var(--green-dark);}
+.cal-pill.pausa{background:#EAE3FF;color:#5C3FC9;}
+.cal-pill.pausa-expirada{background:var(--lavender);color:#fff;}
+.cal-dot.demo{background:var(--green-dark);}
+.cal-dot.pausa{background:#5C3FC9;}
+.cal-dot.pausa-expirada{background:var(--lavender);}
+.cal-pill-more{font-size:10px;color:var(--gray-500);font-weight:700;}
+.cal-day-dots{display:none;gap:3px;flex-wrap:wrap;}
+.cal-day-dots .cal-dot{width:7px;height:7px;}
+
+.cal-day-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 0;border-bottom:1px solid var(--gray-100);
+}
+.cal-day-item:last-child{border-bottom:none;}
+.cal-di-name{font-weight:700;font-size:13.5px;color:var(--purple);}
+.cal-di-meta{font-size:11.5px;color:var(--gray-700);margin-top:2px;}
+.cal-di-actions{display:flex;gap:6px;flex-shrink:0;}
+
+@media(max-width:680px){
+  .cal-day{min-height:64px;padding:6px;}
+  .cal-pill{display:none;}
+  .cal-day-dots{display:flex;}
+  .cal-day.has-leads .cal-day-num{color:var(--orange);}
+  .cal-day-num{font-size:12px;}
+}
+
 .confirm-box{
   background:var(--white);border-radius:var(--radius-md);padding:24px;max-width:380px;text-align:center;
 }
@@ -394,6 +479,7 @@ input,select,textarea{font-family:inherit;}
   <div class="section-title" style="margin-top:36px;">
     <div class="tabs">
       <button class="tab-btn active" data-tab="leadsTab">👥 Leads</button>
+      <button class="tab-btn" data-tab="calTab">📅 Calendário</button>
       <button class="tab-btn" data-tab="tplTab">💬 Templates WhatsApp</button>
     </div>
   </div>
@@ -417,6 +503,26 @@ input,select,textarea{font-family:inherit;}
       </select>
     </div>
     <div class="leads-grid" id="leadsGrid"></div>
+  </div>
+
+  <!-- CALENDÁRIO TAB -->
+  <div class="tab-content" id="calTab">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button class="btn btn-sm btn-outline" id="calPrev">‹</button>
+        <h3 id="calMonthLabel"></h3>
+        <button class="btn btn-sm btn-outline" id="calNext">›</button>
+      </div>
+      <button class="btn btn-sm btn-ghost" id="calToday">Hoje</button>
+      <div class="cal-legend">
+        <span><i class="cal-dot demo"></i> Demo agendada</span>
+        <span><i class="cal-dot pausa"></i> Pausado</span>
+        <span><i class="cal-dot atrasado"></i> Atrasado</span>
+        <span><i class="cal-dot hoje"></i> Hoje</span>
+        <span><i class="cal-dot futuro"></i> Próximo</span>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
   </div>
 
   <!-- TEMPLATES TAB -->
@@ -481,9 +587,9 @@ input,select,textarea{font-family:inherit;}
           <div class="form-field"><label>Status</label>
             <select id="f_status">
               <option>Novo Lead</option><option>Conversando</option><option>Demo Agendada</option>
-              <option>Demo Realizada</option><option>Recebeu Valores</option><option>Pensando</option>
+              <option>Demo Realizada</option><option>Demo Não Compareceu</option><option>Recebeu Valores</option><option>Pensando</option>
               <option>Achou Caro</option><option>Quer Dupla</option><option>Quer Grupo</option>
-              <option>Sem Resposta</option><option>Matriculado</option><option>Perdido</option>
+              <option>Sem Resposta</option><option>Pausado</option><option>Matriculado</option><option>Encerrado</option><option>Perdido</option>
             </select>
           </div>
           <div class="form-field"><label>Prioridade</label>
@@ -502,7 +608,20 @@ input,select,textarea{font-family:inherit;}
             </select>
           </div>
 
+          <div class="form-field full" id="pausadoFieldWrap" style="display:none;background:#F1EFFF;border-radius:var(--radius-sm);padding:12px 14px;">
+            <label>⏸️ Pausado até</label>
+            <input type="date" id="f_pausado_ate">
+            <div style="font-size:11px;color:var(--gray-500);margin-top:6px;">Sugestão automática: hoje + 2 meses. Você pode ajustar a data se quiser.</div>
+          </div>
+
+          <div class="form-field full" id="encerradoFieldWrap" style="display:none;background:#FFE1DC;border-radius:var(--radius-sm);padding:12px 14px;">
+            <label>🔒 Motivo do Encerramento</label>
+            <textarea id="f_motivo_encerramento" placeholder="Por que esse lead está sendo encerrado?"></textarea>
+          </div>
+
           <div class="form-section-label">Acompanhamento</div>
+          <div class="form-field"><label>🎓 Data da Demo Agendada</label><input type="date" id="f_data_demo"></div>
+          <div class="form-field"><label>Horário da Demo</label><input type="time" id="f_hora_demo"></div>
           <div class="form-field"><label>Último Contato</label><input type="date" id="f_ultimo_contato"></div>
           <div class="form-field"><label>Próximo Follow-up</label><input type="date" id="f_proximo_followup"></div>
           <div class="form-field full"><label>Observações</label><textarea id="f_observacoes"></textarea></div>
@@ -539,6 +658,19 @@ input,select,textarea{font-family:inherit;}
       <button class="btn btn-outline" id="viewEditBtn">✏️ Editar</button>
       <button class="btn btn-primary" id="viewWhatsBtn">💬 WhatsApp</button>
     </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: LEADS DO DIA (CALENDÁRIO)
+============================================================ -->
+<div class="overlay" id="overlayCalDay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="calDayTitle">Leads do dia</h3>
+      <button class="modal-close" id="closeCalDay">✕</button>
+    </div>
+    <div class="modal-body" id="calDayBody"></div>
   </div>
 </div>
 
@@ -705,7 +837,7 @@ function fillTemplate(body, lead){
   return body
     .replaceAll('{{nome}}', lead.nome || '')
     .replaceAll('{{objetivo}}', (lead.objetivo || '').toLowerCase())
-    .replaceAll('{{data_demo}}', lead.proximo_followup ? formatDate(lead.proximo_followup) : '');
+    .replaceAll('{{data_demo}}', lead.data_demo ? formatDate(lead.data_demo) : '');
 }
 
 function whatsLink(numero, mensagem){
@@ -749,6 +881,15 @@ function showToast(msg, type=''){
 /* ===================================================================
    DASHBOARD
 =================================================================== */
+function getWeekRange(todayISOstr){
+  const d = new Date(todayISOstr+'T00:00:00');
+  const dow = d.getDay(); // 0=dom
+  const diffToMonday = (dow===0 ? -6 : 1-dow);
+  const monday = new Date(d); monday.setDate(d.getDate()+diffToMonday);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  return {start: monday.toISOString().slice(0,10), end: sunday.toISOString().slice(0,10)};
+}
+
 function renderDashboard(){
   const total = leads.length;
   const novos = leads.filter(l=>l.status==='Novo Lead').length;
@@ -758,11 +899,14 @@ function renderDashboard(){
   const semResposta = leads.filter(l=>l.status==='Sem Resposta').length;
   const today = todayISO();
   const followupsHoje = leads.filter(l=> l.proximo_followup && l.proximo_followup <= today && l.status!=='Matriculado' && l.status!=='Perdido').length;
+  const {start: semanaInicio, end: semanaFim} = getWeekRange(today);
+  const demosEstaSemana = leads.filter(l=> l.status==='Demo Agendada' && l.data_demo && l.data_demo>=semanaInicio && l.data_demo<=semanaFim).length;
 
   const cards = [
     {cls:'dc-1', icon:'👥', value:total, label:'Total de Leads'},
     {cls:'dc-2', icon:'✨', value:novos, label:'Leads Novos'},
     {cls:'dc-3', icon:'🗓️', value:demoAgendada, label:'Demos Agendadas'},
+    {cls:'dc-8', icon:'📅', value:demosEstaSemana, label:'Demos Esta Semana'},
     {cls:'dc-4', icon:'🎓', value:demoRealizada, label:'Demos Realizadas'},
     {cls:'dc-5', icon:'✅', value:matriculados, label:'Matrículas Fechadas'},
     {cls:'dc-6', icon:'🔇', value:semResposta, label:'Sem Resposta'},
@@ -783,20 +927,47 @@ function renderDashboard(){
 function renderFollowups(){
   const today = todayISO();
   const list = leads
-    .filter(l => l.proximo_followup && l.proximo_followup <= today && l.status!=='Matriculado' && l.status!=='Perdido')
+    .filter(l => l.proximo_followup && l.proximo_followup <= today && l.status!=='Matriculado' && l.status!=='Perdido' && l.status!=='Pausado' && l.status!=='Encerrado')
     .sort((a,b)=> a.proximo_followup.localeCompare(b.proximo_followup));
 
+  const pausasExpiradas = leads
+    .filter(l => l.status==='Pausado' && l.pausado_ate && l.pausado_ate <= today)
+    .sort((a,b)=> a.pausado_ate.localeCompare(b.pausado_ate));
+
   const box = document.getElementById('followupList');
-  if(list.length === 0){
+  if(list.length === 0 && pausasExpiradas.length === 0){
     box.innerHTML = `<div class="followup-empty">Nenhum follow-up pendente para hoje. 🎉</div>`;
     return;
   }
-  box.innerHTML = list.map(l=>{
-    const atrasado = l.proximo_followup < today;
+
+  let html = '';
+
+  html += pausasExpiradas.map(l=>{
+    const dias = diasDeAtraso(l.pausado_ate, today);
     return `
-      <div class="followup-item ${atrasado?'atrasado':''}">
+      <div class="followup-item pausado-expirado">
         <div>
-          <div class="fi-name">${l.nome} ${atrasado?'⚠️ atrasado':''}</div>
+          <div class="fi-name">${l.nome} ⏸️➡️ pausa encerrada${dias>0?` há ${dias} dia${dias>1?'s':''}`:''}</div>
+          <div class="fi-meta">Pausado até: ${formatDate(l.pausado_ate)} · Decida se retoma o contato</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-ghost" onclick="reactivarLead('${l.id}')">▶️ Reativar</button>
+          <button class="btn btn-sm btn-ghost" onclick="openTplPick('${l.id}')">💬 WhatsApp</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  html += list.map(l=>{
+    const atrasado = l.proximo_followup < today;
+    const dias = atrasado ? diasDeAtraso(l.proximo_followup, today) : 0;
+    const muitoAtrasado = atrasado && dias > 7;
+    const cls = muitoAtrasado ? 'muito-atrasado' : (atrasado ? 'atrasado' : '');
+    const label = muitoAtrasado ? `🔴 atrasado há ${dias} dias!` : (atrasado ? '⚠️ atrasado' : '');
+    return `
+      <div class="followup-item ${cls}">
+        <div>
+          <div class="fi-name">${l.nome} ${label}</div>
           <div class="fi-meta">Follow-up: ${formatDate(l.proximo_followup)} · ${l.status}</div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -806,6 +977,20 @@ function renderFollowups(){
       </div>
     `;
   }).join('');
+
+  box.innerHTML = html;
+}
+
+function reactivarLead(id){
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  lead.status = 'Conversando';
+  lead.historico = lead.historico || [];
+  lead.historico.unshift({data: todayISO(), texto: 'Pausa encerrada — contato reativado manualmente.'});
+  lead.pausado_ate = '';
+  saveLeads();
+  renderAll();
+  showToast('Lead reativado ✓', 'success');
 }
 
 function markContactedToday(id){
@@ -826,7 +1011,7 @@ function markContactedToday(id){
    FILTROS / LISTA DE LEADS
 =================================================================== */
 function populateFilterOptions(){
-  const statusList = ['Novo Lead','Conversando','Demo Agendada','Demo Realizada','Recebeu Valores','Pensando','Achou Caro','Quer Dupla','Quer Grupo','Sem Resposta','Matriculado','Perdido'];
+  const statusList = ['Novo Lead','Conversando','Demo Agendada','Demo Realizada','Demo Não Compareceu','Recebeu Valores','Pensando','Achou Caro','Quer Dupla','Quer Grupo','Sem Resposta','Pausado','Matriculado','Encerrado','Perdido'];
   const prioList = ['Quente','Morno','Frio'];
   const nivelList = ['A0','A1','A2','B1','B2','C1','Não Avaliado'];
   const origemList = ['Instagram','Threads','TikTok','Indicação','Google','Site','Outro'];
@@ -920,12 +1105,14 @@ function renderLeads(){
       <div class="lc-meta">
         <span><b>Objetivo:</b> ${l.objetivo}</span>
         <span><b>Último contato:</b> ${formatDate(l.ultimo_contato)}</span>
-        <span><b>Próximo follow-up:</b> ${l.proximo_followup ? formatDate(l.proximo_followup) : '—'}</span>
+        ${l.status==='Pausado'
+          ? `<span><b>⏸️ Pausado até:</b> ${l.pausado_ate?formatDate(l.pausado_ate):'—'} ${l.pausado_ate && l.pausado_ate<=todayISO() ? '<b style="color:var(--danger);">· pausa encerrada</b>' : ''}</span>`
+          : `<span><b>Próximo follow-up:</b> ${l.proximo_followup ? formatDate(l.proximo_followup) : '—'}</span>`}
+        ${l.status==='Encerrado' && l.motivo_encerramento ? `<span><b>🔒 Motivo:</b> ${l.motivo_encerramento}</span>` : ''}
         ${l.objecao ? `<span><b>Objeção:</b> ${l.objecao}</span>` : ''}
       </div>
       <div class="lc-actions">
         <button class="btn btn-sm btn-outline" onclick="openView('${l.id}')">👁️ Ver</button>
-        <button class="btn btn-sm btn-outline" onclick="markContactedToday('${l.id}')">✓ Hoje</button>
         <button class="btn btn-sm btn-ghost" style="background:#E7E2FF;color:var(--purple);" onclick="openTplPick('${l.id}')">💬</button>
         <button class="btn btn-sm btn-ghost" style="background:#FFE1DC;color:var(--danger);" onclick="openDeleteConfirm('${l.id}')">🗑️</button>
       </div>
@@ -937,7 +1124,275 @@ function renderAll(){
   renderDashboard();
   renderFollowups();
   renderLeads();
+  renderCalendar();
 }
+
+/* ===================================================================
+   CALENDÁRIO
+=================================================================== */
+let calCursor = new Date(); // mês/ano sendo exibido
+calCursor.setDate(1);
+
+const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_SEMANA_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function ymd(y,m,d){
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function followupStatusFor(dateISO, today){
+  if(dateISO < today) return 'atrasado';
+  if(dateISO === today) return 'hoje';
+  return 'futuro';
+}
+
+function diasDeAtraso(dateISO, today){
+  const d1 = new Date(dateISO+'T00:00:00');
+  const d2 = new Date(today+'T00:00:00');
+  return Math.round((d2 - d1) / 86400000);
+}
+
+function leadsByDate(){
+  // agrupa leads ativos por data de próximo follow-up
+  const map = {};
+  leads.forEach(l=>{
+    if(!l.proximo_followup) return;
+    if(l.status === 'Matriculado' || l.status === 'Perdido' || l.status === 'Pausado' || l.status === 'Encerrado') return;
+    (map[l.proximo_followup] = map[l.proximo_followup] || []).push(l);
+  });
+  return map;
+}
+
+function demosByDate(){
+  // agrupa leads com demo agendada (pendente) por data
+  const map = {};
+  leads.forEach(l=>{
+    if(!l.data_demo) return;
+    if(l.status !== 'Demo Agendada') return; // já resolvida (realizada/não compareceu) não aparece mais como pendente
+    (map[l.data_demo] = map[l.data_demo] || []).push(l);
+  });
+  return map;
+}
+
+function pausasByDate(){
+  // agrupa leads pausados (pendentes) por data em que a pausa termina
+  const map = {};
+  leads.forEach(l=>{
+    if(!l.pausado_ate) return;
+    if(l.status !== 'Pausado') return;
+    (map[l.pausado_ate] = map[l.pausado_ate] || []).push(l);
+  });
+  return map;
+}
+
+function renderCalendar(){
+  const y = calCursor.getFullYear();
+  const m = calCursor.getMonth();
+  document.getElementById('calMonthLabel').textContent = `${MESES_PT[m]} ${y}`;
+
+  const grid = document.getElementById('calGrid');
+  const today = todayISO();
+  const byDate = leadsByDate();
+  const demoDate = demosByDate();
+  const pausaDate = pausasByDate();
+
+  const firstWeekday = new Date(y, m, 1).getDay(); // 0=dom
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  let html = DIAS_SEMANA_PT.map(d=>`<div class="cal-weekday">${d}</div>`).join('');
+
+  for(let i=0;i<firstWeekday;i++){
+    html += `<div class="cal-day empty"></div>`;
+  }
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateISO = ymd(y,m,d);
+    const dayFollowups = byDate[dateISO] || [];
+    const dayDemos = demoDate[dateISO] || [];
+    const dayPausas = pausaDate[dateISO] || [];
+    const isToday = dateISO === today;
+    const hasEvents = dayFollowups.length > 0 || dayDemos.length > 0 || dayPausas.length > 0;
+    const st = followupStatusFor(dateISO, today);
+
+    let pillsHtml = '';
+    let dotsHtml = '';
+    if(hasEvents){
+      const sortedDemos = [...dayDemos].sort((a,b)=> (a.hora_demo||'99:99').localeCompare(b.hora_demo||'99:99'));
+      const demoPills = sortedDemos.map(l=> `<div class="cal-pill demo">🎓${l.hora_demo?' '+l.hora_demo:''} ${l.nome}</div>`);
+      const pausaClass = dateISO <= today ? 'pausa-expirada' : 'pausa';
+      const pausaPills = dayPausas.map(l=> `<div class="cal-pill ${pausaClass}">⏸️ ${l.nome}</div>`);
+      const fuClass = (st==='atrasado' && diasDeAtraso(dateISO, today) > 7) ? 'muito-atrasado' : st;
+      const followupPills = dayFollowups.map(l=> `<div class="cal-pill ${fuClass}">${fuClass==='muito-atrasado'?'🔴 ':''}${l.nome}</div>`);
+      const allPills = [...demoPills, ...pausaPills, ...followupPills];
+      pillsHtml = allPills.slice(0,3).join('');
+      if(allPills.length > 3){
+        pillsHtml += `<div class="cal-pill-more">+${allPills.length-3} mais</div>`;
+      }
+      const demoDots = dayDemos.map(()=>`<span class="cal-dot demo"></span>`);
+      const pausaDots = dayPausas.map(()=>`<span class="cal-dot ${pausaClass}"></span>`);
+      const followupDots = dayFollowups.map(()=>`<span class="cal-dot ${fuClass}"></span>`);
+      dotsHtml = [...demoDots, ...pausaDots, ...followupDots].slice(0,6).join('');
+    }
+
+    html += `
+      <div class="cal-day ${hasEvents?'has-leads':''} ${isToday?'is-today':''}" ${hasEvents?`onclick="openCalDay('${dateISO}')"`:''}>
+        <div class="cal-day-num">${d}</div>
+        <div class="cal-day-pills">${pillsHtml}</div>
+        <div class="cal-day-dots">${dotsHtml}</div>
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function openCalDay(dateISO){
+  const byDate = leadsByDate();
+  const demoDate = demosByDate();
+  const pausaDate = pausasByDate();
+  const dayFollowups = byDate[dateISO] || [];
+  const dayDemos = demoDate[dateISO] || [];
+  const dayPausas = pausaDate[dateISO] || [];
+  if(dayFollowups.length === 0 && dayDemos.length === 0 && dayPausas.length === 0) return;
+  const today = todayISO();
+  const [y,mo,da] = dateISO.split('-');
+  const st = followupStatusFor(dateISO, today);
+  const dias = st==='atrasado' ? diasDeAtraso(dateISO, today) : 0;
+  const muitoAtrasado = st==='atrasado' && dias > 7;
+  const stLabel = muitoAtrasado ? `🔴 Atrasado há ${dias} dias` : (st==='atrasado' ? '⚠️ Atrasado' : st==='hoje' ? '⏰ Hoje' : '🗓️ Próximo');
+
+  document.getElementById('calDayTitle').textContent = `📅 ${da}/${mo}/${y}`;
+
+  let html = '';
+
+  if(dayDemos.length > 0){
+    const sortedDemos = [...dayDemos].sort((a,b)=> (a.hora_demo||'99:99').localeCompare(b.hora_demo||'99:99'));
+    html += `<div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:4px;">🎓 Demos agendadas</div>`;
+    html += sortedDemos.map(l=>`
+      <div class="cal-day-item">
+        <div>
+          <div class="cal-di-name">${l.nome} ${l.hora_demo?`<span style="font-size:11px;font-weight:600;color:var(--gray-500);">· ${l.hora_demo}</span>`:''}</div>
+          <div class="cal-di-meta">${l.nivel} · ${l.objetivo}</div>
+        </div>
+        <div class="cal-di-actions">
+          <button class="btn btn-sm btn-ghost" style="background:#D9F2D2;color:#2C7A3F;" onclick="markDemoResult('${l.id}','Demo Realizada')">✅ Realizada</button>
+          <button class="btn btn-sm btn-ghost" style="background:#FFE1DC;color:var(--danger);" onclick="markDemoResult('${l.id}','Demo Não Compareceu')">❌ Não veio</button>
+          <button class="btn btn-sm btn-outline" onclick="overlayCalDay.classList.remove('active');openView('${l.id}')">👁️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if(dayPausas.length > 0){
+    const expirada = dateISO <= today;
+    html += `<div style="font-size:12px;font-weight:700;color:var(--gray-700);margin:14px 0 4px;">⏸️ Pausas ${expirada?'(encerradas — decida o que fazer)':'(programadas para terminar)'}</div>`;
+    html += dayPausas.map(l=>`
+      <div class="cal-day-item">
+        <div>
+          <div class="cal-di-name">${l.nome}</div>
+          <div class="cal-di-meta">${l.nivel} · ${l.objetivo}</div>
+        </div>
+        <div class="cal-di-actions">
+          ${expirada ? `<button class="btn btn-sm btn-ghost" style="background:#EAE3FF;color:#5C3FC9;" onclick="reactivarLead('${l.id}');overlayCalDay.classList.remove('active');">▶️ Reativar</button>` : ''}
+          <button class="btn btn-sm btn-outline" onclick="overlayCalDay.classList.remove('active');openView('${l.id}')">👁️ Ver</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if(dayFollowups.length > 0){
+    html += `<div style="font-size:12px;font-weight:700;color:${muitoAtrasado?'var(--danger)':'var(--gray-700)'};margin:14px 0 4px;">📌 Follow-ups · ${stLabel}</div>`;
+    html += dayFollowups.map(l=>`
+      <div class="cal-day-item">
+        <div>
+          <div class="cal-di-name">${l.nome}</div>
+          <div class="cal-di-meta">${l.status} · ${l.nivel} · ${l.objetivo}</div>
+        </div>
+        <div class="cal-di-actions">
+          <button class="btn btn-sm btn-ghost" onclick="markContactedToday('${l.id}');overlayCalDay.classList.remove('active');">✓ Contatado</button>
+          <button class="btn btn-sm btn-outline" onclick="overlayCalDay.classList.remove('active');openView('${l.id}')">👁️ Ver</button>
+          <button class="btn btn-sm btn-ghost" style="background:#E7E2FF;color:var(--purple);" onclick="overlayCalDay.classList.remove('active');openTplPick('${l.id}')">💬</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('calDayBody').innerHTML = html;
+  overlayCalDay.classList.add('active');
+}
+
+function markDemoResult(id, novoStatus){
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  lead.status = novoStatus;
+  lead.historico = lead.historico || [];
+  const texto = novoStatus === 'Demo Realizada'
+    ? 'Demo marcada como realizada (via Calendário).'
+    : 'Demo marcada como não compareceu (via Calendário).';
+  lead.historico.unshift({data: todayISO(), texto});
+  saveLeads();
+  renderAll();
+
+  if(novoStatus === 'Demo Realizada'){
+    showFollowupPrompt(id);
+  } else {
+    overlayCalDay.classList.remove('active');
+    showToast('Demo marcada como não compareceu', 'danger');
+  }
+}
+
+function showFollowupPrompt(id){
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  const sugestao = new Date();
+  sugestao.setDate(sugestao.getDate()+2);
+  const sugestaoISO = sugestao.toISOString().slice(0,10);
+
+  document.getElementById('calDayTitle').textContent = `✅ Demo de ${lead.nome} realizada!`;
+  document.getElementById('calDayBody').innerHTML = `
+    <div style="text-align:center;padding:6px 0 10px;">
+      <div style="font-size:13px;color:var(--gray-700);margin-bottom:14px;">Quando deve ser o próximo follow-up com ${lead.nome}?</div>
+      <input type="date" id="quickFollowupDate" value="${sugestaoISO}" style="margin-bottom:16px;width:100%;max-width:240px;padding:10px;border:1.5px solid var(--gray-300);border-radius:10px;font-family:inherit;font-size:14px;">
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn btn-outline" id="skipFollowupBtn">Pular por agora</button>
+        <button class="btn btn-primary" id="saveFollowupBtn">Salvar follow-up</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('skipFollowupBtn').addEventListener('click', ()=>{
+    overlayCalDay.classList.remove('active');
+    showToast('Demo marcada como realizada ✓', 'success');
+  });
+  document.getElementById('saveFollowupBtn').addEventListener('click', ()=>{
+    const date = document.getElementById('quickFollowupDate').value;
+    if(date){
+      lead.proximo_followup = date;
+      lead.historico = lead.historico || [];
+      lead.historico.unshift({data: todayISO(), texto: `Próximo follow-up agendado para ${formatDate(date)} (via Calendário, após demo).`});
+      saveLeads();
+      renderAll();
+      showToast('Demo realizada e follow-up agendado ✓', 'success');
+    } else {
+      showToast('Demo marcada como realizada ✓', 'success');
+    }
+    overlayCalDay.classList.remove('active');
+  });
+}
+
+document.getElementById('calPrev').addEventListener('click', ()=>{
+  calCursor.setMonth(calCursor.getMonth()-1);
+  renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', ()=>{
+  calCursor.setMonth(calCursor.getMonth()+1);
+  renderCalendar();
+});
+document.getElementById('calToday').addEventListener('click', ()=>{
+  calCursor = new Date();
+  calCursor.setDate(1);
+  renderCalendar();
+});
+document.getElementById('closeCalDay').addEventListener('click', ()=> overlayCalDay.classList.remove('active'));
 
 /* ===================================================================
    FORM: NOVO / EDITAR LEAD
@@ -950,9 +1405,14 @@ function openNewLead(){
   document.getElementById('leadId').value = '';
   document.getElementById('f_data_contato').value = todayISO();
   document.getElementById('f_status').value = 'Novo Lead';
+  document.getElementById('f_data_demo').value = '';
+  document.getElementById('f_hora_demo').value = '';
+  document.getElementById('f_pausado_ate').value = '';
+  document.getElementById('f_motivo_encerramento').value = '';
   document.getElementById('f_prioridade').value = 'Morno';
   editingHistory = [];
   renderHistoryList();
+  toggleStatusFields();
   overlayForm.classList.add('active');
 }
 
@@ -973,6 +1433,10 @@ function openEdit(id){
   document.getElementById('f_interesse').value = l.interesse || 'Não Definido';
   document.getElementById('f_disponibilidade').value = l.disponibilidade || '';
   document.getElementById('f_status').value = l.status || 'Novo Lead';
+  document.getElementById('f_data_demo').value = l.data_demo || '';
+  document.getElementById('f_hora_demo').value = l.hora_demo || '';
+  document.getElementById('f_pausado_ate').value = l.pausado_ate || '';
+  document.getElementById('f_motivo_encerramento').value = l.motivo_encerramento || '';
   document.getElementById('f_prioridade').value = l.prioridade || 'Morno';
   document.getElementById('f_objecao').value = l.objecao || '';
   document.getElementById('f_ultimo_contato').value = l.ultimo_contato || '';
@@ -980,8 +1444,29 @@ function openEdit(id){
   document.getElementById('f_observacoes').value = l.observacoes || '';
   editingHistory = JSON.parse(JSON.stringify(l.historico || []));
   renderHistoryList();
+  toggleStatusFields();
   overlayForm.classList.add('active');
 }
+
+function toggleStatusFields(){
+  const status = document.getElementById('f_status').value;
+  const pausadoWrap = document.getElementById('pausadoFieldWrap');
+  const encerradoWrap = document.getElementById('encerradoFieldWrap');
+
+  pausadoWrap.style.display = status === 'Pausado' ? 'block' : 'none';
+  encerradoWrap.style.display = status === 'Encerrado' ? 'block' : 'none';
+
+  if(status === 'Pausado'){
+    const campo = document.getElementById('f_pausado_ate');
+    if(!campo.value){
+      const sugestao = new Date();
+      sugestao.setMonth(sugestao.getMonth()+2);
+      campo.value = sugestao.toISOString().slice(0,10);
+    }
+  }
+}
+
+document.getElementById('f_status').addEventListener('change', toggleStatusFields);
 
 function renderHistoryList(){
   const box = document.getElementById('historyList');
@@ -1013,6 +1498,12 @@ document.getElementById('saveLead').addEventListener('click', ()=>{
     showToast('Preencha ao menos Nome e WhatsApp', 'danger');
     return;
   }
+  const statusValue = document.getElementById('f_status').value;
+  const motivoEncerramento = document.getElementById('f_motivo_encerramento').value.trim();
+  if(statusValue === 'Encerrado' && !motivoEncerramento){
+    showToast('Preencha o motivo do encerramento', 'danger');
+    return;
+  }
   const id = document.getElementById('leadId').value || uid();
   const existing = leads.find(l=>l.id===id);
   const leadData = {
@@ -1028,11 +1519,15 @@ document.getElementById('saveLead').addEventListener('click', ()=>{
     nivel: document.getElementById('f_nivel').value,
     interesse: document.getElementById('f_interesse').value,
     disponibilidade: document.getElementById('f_disponibilidade').value.trim(),
-    status: document.getElementById('f_status').value,
+    status: statusValue,
     prioridade: document.getElementById('f_prioridade').value,
     objecao: document.getElementById('f_objecao').value,
     ultimo_contato: document.getElementById('f_ultimo_contato').value,
     proximo_followup: document.getElementById('f_proximo_followup').value,
+    data_demo: document.getElementById('f_data_demo').value,
+    hora_demo: document.getElementById('f_hora_demo').value,
+    pausado_ate: statusValue === 'Pausado' ? document.getElementById('f_pausado_ate').value : '',
+    motivo_encerramento: statusValue === 'Encerrado' ? motivoEncerramento : '',
     observacoes: document.getElementById('f_observacoes').value.trim(),
     historico: editingHistory
   };
@@ -1055,6 +1550,7 @@ document.getElementById('btnNewLead').addEventListener('click', openNewLead);
    VISUALIZAR LEAD
 =================================================================== */
 const overlayView = document.getElementById('overlayView');
+const overlayCalDay = document.getElementById('overlayCalDay');
 
 function openView(id){
   const l = leads.find(x=>x.id===id);
@@ -1078,6 +1574,9 @@ function openView(id){
       <div class="view-block"><div class="vb-label">Disponibilidade</div><div class="vb-value">${l.disponibilidade||'—'}</div></div>
       <div class="view-block"><div class="vb-label">Status / Prioridade</div><div class="vb-value">${prioEmoji(l.prioridade)} ${l.status}</div></div>
       <div class="view-block"><div class="vb-label">Objeção</div><div class="vb-value">${l.objecao||'—'}</div></div>
+      ${l.status==='Pausado' ? `<div class="view-block"><div class="vb-label">⏸️ Pausado até</div><div class="vb-value">${l.pausado_ate?formatDate(l.pausado_ate):'—'}</div></div>` : ''}
+      ${l.status==='Encerrado' ? `<div class="view-block full"><div class="vb-label">🔒 Motivo do Encerramento</div><div class="vb-value" style="font-weight:400;">${l.motivo_encerramento||'—'}</div></div>` : ''}
+      <div class="view-block"><div class="vb-label">🎓 Data da Demo</div><div class="vb-value">${l.data_demo?formatDate(l.data_demo):'—'}${l.hora_demo?' às '+l.hora_demo:''}</div></div>
       <div class="view-block"><div class="vb-label">Próximo Follow-up</div><div class="vb-value">${l.proximo_followup?formatDate(l.proximo_followup):'—'}</div></div>
     </div>
     <div class="view-block full" style="margin-bottom:16px;">
@@ -1271,9 +1770,9 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 =================================================================== */
 document.getElementById('btnExportCsv').addEventListener('click', ()=>{
   if(leads.length === 0){ showToast('Nenhum lead para exportar', 'danger'); return; }
-  const headers = ['Nome','WhatsApp','Instagram','Cidade','Fuso','Data Contato','Origem','Objetivo','Nível','Interesse','Disponibilidade','Status','Prioridade','Objeção','Último Contato','Próximo Follow-up','Observações'];
+  const headers = ['Nome','WhatsApp','Instagram','Cidade','Fuso','Data Contato','Origem','Objetivo','Nível','Interesse','Disponibilidade','Status','Prioridade','Objeção','Data da Demo','Pausado Até','Motivo Encerramento','Último Contato','Próximo Follow-up','Observações'];
   const rows = leads.map(l=>[
-    l.nome,l.whatsapp,l.instagram,l.cidade,l.fuso,l.data_contato,l.origem,l.objetivo,l.nivel,l.interesse,l.disponibilidade,l.status,l.prioridade,l.objecao,l.ultimo_contato,l.proximo_followup,l.observacoes
+    l.nome,l.whatsapp,l.instagram,l.cidade,l.fuso,l.data_contato,l.origem,l.objetivo,l.nivel,l.interesse,l.disponibilidade,l.status,l.prioridade,l.objecao,l.data_demo,l.pausado_ate,l.motivo_encerramento,l.ultimo_contato,l.proximo_followup,l.observacoes
   ]);
   const csvContent = [headers, ...rows].map(r=>
     r.map(v=> `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')
@@ -1388,7 +1887,7 @@ document.getElementById('importFileInput').addEventListener('change', (e)=>{
 /* ===================================================================
    FECHAR MODAIS CLICANDO FORA
 =================================================================== */
-[overlayForm, overlayView, overlayConfirm, overlayTplPick, overlayTplForm].forEach(ov=>{
+[overlayForm, overlayView, overlayConfirm, overlayTplPick, overlayTplForm, overlayCalDay].forEach(ov=>{
   ov.addEventListener('click', (e)=>{ if(e.target === ov) ov.classList.remove('active'); });
 });
 
