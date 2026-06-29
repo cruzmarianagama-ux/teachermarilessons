@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Health Hub</title>
+
+<!-- Fonte Poppins (Google Fonts). Se estiver sem internet, cai no sans-serif do sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ======================================================================
+   VARIÁVEIS DE COR — para trocar a identidade visual, basta editar aqui
+   Paleta reduzida ao essencial: 1 cor de texto/marca, 1 cor de destaque,
+   1 cor de apoio e tons neutros. Isso é o que mantém o visual limpo.
+   ====================================================================== */
+:root{
+  --floresta: #1B4332;        /* verde-floresta profundo — texto e marca */
+  --floresta-clara: #2D6A4F;  /* variação mais clara, uso pontual */
+  --dourado: #E9B44C;         /* única cor de destaque — usar com moderação */
+  --dourado-claro: #F2C879;
+  --salvia: #52796F;          /* cor de apoio — usada só em textos secundários */
+  --salvia-clara: #84A98C;
+  --creme: #F7F4EC;           /* fundo neutro e bem claro */
+  --branco: #FFFFFF;
+  --cinza: #6B7066;           /* cinza com bom contraste para textos secundários */
+  --linha: #E6E2D6;           /* bordas finas — substituem sombras pesadas */
+  --sombra: 0 2px 8px rgba(27,67,50,0.05);  /* sombra quase imperceptível */
+  --raio: 14px;
+  --raio-peq: 8px;
+}
+
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  background: var(--creme);
+  color: var(--floresta);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  padding-bottom: 86px; /* espaço para a barra fixa de backup no rodapé */
+}
+h1,h2,h3,h4{ margin: 0 0 4px; font-weight: 600; letter-spacing: -.01em; }
+p{ margin: 0; }
+a{ color: var(--dourado); }
+button{ font-family: inherit; cursor: pointer; border: none; }
+input, select, textarea{ font-family: inherit; }
+
+/* ======================================================================
+   CABEÇALHO — sólido, sem gradientes nem formas decorativas
+   ====================================================================== */
+.app-header{
+  background: var(--floresta);
+  color: var(--branco);
+  padding: 28px 20px 22px;
+}
+.header-inner{
+  max-width: 1100px; margin: 0 auto;
+}
+.brand{
+  display:flex; align-items:center; gap:12px;
+}
+.brand-emoji{
+  font-size: 22px;
+  background: rgba(255,255,255,0.12);
+  width: 42px; height:42px; border-radius: var(--raio-peq);
+  display:flex; align-items:center; justify-content:center;
+}
+.brand h1{ font-size: 20px; font-weight: 600; }
+
+.motivational{
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.16);
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.78);
+  display:flex; align-items:center; gap:8px;
+}
+
+/* ======================================================================
+   NAVEGAÇÃO POR ABAS — abas de texto com sublinhado, sem "pílulas" coloridas
+   ====================================================================== */
+.tabs-wrap{
+  background: var(--branco);
+  border-bottom: 1px solid var(--linha);
+  position: sticky; top: 0; z-index: 5;
+}
+.tabs{
+  max-width: 1100px; margin: 0 auto;
+  display:flex;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: 0 20px;
+  gap: 4px;
+}
+.tabs::-webkit-scrollbar{ height: 4px; }
+.tabs::-webkit-scrollbar-thumb{ background: var(--linha); border-radius: 4px; }
+.tab-btn{
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--cinza);
+  padding: 14px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color .15s ease, border-color .15s ease;
+  display:flex; align-items:center; gap:6px;
+}
+.tab-btn:hover{ color: var(--floresta); }
+.tab-btn.active{
+  color: var(--floresta);
+  font-weight: 600;
+  border-bottom-color: var(--dourado);
+}
+
+/* ======================================================================
+   CONTEÚDO PRINCIPAL
+   ====================================================================== */
+.main{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 0;
+}
+.tab-panel{ display:none; animation: fadeIn .2s ease; }
+.tab-panel.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+.section-title{
+  display:flex; align-items:baseline; justify-content:space-between;
+  margin-bottom: 18px; flex-wrap:wrap; gap:6px;
+}
+.section-title h2{ font-size: 18px; color: var(--floresta); font-weight: 600; }
+.section-title .sub{ font-size: 12.5px; color: var(--cinza); }
+
+/* ---- cards do dashboard ---- */
+.cards-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.card{
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  padding: 18px;
+}
+.card .label{
+  font-size: 11.5px; color: var(--cinza); font-weight:500;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.card .value{ font-size: 24px; font-weight: 700; color: var(--floresta); margin-top:6px; }
+.card .value small{ font-size: 12.5px; font-weight:500; color: var(--cinza); }
+.card .extra{ font-size: 12px; color: var(--salvia); margin-top: 4px; font-weight:500; }
+
+.progress-card{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px 18px 16px; margin-bottom: 20px;
+}
+.progress-card h3{ font-weight: 600; }
+.progress-bar-bg{
+  background: var(--creme); border-radius: 20px; height: 14px; overflow:hidden; margin-top:10px;
+}
+.progress-bar-fill{
+  height: 100%; background: var(--dourado);
+  border-radius: 20px; transition: width .4s ease; display:flex; align-items:center; justify-content:flex-end;
+}
+.progress-bar-fill span{ font-size:10.5px; color: var(--floresta); padding-right:8px; font-weight:700; }
+
+.settings-box{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 16px 18px; margin-bottom: 20px;
+}
+.settings-box h3{ font-size: 13.5px; font-weight: 600; color: var(--floresta); margin-bottom: 10px; }
+
+.week-summary{
+  background: var(--branco); border: 1px solid var(--linha); color: var(--floresta);
+  border-radius: var(--raio); padding: 18px; margin-bottom: 24px;
+}
+.week-summary h3{ font-size: 13.5px; font-weight: 600; margin-bottom:12px; }
+.week-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap:16px;
+}
+.week-item{ padding:0; border-left: 2px solid var(--linha); padding-left: 12px; }
+.week-item .num{ font-size:19px; font-weight:700; color: var(--floresta); }
+.week-item .txt{ font-size:11.5px; color: var(--cinza); margin-top:2px; }
+
+/* ---- formulários ---- */
+.form-card{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 20px; margin-bottom: 20px;
+}
+.form-card h3{ font-size: 14.5px; font-weight: 600; color: var(--floresta); margin-bottom: 16px; }
+.form-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 14px 16px;
+}
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field.full{ grid-column: 1 / -1; }
+.field label{ font-size: 12px; font-weight:500; color: var(--cinza); }
+.field input, .field select, .field textarea{
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-peq);
+  padding: 9px 11px;
+  font-size: 13.5px;
+  color: var(--floresta);
+  background: var(--branco);
+  outline:none;
+  transition: border-color .15s ease;
+}
+.field textarea{ resize: vertical; min-height: 60px; }
+.field input:focus, .field select:focus, .field textarea:focus{ border-color: var(--dourado); }
+
+.form-actions{ display:flex; gap:10px; margin-top: 18px; flex-wrap:wrap; }
+.btn{
+  padding: 10px 18px; border-radius: var(--raio-peq); font-size: 13.5px; font-weight:600;
+  display:inline-flex; align-items:center; gap:6px; transition: opacity .15s ease, background-color .15s ease;
+}
+.btn:hover{ opacity:.85; }
+.btn-primary{ background: var(--dourado); color: var(--floresta); }
+.btn-secondary{ background: var(--creme); color: var(--floresta); }
+.btn-ghost{ background: transparent; color: var(--cinza); border:1px solid var(--linha); }
+
+/* ---- tabelas ---- */
+.table-card{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px; margin-bottom: 22px;
+}
+.table-card h3{ font-size: 14.5px; font-weight: 600; color: var(--floresta); margin-bottom: 12px; }
+.table-wrap{ overflow-x: auto; }
+table{ width:100%; border-collapse: collapse; min-width: 600px; }
+thead th{
+  text-align:left; font-size: 11px; text-transform: uppercase; letter-spacing:.04em;
+  color: var(--cinza); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--linha); white-space:nowrap;
+}
+tbody td{
+  padding: 11px 10px; font-size: 13px; border-bottom: 1px solid var(--creme); vertical-align: top;
+}
+tbody tr:hover{ background: var(--creme); }
+td.actions{ white-space:nowrap; }
+.btn-icon{
+  background: transparent; border: 1px solid var(--linha); border-radius: var(--raio-peq); width:30px; height:30px;
+  display:inline-flex; align-items:center; justify-content:center; font-size:13px; margin-right:4px;
+}
+.btn-icon.delete{ border-color: #e8c9bd; }
+.empty{ text-align:center; color: var(--cinza); padding: 24px 10px !important; font-style: italic; }
+
+/* ---- gráfico ---- */
+.chart-card{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px; margin-bottom: 22px;
+}
+.chart-card h3{ font-size:14.5px; font-weight:600; color:var(--floresta); margin-bottom: 10px; }
+#weightChart{ width:100%; height: 280px; display:block; }
+
+/* ---- relatórios ---- */
+.report-block{
+  background: var(--branco); border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 18px; margin-bottom: 18px;
+}
+.report-block h3{ font-size:14.5px; font-weight:600; color:var(--floresta); }
+.report-controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin: 14px 0 16px; }
+.symptom-list{ list-style:none; padding:0; margin:10px 0 0; }
+.symptom-list li{
+  display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--creme); font-size:13.5px;
+}
+.symptom-list li b{ color: var(--floresta); font-weight: 600; }
+
+/* ---- rodapé / aviso ---- */
+.footer-note{
+  max-width: 1100px; margin: 32px auto 0; padding: 0 20px;
+  text-align:center; font-size: 11.5px; color: var(--cinza); line-height:1.6;
+}
+
+/* ---- barra fixa de backup (visível em todas as abas) ---- */
+.backup-bar{
+  position: fixed; left:0; right:0; bottom:0; z-index: 50;
+  background: var(--branco);
+  border-top: 1px solid var(--linha);
+  padding: 12px 16px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  flex-wrap: wrap;
+}
+.backup-bar .backup-info{
+  font-size: 11px; color: var(--cinza); flex: 1 1 auto; min-width: 140px;
+}
+@media (max-width:560px){
+  .backup-bar{ justify-content:center; }
+  .backup-bar .backup-info{ display:none; }
+}
+
+/* subtítulo dentro de um formulário, para separar grupos de campos */
+.form-subtitle{
+  grid-column: 1 / -1;
+  font-size: 11.5px; font-weight:600; color: var(--salvia);
+  margin: 6px 0 -4px; text-transform: uppercase; letter-spacing:.04em;
+  padding-top: 10px; border-top: 1px solid var(--creme);
+}
+
+/* ---- responsivo ---- */
+@media (max-width: 640px){
+  .brand h1{ font-size:17px; }
+  .app-header{ padding: 22px 16px 18px; }
+  .main{ padding: 22px 14px 0; }
+  .card .value{ font-size: 21px; }
+  table{ min-width: 520px; }
+}
+
+/* ======================================================================
+   IMPRESSÃO / EXPORTAÇÃO EM PDF
+   O "Baixar PDF" usa a função de impressão do próprio navegador: ao
+   imprimir, escondemos tudo na página, exceto o relatório selecionado,
+   e o usuário escolhe "Salvar como PDF" no destino da impressão.
+   ====================================================================== */
+.print-meta{ display:none; } /* só aparece quando a página está sendo impressa */
+
+@media print{
+  /* esconde a página inteira por padrão */
+  body.printing-week *,
+  body.printing-month *{ visibility: hidden; }
+
+  /* exceto o bloco do relatório que está sendo impresso */
+  body.printing-week #block-weekly-report,
+  body.printing-week #block-weekly-report *,
+  body.printing-month #block-monthly-report,
+  body.printing-month #block-monthly-report *{ visibility: visible; }
+
+  #block-weekly-report, #block-monthly-report{
+    position: absolute; top:0; left:0; width:100%;
+    margin:0; padding:0; border:none;
+  }
+  body.printing-week #block-weekly-report,
+  body.printing-month #block-monthly-report{
+    display: block !important;
+  }
+
+  .no-print, .report-controls{ display:none !important; }
+
+  .print-meta{
+    display:block !important;
+    font-size: 11.5px; color:#555; margin-bottom: 16px;
+    border-bottom: 1px solid #ccc; padding-bottom: 10px;
+  }
+  .report-block h3{ font-size: 18px; }
+  .card{ border: 1px solid #ddd; break-inside: avoid; }
+  .symptom-list li{ break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- ======================================================================
+     CABEÇALHO + MENSAGEM MOTIVACIONAL
+     ====================================================================== -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-emoji">🌱</div>
+      <div>
+        <h1>My Health Hub</h1>
+      </div>
+    </div>
+    <div class="motivational" id="motivationalBanner">💪 Carregando sua frase do dia...</div>
+  </div>
+</header>
+
+<!-- ======================================================================
+     NAVEGAÇÃO POR ABAS
+     ====================================================================== -->
+<nav class="tabs-wrap">
+  <div class="tabs" id="tabsBar">
+    <button class="tab-btn active" data-tab="dashboard">🏠 Dashboard</button>
+    <button class="tab-btn" data-tab="mounjaro">💉 Mounjaro</button>
+    <button class="tab-btn" data-tab="peso">⚖️ Peso e Medidas</button>
+    <button class="tab-btn" data-tab="dieta">🥗 Dieta</button>
+    <button class="tab-btn" data-tab="exercicios">🏃 Exercícios</button>
+    <button class="tab-btn" data-tab="bemestar">🌙 Bem-estar</button>
+    <button class="tab-btn" data-tab="relatorios">📊 Relatórios</button>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ====================================================================
+       1) DASHBOARD
+       ==================================================================== -->
+  <section class="tab-panel active" id="tab-dashboard">
+    <div class="section-title">
+      <h2>Visão geral</h2>
+      <span class="sub">Atualizado automaticamente com seus registros</span>
+    </div>
+
+    <!-- Configuração de peso inicial e meta -->
+    <div class="settings-box">
+      <h3>⚙️ Configurar peso inicial e meta (edite quando quiser)</h3>
+      <form id="form-settings" class="form-grid">
+        <div class="field">
+          <label for="set-startWeight">Peso inicial (kg)</label>
+          <input type="number" step="0.1" id="set-startWeight" name="startWeight" placeholder="ex: 92.5">
+        </div>
+        <div class="field">
+          <label for="set-goalWeight">Meta de peso (kg)</label>
+          <input type="number" step="0.1" id="set-goalWeight" name="goalWeight" placeholder="ex: 75.0">
+        </div>
+        <div class="field" style="justify-content:flex-end;">
+          <button type="submit" class="btn btn-primary">💾 Salvar configuração</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Cards principais -->
+    <div class="cards-grid">
+      <div class="card">
+        <div class="label">Peso inicial</div>
+        <div class="value" id="card-startWeight">—</div>
+      </div>
+      <div class="card alt">
+        <div class="label">Peso atual</div>
+        <div class="value" id="card-currentWeight">—</div>
+      </div>
+      <div class="card alt2">
+        <div class="label">Meta de peso</div>
+        <div class="value" id="card-goalWeight">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Total perdido</div>
+        <div class="value" id="card-totalLost">—</div>
+      </div>
+      <div class="card alt">
+        <div class="label">Próxima aplicação</div>
+        <div class="value" id="card-nextDose" style="font-size:18px;">—</div>
+      </div>
+    </div>
+
+    <!-- Barra de progresso até a meta -->
+    <div class="progress-card">
+      <h3 style="font-size:14px;color:var(--salvia);">🎯 Progresso até a meta</h3>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%;">
+          <span id="progressLabel">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumo da semana -->
+    <div class="week-summary">
+      <h3>📅 Resumo da última semana</h3>
+      <div class="week-grid">
+        <div class="week-item"><div class="num" id="week-weightChange">—</div><div class="txt">Variação de peso</div></div>
+        <div class="week-item"><div class="num" id="week-workouts">0</div><div class="txt">Treinos realizados</div></div>
+        <div class="week-item"><div class="num" id="week-water">—</div><div class="txt">Água média (L)</div></div>
+        <div class="week-item"><div class="num" id="week-doses">0</div><div class="txt">Aplicações na semana</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       2) ABA MOUNJARO
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-mounjaro">
+    <div class="section-title">
+      <h2>💉 Aplicações de Mounjaro</h2>
+      <span class="sub">Registre cada aplicação para acompanhar seu histórico</span>
+    </div>
+
+    <div class="form-card">
+      <h3 id="title-form-mounjaro">Nova aplicação</h3>
+      <form id="form-mounjaro" class="form-grid">
+        <input type="hidden" name="editId">
+        <div class="field">
+          <label>Data da aplicação</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>Dose tomada</label>
+          <input type="text" name="dose" placeholder="ex: 2.5 mg">
+        </div>
+        <div class="field">
+          <label>Local da aplicação</label>
+          <select name="location">
+            <option value="">Selecionar...</option>
+            <option>Abdômen</option>
+            <option>Coxa</option>
+            <option>Braço</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Próxima aplicação prevista</label>
+          <input type="date" name="nextDate">
+        </div>
+        <div class="field">
+          <label>Nível de fome/apetite</label>
+          <select name="appetite">
+            <option value="">Selecionar...</option>
+            <option value="1">1 — Sem fome</option>
+            <option value="2">2 — Pouca fome</option>
+            <option value="3">3 — Normal</option>
+            <option value="4">4 — Com fome</option>
+            <option value="5">5 — Muita fome</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Efeitos colaterais (separe por vírgula)</label>
+          <input type="text" name="sideEffects" placeholder="ex: náusea leve, dor de cabeça">
+        </div>
+        <div class="field full">
+          <label>Observações</label>
+          <textarea name="notes" placeholder="Como você se sentiu, algo a destacar..."></textarea>
+        </div>
+        <div class="form-actions full">
+          <button type="submit" class="btn btn-primary">💾 Salvar aplicação</button>
+          <button type="button" class="btn btn-ghost cancel-edit" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <h3>Histórico de aplicações</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Dose</th><th>Local</th><th>Próxima</th>
+              <th>Efeitos colaterais</th><th>Fome</th><th>Observações</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-mounjaro"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       3) ABA PESO E MEDIDAS
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-peso">
+    <div class="section-title">
+      <h2>⚖️ Peso e Medidas</h2>
+      <span class="sub">Acompanhe sua evolução corporal</span>
+    </div>
+
+    <div class="form-card">
+      <h3>Novo registro</h3>
+      <form id="form-peso" class="form-grid">
+        <input type="hidden" name="editId">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>Peso (kg)</label>
+          <input type="number" step="0.1" name="weight" required placeholder="ex: 88.4">
+        </div>
+        <div class="field">
+          <label>Cintura (cm)</label>
+          <input type="number" step="0.1" name="waist">
+        </div>
+        <div class="field">
+          <label>Barriga (cm)</label>
+          <input type="number" step="0.1" name="belly">
+        </div>
+        <div class="field">
+          <label>Quadril (cm)</label>
+          <input type="number" step="0.1" name="hip">
+        </div>
+        <div class="field">
+          <label>Braço (cm)</label>
+          <input type="number" step="0.1" name="arm">
+        </div>
+        <div class="field">
+          <label>Perna (cm)</label>
+          <input type="number" step="0.1" name="leg">
+        </div>
+
+        <div class="form-subtitle">⚡ Composição corporal (bioimpedância — se sua balança calcular)</div>
+        <div class="field">
+          <label>Gordura corporal (%)</label>
+          <input type="number" step="0.1" name="bodyFatPct" placeholder="ex: 28.5">
+        </div>
+        <div class="field">
+          <label>Água corporal (%)</label>
+          <input type="number" step="0.1" name="bodyWaterPct" placeholder="ex: 52.0">
+        </div>
+        <div class="field">
+          <label>Músculo (%)</label>
+          <input type="number" step="0.1" name="muscle" placeholder="ex: 34.0">
+        </div>
+        <div class="field">
+          <label>Músculo esquelético (%)</label>
+          <input type="number" step="0.1" name="skeletalMuscle" placeholder="ex: 31.0">
+        </div>
+        <div class="field">
+          <label>Massa óssea (kg)</label>
+          <input type="number" step="0.1" name="boneMass" placeholder="ex: 2.8">
+        </div>
+        <div class="field">
+          <label>Gordura visceral</label>
+          <input type="number" step="0.1" name="visceralFat" placeholder="ex: 9">
+        </div>
+        <div class="field">
+          <label>IMC</label>
+          <input type="number" step="0.1" name="bmi" placeholder="ex: 27.3">
+        </div>
+        <div class="field">
+          <label>TMB — taxa metabólica basal (kcal)</label>
+          <input type="number" name="bmr" placeholder="ex: 1450">
+        </div>
+        <div class="field">
+          <label>Controle de gordura</label>
+          <input type="text" name="fatControl" placeholder="ex: -2.0 kg, dentro da meta...">
+        </div>
+        <div class="field">
+          <label>Idade do corpo</label>
+          <input type="number" name="bodyAge" placeholder="ex: 35">
+        </div>
+        <div class="field">
+          <label>Pontuação corporal</label>
+          <input type="number" name="bodyScore" placeholder="ex: 78">
+        </div>
+        <div class="field">
+          <label>Avaliação de tipo de corpo</label>
+          <select name="bodyType">
+            <option value="">Selecionar...</option>
+            <option>Obesidade</option>
+            <option>Sobrepeso</option>
+            <option>Ligeiramente obeso</option>
+            <option>Saudável</option>
+            <option>Músculo</option>
+            <option>Atleta</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Observações</label>
+          <textarea name="notes" placeholder="Como está se sentindo com seu corpo hoje..."></textarea>
+        </div>
+        <div class="form-actions full">
+          <button type="submit" class="btn btn-primary">💾 Salvar registro</button>
+          <button type="button" class="btn btn-ghost cancel-edit" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="chart-card">
+      <h3>📈 Evolução do peso</h3>
+      <canvas id="weightChart"></canvas>
+    </div>
+
+    <div class="table-card">
+      <h3>Histórico de peso e medidas</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Peso</th><th>Cintura</th><th>Barriga</th><th>Quadril</th>
+              <th>Braço</th><th>Perna</th><th>Gordura %</th><th>Água %</th><th>Músculo %</th>
+              <th>Mús. esq. %</th><th>Massa óssea</th><th>Gord. visceral</th><th>IMC</th><th>TMB</th>
+              <th>Controle gordura</th><th>Idade corpo</th><th>Pontuação</th><th>Tipo de corpo</th>
+              <th>Observações</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-peso"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       4) ABA DIETA
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-dieta">
+    <div class="section-title">
+      <h2>🥗 Dieta</h2>
+      <span class="sub">Um registro por dia — resumo das suas refeições</span>
+    </div>
+
+    <div class="form-card">
+      <h3>Resumo do dia</h3>
+      <form id="form-dieta" class="form-grid">
+        <input type="hidden" name="editId">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>Calorias estimadas (kcal)</label>
+          <input type="number" name="calories" placeholder="ex: 1400">
+        </div>
+        <div class="field">
+          <label>Proteína estimada (g)</label>
+          <input type="number" name="protein" placeholder="ex: 90">
+        </div>
+        <div class="field">
+          <label>Água consumida (L)</label>
+          <input type="number" step="0.1" name="water" placeholder="ex: 2.0">
+        </div>
+        <div class="field">
+          <label>Fibras (g)</label>
+          <input type="number" name="fiber" placeholder="ex: 25">
+        </div>
+        <div class="field">
+          <label>Nível de fome</label>
+          <select name="hunger">
+            <option value="">Selecionar...</option>
+            <option value="1">1 — Sem fome</option>
+            <option value="2">2 — Pouca fome</option>
+            <option value="3">3 — Normal</option>
+            <option value="4">4 — Com fome</option>
+            <option value="5">5 — Muita fome</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Vontade de doce / compulsão</label>
+          <select name="cravings">
+            <option value="">Selecionar...</option>
+            <option>Não senti</option>
+            <option>Um pouco</option>
+            <option>Senti bastante</option>
+            <option>Tive episódio de compulsão</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Refeições do dia</label>
+          <textarea name="meals" placeholder="Café: ...&#10;Almoço: ...&#10;Jantar: ...&#10;Lanches: ..."></textarea>
+        </div>
+        <div class="field full">
+          <label>Observações</label>
+          <textarea name="notes" placeholder="Algo a destacar sobre a alimentação de hoje..."></textarea>
+        </div>
+        <div class="form-actions full">
+          <button type="submit" class="btn btn-primary">💾 Salvar resumo do dia</button>
+          <button type="button" class="btn btn-ghost cancel-edit" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <h3>Histórico de dieta</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Kcal</th><th>Proteína</th><th>Água</th><th>Fibras</th>
+              <th>Fome</th><th>Doce/Compulsão</th><th>Refeições</th><th>Observações</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dieta"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       5) ABA EXERCÍCIOS
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-exercicios">
+    <div class="section-title">
+      <h2>🏃 Exercícios</h2>
+      <span class="sub">Cada movimento conta na sua jornada</span>
+    </div>
+
+    <div class="form-card">
+      <h3>Novo treino</h3>
+      <form id="form-exercicios" class="form-grid">
+        <input type="hidden" name="editId">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>Tipo de exercício</label>
+          <input type="text" name="type" placeholder="ex: Caminhada, Musculação, Pilates">
+        </div>
+        <div class="field">
+          <label>Duração (min)</label>
+          <input type="number" name="duration" placeholder="ex: 40">
+        </div>
+        <div class="field">
+          <label>Intensidade</label>
+          <select name="intensity">
+            <option value="">Selecionar...</option>
+            <option>Leve</option>
+            <option>Moderada</option>
+            <option>Intensa</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Passos no dia</label>
+          <input type="number" name="steps" placeholder="ex: 8500">
+        </div>
+        <div class="field">
+          <label>Calorias (opcional)</label>
+          <input type="number" name="calories" placeholder="ex: 320">
+        </div>
+        <div class="field full">
+          <label>Observações</label>
+          <textarea name="notes" placeholder="Como foi o treino, disposição, dores..."></textarea>
+        </div>
+        <div class="form-actions full">
+          <button type="submit" class="btn btn-primary">💾 Salvar treino</button>
+          <button type="button" class="btn btn-ghost cancel-edit" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <h3>Histórico de exercícios</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Tipo</th><th>Duração</th><th>Intensidade</th>
+              <th>Passos</th><th>Calorias</th><th>Observações</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-exercicios"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       6) ABA BEM-ESTAR
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-bemestar">
+    <div class="section-title">
+      <h2>🌙 Bem-estar</h2>
+      <span class="sub">Como seu corpo e mente estão na jornada</span>
+    </div>
+
+    <div class="form-card">
+      <h3>Novo registro</h3>
+      <form id="form-bemestar" class="form-grid">
+        <input type="hidden" name="editId">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>Horas de sono</label>
+          <input type="number" step="0.5" name="sleep" placeholder="ex: 7.5">
+        </div>
+        <div class="field">
+          <label>Energia</label>
+          <select name="energy">
+            <option value="">Selecionar...</option>
+            <option value="1">1 — Muito baixa</option>
+            <option value="2">2 — Baixa</option>
+            <option value="3">3 — Normal</option>
+            <option value="4">4 — Boa</option>
+            <option value="5">5 — Excelente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Humor</label>
+          <select name="mood">
+            <option value="">Selecionar...</option>
+            <option value="1">1 — Muito ruim</option>
+            <option value="2">2 — Ruim</option>
+            <option value="3">3 — Neutro</option>
+            <option value="4">4 — Bom</option>
+            <option value="5">5 — Ótimo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Náusea/enjoo</label>
+          <select name="nausea">
+            <option value="">Selecionar...</option>
+            <option>Nenhum</option>
+            <option>Leve</option>
+            <option>Moderado</option>
+            <option>Forte</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Intestino</label>
+          <select name="bowel">
+            <option value="">Selecionar...</option>
+            <option>Normal</option>
+            <option>Constipado</option>
+            <option>Diarreia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Pressão arterial (opcional)</label>
+          <input type="text" name="bloodPressure" placeholder="ex: 120/80">
+        </div>
+        <div class="field full">
+          <label>Observações gerais</label>
+          <textarea name="notes" placeholder="Qualquer coisa que queira registrar sobre como está se sentindo..."></textarea>
+        </div>
+        <div class="form-actions full">
+          <button type="submit" class="btn btn-primary">💾 Salvar registro</button>
+          <button type="button" class="btn btn-ghost cancel-edit" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <h3>Histórico de bem-estar</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Sono</th><th>Energia</th><th>Humor</th><th>Náusea</th>
+              <th>Intestino</th><th>Pressão</th><th>Observações</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-bemestar"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       7) ABA RELATÓRIOS
+       ==================================================================== -->
+  <section class="tab-panel" id="tab-relatorios">
+    <div class="section-title">
+      <h2>📊 Relatórios</h2>
+      <span class="sub">Resumos do seu progresso por período</span>
+    </div>
+
+    <!-- Resumo semanal -->
+    <div class="report-block" id="block-weekly-report">
+      <h3>📅 Resumo semanal</h3>
+      <p class="print-meta" id="print-meta-week"></p>
+      <div class="report-controls">
+        <div class="field">
+          <label>De</label>
+          <input type="date" id="week-start">
+        </div>
+        <div class="field">
+          <label>Até</label>
+          <input type="date" id="week-end">
+        </div>
+        <button class="btn btn-secondary" id="btn-week-report">Atualizar</button>
+        <button class="btn btn-ghost no-print" type="button" id="btn-week-pdf">📄 Baixar PDF</button>
+      </div>
+      <div class="cards-grid" id="weekly-report-cards"></div>
+      <h4 style="font-size:13px;color:var(--salvia);margin-top:14px;">Sintomas mais frequentes no período</h4>
+      <ul class="symptom-list" id="weekly-symptoms"></ul>
+    </div>
+
+    <!-- Resumo mensal -->
+    <div class="report-block" id="block-monthly-report">
+      <h3>🗓️ Resumo mensal</h3>
+      <p class="print-meta" id="print-meta-month"></p>
+      <div class="report-controls">
+        <div class="field">
+          <label>Mês</label>
+          <input type="month" id="month-pick">
+        </div>
+        <button class="btn btn-secondary" id="btn-month-report">Atualizar</button>
+        <button class="btn btn-ghost no-print" type="button" id="btn-month-pdf">📄 Baixar PDF</button>
+      </div>
+      <div class="cards-grid" id="monthly-report-cards"></div>
+      <h4 style="font-size:13px;color:var(--salvia);margin-top:14px;">Sintomas mais frequentes no período</h4>
+      <ul class="symptom-list" id="monthly-symptoms"></ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- Aviso discreto, conforme solicitado -->
+<p class="footer-note">
+  Este painel é apenas para acompanhamento pessoal e não substitui orientação médica.
+</p>
+
+<!-- Barra fixa de backup — visível em todas as abas -->
+<div class="backup-bar">
+  <span class="backup-info">🔒 Seus dados ficam só no seu navegador. Faça backup regularmente.</span>
+  <button id="btn-export" class="btn btn-secondary">⬇️ Exportar backup</button>
+  <button id="btn-import" class="btn btn-ghost">⬆️ Importar backup</button>
+  <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
+</div>
+
+<script>
+/* =====================================================================
+   ATALHOS GERAIS
+   ===================================================================== */
+const $  = (sel, el=document) => el.querySelector(sel);
+const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
+
+function uid(){ return 'id_' + Date.now() + '_' + Math.random().toString(16).slice(2); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+/* leitura/escrita genérica no localStorage --------------------------- */
+function loadArr(key){
+  try{ return JSON.parse(localStorage.getItem(key)) || []; }
+  catch(e){ return []; }
+}
+function saveArr(key, arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+function loadObj(key, def={}){
+  try{ return JSON.parse(localStorage.getItem(key)) || def; }
+  catch(e){ return def; }
+}
+function saveObj(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+
+function fmtDateBR(iso){
+  if(!iso) return '-';
+  const p = iso.split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function diffDays(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+/* =====================================================================
+   FRASES MOTIVACIONAIS — edite/adicione livremente nesta lista
+   ===================================================================== */
+const FRASES = [
+  "Cada pequeno passo de hoje é um degrau para a sua meta. 🌱",
+  "Você não precisa ser perfeita, só precisa ser constante. 💪",
+  "Seu corpo está mudando mesmo nos dias em que a balança não mostra. ✨",
+  "Comemore o progresso, não só o número final. 🎉",
+  "Beber água, dormir bem e se mover: pequenos atos, grandes resultados. 💧",
+  "Você já chegou mais longe do que imaginava no início. Continue! 🚀",
+  "Dias difíceis fazem parte do processo — eles também contam. 🌿",
+  "Sua disciplina de hoje é o resultado de amanhã. 🔥",
+  "Confie no processo. A consistência sempre vence a perfeição. 🧭",
+  "Cuidar de você é o investimento mais importante que existe. 💜"
+];
+function mostrarFraseDoDia(){
+  const banner = $('#motivationalBanner');
+  const indice = Math.floor(Math.random() * FRASES.length);
+  banner.textContent = "💬 " + FRASES[indice];
+}
+
+/* =====================================================================
+   NAVEGAÇÃO POR ABAS
+   ===================================================================== */
+$$('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.classList.remove('active'));
+    $$('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('#tab-' + btn.dataset.tab).classList.add('active');
+    // redesenha o gráfico ao abrir a aba de peso (canvas precisa estar visível)
+    if(btn.dataset.tab === 'peso') renderWeightChart();
+  });
+});
+
+/* =====================================================================
+   CONFIGURAÇÃO DAS SEÇÕES (CRUD genérico)
+   Cada seção define: chave no localStorage, ids do formulário/tabela
+   e a lista de campos (na ordem em que aparecem na tabela).
+   ===================================================================== */
+const Sections = {
+  mounjaro: {
+    storageKey: 'mounjaroRecords',
+    formId: 'form-mounjaro',
+    tbodyId: 'tbody-mounjaro',
+    fields: ['date','dose','location','nextDate','sideEffects','appetite','notes'],
+    dateFields: ['date','nextDate']
+  },
+  peso: {
+    storageKey: 'weightRecords',
+    formId: 'form-peso',
+    tbodyId: 'tbody-peso',
+    fields: ['date','weight','waist','belly','hip','arm','leg',
+             'bodyFatPct','bodyWaterPct','muscle','skeletalMuscle','boneMass','visceralFat','bmi','bmr',
+             'fatControl','bodyAge','bodyScore','bodyType','notes'],
+    dateFields: ['date']
+  },
+  dieta: {
+    storageKey: 'dietRecords',
+    formId: 'form-dieta',
+    tbodyId: 'tbody-dieta',
+    fields: ['date','calories','protein','water','fiber','hunger','cravings','meals','notes'],
+    dateFields: ['date']
+  },
+  exercicios: {
+    storageKey: 'exerciseRecords',
+    formId: 'form-exercicios',
+    tbodyId: 'tbody-exercicios',
+    fields: ['date','type','duration','intensity','steps','calories','notes'],
+    dateFields: ['date']
+  },
+  bemestar: {
+    storageKey: 'wellbeingRecords',
+    formId: 'form-bemestar',
+    tbodyId: 'tbody-bemestar',
+    fields: ['date','sleep','energy','mood','nausea','bowel','bloodPressure','notes'],
+    dateFields: ['date']
+  }
+};
+
+/* renderiza a tabela de uma seção -------------------------------------- */
+function renderSection(key){
+  const sec = Sections[key];
+  const arr = loadArr(sec.storageKey).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const tbody = document.getElementById(sec.tbodyId);
+  if(arr.length === 0){
+    tbody.innerHTML = `<tr><td colspan="${sec.fields.length+1}" class="empty">Nenhum registro ainda. Adicione o primeiro acima! 🌱</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = arr.map(r => {
+    const cells = sec.fields.map(f => {
+      let v = r[f] ?? '';
+      if(sec.dateFields.includes(f)) v = fmtDateBR(v);
+      return `<td>${escapeHtml(v)}</td>`;
+    }).join('');
+    return `<tr>
+      ${cells}
+      <td class="actions">
+        <button class="btn-icon edit" data-section="${key}" data-id="${r.id}" title="Editar">✏️</button>
+        <button class="btn-icon delete" data-section="${key}" data-id="${r.id}" title="Excluir">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* envio de formulário (criar ou atualizar) ----------------------------- */
+function bindForm(key){
+  const sec = Sections[key];
+  const form = document.getElementById(sec.formId);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = {};
+    sec.fields.forEach(f => { data[f] = form.elements[f] ? form.elements[f].value.trim() : ''; });
+    const editId = form.elements['editId'].value;
+    let arr = loadArr(sec.storageKey);
+    if(editId){
+      arr = arr.map(r => r.id === editId ? { ...r, ...data } : r);
+    } else {
+      data.id = uid();
+      arr.push(data);
+    }
+    saveArr(sec.storageKey, arr);
+    form.reset();
+    form.elements['editId'].value = '';
+    toggleCancelBtn(key, false);
+    renderSection(key);
+    refreshDashboard();
+    if(key === 'peso') renderWeightChart();
+  });
+
+  // botão de cancelar edição
+  const cancelBtn = form.querySelector('.cancel-edit');
+  if(cancelBtn){
+    cancelBtn.addEventListener('click', () => {
+      form.reset();
+      form.elements['editId'].value = '';
+      toggleCancelBtn(key, false);
+    });
+  }
+}
+
+function toggleCancelBtn(key, show){
+  const form = document.getElementById(Sections[key].formId);
+  const btn = form.querySelector('.cancel-edit');
+  if(btn) btn.style.display = show ? 'inline-flex' : 'none';
+}
+
+/* edição: preenche o formulário com os dados do registro -------------- */
+function startEdit(key, id){
+  const sec = Sections[key];
+  const rec = loadArr(sec.storageKey).find(r => r.id === id);
+  if(!rec) return;
+  const form = document.getElementById(sec.formId);
+  sec.fields.forEach(f => { if(form.elements[f]) form.elements[f].value = rec[f] ?? ''; });
+  form.elements['editId'].value = id;
+  toggleCancelBtn(key, true);
+  form.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* exclusão de registro -------------------------------------------------- */
+function deleteRecord(key, id){
+  if(!confirm('Tem certeza que deseja excluir este registro?')) return;
+  const sec = Sections[key];
+  const arr = loadArr(sec.storageKey).filter(r => r.id !== id);
+  saveArr(sec.storageKey, arr);
+  renderSection(key);
+  refreshDashboard();
+  if(key === 'peso') renderWeightChart();
+}
+
+/* delegação de clique para todos os botões de editar/excluir ---------- */
+document.addEventListener('click', e => {
+  const editBtn = e.target.closest('.edit');
+  const delBtn  = e.target.closest('.delete');
+  if(editBtn) startEdit(editBtn.dataset.section, editBtn.dataset.id);
+  if(delBtn)  deleteRecord(delBtn.dataset.section, delBtn.dataset.id);
+});
+
+/* inicializa formulários e tabelas de todas as seções ------------------ */
+Object.keys(Sections).forEach(key => {
+  bindForm(key);
+  renderSection(key);
+});
+
+/* =====================================================================
+   CONFIGURAÇÕES (peso inicial / meta) — dashboard
+   ===================================================================== */
+const formSettings = document.getElementById('form-settings');
+function loadSettingsIntoForm(){
+  const s = loadObj('settings', {});
+  formSettings.elements.startWeight.value = s.startWeight ?? '';
+  formSettings.elements.goalWeight.value  = s.goalWeight ?? '';
+}
+formSettings.addEventListener('submit', e => {
+  e.preventDefault();
+  const s = {
+    startWeight: formSettings.elements.startWeight.value ? parseFloat(formSettings.elements.startWeight.value) : null,
+    goalWeight:  formSettings.elements.goalWeight.value  ? parseFloat(formSettings.elements.goalWeight.value)  : null
+  };
+  saveObj('settings', s);
+  refreshDashboard();
+});
+
+/* =====================================================================
+   DASHBOARD
+   ===================================================================== */
+function refreshDashboard(){
+  const settings = loadObj('settings', {});
+  const weightArr = loadArr('weightRecords').slice().sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const mounjaroArr = loadArr('mounjaroRecords');
+
+  const startWeight = settings.startWeight ?? (weightArr.length ? parseFloat(weightArr[0].weight) : null);
+  const currentWeight = weightArr.length ? parseFloat(weightArr[weightArr.length-1].weight) : startWeight;
+  const goalWeight = settings.goalWeight ?? null;
+
+  $('#card-startWeight').innerHTML = startWeight != null ? `${startWeight.toFixed(1)} <small>kg</small>` : '—';
+  $('#card-currentWeight').innerHTML = currentWeight != null ? `${currentWeight.toFixed(1)} <small>kg</small>` : '—';
+  $('#card-goalWeight').innerHTML = goalWeight != null ? `${goalWeight.toFixed(1)} <small>kg</small>` : '—';
+
+  if(startWeight != null && currentWeight != null){
+    const lost = startWeight - currentWeight;
+    $('#card-totalLost').innerHTML = `${lost >= 0 ? '' : '+'}${Math.abs(lost).toFixed(1)} <small>kg ${lost >= 0 ? 'perdidos' : 'ganhos'}</small>`;
+  } else {
+    $('#card-totalLost').textContent = '—';
+  }
+
+  // barra de progresso
+  let pct = 0;
+  if(startWeight != null && goalWeight != null && currentWeight != null && startWeight !== goalWeight){
+    pct = ((startWeight - currentWeight) / (startWeight - goalWeight)) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+  }
+  $('#progressFill').style.width = pct.toFixed(0) + '%';
+  $('#progressLabel').textContent = pct.toFixed(0) + '%';
+
+  // próxima aplicação
+  const sortedMounjaro = mounjaroArr.slice().sort((a,b) => (a.nextDate||'').localeCompare(b.nextDate||''));
+  const today = todayISO();
+  const futuras = sortedMounjaro.filter(r => r.nextDate && r.nextDate >= today);
+  if(futuras.length){
+    $('#card-nextDose').textContent = fmtDateBR(futuras[0].nextDate);
+  } else if(sortedMounjaro.length){
+    $('#card-nextDose').textContent = fmtDateBR(sortedMounjaro[sortedMounjaro.length-1].nextDate) || '—';
+  } else {
+    $('#card-nextDose').textContent = '—';
+  }
+
+  loadSettingsIntoForm();
+  renderWeekSummary();
+}
+
+/* resumo dos últimos 7 dias --------------------------------------------- */
+function renderWeekSummary(){
+  const today = todayISO();
+  const sevenDaysAgo = new Date(Date.now() - 6*86400000).toISOString().slice(0,10);
+
+  const weightArr = loadArr('weightRecords').filter(r => r.date >= sevenDaysAgo && r.date <= today).sort((a,b)=>a.date.localeCompare(b.date));
+  const exerciseArr = loadArr('exerciseRecords').filter(r => r.date >= sevenDaysAgo && r.date <= today);
+  const dietArr = loadArr('dietRecords').filter(r => r.date >= sevenDaysAgo && r.date <= today);
+  const mounjaroArr = loadArr('mounjaroRecords').filter(r => r.date >= sevenDaysAgo && r.date <= today);
+
+  if(weightArr.length >= 2){
+    const variacao = parseFloat(weightArr[weightArr.length-1].weight) - parseFloat(weightArr[0].weight);
+    $('#week-weightChange').textContent = (variacao >= 0 ? '+' : '') + variacao.toFixed(1) + ' kg';
+  } else {
+    $('#week-weightChange').textContent = '—';
+  }
+
+  $('#week-workouts').textContent = exerciseArr.length;
+  $('#week-doses').textContent = mounjaroArr.length;
+
+  const aguaValues = dietArr.map(r => parseFloat(r.water)).filter(v => !isNaN(v));
+  $('#week-water').textContent = aguaValues.length ? (aguaValues.reduce((a,b)=>a+b,0)/aguaValues.length).toFixed(1) : '—';
+}
+
+/* =====================================================================
+   GRÁFICO DE EVOLUÇÃO DO PESO (canvas puro, sem bibliotecas externas)
+   ===================================================================== */
+function renderWeightChart(){
+  const canvas = document.getElementById('weightChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width || canvas.parentElement.clientWidth;
+  const height = 280;
+
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.height = height + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,width,height);
+
+  const arr = loadArr('weightRecords')
+    .filter(r => r.weight !== '' && r.weight != null)
+    .slice()
+    .sort((a,b) => (a.date||'').localeCompare(b.date||''));
+
+  if(arr.length < 2){
+    ctx.fillStyle = '#6B7066';
+    ctx.font = '13px Poppins, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Adicione pelo menos 2 registros de peso para ver o gráfico 📈', width/2, height/2);
+    return;
+  }
+
+  const padding = { top: 30, right: 20, bottom: 36, left: 46 };
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  const weights = arr.map(r => parseFloat(r.weight));
+  let min = Math.min(...weights), max = Math.max(...weights);
+  if(min === max){ min -= 1; max += 1; }
+  const margin = (max - min) * 0.15;
+  min -= margin; max += margin;
+
+  const xFor = i => padding.left + (i / (arr.length - 1)) * plotW;
+  const yFor = w => padding.top + plotH - ((w - min) / (max - min)) * plotH;
+
+  // linhas de grade horizontais
+  ctx.strokeStyle = '#E6E2D6';
+  ctx.lineWidth = 1;
+  const steps = 4;
+  for(let s=0; s<=steps; s++){
+    const y = padding.top + (plotH/steps)*s;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+    const val = max - ((max-min)/steps)*s;
+    ctx.fillStyle = '#6B7066';
+    ctx.font = '10px Poppins, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(1), padding.left - 8, y + 3);
+  }
+
+  // linha de evolução
+  ctx.beginPath();
+  arr.forEach((r,i) => {
+    const x = xFor(i), y = yFor(parseFloat(r.weight));
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#D99A2B';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // área preenchida sutil
+  ctx.lineTo(xFor(arr.length-1), padding.top + plotH);
+  ctx.lineTo(xFor(0), padding.top + plotH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(233,180,76,0.14)';
+  ctx.fill();
+
+  // pontos + datas
+  const labelEvery = Math.ceil(arr.length / 6);
+  arr.forEach((r,i) => {
+    const x = xFor(i), y = yFor(parseFloat(r.weight));
+    ctx.beginPath();
+    ctx.arc(x,y,3.5,0,Math.PI*2);
+    ctx.fillStyle = '#1B4332';
+    ctx.fill();
+
+    if(i % labelEvery === 0 || i === arr.length-1){
+      ctx.fillStyle = '#6B7066';
+      ctx.font = '9.5px Poppins, sans-serif';
+      ctx.textAlign = 'center';
+      const d = r.date.split('-');
+      ctx.fillText(`${d[2]}/${d[1]}`, x, height - 14);
+    }
+  });
+}
+window.addEventListener('resize', () => {
+  if($('#tab-peso').classList.contains('active')) renderWeightChart();
+});
+
+/* =====================================================================
+   RELATÓRIOS — cálculo de resumos por período
+   ===================================================================== */
+function computeReport(startDate, endDate){
+  const inRange = r => r.date >= startDate && r.date <= endDate;
+
+  const weightArr = loadArr('weightRecords').filter(inRange).sort((a,b)=>a.date.localeCompare(b.date));
+  const exerciseArr = loadArr('exerciseRecords').filter(inRange);
+  const dietArr = loadArr('dietRecords').filter(inRange);
+  const mounjaroArr = loadArr('mounjaroRecords').filter(inRange);
+  const wellbeingArr = loadArr('wellbeingRecords').filter(inRange);
+
+  let pesoPerdido = null;
+  if(weightArr.length >= 1){
+    const allWeights = loadArr('weightRecords').sort((a,b)=>a.date.localeCompare(b.date));
+    const before = allWeights.filter(r => r.date < startDate).pop();
+    const first = before || weightArr[0];
+    const last = weightArr[weightArr.length-1];
+    pesoPerdido = parseFloat(first.weight) - parseFloat(last.weight);
+  }
+
+  const aguaValues = dietArr.map(r => parseFloat(r.water)).filter(v=>!isNaN(v));
+  const proteinaValues = dietArr.map(r => parseFloat(r.protein)).filter(v=>!isNaN(v));
+  const aguaMedia = aguaValues.length ? aguaValues.reduce((a,b)=>a+b,0)/aguaValues.length : null;
+  const proteinaMedia = proteinaValues.length ? proteinaValues.reduce((a,b)=>a+b,0)/proteinaValues.length : null;
+
+  // contagem de sintomas (efeitos colaterais + alterações de bem-estar)
+  const sintomas = {};
+  function add(sintoma){
+    const s = sintoma.trim();
+    if(!s) return;
+    sintomas[s] = (sintomas[s] || 0) + 1;
+  }
+  mounjaroArr.forEach(r => (r.sideEffects||'').split(',').forEach(add));
+  wellbeingArr.forEach(r => {
+    if(r.nausea && r.nausea !== 'Nenhum') add('Náusea ' + r.nausea.toLowerCase());
+    if(r.bowel && r.bowel !== 'Normal') add('Intestino: ' + r.bowel);
+  });
+  dietArr.forEach(r => {
+    if(r.cravings && r.cravings !== 'Não senti') add('Vontade de doce: ' + r.cravings);
+  });
+  const sintomasOrdenados = Object.entries(sintomas).sort((a,b) => b[1]-a[1]);
+
+  return {
+    pesoPerdido,
+    treinos: exerciseArr.length,
+    aguaMedia,
+    proteinaMedia,
+    aplicacoes: mounjaroArr.length,
+    sintomasOrdenados
+  };
+}
+
+function renderReportCards(containerId, report){
+  const cont = document.getElementById(containerId);
+  cont.innerHTML = `
+    <div class="card">
+      <div class="label">Peso perdido no período</div>
+      <div class="value">${report.pesoPerdido != null ? (report.pesoPerdido>=0?'':'+') + Math.abs(report.pesoPerdido).toFixed(1) + ' kg' : '—'}</div>
+    </div>
+    <div class="card alt">
+      <div class="label">Treinos realizados</div>
+      <div class="value">${report.treinos}</div>
+    </div>
+    <div class="card alt2">
+      <div class="label">Água média</div>
+      <div class="value">${report.aguaMedia != null ? report.aguaMedia.toFixed(1) + ' L' : '—'}</div>
+    </div>
+    <div class="card">
+      <div class="label">Proteína média</div>
+      <div class="value">${report.proteinaMedia != null ? report.proteinaMedia.toFixed(0) + ' g' : '—'}</div>
+    </div>
+    <div class="card alt">
+      <div class="label">Aplicações de Mounjaro</div>
+      <div class="value">${report.aplicacoes}</div>
+    </div>
+  `;
+}
+function renderSymptomList(listId, report){
+  const ul = document.getElementById(listId);
+  if(!report.sintomasOrdenados.length){
+    ul.innerHTML = '<li style="justify-content:center;color:#6B7066;font-style:italic;">Nenhum sintoma registrado no período</li>';
+    return;
+  }
+  ul.innerHTML = report.sintomasOrdenados.slice(0,5).map(([nome,qtd]) =>
+    `<li><span>${escapeHtml(nome)}</span><b>${qtd}x</b></li>`
+  ).join('');
+}
+
+/* Resumo semanal --------------------------------------------------------- */
+function runWeeklyReport(){
+  const start = $('#week-start').value;
+  const end = $('#week-end').value;
+  if(!start || !end) return;
+  const report = computeReport(start, end);
+  renderReportCards('weekly-report-cards', report);
+  renderSymptomList('weekly-symptoms', report);
+}
+$('#btn-week-report').addEventListener('click', runWeeklyReport);
+
+/* Resumo mensal ----------------------------------------------------------- */
+function runMonthlyReport(){
+  const monthVal = $('#month-pick').value; // formato yyyy-mm
+  if(!monthVal) return;
+  const [y,m] = monthVal.split('-');
+  const start = `${y}-${m}-01`;
+  const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
+  const end = `${y}-${m}-${String(lastDay).padStart(2,'0')}`;
+  const report = computeReport(start, end);
+  renderReportCards('monthly-report-cards', report);
+  renderSymptomList('monthly-symptoms', report);
+}
+$('#btn-month-report').addEventListener('click', runMonthlyReport);
+
+/* =====================================================================
+   BAIXAR RELATÓRIO EM PDF
+   Usa a função de impressão nativa do navegador: ao clicar, isolamos
+   visualmente o relatório selecionado e chamamos window.print(). No
+   destino da impressão, o usuário escolhe "Salvar como PDF".
+   ===================================================================== */
+function printReport(tipo){
+  const agora = new Date().toLocaleString('pt-BR');
+  if(tipo === 'week'){
+    const start = $('#week-start').value;
+    const end = $('#week-end').value;
+    $('#print-meta-week').textContent =
+      `My Health Hub — Relatório Semanal  ·  Período: ${fmtDateBR(start)} a ${fmtDateBR(end)}  ·  Gerado em ${agora}`;
+    document.body.classList.add('printing-week');
+  } else {
+    const monthVal = $('#month-pick').value;
+    $('#print-meta-month').textContent =
+      `My Health Hub — Relatório Mensal  ·  Mês: ${monthVal}  ·  Gerado em ${agora}`;
+    document.body.classList.add('printing-month');
+  }
+  window.print();
+}
+$('#btn-week-pdf').addEventListener('click', () => printReport('week'));
+$('#btn-month-pdf').addEventListener('click', () => printReport('month'));
+
+// remove as classes de impressão depois que a caixa de diálogo é fechada
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing-week');
+  document.body.classList.remove('printing-month');
+});
+
+/* valores padrão dos seletores de período (última semana / mês atual) --- */
+function setDefaultReportDates(){
+  const now = new Date();
+  const end = now.toISOString().slice(0,10);
+  const start = new Date(now.getTime() - 6*86400000).toISOString().slice(0,10);
+  $('#week-start').value = start;
+  $('#week-end').value = end;
+  $('#month-pick').value = end.slice(0,7);
+}
+
+/* =====================================================================
+   BACKUP — exportar e importar todos os dados em um arquivo .json
+   ===================================================================== */
+function exportBackup(){
+  const backup = {
+    mounjaroRecords: loadArr('mounjaroRecords'),
+    weightRecords: loadArr('weightRecords'),
+    dietRecords: loadArr('dietRecords'),
+    exerciseRecords: loadArr('exerciseRecords'),
+    wellbeingRecords: loadArr('wellbeingRecords'),
+    settings: loadObj('settings', {}),
+    exportadoEm: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup-minha-jornada-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    let dados;
+    try{
+      dados = JSON.parse(e.target.result);
+    }catch(err){
+      alert('Não foi possível ler este arquivo. Verifique se é um backup válido (.json).');
+      return;
+    }
+    const temAlgumDado = ['mounjaroRecords','weightRecords','dietRecords','exerciseRecords','wellbeingRecords','settings']
+      .some(k => dados[k]);
+    if(!temAlgumDado){
+      alert('Este arquivo não parece ser um backup do Minha Jornada.');
+      return;
+    }
+    if(!confirm('Importar este backup vai SUBSTITUIR todos os dados atuais salvos neste navegador. Deseja continuar?')) return;
+
+    if(dados.mounjaroRecords)   saveArr('mounjaroRecords', dados.mounjaroRecords);
+    if(dados.weightRecords)     saveArr('weightRecords', dados.weightRecords);
+    if(dados.dietRecords)       saveArr('dietRecords', dados.dietRecords);
+    if(dados.exerciseRecords)   saveArr('exerciseRecords', dados.exerciseRecords);
+    if(dados.wellbeingRecords)  saveArr('wellbeingRecords', dados.wellbeingRecords);
+    if(dados.settings)          saveObj('settings', dados.settings);
+
+    Object.keys(Sections).forEach(renderSection);
+    refreshDashboard();
+    renderWeightChart();
+    runWeeklyReport();
+    runMonthlyReport();
+    alert('Backup importado com sucesso! ✅');
+  };
+  reader.onerror = () => alert('Erro ao ler o arquivo selecionado.');
+  reader.readAsText(file);
+}
+
+$('#btn-export').addEventListener('click', exportBackup);
+$('#btn-import').addEventListener('click', () => $('#import-file').click());
+$('#import-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(file) importBackup(file);
+  e.target.value = ''; // permite selecionar o mesmo arquivo novamente depois
+});
+
+/* =====================================================================
+   INICIALIZAÇÃO GERAL
+   ===================================================================== */
+function init(){
+  mostrarFraseDoDia();
+  refreshDashboard();
+  renderWeightChart();
+  setDefaultReportDates();
+  runWeeklyReport();
+  runMonthlyReport();
+
+  // preenche a data de hoje por padrão em todos os formulários de data
+  $$('input[type="date"][name="date"]').forEach(input => { if(!input.value) input.value = todayISO(); });
+}
+init();
+</script>
+</body>
+</html>
