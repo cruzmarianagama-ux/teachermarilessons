@@ -205,24 +205,26 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
 
 /* ── WEEKLY PLANNER ── */
 .wp-toolbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:white;flex-wrap:wrap;gap:10px}
-.wp-body{flex:1;overflow-y:auto;padding:1rem 1.5rem 2rem;display:flex;flex-direction:column;gap:14px}
-.wp-day{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.wp-body{flex:1;overflow:auto;padding:1rem 1.5rem 2rem;display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;align-items:start}
+.wp-day{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .wp-day-hdr{background:var(--cream);padding:8px 14px;font-size:.75rem;font-weight:700;color:var(--purple);text-transform:capitalize}
 .wp-day-hdr.today{background:var(--orange);color:white}
-.wp-item{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.wp-item{padding:12px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.wp-item-hdr{display:flex;align-items:center;gap:10px}
 .wp-item.wp-done{background:#f3fbf5}
 .wp-item.wp-done .wp-item-content{color:#16a34a}
-.wp-check{width:16px;height:16px;margin-top:2px;accent-color:#16a34a;cursor:pointer;flex-shrink:0}
+.wp-check{width:17px;height:17px;accent-color:#16a34a;cursor:pointer;flex-shrink:0}
 .wp-item-content.missing{color:#B45309;font-weight:600}
-.wp-note{margin-top:6px;width:100%;font-family:'Poppins',sans-serif;font-size:.72rem;border:1px dashed var(--border);border-radius:6px;padding:5px 8px;background:var(--cream);outline:none;color:var(--text)}
+.wp-note{margin-top:2px;width:100%;font-family:'Poppins',sans-serif;font-size:.72rem;border:1px dashed var(--border);border-radius:6px;padding:6px 9px;background:var(--cream);outline:none;color:var(--text)}
 .wp-note:focus{border-color:var(--orange);border-style:solid;background:white}
+.wp-item-time{font-size:.68rem;font-weight:700;color:var(--muted);background:var(--cream);padding:2px 7px;border-radius:20px}
+.wp-item-name{font-size:.76rem;font-weight:600;color:var(--text)}
+.wp-item-content{font-size:.7rem;color:var(--muted);line-height:1.5}
+.wp-item-content.empty{font-style:italic;color:#bbb}
+.wp-empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:.78rem;grid-column:1/-1}
+.wp-day-hdr{font-size:.68rem;padding:7px 10px}
 .topnav-btn{position:relative}
 .nav-badge{position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;font-size:.6rem;font-weight:700;min-width:15px;height:15px;border-radius:20px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
-.wp-item-time{font-size:.72rem;font-weight:700;color:var(--muted);min-width:44px}
-.wp-item-name{font-size:.8rem;font-weight:600;color:var(--text)}
-.wp-item-content{font-size:.76rem;color:var(--muted);margin-top:2px;line-height:1.5}
-.wp-item-content.empty{font-style:italic;color:#bbb}
-.wp-empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:.78rem}
 
 /* ── CONFIG MODAL ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(29,16,80,.45);z-index:100;align-items:center;justify-content:center}
@@ -688,23 +690,25 @@ function saveSchedModal(){
   if(schedTemp.length===0){alert('Adicione pelo menos um horário fixo, ou clique em "Pular por enquanto".');return}
   s.schedule=schedTemp.map(r=>({day:parseInt(r.day),time:r.time||'19:00'}));
   save();
-  const btn=document.querySelector('#modal-sched .btn-cfg-save');
-  if(btn){
-    const original=btn.textContent;
-    btn.disabled=true;btn.style.opacity='.7';btn.textContent='✓ Salvo!';
-    setTimeout(()=>{
-      btn.disabled=false;btn.style.opacity='';btn.textContent=original;
-      closeSchedModal();
-      if(activeId===s.id)renderMain();
-      if(appView==='calendar')renderCalBody();
-      if(appView==='planner')renderPlanner();
-    },500);
-  }else{
-    closeSchedModal();
-    if(activeId===s.id)renderMain();
-    if(appView==='calendar')renderCalBody();
-    if(appView==='planner')renderPlanner();
+  closeSchedModal();
+  if(activeId===s.id)renderMain();
+  if(appView==='calendar')renderCalBody();
+  if(appView==='planner')renderPlanner();
+  showToast('✓ Horários de '+s.name+' salvos!');
+}
+
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='app-toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(0);background:var(--purple);color:white;padding:11px 22px;border-radius:30px;font-family:Poppins,sans-serif;font-size:.8rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none';
+    document.body.appendChild(t);
   }
+  t.textContent=msg;
+  clearTimeout(t._hideTimer);
+  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translateX(-50%) translateY(-6px)'});
+  t._hideTimer=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(0)'},2200);
 }
 
 function delSt(e,id){
@@ -1673,31 +1677,32 @@ function renderPlanner(){
     const iso=d.toISOString().slice(0,10);
     const isToday=iso===today();
     const hol=HOLIDAYS_2026[iso];
+    const hdrLbl=`${WD_SHORT[i]} · ${d.getDate()}/${d.getMonth()+1}${hol?' 🎉':''}`;
     let dayOccs=(byDate[iso]||[]).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
     if(plannerHideDone)dayOccs=dayOccs.filter(o=>!isPrepped(o.studentId,o.date));
     if(!dayOccs.length && !(byDate[iso]||[]).length){
       html+=`<div class="wp-day">
-        <div class="wp-day-hdr${isToday?' today':''}">${d.toLocaleDateString('pt-BR',{weekday:'long'})} · ${d.getDate()}/${d.getMonth()+1}${hol?' · 🎉 '+hol:''}</div>
-        <div class="wp-item"><div class="wp-item-content empty" style="padding:4px 0">Sem aulas nesse dia</div></div>
+        <div class="wp-day-hdr${isToday?' today':''}" title="${hol||''}">${hdrLbl}</div>
+        <div class="wp-item"><div class="wp-item-content empty" style="padding:8px 0">Sem aulas</div></div>
       </div>`;
       continue;
     }
     if(plannerHideDone && !dayOccs.length) continue; // dia todo já preparado, oculta no modo filtro
     html+=`<div class="wp-day">
-      <div class="wp-day-hdr${isToday?' today':''}">${d.toLocaleDateString('pt-BR',{weekday:'long'})} · ${d.getDate()}/${d.getMonth()+1}${hol?' · 🎉 '+hol:''}</div>
+      <div class="wp-day-hdr${isToday?' today':''}" title="${hol||''}">${hdrLbl}</div>
       ${dayOccs.map(o=>{
         const content=getPrevNextHint(o.studentId,o.date);
         const checked=isPrepped(o.studentId,o.date);
         const note=getPrepNote(o.studentId,o.date);
         const missing=!content;
         return `<div class="wp-item${checked?' wp-done':''}">
-          <input type="checkbox" class="wp-check" ${checked?'checked':''} onchange="togglePrep('${o.studentId}','${o.date}')" title="Marcar como preparada">
-          <div class="wp-item-time">${o.time}</div>
-          <div style="flex:1">
-            <div class="wp-item-name">${o.studentName}</div>
-            <div class="wp-item-content${missing?' missing':''}">${missing?'⚠ Sem conteúdo planejado — preencha "Para a próxima aula" na aula anterior':content}</div>
-            <input type="text" class="wp-note" placeholder="+ nota rápida de preparo (material, página, áudio…)" value="${(note||'').replace(/"/g,'&quot;')}" onchange="savePrepNote('${o.studentId}','${o.date}',this.value)">
+          <div class="wp-item-hdr">
+            <input type="checkbox" class="wp-check" ${checked?'checked':''} onchange="togglePrep('${o.studentId}','${o.date}')" title="Marcar como preparada">
+            <span class="wp-item-time">${o.time}</span>
           </div>
+          <div class="wp-item-name">${o.studentName}</div>
+          <div class="wp-item-content${missing?' missing':''}">${missing?'⚠ Falta conteúdo planejado':content}</div>
+          <input type="text" class="wp-note" placeholder="+ nota rápida…" value="${(note||'').replace(/"/g,'&quot;')}" onchange="savePrepNote('${o.studentId}','${o.date}',this.value)">
         </div>`;
       }).join('')}
     </div>`;
