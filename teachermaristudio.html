@@ -232,7 +232,10 @@ body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--text);
 .modal p{font-size:.75rem;color:var(--muted);line-height:1.7;margin-bottom:1rem}
 .modal-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:1.25rem}
 .btn-cancel{background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);padding:8px 18px;font-family:'Poppins',sans-serif;font-size:.78rem;cursor:pointer}
-.btn-cfg-save{background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);padding:8px 22px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer}
+.btn-cfg-save{background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);padding:8px 22px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:transform .08s,opacity .15s}
+.btn-cfg-save:active{transform:scale(.96)}
+.btn-save:active,.btn-add:active,.btn-extra:active,.btn-dl:active,.btn-sm:active,.cal-nav-btn:active,.cal-today-btn:active,.cal-mode-btn:active,.topnav-btn:active{transform:scale(.94)}
+.btn-save,.btn-add,.btn-extra,.btn-dl,.cal-nav-btn,.cal-today-btn,.cal-mode-btn,.topnav-btn{transition:transform .08s,opacity .15s,background .15s}
 .help-link{font-size:.7rem;color:var(--orange);text-decoration:none}
 .help-link:hover{text-decoration:underline}
 .cfg-msg{font-size:.72rem;min-height:1.1rem;margin-top:.4rem}
@@ -682,10 +685,26 @@ function addSchedRow(){schedTemp.push({day:'2',time:'19:00'});renderSchedRows()}
 function rmSchedRow(i){schedTemp.splice(i,1);renderSchedRows()}
 function saveSchedModal(){
   const s=data.students.find(s=>s.id===schedEditId);
+  if(schedTemp.length===0){alert('Adicione pelo menos um horário fixo, ou clique em "Pular por enquanto".');return}
   s.schedule=schedTemp.map(r=>({day:parseInt(r.day),time:r.time||'19:00'}));
-  save();closeSchedModal();
-  if(activeId===s.id)renderMain();
-  if(appView==='calendar')renderCalendar();
+  save();
+  const btn=document.querySelector('#modal-sched .btn-cfg-save');
+  if(btn){
+    const original=btn.textContent;
+    btn.disabled=true;btn.style.opacity='.7';btn.textContent='✓ Salvo!';
+    setTimeout(()=>{
+      btn.disabled=false;btn.style.opacity='';btn.textContent=original;
+      closeSchedModal();
+      if(activeId===s.id)renderMain();
+      if(appView==='calendar')renderCalBody();
+      if(appView==='planner')renderPlanner();
+    },500);
+  }else{
+    closeSchedModal();
+    if(activeId===s.id)renderMain();
+    if(appView==='calendar')renderCalBody();
+    if(appView==='planner')renderPlanner();
+  }
 }
 
 function delSt(e,id){
@@ -1384,7 +1403,7 @@ function calChipHtml(o){
   else if(o.status==='cancelled'){cls+=' cancelled';label=`${o.time} ${ini2(o.studentName)}`;}
   else if(o.status==='done'){cls+=' done';label=`${o.time} ${ini2(o.studentName)}`;}
   else{cls+=o.extra?' extra':' scheduled';label=`${o.time} ${ini2(o.studentName)}${o.extra?' ★':''}`;}
-  return `<div class="${cls}" onclick="openOccModal('${o.studentId}','${o.date}','${o.extra&&o.extraId?o.extraId:''}',${!!o.extra},'${o.movedFrom||''}')" title="${o.studentName}">${label}</div>`;
+  return `<div class="${cls}" onclick="openOccModal('${o.studentId}','${o.date}','${o.extra&&o.extraId?o.extraId:''}',${!!o.extra},'${o.movedFrom||''}')" title="${(o.studentName||'').replace(/"/g,'&quot;')}">${label}</div>`;
 }
 
 function renderCalMonth(){
