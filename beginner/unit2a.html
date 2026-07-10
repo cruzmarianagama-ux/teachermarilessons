@@ -309,6 +309,8 @@
 
   /* ── ANSWER TAG (shows correct answer inline) ── */
   .answer-tag { font-size: 0.74rem; font-weight: 700; color: var(--red); margin-left: 8px; }
+  .why-tag { display: block; font-size: 0.76rem; font-weight: 500; color: var(--purple); background: var(--gray-light); border-left: 3px solid var(--orange); padding: 6px 10px; margin-top: 4px; border-radius: 6px; line-height: 1.4; }
+  .why-tag.hidden { display: none; }
 
   /* ── TEXTAREA ── */
   .writing-area {
@@ -1448,7 +1450,8 @@ function buildMC(containerId, data, prefix) {
   data.forEach((item, i) => {
     const div = document.createElement('div'); div.className = 'mc-item';
     div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">` +
-      item.opts.map((o,j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('') + '</div>';
+      item.opts.map((o,j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('') + '</div>' +
+      `<div class="why-tag hidden" id="${prefix}_${i}_why"></div>`;
     wrap.appendChild(div);
   });
   wrap.querySelectorAll('.mc-option').forEach(opt => {
@@ -1464,14 +1467,21 @@ function checkMC(data, prefix, fbId, exId) {
   data.forEach((item, i) => {
     const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
     opts.forEach(o => o.classList.remove('correct','wrong'));
+    const whyEl = document.getElementById(`${prefix}_${i}_why`);
     const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    let isWrong = false;
     if (sel) {
       const v = parseInt(sel.value);
       opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
       if (v === item.ans) correct++;
-      else opts[item.ans].classList.add('correct');
+      else { opts[item.ans].classList.add('correct'); isWrong = true; }
     } else {
       opts[item.ans].classList.add('correct');
+      isWrong = true;
+    }
+    if (whyEl) {
+      if (isWrong && item.why) { whyEl.textContent = item.why; whyEl.classList.remove('hidden'); }
+      else whyEl.classList.add('hidden');
     }
   });
   const r = scoreText(correct, data.length);
@@ -1481,6 +1491,7 @@ function checkMC(data, prefix, fbId, exId) {
 function resetMC(containerId, prefix, data, fbId) {
   document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
   document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.why-tag').forEach(w => w.classList.add('hidden'));
   document.getElementById(fbId).className = 'feedback';
 }
 
@@ -1494,7 +1505,7 @@ function buildFillX(containerId, data, prefix) {
     for (let k = 1; k < parts.length; k++) {
       html += `<input class="fill-input" id="${prefix}_${i}_${k-1}" placeholder="...">${parts[k]}`;
     }
-    html += ` <span class="answer-tag" id="${prefix}_${i}_tag" style="display:none;"></span></div>`;
+    html += ` <span class="answer-tag" id="${prefix}_${i}_tag" style="display:none;"></span><div class="why-tag hidden" id="${prefix}_${i}_why"></div></div>`;
     div.innerHTML = html;
     wrap.appendChild(div);
   });
@@ -1515,9 +1526,14 @@ function checkFillX(data, prefix, fbId, exId) {
       else { inp.classList.add('wrong'); itemOk = false; wrongAnswers.push(Array.isArray(ans) ? ans[0] : ans); }
     });
     const tag = document.getElementById(`${prefix}_${i}_tag`);
+    const whyEl = document.getElementById(`${prefix}_${i}_why`);
     if (tag) {
       if (itemOk) { tag.style.display = 'none'; }
       else { tag.textContent = `(correto: ${wrongAnswers.join(', ')})`; tag.style.display = 'inline'; }
+    }
+    if (whyEl) {
+      if (!itemOk && item.why) { whyEl.textContent = item.why; whyEl.classList.remove('hidden'); }
+      else whyEl.classList.add('hidden');
     }
   });
   const r = scoreText(correct, total);
@@ -1533,6 +1549,8 @@ function resetFillX(data, prefix, fbId) {
     });
     const tag = document.getElementById(`${prefix}_${i}_tag`);
     if (tag) tag.style.display = 'none';
+    const whyEl = document.getElementById(`${prefix}_${i}_why`);
+    if (whyEl) whyEl.classList.add('hidden');
   });
   document.getElementById(fbId).className = 'feedback';
 }
@@ -1543,7 +1561,7 @@ function buildTF(containerId, data, prefix) {
   const sel = {};
   data.forEach((item, i) => {
     const div = document.createElement('div'); div.className = 'tf-item';
-    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div>`;
+    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div><div class="why-tag hidden" id="${prefix}_${i}_why"></div>`;
     wrap.appendChild(div);
   });
   wrap.querySelectorAll('.tf-btn').forEach(btn => {
@@ -1560,10 +1578,12 @@ function checkTFX(data, sel, fbId, exId, prefix) {
   let correct = 0;
   data.forEach((item, i) => {
     ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if (b) b.classList.remove('correct-t','correct-f'); });
-    if (sel[i] === item.ans) correct++;
+    const whyEl = document.getElementById(`${prefix}_${i}_why`);
+    if (sel[i] === item.ans) { correct++; if (whyEl) whyEl.classList.add('hidden'); }
     else {
       const b = document.getElementById(`${prefix}${item.ans === 'T' ? 't' : 'f'}_${i}`);
       if (b) b.classList.add(item.ans === 'T' ? 'correct-t' : 'correct-f');
+      if (whyEl) { if (item.why) { whyEl.textContent = item.why; whyEl.classList.remove('hidden'); } else whyEl.classList.add('hidden'); }
     }
   });
   const r = scoreText(correct, data.length);
@@ -1574,6 +1594,8 @@ function resetTF(data, sel, prefix, fbId) {
   Object.keys(sel).forEach(k => delete sel[k]);
   data.forEach((_,i) => {
     ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f','correct-t','correct-f'); });
+    const whyEl = document.getElementById(`${prefix}_${i}_why`);
+    if (whyEl) whyEl.classList.add('hidden');
   });
   document.getElementById(fbId).className = 'feedback';
 }
@@ -1640,7 +1662,8 @@ function buildClickMatch(cfg) {
       else { gap.classList.add('wrong-gap'); if (tag) { tag.textContent = `(correto: ${gap.dataset.ans})`; tag.style.display = 'inline'; } }
     });
     const r = scoreText(correct, total);
-    showFeedback(cfg.fbId, r.msg, r.type);
+    const msg = (correct < total && cfg.hint) ? `${r.msg} ${cfg.hint}` : r.msg;
+    showFeedback(cfg.fbId, msg, r.type);
     incrementChecked(cfg.exId);
   });
   document.getElementById(cfg.resetId).addEventListener('click', () => {
@@ -1720,7 +1743,8 @@ function buildCategorize(cfg) {
       else { chip.classList.add('wrong-cat'); hint.textContent = item.group === 'country' ? 'Country' : 'Nationality'; }
     });
     const r = scoreText(correct, cfg.words.length);
-    showFeedback(cfg.fbId, r.msg, r.type);
+    const msg = (correct < cfg.words.length && cfg.hint) ? `${r.msg} ${cfg.hint}` : r.msg;
+    showFeedback(cfg.fbId, msg, r.type);
     incrementChecked(cfg.exId);
   });
   document.getElementById(cfg.resetId).addEventListener('click', () => {
@@ -1741,7 +1765,7 @@ function buildOddOne(cfg) {
   const sel = {};
   cfg.groups.forEach((grp, gi) => {
     const row = document.createElement('div'); row.className = 'oo-row';
-    row.innerHTML = `<div class="oo-label">${gi+1}.</div><div class="oo-words" id="${cfg.wrapId}-g${gi}"></div>`;
+    row.innerHTML = `<div class="oo-label">${gi+1}.</div><div class="oo-words" id="${cfg.wrapId}-g${gi}"></div><div class="why-tag hidden" id="${cfg.wrapId}-why-${gi}"></div>`;
     wrap.appendChild(row);
     const wordsWrap = row.querySelector('.oo-words');
     grp.words.forEach((w, wi) => {
@@ -1763,15 +1787,18 @@ function buildOddOne(cfg) {
       wrap.querySelectorAll(`.oo-chip[data-g="${gi}"]`).forEach(c => c.classList.remove('correct-oo','wrong-oo'));
       const chosen = sel[gi];
       const oddChip = wrap.querySelector(`.oo-chip[data-g="${gi}"][data-w="${grp.oddIndex}"]`);
+      const whyEl = document.getElementById(`${cfg.wrapId}-why-${gi}`);
       if (chosen !== undefined && parseInt(chosen) === grp.oddIndex) {
         wrap.querySelector(`.oo-chip[data-g="${gi}"][data-w="${chosen}"]`).classList.add('correct-oo');
         correct++;
+        if (whyEl) whyEl.classList.add('hidden');
       } else {
         if (chosen !== undefined) {
           const wc = wrap.querySelector(`.oo-chip[data-g="${gi}"][data-w="${chosen}"]`);
           if (wc) wc.classList.add('wrong-oo');
         }
         if (oddChip) oddChip.classList.add('correct-oo');
+        if (whyEl) { if (grp.why) { whyEl.textContent = grp.why; whyEl.classList.remove('hidden'); } else whyEl.classList.add('hidden'); }
       }
     });
     const r = scoreText(correct, cfg.groups.length);
@@ -1780,6 +1807,7 @@ function buildOddOne(cfg) {
   });
   document.getElementById(cfg.resetId).addEventListener('click', () => {
     wrap.querySelectorAll('.oo-chip').forEach(c => c.classList.remove('selected','correct-oo','wrong-oo'));
+    wrap.querySelectorAll('.why-tag').forEach(w => w.classList.add('hidden'));
     Object.keys(sel).forEach(k => delete sel[k]);
     document.getElementById(cfg.fbId).className = 'feedback';
   });
@@ -1796,7 +1824,8 @@ function buildSB(cfg) {
       <div class="sb-words" id="${cfg.wrapId}-words-${i}">${shuffled.map(w => `<button class="sb-chip" data-word="${w}" data-item="${i}">${w}</button>`).join('')}</div>
       <div class="sb-label">Your sentence:</div>
       <div class="sb-zone" id="${cfg.wrapId}-zone-${i}"></div>
-      <div class="answer-tag" id="${cfg.wrapId}-ans-${i}" style="display:none;"></div>`;
+      <div class="answer-tag" id="${cfg.wrapId}-ans-${i}" style="display:none;"></div>
+      <div class="why-tag hidden" id="${cfg.wrapId}-why-${i}"></div>`;
     wrap.appendChild(div);
   });
   wrap.addEventListener('click', e => {
@@ -1816,8 +1845,12 @@ function buildSB(cfg) {
       const tag = document.getElementById(`${cfg.wrapId}-ans-${i}`);
       const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
       zone.classList.remove('correct-zone','wrong-zone');
-      if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; tag.style.display = 'none'; }
-      else { zone.classList.add('wrong-zone'); tag.textContent = `Correto: ${item.ans}`; tag.style.display = 'block'; }
+      const whyEl = document.getElementById(`${cfg.wrapId}-why-${i}`);
+      if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; tag.style.display = 'none'; if (whyEl) whyEl.classList.add('hidden'); }
+      else {
+        zone.classList.add('wrong-zone'); tag.textContent = `Correto: ${item.ans}`; tag.style.display = 'block';
+        if (whyEl) { if (item.why) { whyEl.textContent = item.why; whyEl.classList.remove('hidden'); } else whyEl.classList.add('hidden'); }
+      }
     });
     const r = scoreText(correct, cfg.items.length);
     showFeedback(cfg.fbId, r.msg, r.type);
@@ -1831,6 +1864,8 @@ function buildSB(cfg) {
       zone.classList.remove('correct-zone','wrong-zone');
       Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
       tag.style.display = 'none';
+      const whyEl = document.getElementById(`${cfg.wrapId}-why-${i}`);
+      if (whyEl) whyEl.classList.add('hidden');
     });
     document.getElementById(cfg.fbId).className = 'feedback';
   });
@@ -1847,7 +1882,7 @@ function buildRewrite(cfg) {
   }
   cfg.items.forEach((item, i) => {
     const div = document.createElement('div'); div.className = 'fill-item';
-    div.innerHTML = `<div class="fill-line" style="display:block;">${i+1}. ${item.prompt} &rarr; <input class="fill-input" id="${cfg.wrapId}_${i}" style="width:min(100%,300px);max-width:100%;" placeholder="..."></div><div class="answer-tag" id="${cfg.wrapId}_${i}_tag" style="display:none;"></div>`;
+    div.innerHTML = `<div class="fill-line" style="display:block;">${i+1}. ${item.prompt} &rarr; <input class="fill-input" id="${cfg.wrapId}_${i}" style="width:min(100%,300px);max-width:100%;" placeholder="..."></div><div class="answer-tag" id="${cfg.wrapId}_${i}_tag" style="display:none;"></div><div class="why-tag hidden" id="${cfg.wrapId}_${i}_why"></div>`;
     wrap.appendChild(div);
   });
   document.getElementById(cfg.checkId).addEventListener('click', () => {
@@ -1858,8 +1893,12 @@ function buildRewrite(cfg) {
       inp.classList.remove('correct','wrong');
       const val = inp.value.trim().toLowerCase().replace(/\.+$/, '');
       const ok = item.ans.some(a => a.toLowerCase().replace(/\.+$/, '') === val);
-      if (ok) { inp.classList.add('correct'); correct++; tag.style.display = 'none'; }
-      else { inp.classList.add('wrong'); tag.textContent = `Correto: ${item.ans[0]}`; tag.style.display = 'block'; }
+      const whyEl = document.getElementById(`${cfg.wrapId}_${i}_why`);
+      if (ok) { inp.classList.add('correct'); correct++; tag.style.display = 'none'; if (whyEl) whyEl.classList.add('hidden'); }
+      else {
+        inp.classList.add('wrong'); tag.textContent = `Correto: ${item.ans[0]}`; tag.style.display = 'block';
+        if (whyEl) { if (item.why) { whyEl.textContent = item.why; whyEl.classList.remove('hidden'); } else whyEl.classList.add('hidden'); }
+      }
     });
     const r = scoreText(correct, cfg.items.length);
     showFeedback(cfg.fbId, r.msg, r.type);
@@ -1871,6 +1910,8 @@ function buildRewrite(cfg) {
       const tag = document.getElementById(`${cfg.wrapId}_${i}_tag`);
       inp.value = ''; inp.className = 'fill-input';
       tag.style.display = 'none';
+      const whyEl = document.getElementById(`${cfg.wrapId}_${i}_why`);
+      if (whyEl) whyEl.classList.add('hidden');
     });
     document.getElementById(cfg.fbId).className = 'feedback';
   });
@@ -1880,32 +1921,32 @@ function buildRewrite(cfg) {
 //  DAY 1 – GRAMMAR REVIEW
 // ══════════════════════════════════════════════
 const d1e1Data = [
-  {q:"Where ________ from?", opts:['is he','is','he is'], ans:0},
-  {q:"Hello, ________ Maria.", opts:["I'm",'I','am'], ans:0},
-  {q:"A: Is she a good student?<br>B: ________.", opts:['Yes, is','Yes, she is','Yes, is she'], ans:1},
-  {q:"A: Are you from Italy?<br>B: ________.", opts:['No, I not','No, am I not',"No, I'm not"], ans:2},
-  {q:"What's ________ name?", opts:['you',"you're",'your'], ans:2},
-  {q:"________ Amanda from the United States?", opts:['Am','Are','Is'], ans:2},
-  {q:"Tom ________ from France.", opts:['not',"aren't","isn't"], ans:2},
-  {q:"Are ________ Yumiko?", opts:['he','you','she'], ans:1},
-  {q:"Where ________ from?", opts:['you','you are','are you'], ans:2},
-  {q:"Rio de Janeiro ________ in Brazil.", opts:["it's",'is','are'], ans:1},
+  {q:"Where ________ from?", opts:['is he','is','he is'], ans:0, why:"Em perguntas com 'where', o verbo vem antes do sujeito: is + he."},
+  {q:"Hello, ________ Maria.", opts:["I'm",'I','am'], ans:0, why:"Com o sujeito I, usamos am (I'm = I am)."},
+  {q:"A: Is she a good student?<br>B: ________.", opts:['Yes, is','Yes, she is','Yes, is she'], ans:1, why:"Respostas curtas seguem a ordem sujeito + verbo: Yes, she is."},
+  {q:"A: Are you from Italy?<br>B: ________.", opts:['No, I not','No, am I not',"No, I'm not"], ans:2, why:"A forma negativa de am é I'm not (não existe 'am not' contraído sozinho antes do sujeito)."},
+  {q:"What's ________ name?", opts:['you',"you're",'your'], ans:2, why:"Antes de um substantivo (name) usamos o possessivo your, não you ou you're."},
+  {q:"________ Amanda from the United States?", opts:['Am','Are','Is'], ans:2, why:"Amanda é um nome no singular (ela), então usamos is."},
+  {q:"Tom ________ from France.", opts:['not',"aren't","isn't"], ans:2, why:"Tom é singular (he), então a negativa correta é isn't."},
+  {q:"Are ________ Yumiko?", opts:['he','you','she'], ans:1, why:"A pergunta se refere à pessoa com quem se fala, por isso usamos you."},
+  {q:"Where ________ from?", opts:['you','you are','are you'], ans:2, why:"Em perguntas, o verbo be vem antes do sujeito: are you."},
+  {q:"Rio de Janeiro ________ in Brazil.", opts:["it's",'is','are'], ans:1, why:"Rio de Janeiro é singular, então usamos apenas is (não a contração it's, pois o nome já foi dito)."},
 ];
 buildMC('d1e1', d1e1Data, 'd1e1');
 document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
 document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb'));
 
 const d1e2Data = [
-  {q:"Where is ________?", opts:['I','he','you'], ans:1},
-  {q:"A: Is it from Spain?<br>B: No, ________.", opts:['it is','it not',"it isn't"], ans:2},
-  {q:"________ you from England?", opts:['Am','Are','Is'], ans:1},
-  {q:"________ in room 7.", opts:['You are no','You not',"You aren't"], ans:2},
-  {q:"________ from China.", opts:['Is','She','She is'], ans:2},
-  {q:"I ________ in room 12.", opts:["isn't","'m not","aren't"], ans:1},
-  {q:"________ Melanie.", opts:["I'm not",'Am not','I not'], ans:0},
-  {q:"Mo ________ Egypt.", opts:['from','is','is from'], ans:2},
-  {q:"Where ________?", opts:['it is','are you','I am'], ans:1},
-  {q:"________ Carlos?", opts:['He is','Is he','Is'], ans:1},
+  {q:"Where is ________?", opts:['I','he','you'], ans:1, why:"Depois de 'is', o sujeito é he, she ou it (singular)."},
+  {q:"A: Is it from Spain?<br>B: No, ________.", opts:['it is','it not',"it isn't"], ans:2, why:"A negativa correta de it is é it isn't."},
+  {q:"________ you from England?", opts:['Am','Are','Is'], ans:1, why:"Com you, a forma do verbo be é are."},
+  {q:"________ in room 7.", opts:['You are no','You not',"You aren't"], ans:2, why:"A forma negativa correta com you é you aren't."},
+  {q:"________ from China.", opts:['Is','She','She is'], ans:2, why:"A frase precisa de sujeito + verbo: She is."},
+  {q:"I ________ in room 12.", opts:["isn't","'m not","aren't"], ans:1, why:"Com I, a negativa é 'm not (I'm not)."},
+  {q:"________ Melanie.", opts:["I'm not",'Am not','I not'], ans:0, why:"A negativa correta com I é I'm not."},
+  {q:"Mo ________ Egypt.", opts:['from','is','is from'], ans:2, why:"Precisamos do verbo be + from: is from."},
+  {q:"Where ________?", opts:['it is','are you','I am'], ans:1, why:"Em perguntas, o verbo vem antes do sujeito: are you."},
+  {q:"________ Carlos?", opts:['He is','Is he','Is'], ans:1, why:"Em perguntas, o verbo be vem antes do sujeito: Is he."},
 ];
 buildMC('d1e2', d1e2Data, 'd1e2');
 document.getElementById('d1e2-check').addEventListener('click', () => checkMC(d1e2Data, 'd1e2', 'd1e2-fb', 'd1e2'));
@@ -1915,22 +1956,22 @@ document.getElementById('d1e2-reset').addEventListener('click', () => resetMC('d
 //  DAY 2 – VOCABULARY REVIEW
 // ══════════════════════════════════════════════
 const d2e1Data = [
-  {q:"Today is ________.", opts:['Monday','monday','afternoon'], ans:0},
-  {q:"Is Gilberto from ________?", opts:['brazil','Brazil','brazils'], ans:1},
-  {q:"I'm not ________.", opts:['from Mexico','from mexico','of Mexico'], ans:0},
-  {q:"She's from ________.", opts:['the France','france','France'], ans:2},
-  {q:"My birthday is on ________.", opts:['afternoon','three','Friday'], ans:2},
+  {q:"Today is ________.", opts:['Monday','monday','afternoon'], ans:0, why:"Dias da semana começam com letra maiúscula: Monday."},
+  {q:"Is Gilberto from ________?", opts:['brazil','Brazil','brazils'], ans:1, why:"Nomes de países começam com letra maiúscula: Brazil."},
+  {q:"I'm not ________.", opts:['from Mexico','from mexico','of Mexico'], ans:0, why:"Usamos 'from' + país, e o país começa com maiúscula: from Mexico."},
+  {q:"She's from ________.", opts:['the France','france','France'], ans:2, why:"Não usamos 'the' antes de France, e o nome do país é sempre maiúsculo."},
+  {q:"My birthday is on ________.", opts:['afternoon','three','Friday'], ans:2, why:"Usamos 'on' + dia da semana: on Friday."},
 ];
 buildMC('d2e1', d2e1Data, 'd2e1');
 document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
 document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1', 'd2e1', d2e1Data, 'd2e1-fb'));
 
 const d2e2Data = [
-  {q:"one, two, three, ________", opts:['five','four','six'], ans:1},
-  {q:"Friday, Saturday, Sunday, ________", opts:['Tuesday','Monday','Wednesday'], ans:1},
-  {q:"five, six, seven, ________", opts:['eight','eigth','eithg'], ans:0},
-  {q:"one, three, five, ________", opts:['six','seven','nine'], ans:1},
-  {q:"Monday, Tuesday, Wednesday, ________", opts:['Thurday','thursday','Thursday'], ans:2},
+  {q:"one, two, three, ________", opts:['five','four','six'], ans:1, why:"A sequência é de números seguidos, então depois de three vem four."},
+  {q:"Friday, Saturday, Sunday, ________", opts:['Tuesday','Monday','Wednesday'], ans:1, why:"Depois de Sunday, a semana recomeça com Monday."},
+  {q:"five, six, seven, ________", opts:['eight','eigth','eithg'], ans:0, why:"A grafia correta do número 8 em inglês é eight."},
+  {q:"one, three, five, ________", opts:['six','seven','nine'], ans:1, why:"A sequência é de números ímpares (1, 3, 5...), então o próximo é seven."},
+  {q:"Monday, Tuesday, Wednesday, ________", opts:['Thurday','thursday','Thursday'], ans:2, why:"A grafia correta é Thursday, com letra maiúscula."},
 ];
 buildMC('d2e2', d2e2Data, 'd2e2');
 document.getElementById('d2e2-check').addEventListener('click', () => checkMC(d2e2Data, 'd2e2', 'd2e2-fb', 'd2e2'));
@@ -1945,7 +1986,8 @@ function buildCTF(cfg) {
   let gapIndex = 0;
   const htmlWithGaps = cfg.rtHtml.replace(/___/g, () => {
     const ans = cfg.gapAns[gapIndex] || '';
-    const span = `<span class="ctf-gap" data-gi="${gapIndex}" data-ans="${ans}"></span><span class="answer-tag" data-gi-tag="${gapIndex}" style="display:none;"></span>`;
+    const why = (cfg.gapWhy && cfg.gapWhy[gapIndex]) || '';
+    const span = `<span class="ctf-gap" data-gi="${gapIndex}" data-ans="${ans}" data-why="${why.replace(/"/g,'&quot;')}"></span><span class="answer-tag" data-gi-tag="${gapIndex}" style="display:none;"></span><div class="why-tag hidden" data-gi-why="${gapIndex}"></div>`;
     gapIndex++;
     return span;
   });
@@ -2011,8 +2053,12 @@ function buildCTF(cfg) {
       const filled = (gap.textContent || '').trim().toLowerCase();
       const ans    = (gap.dataset.ans  || '').toLowerCase();
       const tag = rt.querySelector(`[data-gi-tag="${gap.dataset.gi}"]`);
-      if (filled === ans) { gap.classList.add('correct-gap'); correct++; if (tag) tag.style.display = 'none'; }
-      else { gap.classList.add('wrong-gap'); if (tag) { tag.textContent = `(correto: ${gap.dataset.ans})`; tag.style.display = 'inline'; } }
+      const whyEl = rt.querySelector(`[data-gi-why="${gap.dataset.gi}"]`);
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; if (tag) tag.style.display = 'none'; if (whyEl) whyEl.classList.add('hidden'); }
+      else {
+        gap.classList.add('wrong-gap'); if (tag) { tag.textContent = `(correto: ${gap.dataset.ans})`; tag.style.display = 'inline'; }
+        if (whyEl) { if (gap.dataset.why) { whyEl.textContent = gap.dataset.why; whyEl.classList.remove('hidden'); } else whyEl.classList.add('hidden'); }
+      }
     });
     const r = scoreText(correct, total);
     showFeedback(cfg.fbId, r.msg, r.type);
@@ -2025,6 +2071,7 @@ function buildCTF(cfg) {
       gap.classList.remove('correct-gap','wrong-gap','ready');
     });
     rt.querySelectorAll('.answer-tag').forEach(t => t.style.display = 'none');
+    rt.querySelectorAll('.why-tag').forEach(t => t.classList.add('hidden'));
     bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
     selected = null;
     document.getElementById(cfg.fbId).className = 'feedback';
@@ -2039,6 +2086,7 @@ buildClickMatch({
   leftItems: ['Brazil','Switzerland','Japan','Germany','Mexico','Poland','France','Türkiye','The United States','China'],
   rightItems: ['Turkish','Mexican','Chinese','Swiss','French','German','Polish','Japanese','American','Brazilian'],
   correctAns: ['Brazilian','Swiss','Japanese','German','Mexican','Polish','French','Turkish','American','Chinese'],
+  hint: "As marcações em vermelho mostram os pares errados — cada país tem apenas uma nacionalidade correspondente.",
 });
 
 buildClickMatch({
@@ -2046,30 +2094,31 @@ buildClickMatch({
   leftItems: ['beautiful','hot','open','big','old','cold','ugly','closed','small','new'],
   rightItems: ['beautiful','open','old','hot','closed','ugly','cold','new','big','small'],
   correctAns: ['ugly','cold','closed','small','new','hot','beautiful','open','big','old'],
+  hint: "Lembre-se: cada adjetivo tem um oposto exato (ex.: hot ↔ cold, big ↔ small).",
 });
 
 buildRewrite({
   wrapId: 'd3e3', exId: 'd3e3', fbId: 'd3e3-fb', checkId: 'd3e3-check', resetId: 'd3e3-reset',
   example: {prompt:'I am from Brazil.', ans:'I am Brazilian.'},
   items: [
-    {prompt:'She is from Japan.', ans:['She is Japanese.','She is Japanese']},
-    {prompt:'They are from Mexico.', ans:['They are Mexican.','They are Mexican']},
-    {prompt:'We are from Germany.', ans:['We are German.','We are German']},
-    {prompt:'He is from Switzerland.', ans:['He is Swiss.','He is Swiss']},
-    {prompt:'You are from China.', ans:['You are Chinese.','You are Chinese']},
-    {prompt:'They are from Poland.', ans:['They are Polish.','They are Polish']},
-    {prompt:'We are from France.', ans:['We are French.','We are French']},
-    {prompt:'She is from Türkiye.', ans:['She is Turkish.','She is Turkish']},
-    {prompt:'He is from the United States.', ans:['He is American.','He is American']},
-    {prompt:'They are from England.', ans:['They are English.','They are English']},
+    {prompt:'She is from Japan.', ans:['She is Japanese.','She is Japanese'], why:"Japan (país) vira Japanese (nacionalidade)."},
+    {prompt:'They are from Mexico.', ans:['They are Mexican.','They are Mexican'], why:"Mexico (país) vira Mexican (nacionalidade)."},
+    {prompt:'We are from Germany.', ans:['We are German.','We are German'], why:"Germany (país) vira German (nacionalidade)."},
+    {prompt:'He is from Switzerland.', ans:['He is Swiss.','He is Swiss'], why:"Switzerland (país) vira Swiss (nacionalidade)."},
+    {prompt:'You are from China.', ans:['You are Chinese.','You are Chinese'], why:"China (país) vira Chinese (nacionalidade)."},
+    {prompt:'They are from Poland.', ans:['They are Polish.','They are Polish'], why:"Poland (país) vira Polish (nacionalidade)."},
+    {prompt:'We are from France.', ans:['We are French.','We are French'], why:"France (país) vira French (nacionalidade)."},
+    {prompt:'She is from Türkiye.', ans:['She is Turkish.','She is Turkish'], why:"Türkiye (país) vira Turkish (nacionalidade)."},
+    {prompt:'He is from the United States.', ans:['He is American.','He is American'], why:"the United States (país) vira American (nacionalidade)."},
+    {prompt:'They are from England.', ans:['They are English.','They are English'], why:"England (país) vira English (nacionalidade)."},
   ],
 });
 
 const d3e4Data = [
-  {q:"Marta is from Poland. She is ______.", opts:['Polish','Poland','Swiss'], ans:0},
-  {q:"This restaurant isn't open. It is ______.", opts:['beautiful','closed','hot'], ans:1},
-  {q:"Ken is from Japan. He is ______.", opts:['Japanese','Japan','Turkish'], ans:0},
-  {q:"This car isn't old. It is ______.", opts:['beautiful','new','closed'], ans:1},
+  {q:"Marta is from Poland. She is ______.", opts:['Polish','Poland','Swiss'], ans:0, why:"Poland é o país; a nacionalidade correspondente é Polish."},
+  {q:"This restaurant isn't open. It is ______.", opts:['beautiful','closed','hot'], ans:1, why:"O oposto de open (aberto) é closed (fechado)."},
+  {q:"Ken is from Japan. He is ______.", opts:['Japanese','Japan','Turkish'], ans:0, why:"Japan é o país; a nacionalidade correspondente é Japanese."},
+  {q:"This car isn't old. It is ______.", opts:['beautiful','new','closed'], ans:1, why:"O oposto de old (velho) é new (novo)."},
 ];
 buildMC('d3e4', d3e4Data, 'd3e4');
 document.getElementById('d3e4-check').addEventListener('click', () => checkMC(d3e4Data, 'd3e4', 'd3e4-fb', 'd3e4'));
@@ -2089,6 +2138,12 @@ buildCTF({
 <div class="dialogue-line"><span class="speaker">Mia:</span> Nice to meet you!</div>`,
   words: ['are','from','Brazilian','am'],
   gapAns: ['are','from','Brazilian','am'],
+  gapWhy: [
+    "Com you, o verbo be é are.",
+    "Usamos 'from' antes do nome do país: from Spain.",
+    "A nacionalidade de quem é do Brasil é Brazilian.",
+    "Com I, o verbo be é am.",
+  ],
 });
 
 // ══════════════════════════════════════════════
@@ -2107,62 +2162,63 @@ buildCategorize({
     {w:'English', group:'nat'}, {w:'the UK', group:'country'}, {w:'British', group:'nat'},
     {w:'the United States', group:'country'}, {w:'American', group:'nat'},
   ],
+  hint: "Países são lugares (Brazil, Japan); nacionalidades descrevem a pessoa (Brazilian, Japanese).",
 });
 
 buildOddOne({
   wrapId: 'd4e2', exId: 'd4e2', fbId: 'd4e2-fb', checkId: 'd4e2-check', resetId: 'd4e2-reset',
   groups: [
-    {words:['Brazil','Mexico','Japan','Japanese'], oddIndex:3},
-    {words:['American','Brazilian','French','France'], oddIndex:3},
-    {words:['hot','cold','Brazil','open'], oddIndex:2},
-    {words:['Swiss','Polish','The USA','Turkish'], oddIndex:2},
-    {words:['old','new','closed','Mexican'], oddIndex:3},
+    {words:['Brazil','Mexico','Japan','Japanese'], oddIndex:3, why:"Brazil, Mexico e Japan são países; Japanese é uma nacionalidade, não um país."},
+    {words:['American','Brazilian','French','France'], oddIndex:3, why:"American, Brazilian e French são nacionalidades; France é um país."},
+    {words:['hot','cold','Brazil','open'], oddIndex:2, why:"Hot, cold e open são adjetivos; Brazil é o nome de um país."},
+    {words:['Swiss','Polish','The USA','Turkish'], oddIndex:2, why:"Swiss, Polish e Turkish são nacionalidades; The USA é um país."},
+    {words:['old','new','closed','Mexican'], oddIndex:3, why:"Old, new e closed são adjetivos; Mexican é uma nacionalidade."},
   ],
 });
 
 const d4e3Data = [
-  {line:"Maria and Ana are friends. ___ are from Brazil.", ans:['they']},
-  {line:"My teacher is Julia. ___ is from England.", ans:['she']},
-  {line:"This is my phone. ___ is new.", ans:['it']},
-  {line:"Tom is my friend. ___ is from Canada.", ans:['he']},
-  {line:"My parents are on holiday. ___ are in Mexico.", ans:['they']},
-  {line:"That car is old. ___ is not new.", ans:['it']},
-  {line:"Emma is a student. ___ is from Poland.", ans:['she']},
-  {line:"My books are on the table. ___ are new.", ans:['they']},
-  {line:"Jack and Ben are brothers. ___ are from the UK.", ans:['they']},
-  {line:"The museum is closed. ___ is not open.", ans:['it']},
+  {line:"Maria and Ana are friends. ___ are from Brazil.", ans:['they'], why:"Maria and Ana são duas pessoas (plural), então usamos they."},
+  {line:"My teacher is Julia. ___ is from England.", ans:['she'], why:"Julia é um nome feminino no singular, então usamos she."},
+  {line:"This is my phone. ___ is new.", ans:['it'], why:"Phone é uma coisa, então usamos it."},
+  {line:"Tom is my friend. ___ is from Canada.", ans:['he'], why:"Tom é um nome masculino no singular, então usamos he."},
+  {line:"My parents are on holiday. ___ are in Mexico.", ans:['they'], why:"Parents (pais) é plural, então usamos they."},
+  {line:"That car is old. ___ is not new.", ans:['it'], why:"Car é uma coisa, então usamos it."},
+  {line:"Emma is a student. ___ is from Poland.", ans:['she'], why:"Emma é um nome feminino no singular, então usamos she."},
+  {line:"My books are on the table. ___ are new.", ans:['they'], why:"Books (livros) é plural, então usamos they."},
+  {line:"Jack and Ben are brothers. ___ are from the UK.", ans:['they'], why:"Jack and Ben são duas pessoas (plural), então usamos they."},
+  {line:"The museum is closed. ___ is not open.", ans:['it'], why:"Museum é um lugar/coisa, então usamos it."},
 ];
 buildFillX('d4e3', d4e3Data, 'd4e3');
 document.getElementById('d4e3-check').addEventListener('click', () => checkFillX(d4e3Data, 'd4e3', 'd4e3-fb', 'd4e3'));
 document.getElementById('d4e3-reset').addEventListener('click', () => resetFillX(d4e3Data, 'd4e3', 'd4e3-fb'));
 
 const d4e4Data = [
-  {line:"Sarah is from France. ___ is French.", ans:['she']},
-  {line:"My brother and I are students. ___ are students.", ans:['we']},
-  {line:"John and Emma are from England. ___ are English.", ans:['they']},
-  {line:"This hotel is beautiful. ___ is very popular.", ans:['it']},
-  {line:"You and Mike are friends. ___ are friends.", ans:['you']},
-  {line:"My parents are from Mexico. ___ are Mexican.", ans:['they']},
-  {line:"I am Brazilian. ___ am from Brazil.", ans:['i']},
-  {line:"Anna is my teacher. ___ is very good.", ans:['she']},
-  {line:"The books are old. ___ are not new.", ans:['they']},
-  {line:"Peter is from Germany. ___ is German.", ans:['he']},
+  {line:"Sarah is from France. ___ is French.", ans:['she'], why:"Sarah é um nome feminino no singular, então usamos she."},
+  {line:"My brother and I are students. ___ are students.", ans:['we'], why:"'My brother and I' inclui o falante, então usamos we."},
+  {line:"John and Emma are from England. ___ are English.", ans:['they'], why:"John and Emma são duas pessoas (plural), então usamos they."},
+  {line:"This hotel is beautiful. ___ is very popular.", ans:['it'], why:"Hotel é uma coisa/lugar, então usamos it."},
+  {line:"You and Mike are friends. ___ are friends.", ans:['you'], why:"Quando falamos com a pessoa e outra pessoa, usamos you (plural)."},
+  {line:"My parents are from Mexico. ___ are Mexican.", ans:['they'], why:"Parents (pais) é plural, então usamos they."},
+  {line:"I am Brazilian. ___ am from Brazil.", ans:['i'], why:"O sujeito que fala sobre si mesmo é I."},
+  {line:"Anna is my teacher. ___ is very good.", ans:['she'], why:"Anna é um nome feminino no singular, então usamos she."},
+  {line:"The books are old. ___ are not new.", ans:['they'], why:"Books (livros) é plural, então usamos they."},
+  {line:"Peter is from Germany. ___ is German.", ans:['he'], why:"Peter é um nome masculino no singular, então usamos he."},
 ];
 buildFillX('d4e4', d4e4Data, 'd4e4');
 document.getElementById('d4e4-check').addEventListener('click', () => checkFillX(d4e4Data, 'd4e4', 'd4e4-fb', 'd4e4'));
 document.getElementById('d4e4-reset').addEventListener('click', () => resetFillX(d4e4Data, 'd4e4', 'd4e4-fb'));
 
 const d4e5Data = [
-  {line:"We ___ from Brazil.", ans:['are']},
-  {line:"My teacher ___ from England.", ans:['is']},
-  {line:"They ___ on holiday.", ans:['are']},
-  {line:"The museum ___ closed today.", ans:['is']},
-  {line:"You ___ my friend.", ans:['are']},
-  {line:"She ___ Polish.", ans:['is']},
-  {line:"My parents ___ at home.", ans:['are']},
-  {line:"It ___ very old.", ans:['is']},
-  {line:"They ___ American.", ans:['are']},
-  {line:"We ___ students.", ans:['are']},
+  {line:"We ___ from Brazil.", ans:['are'], why:"Com we, o verbo be é are."},
+  {line:"My teacher ___ from England.", ans:['is'], why:"'My teacher' é singular (he/she), então usamos is."},
+  {line:"They ___ on holiday.", ans:['are'], why:"Com they, o verbo be é are."},
+  {line:"The museum ___ closed today.", ans:['is'], why:"'The museum' é singular (it), então usamos is."},
+  {line:"You ___ my friend.", ans:['are'], why:"Com you, o verbo be é are."},
+  {line:"She ___ Polish.", ans:['is'], why:"Com she, o verbo be é is."},
+  {line:"My parents ___ at home.", ans:['are'], why:"'My parents' é plural (they), então usamos are."},
+  {line:"It ___ very old.", ans:['is'], why:"Com it, o verbo be é is."},
+  {line:"They ___ American.", ans:['are'], why:"Com they, o verbo be é are."},
+  {line:"We ___ students.", ans:['are'], why:"Com we, o verbo be é are."},
 ];
 buildFillX('d4e5', d4e5Data, 'd4e5');
 document.getElementById('d4e5-check').addEventListener('click', () => checkFillX(d4e5Data, 'd4e5', 'd4e5-fb', 'd4e5'));
@@ -2175,26 +2231,26 @@ buildRewrite({
   wrapId: 'd5e1', exId: 'd5e1', fbId: 'd5e1-fb', checkId: 'd5e1-check', resetId: 'd5e1-reset',
   example: {prompt:'Maria is Brazilian.', ans:'She is Brazilian.'},
   items: [
-    {prompt:'John is English.', ans:['He is English.','He is English']},
-    {prompt:'My friends are Mexican.', ans:['They are Mexican.','They are Mexican']},
-    {prompt:'The hotel is beautiful.', ans:['It is beautiful.','It is beautiful']},
-    {prompt:'Anna and I are students.', ans:['We are students.','We are students']},
-    {prompt:'My parents are Polish.', ans:['They are Polish.','They are Polish']},
-    {prompt:'The museum is old.', ans:['It is old.','It is old']},
-    {prompt:'Lisa is American.', ans:['She is American.','She is American']},
-    {prompt:'You and Tom are on holiday.', ans:['You are on holiday.','You are on holiday']},
+    {prompt:'John is English.', ans:['He is English.','He is English'], why:"John é um nome masculino no singular → he."},
+    {prompt:'My friends are Mexican.', ans:['They are Mexican.','They are Mexican'], why:"'My friends' é plural → they."},
+    {prompt:'The hotel is beautiful.', ans:['It is beautiful.','It is beautiful'], why:"Hotel é uma coisa → it."},
+    {prompt:'Anna and I are students.', ans:['We are students.','We are students'], why:"'Anna and I' inclui o falante → we."},
+    {prompt:'My parents are Polish.', ans:['They are Polish.','They are Polish'], why:"'My parents' é plural → they."},
+    {prompt:'The museum is old.', ans:['It is old.','It is old'], why:"Museum é um lugar/coisa → it."},
+    {prompt:'Lisa is American.', ans:['She is American.','She is American'], why:"Lisa é um nome feminino no singular → she."},
+    {prompt:'You and Tom are on holiday.', ans:['You are on holiday.','You are on holiday'], why:"'You and Tom', falando com a pessoa e outra → you (plural)."},
   ],
 });
 
 const d5e2Data = [
-  {line:"She ___ Brazilian. She's Mexican.", ans:["isn't"]},
-  {line:"They ___ from Spain. They're from Italy.", ans:["aren't"]},
-  {line:"The hotel ___ old. It's new.", ans:["isn't"]},
-  {line:"We ___ teachers. We're students.", ans:["aren't"]},
-  {line:"He ___ American. He's British.", ans:["isn't"]},
-  {line:"The shops ___ open today. They're closed.", ans:["aren't"]},
-  {line:"It ___ hot today. It's cold.", ans:["isn't"]},
-  {line:"You and Tom ___ at school. You're at home.", ans:["aren't"]},
+  {line:"She ___ Brazilian. She's Mexican.", ans:["isn't"], why:"Com she, a negativa é isn't."},
+  {line:"They ___ from Spain. They're from Italy.", ans:["aren't"], why:"Com they, a negativa é aren't."},
+  {line:"The hotel ___ old. It's new.", ans:["isn't"], why:"'The hotel' é singular (it), então a negativa é isn't."},
+  {line:"We ___ teachers. We're students.", ans:["aren't"], why:"Com we, a negativa é aren't."},
+  {line:"He ___ American. He's British.", ans:["isn't"], why:"Com he, a negativa é isn't."},
+  {line:"The shops ___ open today. They're closed.", ans:["aren't"], why:"'The shops' é plural (they), então a negativa é aren't."},
+  {line:"It ___ hot today. It's cold.", ans:["isn't"], why:"Com it, a negativa é isn't."},
+  {line:"You and Tom ___ at school. You're at home.", ans:["aren't"], why:"'You and Tom' é plural (you), então a negativa é aren't."},
 ];
 buildFillX('d5e2', d5e2Data, 'd5e2');
 document.getElementById('d5e2-check').addEventListener('click', () => checkFillX(d5e2Data, 'd5e2', 'd5e2-fb', 'd5e2'));
@@ -2203,30 +2259,30 @@ document.getElementById('d5e2-reset').addEventListener('click', () => resetFillX
 buildSB({
   wrapId: 'd5e3', exId: 'd5e3', fbId: 'd5e3-fb', checkId: 'd5e3-check', resetId: 'd5e3-reset',
   items: [
-    {words:['Brazilian?','are','you'], ans:'Are you Brazilian?'},
-    {words:['from Mexico?','they','are'], ans:'Are they from Mexico?'},
-    {words:['open?','is','the museum'], ans:'Is the museum open?'},
-    {words:['she','French?','is'], ans:'Is she French?'},
-    {words:['on holiday?','are','we'], ans:'Are we on holiday?'},
-    {words:['old?','is','it'], ans:'Is it old?'},
-    {words:['American?','are','they'], ans:'Are they American?'},
-    {words:['from England?','is','he'], ans:'Is he from England?'},
+    {words:['Brazilian?','are','you'], ans:'Are you Brazilian?', why:"Em perguntas com be, o verbo vem antes do sujeito: Are you...?"},
+    {words:['from Mexico?','they','are'], ans:'Are they from Mexico?', why:"Em perguntas com be, o verbo vem antes do sujeito: Are they...?"},
+    {words:['open?','is','the museum'], ans:'Is the museum open?', why:"Em perguntas com be, o verbo vem antes do sujeito: Is the museum...?"},
+    {words:['she','French?','is'], ans:'Is she French?', why:"Em perguntas com be, o verbo vem antes do sujeito: Is she...?"},
+    {words:['on holiday?','are','we'], ans:'Are we on holiday?', why:"Em perguntas com be, o verbo vem antes do sujeito: Are we...?"},
+    {words:['old?','is','it'], ans:'Is it old?', why:"Em perguntas com be, o verbo vem antes do sujeito: Is it...?"},
+    {words:['American?','are','they'], ans:'Are they American?', why:"Em perguntas com be, o verbo vem antes do sujeito: Are they...?"},
+    {words:['from England?','is','he'], ans:'Is he from England?', why:"Em perguntas com be, o verbo vem antes do sujeito: Is he...?"},
   ],
 });
 
 const d5e4Data = [
-  {q:"A: Are Lucas and Emma from Brazil?<br>B: Yes, ______ Brazilian.", opts:['they are','he is','she is'], ans:0},
-  {q:"A: Is Anna Polish?<br>B: Yes, ______ Polish.", opts:['they are','she is','we are'], ans:1},
-  {q:"A: Are you and your friends on holiday?<br>B: Yes, ______.", opts:['we are','I am','she is'], ans:0},
-  {q:"A: Is Mr Brown American?<br>B: No, ______ British.", opts:['they are','he is','we are'], ans:1},
-  {q:"A: Are Maria and Sofia students?<br>B: Yes, ______ students.", opts:['she is','they are','it is'], ans:1},
-  {q:"A: Are you and your teacher from Mexico?<br>B: Yes, ______ Mexican.", opts:['we are','they are','he is'], ans:0},
-  {q:"A: Is the hotel beautiful?<br>B: Yes, ______ beautiful.", opts:['it is','they are','we are'], ans:0},
-  {q:"A: Are Tom and Jack from the UK?<br>B: No, ______. They're from the United States.", opts:["he isn't","they aren't","it isn't"], ans:1},
-  {q:"A: Is Julia French?<br>B: Yes, ______ French.", opts:['she is','they are','we are'], ans:0},
-  {q:"A: Are the museums open?<br>B: Yes, ______ open.", opts:['it is','they are','he is'], ans:1},
-  {q:"A: Are you and Anna teachers?<br>B: No, ______ students.", opts:['they are','we are','she is'], ans:1},
-  {q:"A: Is this shop closed?<br>B: Yes, ______ closed.", opts:['they are','it is','we are'], ans:1},
+  {q:"A: Are Lucas and Emma from Brazil?<br>B: Yes, ______ Brazilian.", opts:['they are','he is','she is'], ans:0, why:"Lucas and Emma são duas pessoas (plural) → they are."},
+  {q:"A: Is Anna Polish?<br>B: Yes, ______ Polish.", opts:['they are','she is','we are'], ans:1, why:"Anna é um nome feminino no singular → she is."},
+  {q:"A: Are you and your friends on holiday?<br>B: Yes, ______.", opts:['we are','I am','she is'], ans:0, why:"'you and your friends' inclui quem responde → we are."},
+  {q:"A: Is Mr Brown American?<br>B: No, ______ British.", opts:['they are','he is','we are'], ans:1, why:"Mr Brown é um nome masculino no singular → he is."},
+  {q:"A: Are Maria and Sofia students?<br>B: Yes, ______ students.", opts:['she is','they are','it is'], ans:1, why:"Maria and Sofia são duas pessoas (plural) → they are."},
+  {q:"A: Are you and your teacher from Mexico?<br>B: Yes, ______ Mexican.", opts:['we are','they are','he is'], ans:0, why:"'you and your teacher' inclui quem responde → we are."},
+  {q:"A: Is the hotel beautiful?<br>B: Yes, ______ beautiful.", opts:['it is','they are','we are'], ans:0, why:"Hotel é uma coisa (singular) → it is."},
+  {q:"A: Are Tom and Jack from the UK?<br>B: No, ______. They're from the United States.", opts:["he isn't","they aren't","it isn't"], ans:1, why:"Tom and Jack são duas pessoas (plural) → they aren't."},
+  {q:"A: Is Julia French?<br>B: Yes, ______ French.", opts:['she is','they are','we are'], ans:0, why:"Julia é um nome feminino no singular → she is."},
+  {q:"A: Are the museums open?<br>B: Yes, ______ open.", opts:['it is','they are','he is'], ans:1, why:"'the museums' é plural → they are."},
+  {q:"A: Are you and Anna teachers?<br>B: No, ______ students.", opts:['they are','we are','she is'], ans:1, why:"'you and Anna' inclui quem responde → we are."},
+  {q:"A: Is this shop closed?<br>B: Yes, ______ closed.", opts:['they are','it is','we are'], ans:1, why:"Shop é uma coisa (singular) → it is."},
 ];
 buildMC('d5e4', d5e4Data, 'd5e4');
 document.getElementById('d5e4-check').addEventListener('click', () => checkMC(d5e4Data, 'd5e4', 'd5e4-fb', 'd5e4'));
@@ -2240,41 +2296,41 @@ document.getElementById('transcript1-btn').addEventListener('click', () => {
 });
 
 const d6e1TFData = [
-  {s:'Sofia and Lucas are Brazilian.', ans:'T'},
-  {s:'They are in Brazil.', ans:'F'},
-  {s:'Emma and Ben are British.', ans:'T'},
-  {s:'The hotel is old.', ans:'F'},
-  {s:'The hotel is beautiful.', ans:'T'},
-  {s:'The museums are closed.', ans:'F'},
-  {s:'The shops are open.', ans:'F'},
-  {s:"It's cold today.", ans:'F'},
-  {s:'Sofia and Lucas are on holiday.', ans:'T'},
-  {s:'Today is Monday.', ans:'T'},
+  {s:'Sofia and Lucas are Brazilian.', ans:'T', why:"O texto/áudio confirma que eles são brasileiros."},
+  {s:'They are in Brazil.', ans:'F', why:"Segundo o texto/áudio, eles estão viajando, não no Brasil."},
+  {s:'Emma and Ben are British.', ans:'T', why:"O texto/áudio confirma que eles são britânicos."},
+  {s:'The hotel is old.', ans:'F', why:"O texto/áudio diz que o hotel é novo (new), não velho."},
+  {s:'The hotel is beautiful.', ans:'T', why:"O texto/áudio confirma que o hotel é bonito."},
+  {s:'The museums are closed.', ans:'F', why:"O texto diz que os museus estão abertos (open), não fechados."},
+  {s:'The shops are open.', ans:'F', why:"O texto/áudio diz que as lojas estão fechadas, não abertas."},
+  {s:"It's cold today.", ans:'F', why:"O texto/áudio diz que está quente (hot), não frio."},
+  {s:'Sofia and Lucas are on holiday.', ans:'T', why:"O texto/áudio confirma que eles estão de férias."},
+  {s:'Today is Monday.', ans:'T', why:"O texto/áudio confirma que hoje é segunda-feira."},
 ];
 const d6e1sel = buildTF('d6e1', d6e1TFData, 'd6e1');
 document.getElementById('d6e1-check').addEventListener('click', () => checkTFX(d6e1TFData, d6e1sel, 'd6e1-fb', 'd6e1', 'd6e1'));
 document.getElementById('d6e1-reset').addEventListener('click', () => resetTF(d6e1TFData, d6e1sel, 'd6e1', 'd6e1-fb'));
 
 const d6e2Data = [
-  {line:"Sofia and Lucas ___ British.", ans:["aren't"]},
-  {line:"Sofia and Lucas ___ Brazilian.", ans:['are']},
-  {line:"Emma and Ben ___ Brazilian.", ans:["aren't"]},
-  {line:"Emma and Ben ___ British.", ans:['are']},
-  {line:"The hotel ___ old.", ans:["isn't"]},
-  {line:"The museums ___ closed.", ans:["aren't"]},
-  {line:"The shops ___ open.", ans:["aren't"]},
-  {line:"Today ___ Monday.", ans:['is']},
+  {line:"Sofia and Lucas ___ British.", ans:["aren't"], why:"Sofia and Lucas são brasileiros, não britânicos, então a negativa é aren't."},
+  {line:"Sofia and Lucas ___ Brazilian.", ans:['are'], why:"O texto diz que Sofia and Lucas são brasileiros: are."},
+  {line:"Emma and Ben ___ Brazilian.", ans:["aren't"], why:"Emma and Ben são britânicos, não brasileiros, então a negativa é aren't."},
+  {line:"Emma and Ben ___ British.", ans:['are'], why:"O texto diz que Emma and Ben são britânicos: are."},
+  {line:"The hotel ___ old.", ans:["isn't"], why:"O texto diz que o hotel é novo, não velho: isn't."},
+  {line:"The museums ___ closed.", ans:["aren't"], why:"O texto diz que os museus estão abertos, não fechados: aren't."},
+  {line:"The shops ___ open.", ans:["aren't"], why:"O texto diz que as lojas estão fechadas, não abertas: aren't."},
+  {line:"Today ___ Monday.", ans:['is'], why:"O texto diz que hoje é segunda-feira: is."},
 ];
 buildFillX('d6e2', d6e2Data, 'd6e2');
 document.getElementById('d6e2-check').addEventListener('click', () => checkFillX(d6e2Data, 'd6e2', 'd6e2-fb', 'd6e2'));
 document.getElementById('d6e2-reset').addEventListener('click', () => resetFillX(d6e2Data, 'd6e2', 'd6e2-fb'));
 
 const d6e3TFData = [
-  {s:'Ben and his friends are on holiday.', ans:'T'},
-  {s:'Ben and his friends are from Mexico.', ans:'F'},
-  {s:'Emma and her friend are from the UK.', ans:'T'},
-  {s:"Emma's hotel is new.", ans:'F'},
-  {s:"Emma's hotel is beautiful.", ans:'T'},
+  {s:'Ben and his friends are on holiday.', ans:'T', why:"O áudio confirma que Ben and his friends estão de férias."},
+  {s:'Ben and his friends are from Mexico.', ans:'F', why:"O áudio diz que eles são do Brasil (Brazil), não do México."},
+  {s:'Emma and her friend are from the UK.', ans:'T', why:"O áudio confirma que Emma and her friend são do Reino Unido."},
+  {s:"Emma's hotel is new.", ans:'F', why:"O áudio diz que o hotel de Emma não é novo (it isn't), é um pouco antigo."},
+  {s:"Emma's hotel is beautiful.", ans:'T', why:"O áudio confirma que o hotel de Emma é bonito (beautiful)."},
 ];
 const d6e3sel = buildTF('d6e3', d6e3TFData, 'd6e3');
 document.getElementById('d6e3-check').addEventListener('click', () => checkTFX(d6e3TFData, d6e3sel, 'd6e3-fb', 'd6e3', 'd6e3'));
@@ -2284,14 +2340,14 @@ buildRewrite({
   wrapId: 'd6e4', exId: 'd6e4', fbId: 'd6e4-fb', checkId: 'd6e4-check', resetId: 'd6e4-reset',
   example: {prompt:'She is Brazil.', ans:'She is Brazilian.'},
   items: [
-    {prompt:'He are American.', ans:['He is American.','He is American']},
-    {prompt:'They is from Mexico.', ans:['They are from Mexico.','They are from Mexico']},
-    {prompt:"We are no students.", ans:["We aren't students.","We aren't students",'We are not students.','We are not students']},
-    {prompt:"It isn't a beautiful.", ans:["It isn't beautiful.","It isn't beautiful"]},
-    {prompt:'She are French.', ans:['She is French.','She is French']},
-    {prompt:'The museum are open.', ans:['The museum is open.','The museum is open']},
-    {prompt:'I am Brazil.', ans:['I am Brazilian.','I am Brazilian']},
-    {prompt:'You is from Spain.', ans:['You are from Spain.','You are from Spain']},
+    {prompt:'He are American.', ans:['He is American.','He is American'], why:"Com he, o verbo be correto é is, não are."},
+    {prompt:'They is from Mexico.', ans:['They are from Mexico.','They are from Mexico'], why:"Com they, o verbo be correto é are, não is."},
+    {prompt:"We are no students.", ans:["We aren't students.","We aren't students",'We are not students.','We are not students'], why:"A negativa correta com we é aren't (ou are not), não 'are no'."},
+    {prompt:"It isn't a beautiful.", ans:["It isn't beautiful.","It isn't beautiful"], why:"Não usamos 'a' antes de adjetivos: it isn't beautiful."},
+    {prompt:'She are French.', ans:['She is French.','She is French'], why:"Com she, o verbo be correto é is, não are."},
+    {prompt:'The museum are open.', ans:['The museum is open.','The museum is open'], why:"'The museum' é singular (it), então o verbo correto é is."},
+    {prompt:'I am Brazil.', ans:['I am Brazilian.','I am Brazilian'], why:"Para dizer a nacionalidade usamos o adjetivo Brazilian, não o nome do país Brazil."},
+    {prompt:'You is from Spain.', ans:['You are from Spain.','You are from Spain'], why:"Com you, o verbo be correto é are, não is."},
   ],
 });
 
