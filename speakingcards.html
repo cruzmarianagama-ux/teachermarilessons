@@ -160,7 +160,7 @@
   .back-to-top.visible{display:block;}
 
   /* ---------- SETS LIST ---------- */
-  .sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
   .set-card{
     background:var(--white);
     border-radius:16px;
@@ -173,7 +173,22 @@
   .set-card.selected{border-color:var(--orange);background:#fff4ee;}
   .set-card h3{margin:0 0 6px;font-size:16px;color:var(--purple);}
   .set-card p{margin:0;font-size:12px;color:#8a7e6d;}
-  .set-actions{display:flex;gap:6px;margin-top:10px;}
+  .set-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-top:12px;
+  }
+  .set-actions .btn{
+    border-radius:10px;
+    width:100%;
+    padding:9px 6px;
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .set-actions .btn-full{grid-column:1/-1;}
 
   /* ---------- CARD EDITOR ---------- */
   .card-editor-list{display:flex;flex-direction:column;gap:10px;}
@@ -203,6 +218,11 @@
     align-self:center;justify-self:center;
   }
   .tiny-note{font-size:12px;color:#8a7e6d;margin-top:4px;}
+  .img-status{font-size:11px;margin-top:2px;font-weight:600;}
+  .img-status.ok{color:#2f8a3e;}
+  .img-status.error{color:#c0392b;}
+  .img-status.checking{color:#8a7e6d;}
+  .stage-error{color:#c0392b;font-size:15px;text-align:center;padding:0 20px;}
   .audio-test-btn{
     background:var(--green-light);border:none;border-radius:8px;
     padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--purple);
@@ -408,7 +428,7 @@
         <label style="margin:0;">Cards</label>
         <button class="btn btn-secondary btn-sm" id="addCardBtn">+ Add card</button>
       </div>
-      <p class="tiny-note">Paste an image link (from Google, Canva, etc.) OR upload a file. Prompt/question and audio are optional — audio can be a file you upload, or generated automatically by the browser from a text.</p>
+      <p class="tiny-note">Paste a direct image link OR upload a file. From Google Images: open the image full-size first, then right-click it and choose "Copy image address" (not the search results page link). Prompt/question and audio are optional — audio can be a file you upload, or generated automatically by the browser from a text.</p>
       <div id="cardEditorList" class="card-editor-list"></div>
     </div>
 
@@ -505,10 +525,10 @@ function renderSetsGrid(){
       <h3>${escapeHtml(set.name)}</h3>
       <p>${set.cards.length} card${set.cards.length===1?'':'s'}</p>
       <div class="set-actions">
-        <button class="btn btn-primary btn-sm" data-action="use-in-class">▶ Use in class</button>
+        <button class="btn btn-primary btn-sm btn-full" data-action="use-in-class">▶ Use in class</button>
         <button class="btn btn-secondary btn-sm" data-action="edit">Edit</button>
         <button class="btn btn-ghost btn-sm" data-action="duplicate">Duplicate</button>
-        <button class="btn btn-danger btn-sm" data-action="delete">Delete</button>
+        <button class="btn btn-danger btn-sm btn-full" data-action="delete">Delete</button>
       </div>
     `;
     div.querySelector('[data-action="use-in-class"]').onclick = (e)=>{e.stopPropagation(); useSetInClass(set.id);};
@@ -618,6 +638,7 @@ function renderCardEditorList(){
       <div class="col">
         <small>IMAGE LINK</small>
         <input type="text" data-field="image-url" placeholder="https://..." value="${card.image && !card.image.startsWith('data:') ? escapeAttr(card.image) : ''}">
+        <span class="img-status" data-field="img-status"></span>
         <small>OR UPLOAD</small>
         <input type="file" accept="image/*" data-field="image-upload">
       </div>
@@ -639,10 +660,48 @@ function renderCardEditorList(){
       </div>
       <button class="remove-card" data-field="remove">Remove</button>
     `;
-    row.querySelector('[data-field="image-url"]').oninput = (e)=>{
+    const urlInput = row.querySelector('[data-field="image-url"]');
+    const statusEl = row.querySelector('[data-field="img-status"]');
+    let checkTimeout = null;
+
+    function checkImageUrl(url){
+      if(!statusEl) return;
+      if(!url){ statusEl.textContent=''; statusEl.className='img-status'; return; }
+      if(/google\.com\/(imgres|url)|images\.google/i.test(url)){
+        statusEl.textContent = '⚠ This looks like a Google search page link, not the image itself. Right-click the image and choose "Copy image address" instead.';
+        statusEl.className = 'img-status error';
+        return;
+      }
+      statusEl.textContent = 'Checking image...';
+      statusEl.className = 'img-status checking';
+      const testImg = new Image();
+      const timeout = setTimeout(()=>{
+        testImg.src = '';
+        statusEl.textContent = '⚠ This link is taking too long to load. Make sure it points directly to an image file.';
+        statusEl.className = 'img-status error';
+      }, 8000);
+      testImg.onload = ()=>{
+        clearTimeout(timeout);
+        statusEl.textContent = '✓ Image loads correctly';
+        statusEl.className = 'img-status ok';
+      };
+      testImg.onerror = ()=>{
+        clearTimeout(timeout);
+        statusEl.textContent = '⚠ This image could not be loaded. Check that the link is a direct image URL (usually ending in .jpg, .png, .webp...).';
+        statusEl.className = 'img-status error';
+      };
+      testImg.src = url;
+    }
+
+    urlInput.oninput = (e)=>{
       card.image = e.target.value.trim();
       row.querySelector('.card-thumb').src = card.image;
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(()=> checkImageUrl(card.image), 500);
     };
+    if(card.image && !card.image.startsWith('data:')){
+      checkImageUrl(card.image);
+    }
     row.querySelector('[data-field="image-upload"]').onchange = (e)=>{
       const file = e.target.files[0];
       if(!file) return;
@@ -954,6 +1013,21 @@ function renderCardOnStage(card, finished){
   bigCard.innerHTML = '';
   if(card.image){
     const img = document.createElement('img');
+    let settled = false;
+    const failTimeout = setTimeout(()=>{
+      if(settled) return;
+      settled = true;
+      img.remove();
+      showStageImageError(bigCard, card);
+    }, 8000);
+    img.onload = ()=>{ settled = true; clearTimeout(failTimeout); };
+    img.onerror = ()=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(failTimeout);
+      img.remove();
+      showStageImageError(bigCard, card);
+    };
     img.src = card.image;
     bigCard.appendChild(img);
   }
@@ -975,6 +1049,13 @@ function renderCardOnStage(card, finished){
     bigCard.appendChild(speakBtn);
   }
   startTimer();
+}
+
+function showStageImageError(bigCard, card){
+  const errEl = document.createElement('p');
+  errEl.className = 'stage-error';
+  errEl.textContent = '⚠ This image could not be loaded. Edit the card and check the image link.';
+  bigCard.insertBefore(errEl, bigCard.firstChild);
 }
 
 function playCardAudio(card){
