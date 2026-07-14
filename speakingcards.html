@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/9%20(3).png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --orange:#FF5C23;
@@ -124,7 +125,7 @@
 
   .action-bar{
     position:sticky;
-    top:84px;
+    top:0;
     z-index:90;
     background:var(--cream);
     border-bottom:3px solid var(--lavender);
@@ -141,6 +142,7 @@
     max-width:260px;
   }
   .action-bar .tiny-note{width:100%;margin-top:2px;}
+  #storageUsageNote.warning{color:#c0392b;font-weight:700;}
 
   .back-to-top{
     position:fixed;
@@ -160,7 +162,7 @@
   .back-to-top.visible{display:block;}
 
   /* ---------- SETS LIST ---------- */
-  .sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+  .sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
   .set-card{
     background:var(--white);
     border-radius:16px;
@@ -280,8 +282,35 @@
     flex-direction:column;
     align-items:center;
   }
+
+  /* Card deck / stack effect */
+  .card-deck{
+    position:relative;
+    width:100%;
+  }
+  .card-deck::before, .card-deck::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:28px;
+    z-index:0;
+  }
+  .card-deck::before{
+    background:var(--lavender);
+    transform:translate(9px,9px);
+    opacity:.55;
+  }
+  .card-deck::after{
+    background:var(--green-light);
+    transform:translate(18px,18px);
+    opacity:.35;
+  }
+
   .big-card{
-    background:var(--cream);
+    position:relative;
+    z-index:1;
+    background:var(--purple);
+    border:3px dashed var(--orange);
     border-radius:28px;
     width:100%;
     aspect-ratio:4/3;
@@ -290,26 +319,54 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:30px;
+    padding:18px;
+    gap:14px;
     box-shadow:0 14px 0 rgba(0,0,0,0.2);
+    overflow:hidden;
   }
-  .big-card img{max-width:100%;max-height:78%;border-radius:18px;object-fit:contain;}
+  .media-frame{
+    flex:1;
+    width:100%;
+    min-height:0;
+    background:var(--green-dark);
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding:12px;
+  }
+  .big-card img{
+    max-width:100%;
+    max-height:100%;
+    border-radius:8px;
+    object-fit:contain;
+  }
   .big-card .prompt-text{
-    margin-top:20px;
-    font-size:30px;
-    font-weight:700;
-    color:var(--purple);
+    font-size:26px;
+    font-weight:800;
+    color:var(--cream);
     text-align:center;
+    flex-shrink:0;
   }
-  .big-card .placeholder{color:#b0a794;font-size:16px;}
+  .big-card .placeholder{color:rgba(250,234,211,.65);font-size:16px;text-align:center;}
 
-  .stage-controls{display:flex;gap:12px;margin-top:22px;}
+  .stage-controls{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;justify-content:center;}
+  .stage-controls .btn:disabled{opacity:.35;cursor:default;}
   .stage-controls .btn{font-size:17px;padding:13px 28px;}
   .counter{color:var(--cream);font-size:13px;margin-top:10px;opacity:.8;}
 
+  .box-instruction{
+    color:var(--cream);
+    font-size:15px;
+    font-weight:600;
+    opacity:.85;
+    margin-bottom:16px;
+    text-align:center;
+  }
   .box-grid{
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(auto-fill, minmax(80px,1fr));
     gap:14px;
     width:100%;
   }
@@ -379,10 +436,12 @@
   }
   .timer-display.warning{background:var(--orange);color:var(--white);}
   .kbd-hint{color:var(--cream);font-size:12px;opacity:.7;margin-top:6px;}
+  .stage-error{color:#ffb199;font-size:15px;text-align:center;padding:0 20px;}
 
   @media (max-width:680px){
-    .card-row{grid-template-columns:24px 60px 1fr;grid-template-rows:auto auto auto auto;}
-    .remove-card{grid-column:1/-1;justify-self:end;}
+    .card-row{display:flex;flex-direction:column;gap:8px;}
+    .reorder-col{flex-direction:row;justify-content:flex-end;height:auto;}
+    .remove-card{align-self:flex-end;}
     .box-grid{grid-template-columns:repeat(4,1fr);}
     .topbar{flex-direction:column;gap:10px;align-items:flex-start;}
     .big-card{min-height:340px;}
@@ -408,7 +467,8 @@
   <button class="btn btn-ghost" id="importJsonBtn">⬆ Import backup</button>
   <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
   <input type="text" id="searchSetsInput" placeholder="🔎 Search sets by name...">
-  <p class="tiny-note" id="backupNote">Back up every time you create or edit a set — everything is stored only in this browser, so the JSON file is your safety net against data loss.</p>
+  <p class="tiny-note" id="backupNote">Your sets are now synced to the cloud (Supabase) — they're no longer tied to this one browser. Downloading a JSON backup is still a good habit, just in case.</p>
+  <p class="tiny-note" id="storageUsageNote">🟢 Connected to Supabase</p>
 </div>
 
 <!-- ========== ADMIN VIEW ========== -->
@@ -455,20 +515,79 @@
 <button class="back-to-top" id="backToTopBtn" title="Back to top">↑</button>
 
 <script>
-/* ---------------- STORAGE ---------------- */
-const STORAGE_KEY = 'tm_speaking_cards_sets';
+/* ---------------- SUPABASE CONNECTION ---------------- */
+const SUPABASE_URL = 'https://udvhausytibegxxrjfuw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_XpRAf_0V2YvUQzcKvh4SRA_wPcFhTaK';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function loadSets(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e){ return []; }
-}
-function saveSets(sets){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
-}
-
-let sets = loadSets();
+/* ---------------- STORAGE (Supabase-backed) ----------------
+   "sets" is kept as an in-memory cache, refreshed from Supabase
+   after every change, so the rest of the app can keep reading
+   it synchronously exactly like before. */
+let sets = [];
 let editingSetId = null;
 let editorCards = [];
+
+function mapRowToSet(row){
+  return { id: row.id, name: row.name, cards: row.cards || [] };
+}
+
+async function fetchAllSets(){
+  const { data, error } = await supabaseClient
+    .from('card_sets')
+    .select('*')
+    .order('updated_at', { ascending: false });
+  if(error){
+    console.error(error);
+    throw error;
+  }
+  return (data || []).map(mapRowToSet);
+}
+
+async function fetchOneSet(id){
+  const { data, error } = await supabaseClient
+    .from('card_sets')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if(error || !data) return null;
+  return mapRowToSet(data);
+}
+
+async function insertSetInDb(name, cards){
+  const { data, error } = await supabaseClient
+    .from('card_sets')
+    .insert([{ name, cards }])
+    .select()
+    .single();
+  if(error) throw error;
+  return mapRowToSet(data);
+}
+
+async function updateSetInDb(id, name, cards){
+  const { error } = await supabaseClient
+    .from('card_sets')
+    .update({ name, cards, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if(error) throw error;
+}
+
+async function deleteSetInDb(id){
+  const { error } = await supabaseClient
+    .from('card_sets')
+    .delete()
+    .eq('id', id);
+  if(error) throw error;
+}
+
+async function refreshSetsFromDb(){
+  try{
+    sets = await fetchAllSets();
+    renderSetsGrid();
+  }catch(e){
+    setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again.</p>';
+  }
+}
 
 /* ---------------- NAV ---------------- */
 const tabAdminBtn = document.getElementById('tabAdminBtn');
@@ -487,7 +606,7 @@ function switchTab(tab){
   tabAdminBtn.classList.toggle('active', tab==='admin');
   tabPresentBtn.classList.toggle('active', tab==='present');
   actionBar.style.display = tab==='admin' ? 'flex' : 'none';
-  if(tab==='admin'){ stopTimer(); renderSetsGrid(); }
+  if(tab==='admin'){ stopTimer(); refreshSetsFromDb(); }
   if(tab==='present') renderPresentSetSelect();
 }
 
@@ -528,24 +647,33 @@ function renderSetsGrid(){
         <button class="btn btn-primary btn-sm btn-full" data-action="use-in-class">▶ Use in class</button>
         <button class="btn btn-secondary btn-sm" data-action="edit">Edit</button>
         <button class="btn btn-ghost btn-sm" data-action="duplicate">Duplicate</button>
+        <button class="btn btn-ghost btn-sm" data-action="export-pdf">🖨 Export PDF</button>
+        <button class="btn btn-ghost btn-sm" data-action="student-link">🔗 Student link</button>
         <button class="btn btn-danger btn-sm btn-full" data-action="delete">Delete</button>
       </div>
     `;
     div.querySelector('[data-action="use-in-class"]').onclick = (e)=>{e.stopPropagation(); useSetInClass(set.id);};
     div.querySelector('[data-action="edit"]').onclick = (e)=>{e.stopPropagation(); openEditor(set.id);};
     div.querySelector('[data-action="duplicate"]').onclick = (e)=>{e.stopPropagation(); duplicateSet(set.id);};
+    div.querySelector('[data-action="export-pdf"]').onclick = (e)=>{e.stopPropagation(); exportSetAsPDF(set.id);};
+    div.querySelector('[data-action="student-link"]').onclick = (e)=>{e.stopPropagation(); copyStudentLink(set.id);};
     div.querySelector('[data-action="delete"]').onclick = (e)=>{e.stopPropagation(); deleteSet(set.id);};
     setsGrid.appendChild(div);
   });
 }
 
-function useSetInClass(id){
+async function useSetInClass(id){
   adminView.classList.remove('active');
   presentView.classList.add('active');
   tabAdminBtn.classList.remove('active');
   tabPresentBtn.classList.add('active');
   actionBar.style.display = 'none';
-  sets = loadSets();
+  try{
+    sets = await fetchAllSets();
+  }catch(e){
+    alert('Could not reach Supabase. Check your internet connection and try again.');
+    return;
+  }
   presentSetSelect.innerHTML = '';
   sets.forEach(s=>{
     const opt = document.createElement('option');
@@ -558,23 +686,89 @@ function useSetInClass(id){
   startPresentation(id);
 }
 
-function duplicateSet(id){
+async function duplicateSet(id){
   const set = sets.find(s=>s.id===id);
   if(!set) return;
-  const copy = JSON.parse(JSON.stringify(set));
-  copy.id = 's'+Date.now()+Math.random().toString(36).slice(2,6);
-  copy.name = set.name + ' (copy)';
-  copy.cards.forEach(c=> c.id = 'c'+Date.now()+Math.random().toString(36).slice(2,7));
-  sets.push(copy);
-  saveSets(sets);
-  renderSetsGrid();
+  const cardsCopy = JSON.parse(JSON.stringify(set.cards));
+  cardsCopy.forEach(c=> c.id = 'c'+Date.now()+Math.random().toString(36).slice(2,7));
+  try{
+    await insertSetInDb(set.name + ' (copy)', cardsCopy);
+    await refreshSetsFromDb();
+  }catch(e){
+    alert('Could not duplicate the set — check your internet connection and try again.');
+  }
 }
 
-function deleteSet(id){
+function exportSetAsPDF(id){
+  const set = sets.find(s=>s.id===id);
+  if(!set) return;
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Your browser blocked the print window. Please allow pop-ups for this site and try again.');
+    return;
+  }
+  const cardsHtml = set.cards.map((card, i)=>`
+    <div class="pdf-card">
+      <div class="pdf-card-num">${i+1}</div>
+      ${card.image ? `<img src="${card.image}" alt="">` : `<div class="pdf-no-image">No image</div>`}
+      ${card.prompt ? `<p class="pdf-prompt">${escapeHtml(card.prompt)}</p>` : ''}
+    </div>
+  `).join('');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>${escapeHtml(set.name)} — Speaking Cards</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#1D1050;}
+        h1{font-size:22px;margin-bottom:4px;}
+        p.subtitle{color:#666;font-size:13px;margin-top:0;margin-bottom:24px;}
+        .pdf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+        .pdf-card{border:2px solid #1D1050;border-radius:12px;padding:14px;page-break-inside:avoid;}
+        .pdf-card-num{font-weight:bold;color:#FF5C23;font-size:13px;margin-bottom:6px;}
+        .pdf-card img{width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-bottom:8px;}
+        .pdf-no-image{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border-radius:8px;color:#999;font-size:12px;margin-bottom:8px;}
+        .pdf-prompt{font-weight:600;font-size:14px;margin:0;}
+        .print-btn{background:#FF5C23;color:#fff;border:none;padding:10px 20px;border-radius:999px;font-weight:bold;font-size:14px;cursor:pointer;margin-bottom:20px;}
+        @media print{ .print-btn{display:none;} }
+      </style>
+    </head>
+    <body>
+      <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+      <h1>${escapeHtml(set.name)}</h1>
+      <p class="subtitle">${set.cards.length} card${set.cards.length===1?'':'s'} — Teacher Mari Speaking Cards</p>
+      <div class="pdf-grid">${cardsHtml}</div>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function copyStudentLink(id){
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('present', id);
+  const link = url.toString();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(()=>{
+      alert('Student link copied to clipboard:\n\n' + link + '\n\nOpening this link goes straight to class mode with this set, no admin panel visible. Since your sets now live in Supabase (the cloud), this link works from any device or browser — not just this computer.');
+    }).catch(()=>{
+      prompt('Copy this link:', link);
+    });
+  }else{
+    prompt('Copy this link:', link);
+  }
+}
+
+async function deleteSet(id){
   if(!confirm('Delete this set? This action cannot be undone.')) return;
-  sets = sets.filter(s=>s.id!==id);
-  saveSets(sets);
-  renderSetsGrid();
+  try{
+    await deleteSetInDb(id);
+    await refreshSetsFromDb();
+  }catch(e){
+    alert('Could not delete the set — check your internet connection and try again.');
+  }
 }
 
 document.getElementById('newSetBtn').onclick = ()=>{
@@ -760,36 +954,44 @@ function renderCardEditorList(){
   });
 }
 
-document.getElementById('saveSetBtn').onclick = ()=>{
+document.getElementById('saveSetBtn').onclick = async ()=>{
   const name = setNameInput.value.trim();
   if(!name){ alert('Give the set a name before saving.'); return; }
   if(editorCards.length===0){ alert('Add at least one card before saving.'); return; }
 
+  const saveBtn = document.getElementById('saveSetBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
   try{
     if(editingSetId){
-      const set = sets.find(s=>s.id===editingSetId);
-      set.name = name;
-      set.cards = editorCards;
+      await updateSetInDb(editingSetId, name, editorCards);
     }else{
-      sets.push({id:'s'+Date.now(), name, cards: editorCards});
+      await insertSetInDb(name, editorCards);
     }
-    saveSets(sets);
+    await refreshSetsFromDb();
+    editorPanel.style.display = 'none';
   }catch(e){
-    alert('Could not save — the browser reached its local storage limit. Try using image links instead of uploads, or remove older sets.');
-    return;
+    alert('Could not save — check your internet connection and try again. If this keeps happening, your Supabase project may be paused (free projects pause after a week of inactivity — just open the Supabase dashboard to wake it up).');
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save set';
   }
-  editorPanel.style.display = 'none';
-  renderSetsGrid();
 };
 
 /* ---------------- JSON BACKUP ---------------- */
-document.getElementById('exportJsonBtn').onclick = ()=>{
-  sets = loadSets();
-  if(sets.length===0){ alert('There are no sets created yet to export.'); return; }
+document.getElementById('exportJsonBtn').onclick = async ()=>{
+  let currentSets;
+  try{
+    currentSets = await fetchAllSets();
+  }catch(e){
+    alert('Could not reach Supabase to export your backup. Check your internet connection and try again.');
+    return;
+  }
+  if(currentSets.length===0){ alert('There are no sets created yet to export.'); return; }
   const payload = {
     app: 'teachermari-speaking-cards',
     exportedAt: new Date().toISOString(),
-    sets: sets
+    sets: currentSets
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -811,7 +1013,7 @@ document.getElementById('importJsonInput').onchange = (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = (ev)=>{
+  reader.onload = async (ev)=>{
     let data;
     try{
       data = JSON.parse(ev.target.result);
@@ -827,26 +1029,24 @@ document.getElementById('importJsonInput').onchange = (e)=>{
     const mode = confirm(
       'Click "OK" to MERGE this backup with your existing sets.\nClick "Cancel" to REPLACE everything with the backup content.'
     );
-    sets = loadSets();
-    if(mode){
-      // merge: add new sets, avoiding ID clashes
-      incomingSets.forEach(s=>{
-        if(sets.some(existing=>existing.id===s.id)){
-          s.id = 's'+Date.now()+Math.random().toString(36).slice(2,6);
-        }
-        sets.push(s);
-      });
-    }else{
-      sets = incomingSets;
-    }
     try{
-      saveSets(sets);
+      if(!mode){
+        // replace: wipe every existing row first
+        const existing = await fetchAllSets();
+        for(const s of existing){
+          await deleteSetInDb(s.id);
+        }
+      }
+      // insert each incoming set as a brand-new row — Supabase assigns fresh ids,
+      // so we don't reuse the old localStorage-era ids from the backup file
+      for(const s of incomingSets){
+        await insertSetInDb(s.name, s.cards || []);
+      }
+      await refreshSetsFromDb();
+      alert('Backup imported successfully!');
     }catch(err){
-      alert('Could not save the imported backup — the browser reached its local storage limit.');
-      return;
+      alert('Could not import the backup — check your internet connection and try again.');
     }
-    renderSetsGrid();
-    alert('Backup imported successfully!');
     e.target.value = '';
   };
   reader.readAsText(file);
@@ -871,8 +1071,13 @@ document.addEventListener('fullscreenchange', ()=>{
   fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
 });
 
-function renderPresentSetSelect(){
-  sets = loadSets();
+async function renderPresentSetSelect(){
+  try{
+    sets = await fetchAllSets();
+  }catch(e){
+    presentInner.innerHTML = '<p class="empty-msg">⚠ Could not connect to Supabase. Check your internet connection and try again.</p>';
+    return;
+  }
   presentSetSelect.innerHTML = '';
   if(sets.length===0){
     presentSetSelect.innerHTML = '<option>No sets created</option>';
@@ -891,13 +1096,15 @@ function renderPresentSetSelect(){
 
 let currentMode = 'random'; // random | order | box
 let currentSet = null;
-let deckIndex = -1;
-let usedIndices = [];
+let sequence = [];   // indices into currentSet.cards, in the order they were shown
+let position = -1;   // pointer into sequence
 let timerSeconds = 30;
 let timerInterval = null;
 
 function startPresentation(setId){
-  currentSet = sets.find(s=>s.id===setId);
+  // setId can arrive as a string (from a <select> value) or a number
+  // (from our own JS) — compare as strings so both cases match correctly.
+  currentSet = sets.find(s => String(s.id) === String(setId));
   if(!currentSet) return;
   buildModeUI();
 }
@@ -922,12 +1129,9 @@ function setMode(mode){
   presentInner.querySelectorAll('.mode-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.mode===mode);
   });
-  if(mode==='random'){
-    usedIndices = [];
-    deckIndex = -1;
-    renderRandomOrOrderStage();
-  }else if(mode==='order'){
-    deckIndex = -1;
+  if(mode==='random' || mode==='order'){
+    sequence = [];
+    position = -1;
     renderRandomOrOrderStage();
   }else if(mode==='box'){
     renderBoxStage();
@@ -938,11 +1142,14 @@ function renderRandomOrOrderStage(){
   const stageArea = document.getElementById('stageArea');
   stageArea.innerHTML = `
     <div class="stage">
-      <div class="big-card" id="bigCard">
-        <p class="placeholder">Click "Next card" to begin</p>
+      <div class="card-deck">
+        <div class="big-card" id="bigCard">
+          <p class="placeholder">Click "Next card" to begin</p>
+        </div>
       </div>
       <div id="timerDisplayWrap"></div>
       <div class="stage-controls">
+        <button class="btn btn-ghost" id="prevBtn">◀ Previous card</button>
         <button class="btn btn-primary" id="nextBtn">Next card</button>
         <button class="btn btn-ghost" id="resetBtn">Restart</button>
       </div>
@@ -957,46 +1164,69 @@ function renderRandomOrOrderStage(){
         </select>
       </div>
       <div class="counter" id="counterText"></div>
-      <div class="kbd-hint">Tip: press the spacebar to move to the next card</div>
+      <div class="kbd-hint">Tip: press the spacebar for the next card, and the left arrow key to go back</div>
     </div>
   `;
   document.getElementById('nextBtn').onclick = showNextCard;
+  document.getElementById('prevBtn').onclick = showPrevCard;
   document.getElementById('resetBtn').onclick = ()=> setMode(currentMode);
   document.getElementById('timerSelect').onchange = (e)=>{
     timerSeconds = parseInt(e.target.value,10);
   };
+  updatePrevBtnState();
   updateCounter();
+}
+
+function updatePrevBtnState(){
+  const prevBtn = document.getElementById('prevBtn');
+  if(prevBtn) prevBtn.disabled = position<=0;
 }
 
 function updateCounter(){
   const el = document.getElementById('counterText');
   if(!el || !currentSet) return;
   const total = currentSet.cards.length;
-  const done = currentMode==='random' ? usedIndices.length : (deckIndex+1);
-  el.textContent = `${Math.min(done,total)} of ${total} cards`;
+  const done = Math.min(position+1, total);
+  el.textContent = `${done} of ${total} cards`;
 }
 
 function showNextCard(){
   const cards = currentSet.cards;
   if(cards.length===0) return;
-  let card, idx;
-  if(currentMode==='random'){
-    if(usedIndices.length>=cards.length){
-      renderCardOnStage(null,true);
-      return;
-    }
-    do{ idx = Math.floor(Math.random()*cards.length); }while(usedIndices.includes(idx));
-    usedIndices.push(idx);
-    card = cards[idx];
-  }else{
-    deckIndex++;
-    if(deckIndex>=cards.length){
-      renderCardOnStage(null,true);
-      return;
-    }
-    card = cards[deckIndex];
+
+  // if we're stepping back through already-shown cards, just move forward in the existing sequence
+  if(position < sequence.length-1){
+    position++;
+    renderCardOnStage(cards[sequence[position]], false);
+    updatePrevBtnState();
+    updateCounter();
+    return;
   }
-  renderCardOnStage(card,false);
+
+  // otherwise we need to reveal a brand-new card
+  if(sequence.length>=cards.length){
+    renderCardOnStage(null,true);
+    updatePrevBtnState();
+    return;
+  }
+  let idx;
+  if(currentMode==='random'){
+    do{ idx = Math.floor(Math.random()*cards.length); }while(sequence.includes(idx));
+  }else{
+    idx = sequence.length;
+  }
+  sequence.push(idx);
+  position++;
+  renderCardOnStage(cards[idx], false);
+  updatePrevBtnState();
+  updateCounter();
+}
+
+function showPrevCard(){
+  if(position<=0) return;
+  position--;
+  renderCardOnStage(currentSet.cards[sequence[position]], false);
+  updatePrevBtnState();
   updateCounter();
 }
 
@@ -1011,14 +1241,17 @@ function renderCardOnStage(card, finished){
     return;
   }
   bigCard.innerHTML = '';
+  let mediaFrame = null;
   if(card.image){
+    mediaFrame = document.createElement('div');
+    mediaFrame.className = 'media-frame';
     const img = document.createElement('img');
     let settled = false;
     const failTimeout = setTimeout(()=>{
       if(settled) return;
       settled = true;
       img.remove();
-      showStageImageError(bigCard, card);
+      showStageImageError(mediaFrame, card);
     }, 8000);
     img.onload = ()=>{ settled = true; clearTimeout(failTimeout); };
     img.onerror = ()=>{
@@ -1026,10 +1259,11 @@ function renderCardOnStage(card, finished){
       settled = true;
       clearTimeout(failTimeout);
       img.remove();
-      showStageImageError(bigCard, card);
+      showStageImageError(mediaFrame, card);
     };
     img.src = card.image;
-    bigCard.appendChild(img);
+    mediaFrame.appendChild(img);
+    bigCard.appendChild(mediaFrame);
   }
   if(card.prompt){
     const p = document.createElement('p');
@@ -1038,7 +1272,11 @@ function renderCardOnStage(card, finished){
     bigCard.appendChild(p);
   }
   if(!card.image && !card.prompt){
-    bigCard.innerHTML = '<p class="placeholder">(empty card)</p>';
+    if(card.audioFile || card.audioText){
+      bigCard.innerHTML = '<p class="placeholder">🔊 Audio-only card — press play below</p>';
+    }else{
+      bigCard.innerHTML = '<p class="placeholder">(empty card)</p>';
+    }
   }
   if(card.audioFile || card.audioText || card.prompt){
     const speakBtn = document.createElement('button');
@@ -1051,11 +1289,11 @@ function renderCardOnStage(card, finished){
   startTimer();
 }
 
-function showStageImageError(bigCard, card){
+function showStageImageError(container, card){
   const errEl = document.createElement('p');
   errEl.className = 'stage-error';
   errEl.textContent = '⚠ This image could not be loaded. Edit the card and check the image link.';
-  bigCard.insertBefore(errEl, bigCard.firstChild);
+  container.appendChild(errEl);
 }
 
 function playCardAudio(card){
@@ -1099,6 +1337,8 @@ function startTimer(){
 
 let boxOrder = [];
 let boxOpenCounts = [];
+let boxHistory = [];
+let boxPosition = -1;
 
 function shuffleArray(arr){
   const a = arr.slice();
@@ -1113,15 +1353,21 @@ function renderBoxStage(){
   const stageArea = document.getElementById('stageArea');
   boxOrder = shuffleArray(currentSet.cards);
   boxOpenCounts = new Array(boxOrder.length).fill(0);
+  boxHistory = [];
+  boxPosition = -1;
   stageArea.innerHTML = `
     <div class="stage">
-      <div class="big-card" id="bigCard">
-        <p class="placeholder">Pick a number to open the box</p>
+      <div class="card-deck">
+        <div class="big-card" id="bigCard">
+          <p class="placeholder">Pick a number to open the box</p>
+        </div>
       </div>
-      <div class="box-grid" id="boxGrid" style="margin-top:20px;"></div>
-      <p class="kbd-hint" style="margin-top:14px;">Questions are shuffled every time. Boxes stay clickable — reopen as many times as you like. Tip: press keys 1–9 to open boxes 1–9 directly.</p>
+      <p class="box-instruction" style="margin-top:20px;">🔀 Questions are shuffled — tap a box to open (numbers 1–9 also work on your keyboard)</p>
+      <div class="box-grid" id="boxGrid"></div>
+      <div class="counter" id="boxCounterText"></div>
       <div class="stage-controls">
-        <button class="btn btn-ghost" id="resetBoxBtn">Reshuffle boxes</button>
+        <button class="btn btn-ghost" id="prevBoxBtn">◀ Previous card</button>
+        <button class="btn btn-ghost" id="resetBoxBtn">Restart</button>
       </div>
     </div>
   `;
@@ -1135,6 +1381,28 @@ function renderBoxStage(){
     boxGrid.appendChild(b);
   });
   document.getElementById('resetBoxBtn').onclick = ()=> setMode('box');
+  document.getElementById('prevBoxBtn').onclick = showPrevBox;
+  updatePrevBoxBtnState();
+  updateBoxCounter();
+}
+
+function updateBoxCounter(){
+  const el = document.getElementById('boxCounterText');
+  if(!el) return;
+  const openedCount = boxOpenCounts.filter(c=>c>0).length;
+  el.textContent = `${openedCount} of ${boxOrder.length} boxes opened`;
+}
+
+function updatePrevBoxBtnState(){
+  const prevBoxBtn = document.getElementById('prevBoxBtn');
+  if(prevBoxBtn) prevBoxBtn.disabled = boxPosition<=0;
+}
+
+function showPrevBox(){
+  if(boxPosition<=0) return;
+  boxPosition--;
+  renderCardOnStage(boxOrder[boxHistory[boxPosition]], false);
+  updatePrevBoxBtnState();
 }
 
 function openBox(idx){
@@ -1147,6 +1415,10 @@ function openBox(idx){
   boxOpenCounts[idx] = (boxOpenCounts[idx]||0) + 1;
   const countBadge = boxOpenCounts[idx] > 1 ? `<span class="open-count">${boxOpenCounts[idx]}</span>` : '';
   b.innerHTML = `${idx+1}${countBadge}`;
+  boxHistory.push(idx);
+  boxPosition = boxHistory.length-1;
+  updatePrevBoxBtnState();
+  updateBoxCounter();
   renderCardOnStage(boxOrder[idx], false);
 }
 
@@ -1168,6 +1440,17 @@ document.addEventListener('keydown', (e)=>{
     return;
   }
 
+  if(e.code === 'ArrowLeft'){
+    if(currentMode==='random' || currentMode==='order'){
+      e.preventDefault();
+      showPrevCard();
+    }else if(currentMode==='box'){
+      e.preventDefault();
+      showPrevBox();
+    }
+    return;
+  }
+
   if(currentMode==='box' && e.key>='1' && e.key<='9'){
     const idx = parseInt(e.key,10) - 1;
     if(idx < boxOrder.length){
@@ -1184,8 +1467,49 @@ window.addEventListener('scroll', ()=>{
 });
 backToTopBtn.onclick = ()=> window.scrollTo({top:0, behavior:'smooth'});
 
+/* ---------------- STICKY OFFSET (keeps action-bar right under the header, even if the header wraps to two lines on small screens) ---------------- */
+function updateStickyOffsets(){
+  const topbarEl = document.querySelector('.topbar');
+  if(topbarEl && actionBar){
+    actionBar.style.top = topbarEl.offsetHeight + 'px';
+  }
+}
+window.addEventListener('resize', updateStickyOffsets);
+updateStickyOffsets();
+
+/* ---------------- STUDENT MODE (via ?present=<setId> in the URL) ---------------- */
+async function initStudentModeIfNeeded(){
+  const params = new URLSearchParams(window.location.search);
+  const presentId = params.get('present');
+  if(!presentId) return false;
+  const targetSet = await fetchOneSet(presentId);
+  if(!targetSet) return false;
+  sets = [targetSet];
+
+  // hide the "Manage sets" tab entirely — student mode only shows class mode
+  tabAdminBtn.style.display = 'none';
+  actionBar.style.display = 'none';
+  adminView.classList.remove('active');
+  presentView.classList.add('active');
+  tabPresentBtn.classList.add('active');
+
+  presentSetSelect.innerHTML = '';
+  const opt = document.createElement('option');
+  opt.value = targetSet.id;
+  opt.textContent = targetSet.name;
+  presentSetSelect.appendChild(opt);
+  presentSetSelect.disabled = true; // student mode: locked to this one set
+  startPresentation(targetSet.id);
+  return true;
+}
+
 /* ---------------- INIT ---------------- */
-renderSetsGrid();
+(async function init(){
+  const isStudentMode = await initStudentModeIfNeeded();
+  if(!isStudentMode){
+    await refreshSetsFromDb();
+  }
+})();
 </script>
 </body>
 </html>
