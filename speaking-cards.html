@@ -143,6 +143,22 @@
   }
   .action-bar .tiny-note{width:100%;margin-top:2px;}
   #storageUsageNote.warning{color:#c0392b;font-weight:700;}
+  .backup-icons{display:flex;gap:6px;margin-left:auto;}
+  .icon-btn{
+    background:transparent;
+    border:2px solid #d8c7ab;
+    color:#8a7e6d;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.15s;
+  }
+  .icon-btn:hover{border-color:var(--orange);color:var(--orange);}
 
   .back-to-top{
     position:fixed;
@@ -205,8 +221,8 @@
   }
   .reorder-col{display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;height:100%;}
   .reorder-col button{
-    background:var(--lavender);border:none;border-radius:6px;width:26px;height:22px;
-    cursor:pointer;font-size:11px;color:var(--purple);font-weight:800;
+    background:var(--lavender);border:none;border-radius:6px;width:28px;height:26px;
+    cursor:pointer;font-size:12px;color:var(--purple);font-weight:800;
   }
   .reorder-col button:disabled{opacity:.3;cursor:default;}
   .card-thumb{
@@ -248,12 +264,18 @@
     background:var(--purple);
     border-radius:24px;
     min-height:92vh;
+    max-height:92vh;
     padding:30px;
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
     position:relative;
+    overflow-y:auto;
+  }
+  .present-wrap:fullscreen{
+    max-height:100vh;
+    height:100vh;
   }
   .present-controls{
     display:flex;
@@ -438,13 +460,22 @@
   .kbd-hint{color:var(--cream);font-size:12px;opacity:.7;margin-top:6px;}
   .stage-error{color:#ffb199;font-size:15px;text-align:center;padding:0 20px;}
 
-  @media (max-width:680px){
+  /* ---------- TABLET (also catches phones, since these rules are additive) ---------- */
+  @media (max-width:1024px){
     .card-row{display:flex;flex-direction:column;gap:8px;}
     .reorder-col{flex-direction:row;justify-content:flex-end;height:auto;}
+    .reorder-col button{width:34px;height:30px;font-size:13px;}
     .remove-card{align-self:flex-end;}
+  }
+
+  /* ---------- PHONE ---------- */
+  @media (max-width:680px){
     .box-grid{grid-template-columns:repeat(4,1fr);}
     .topbar{flex-direction:column;gap:10px;align-items:flex-start;}
-    .big-card{min-height:340px;}
+    .big-card{min-height:300px;}
+    .present-wrap{padding:16px;min-height:auto;max-height:none;overflow-y:visible;}
+    .icon-btn{width:40px;height:40px;}
+    .action-bar input[type=text]{max-width:none;}
   }
 </style>
 </head>
@@ -463,12 +494,13 @@
 
 <div class="action-bar" id="actionBar">
   <button class="btn btn-primary" id="newSetBtn">+ New set</button>
-  <button class="btn btn-secondary" id="exportJsonBtn">⬇ Download backup (JSON)</button>
-  <button class="btn btn-ghost" id="importJsonBtn">⬆ Import backup</button>
-  <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
   <input type="text" id="searchSetsInput" placeholder="🔎 Search sets by name...">
-  <p class="tiny-note" id="backupNote">Your sets are now synced to the cloud (Supabase) — they're no longer tied to this one browser. Downloading a JSON backup is still a good habit, just in case.</p>
-  <p class="tiny-note" id="storageUsageNote">🟢 Connected to Supabase</p>
+  <div class="backup-icons">
+    <button class="icon-btn" id="exportJsonBtn" title="Download backup (JSON)">⬇</button>
+    <button class="icon-btn" id="importJsonBtn" title="Import backup (JSON)">⬆</button>
+  </div>
+  <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
+  <p class="tiny-note" id="storageUsageNote">🟢 Connected to Supabase — your sets are synced to the cloud, no longer tied to this one browser.</p>
 </div>
 
 <!-- ========== ADMIN VIEW ========== -->
@@ -1475,6 +1507,7 @@ function updateStickyOffsets(){
   }
 }
 window.addEventListener('resize', updateStickyOffsets);
+window.addEventListener('orientationchange', updateStickyOffsets);
 updateStickyOffsets();
 
 /* ---------------- STUDENT MODE (via ?present=<setId> in the URL) ---------------- */
