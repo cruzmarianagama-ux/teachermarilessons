@@ -451,17 +451,6 @@
   .present-wrap:fullscreen .stage{max-width:1300px;}
   .present-wrap:fullscreen .big-card{min-height:760px;}
 
-  .timer-row{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:8px;}
-  .timer-row label{margin:0;color:var(--cream);font-size:13px;font-weight:600;}
-  .timer-row select{width:auto;padding:6px 10px;font-size:13px;}
-  .timer-display{
-    font-size:22px;font-weight:800;color:var(--purple);
-    background:var(--green-light);
-    border-radius:999px;
-    padding:6px 18px;
-    margin-top:10px;
-  }
-  .timer-display.warning{background:var(--orange);color:var(--white);}
   .kbd-hint{color:var(--cream);font-size:12px;opacity:.7;margin-top:6px;}
   .stage-error{color:#ffb199;font-size:15px;text-align:center;padding:0 20px;}
 
@@ -487,7 +476,6 @@
     .stage-controls .btn{font-size:13px;padding:9px 16px;}
     .present-controls{margin-bottom:10px;gap:6px;}
     .mode-btn{padding:7px 12px;font-size:12px;}
-    .timer-row{margin-top:4px;}
     .counter{margin-top:4px;}
     .kbd-hint{font-size:10px;margin-top:3px;}
     .speak-btn{width:44px;height:44px;font-size:18px;margin-top:8px;}
@@ -655,7 +643,7 @@ function switchTab(tab){
   tabAdminBtn.classList.toggle('active', tab==='admin');
   tabPresentBtn.classList.toggle('active', tab==='present');
   actionBar.style.display = tab==='admin' ? 'flex' : 'none';
-  if(tab==='admin'){ stopTimer(); refreshSetsFromDb(); }
+  if(tab==='admin'){ refreshSetsFromDb(); }
   if(tab==='present') renderPresentSetSelect();
 }
 
@@ -1147,8 +1135,6 @@ let currentMode = 'random'; // random | order | box
 let currentSet = null;
 let sequence = [];   // indices into currentSet.cards, in the order they were shown
 let position = -1;   // pointer into sequence
-let timerSeconds = 30;
-let timerInterval = null;
 
 function startPresentation(setId){
   // setId can arrive as a string (from a <select> value) or a number
@@ -1196,21 +1182,10 @@ function renderRandomOrOrderStage(){
           <p class="placeholder">Click "Next card" to begin</p>
         </div>
       </div>
-      <div id="timerDisplayWrap"></div>
       <div class="stage-controls">
         <button class="btn btn-ghost-dark" id="prevBtn">◀ Previous card</button>
         <button class="btn btn-primary" id="nextBtn">Next card</button>
         <button class="btn btn-ghost-dark" id="resetBtn">Restart</button>
-      </div>
-      <div class="timer-row">
-        <label for="timerSelect">⏱️ Timer per card:</label>
-        <select id="timerSelect">
-          <option value="0">No timer</option>
-          <option value="15">15s</option>
-          <option value="30" selected>30s</option>
-          <option value="45">45s</option>
-          <option value="60">60s</option>
-        </select>
       </div>
       <div class="counter" id="counterText"></div>
       <div class="kbd-hint">Tip: press the spacebar for the next card, and the left arrow key to go back</div>
@@ -1219,9 +1194,6 @@ function renderRandomOrOrderStage(){
   document.getElementById('nextBtn').onclick = showNextCard;
   document.getElementById('prevBtn').onclick = showPrevCard;
   document.getElementById('resetBtn').onclick = ()=> setMode(currentMode);
-  document.getElementById('timerSelect').onchange = (e)=>{
-    timerSeconds = parseInt(e.target.value,10);
-  };
   updatePrevBtnState();
   updateCounter();
 }
@@ -1282,11 +1254,8 @@ function showPrevCard(){
 function renderCardOnStage(card, finished){
   const bigCard = document.getElementById('bigCard');
   if(!bigCard) return;
-  stopTimer();
   if(finished){
     bigCard.innerHTML = `<p class="placeholder">🎉 All cards have been shown! Click "Restart" to go again.</p>`;
-    const tdWrap = document.getElementById('timerDisplayWrap');
-    if(tdWrap) tdWrap.innerHTML = '';
     return;
   }
   bigCard.innerHTML = '';
@@ -1335,7 +1304,6 @@ function renderCardOnStage(card, finished){
     speakBtn.onclick = ()=> playCardAudio(card);
     bigCard.appendChild(speakBtn);
   }
-  startTimer();
 }
 
 function showStageImageError(container, card){
@@ -1352,36 +1320,6 @@ function playCardAudio(card){
     const textToSpeak = card.audioText || card.prompt;
     if(textToSpeak) speakText(textToSpeak, card.audioLang || 'en-US');
   }
-}
-
-function stopTimer(){
-  if(timerInterval){
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-}
-
-function startTimer(){
-  const tdWrap = document.getElementById('timerDisplayWrap');
-  if(!tdWrap || !timerSeconds || timerSeconds<=0){
-    if(tdWrap) tdWrap.innerHTML = '';
-    return;
-  }
-  let remaining = timerSeconds;
-  tdWrap.innerHTML = `<div class="timer-display" id="timerDisplay">${remaining}s</div>`;
-  const displayEl = document.getElementById('timerDisplay');
-  timerInterval = setInterval(()=>{
-    remaining--;
-    if(!displayEl) return;
-    if(remaining<=0){
-      displayEl.textContent = '⏰ Time!';
-      displayEl.classList.add('warning');
-      stopTimer();
-      return;
-    }
-    displayEl.textContent = remaining + 's';
-    if(remaining<=5){ displayEl.classList.add('warning'); }
-  },1000);
 }
 
 let boxOrder = [];
