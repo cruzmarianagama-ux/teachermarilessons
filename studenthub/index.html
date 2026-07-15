@@ -153,6 +153,12 @@ const tabs = [
 
 const meses = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+function formatarDataBR(iso) {
+  if (!iso) return "";
+  const [ano, mes, dia] = iso.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
 const statusConfig = {
   agendada: { cor: palette.orange, texto: "#FFFFFF", label: "Agendada" },
   realizada: { cor: palette.lightGreen, texto: palette.green, label: "Realizada" },
@@ -172,16 +178,12 @@ function gerarSequenciaCurriculo(nivel) {
   return sequencia;
 }
 
-// Extrai o código da unidade (ex: "4A") ou Practical English (ex: "PE2") de um texto de assunto
-function extrairCodigoUnidade(texto) {
-  if (!texto) return null;
-  const matchPE = texto.match(/practical\s*english\s*(\d+)|PE\s*(\d+)/i);
-  if (matchPE) return `PE${matchPE[1] || matchPE[2]}`;
-  const matchUnit = texto.match(/unit\s*(\d+)\s*([a-c])/i);
-  if (matchUnit) return `${matchUnit[1]}${matchUnit[2].toUpperCase()}`;
-  return null;
+function rotuloUnidade(codigo) {
+  if (!codigo) return "";
+  return codigo.startsWith("PE") ? `Practical English ${codigo.slice(2)}` : `Unit ${codigo}`;
 }
 
+// Extrai o código da unidade (ex: "4A") ou Practical English (ex: "PE2") de um texto de assunto
 const homeworkLinks = [
   { titulo: "Unit 1A — Weekly Plan", url: "https://teachermarilessons.com.br/beginner/unit1a" },
   { titulo: "Unit 4A — Weekly Plan", url: "https://teachermarilessons.com.br/beginner/unit4a" },
@@ -629,7 +631,8 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
   const [editandoAulaRegistrada, setEditandoAulaRegistrada] = useState(false);
   const [rascunhoAulaRegistrada, setRascunhoAulaRegistrada] = useState(null);
   const [aulasRegistradas, setAulasRegistradas] = useState([]);
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
+  const [homeworkStatus, setHomeworkStatus] = useState({});
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
@@ -729,6 +732,12 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
 
       const { data: lessonsData } = await supabase
         .from("lessons").select("*").eq("turma_id", turmaId);
+      const hojeISO = new Date().toISOString().slice(0, 10);
+      const expiradas = (lessonsData || []).filter((l) => l.status === "aRepor" && l.prazo_reposicao && l.prazo_reposicao < hojeISO);
+      if (expiradas.length > 0) {
+        await supabase.from("lessons").update({ status: "perdida" }).in("id", expiradas.map((l) => l.id));
+        expiradas.forEach((l) => { l.status = "perdida"; });
+      }
       const aulasObj = {};
       (lessonsData || []).forEach((l) => {
         const d = new Date(l.data + "T00:00:00");
@@ -739,8 +748,13 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
       const { data: recordsData } = await supabase
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
       setAulasRegistradas((recordsData || []).map((r) => ({
-        data: r.data, assunto: r.assunto, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], rowId: r.id,
+        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], rowId: r.id,
       })));
+
+      const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
+      const hwObj = {};
+      (homeworkStatusData || []).forEach((h) => { hwObj[h.lesson_record_id] = h.concluido; });
+      setHomeworkStatus(hwObj);
 
       const { data: billingData } = await supabase
         .from("billing").select("*").eq("turma_id", turmaId).order("vencimento", { ascending: true });
@@ -800,13 +814,15 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
     if (rascunho.status === "realizada" && rascunho.assunto) {
       const { data: registro, error: erroRegistro } = await supabase
         .from("lesson_records")
-        .insert({ turma_id: turmaId, data: dataISO, assunto: rascunho.assunto, cronograma_url: rascunho.cronogramaUrl || null, embeds: [] })
+        .insert({ turma_id: turmaId, data: dataISO, assunto: rascunho.assunto, unidade: rascunho.unidade || null, cronograma_url: rascunho.cronogramaUrl || null, embeds: [] })
         .select().single();
       if (!erroRegistro) {
-        setAulasRegistradas((prev) => [{ data: dataISO, assunto: rascunho.assunto, cronogramaUrl: rascunho.cronogramaUrl, embeds: [], rowId: registro.id }, ...prev]);
-        const label = rascunho.assunto.split("—")[0].trim();
-        await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
-        setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+        setAulasRegistradas((prev) => [{ data: dataISO, assunto: rascunho.assunto, unidade: rascunho.unidade, cronogramaUrl: rascunho.cronogramaUrl, embeds: [], rowId: registro.id }, ...prev]);
+        if (rascunho.unidade) {
+          const label = rotuloUnidade(rascunho.unidade);
+          await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
+          setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+        }
       }
     }
 
@@ -850,6 +866,38 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
     setDiaSelecionado(null);
   };
 
+  const avisarNaoComparecimento = async (chave) => {
+    const [m, d] = chave.split("-").map(Number);
+    const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const horarioAula = dataHoraDaAula(dataISO);
+
+    const confirmar = window.confirm("Avisar que você não vai comparecer a essa aula?");
+    if (!confirmar) return;
+
+    const agora = new Date();
+    const horasAteAula = horarioAula ? (horarioAula - agora) / (1000 * 60 * 60) : 0;
+    const novoStatus = horasAteAula >= 3 ? "aRepor" : "perdida";
+
+    let prazoReposicao = null;
+    if (novoStatus === "aRepor") {
+      const prazo = new Date(dataISO + "T00:00:00");
+      prazo.setDate(prazo.getDate() + 30);
+      prazoReposicao = `${prazo.getFullYear()}-${String(prazo.getMonth() + 1).padStart(2, "0")}-${String(prazo.getDate()).padStart(2, "0")}`;
+    }
+
+    const { data, error } = await supabase
+      .from("lessons")
+      .upsert({ turma_id: turmaId, data: dataISO, status: novoStatus, prazo_reposicao: prazoReposicao }, { onConflict: "turma_id,data" })
+      .select().single();
+
+    if (!error) {
+      setAulas((prev) => ({ ...prev, [chave]: { status: novoStatus, conteudo: "", feedback: "", prazo_reposicao: prazoReposicao, rowId: data.id } }));
+      alert(novoStatus === "aRepor"
+        ? "Aviso registrado! Essa aula virou 'A repor', com prazo de 30 dias."
+        : "Aviso registrado com menos de 3h de antecedência — essa aula foi marcada como 'Perdida'.");
+    }
+  };
+
   const excluirAulaCalendario = async () => {
     const confirmar = window.confirm("Excluir esta aula do calendário? Isso não apaga nenhum registro de Aulas + Homework vinculado.");
     if (!confirmar) return;
@@ -873,27 +921,47 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
     if (!novaAula.data || !novaAula.assunto) return;
     const { data, error } = await supabase
       .from("lesson_records")
-      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds })
+      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds })
       .select().single();
     if (!error) {
       setAulasRegistradas((prev) => [{ ...novaAula, rowId: data.id }, ...prev]);
-      const label = novaAula.assunto.split("—")[0].trim();
-      await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
-      setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+      if (novaAula.unidade) {
+        const label = rotuloUnidade(novaAula.unidade);
+        await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
+        setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+      }
     }
-    setNovaAula({ data: "", assunto: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (!error) {
       setAulasRegistradas((prev) => prev.map((a) => (a.rowId === rascunhoAulaRegistrada.rowId ? { ...rascunhoAulaRegistrada } : a)));
       setCronogramaAberto({ ...rascunhoAulaRegistrada });
+      if (rascunhoAulaRegistrada.unidade) {
+        const label = rotuloUnidade(rascunhoAulaRegistrada.unidade);
+        await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
+        setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+      }
     }
     setEditandoAulaRegistrada(false);
+  };
+
+  const alternarHomeworkConcluido = async (lessonRecordId) => {
+    if (role === "admin") return; // só o próprio aluno marca o seu homework
+    const atual = !!homeworkStatus[lessonRecordId];
+    const novoValor = !atual;
+    setHomeworkStatus((prev) => ({ ...prev, [lessonRecordId]: novoValor }));
+    const { error } = await supabase
+      .from("homework_status")
+      .upsert({ lesson_record_id: lessonRecordId, student_id: studentId, concluido: novoValor, updated_at: new Date().toISOString() }, { onConflict: "lesson_record_id,student_id" });
+    if (error) {
+      setHomeworkStatus((prev) => ({ ...prev, [lessonRecordId]: atual })); // desfaz se der erro
+    }
   };
 
   const excluirAulaRegistrada = async () => {
@@ -1036,6 +1104,16 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
 
   const statusDe = (registro) => (typeof registro === "object" ? registro.status : registro);
 
+  const DIAS_SEMANA_MAP = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
+
+  const dataHoraDaAula = (dataISO) => {
+    if (!turma || !turma.dias_horarios) return null;
+    const diaSemana = new Date(dataISO + "T00:00:00").getDay();
+    const horarioDoDia = turma.dias_horarios.find((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
+    if (!horarioDoDia) return null;
+    return new Date(`${dataISO}T${horarioDoDia.horario}:00`);
+  };
+
   // Streak: conta aulas seguidas sem "Perdida", olhando o histórico em ordem cronológica
   const diasComStatus = Object.entries(aulas)
     .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
@@ -1052,10 +1130,10 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
 
   // Progresso: pega a última unidade registrada em Aulas + Homework (ex: "Unit 4A — ...")
   const sequenciaCurriculo = gerarSequenciaCurriculo(student.nivel || "Beginner");
-  const ultimaAula = aulasRegistradas[0];
-  const codigoAtual = ultimaAula ? extrairCodigoUnidade(ultimaAula.assunto) : null;
+  const ultimaAulaComUnidade = aulasRegistradas.find((a) => a.unidade);
+  const codigoAtual = ultimaAulaComUnidade ? ultimaAulaComUnidade.unidade : null;
   const indiceAtual = codigoAtual ? sequenciaCurriculo.indexOf(codigoAtual) : -1;
-  const unidadeAtual = ultimaAula ? (codigoAtual ? (codigoAtual.startsWith("PE") ? `Practical English ${codigoAtual.slice(2)}` : `Unit ${codigoAtual}`) : ultimaAula.assunto.split("—")[0].trim()) : "Ainda não iniciado";
+  const unidadeAtual = codigoAtual ? rotuloUnidade(codigoAtual) : "Ainda não iniciado";
   const progressoPercentual = indiceAtual >= 0 ? Math.round(((indiceAtual + 1) / sequenciaCurriculo.length) * 100) : 0;
 
   const feedbacksRecentes = Object.entries(aulas)
@@ -1297,9 +1375,18 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                       <input type="date" value={novaAula.data} onChange={(e) => setNovaAula((a) => ({ ...a, data: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade (para o progresso do curso)</label>
+                      <select value={novaAula.unidade} onChange={(e) => setNovaAula((a) => ({ ...a, unidade: e.target.value }))}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }}>
+                        <option value="">Selecione a unidade...</option>
+                        {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
+                          <option key={codigo} value={codigo}>{rotuloUnidade(codigo)}</option>
+                        ))}
+                      </select>
+
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Assunto da aula</label>
                       <input type="text" value={novaAula.assunto} onChange={(e) => setNovaAula((a) => ({ ...a, assunto: e.target.value }))}
-                        placeholder="Ex: Unit 4A — Wh-questions com be"
+                        placeholder="Ex: Wh-questions com be"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal (homework)</label>
@@ -1339,14 +1426,27 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                       <p style={{ fontSize: "13px", color: textSecondary }}>Nenhuma aula registrada ainda.</p>
                     )}
                     {aulasRegistradas.map((aula, i) => (
-                      <button key={i} onClick={() => setCronogramaAberto(aula)}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
-                        <div>
-                          <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{aula.data}</p>
-                          <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, marginTop: "2px" }}>{aula.assunto}</p>
-                        </div>
-                        <span style={{ color: dark ? "#FFF" : palette.purple }}>→</span>
-                      </button>
+                      <div key={i}
+                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
+                        {role !== "admin" && (
+                          <input type="checkbox" checked={!!homeworkStatus[aula.rowId]} onChange={() => alternarHomeworkConcluido(aula.rowId)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ width: "20px", height: "20px", flexShrink: 0, cursor: "pointer", accentColor: palette.orange }} />
+                        )}
+                        <button onClick={() => setCronogramaAberto(aula)}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flex: 1, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                          <div>
+                            <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(aula.data)}</p>
+                            <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, marginTop: "2px", textDecoration: homeworkStatus[aula.rowId] ? "line-through" : "none", opacity: homeworkStatus[aula.rowId] ? 0.6 : 1 }}>{aula.assunto}</p>
+                            {aula.unidade && (
+                              <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>
+                                {rotuloUnidade(aula.unidade)}
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ color: dark ? "#FFF" : palette.purple }}>→</span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -1378,6 +1478,14 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Data</label>
                       <input type="date" value={rascunhoAulaRegistrada.data} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, data: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade (para o progresso do curso)</label>
+                      <select value={rascunhoAulaRegistrada.unidade || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, unidade: e.target.value }))}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }}>
+                        <option value="">Selecione a unidade...</option>
+                        {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
+                          <option key={codigo} value={codigo}>{rotuloUnidade(codigo)}</option>
+                        ))}
+                      </select>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Assunto</label>
                       <input type="text" value={rascunhoAulaRegistrada.assunto} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, assunto: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
@@ -1393,8 +1501,15 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                     </div>
                   ) : (
                     <React.Fragment>
-                      <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{cronogramaAberto.data}</p>
+                      <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(cronogramaAberto.data)}</p>
                       <p style={{ marginBottom: "14px", fontSize: "16px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{cronogramaAberto.assunto}</p>
+                      {role !== "admin" && (
+                        <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", cursor: "pointer" }}>
+                          <input type="checkbox" checked={!!homeworkStatus[cronogramaAberto.rowId]} onChange={() => alternarHomeworkConcluido(cronogramaAberto.rowId)}
+                            style={{ width: "20px", height: "20px", cursor: "pointer", accentColor: palette.orange }} />
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Marcar homework como feito</span>
+                        </label>
+                      )}
                     </React.Fragment>
                   )}
 
@@ -1434,14 +1549,21 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                   const chave = `${mesAtual}-${dia}`;
                   const status = statusDe(aulas[chave]);
                   const cfg = status ? statusConfig[status] : null;
+                  const clicavel = role === "admin" || status === "agendada";
                   return (
-                    <div key={i} onClick={() => abrirDia(chave)}
-                      style={{ aspectRatio: "1", borderRadius: "8px", border: status ? "none" : `0.5px solid ${dark ? "#3A2B7A" : "#EEE"}`, background: cfg ? cfg.cor : "transparent", color: cfg ? cfg.texto : textSecondary, fontSize: "12px", fontWeight: status ? 600 : 400, display: "flex", alignItems: "center", justifyContent: "center", cursor: role === "admin" ? "pointer" : "default" }}>
+                    <div key={i} onClick={() => { if (role === "admin") abrirDia(chave); else if (status === "agendada") avisarNaoComparecimento(chave); }}
+                      style={{ aspectRatio: "1", borderRadius: "8px", border: status ? "none" : `0.5px solid ${dark ? "#3A2B7A" : "#EEE"}`, background: cfg ? cfg.cor : "transparent", color: cfg ? cfg.texto : textSecondary, fontSize: "12px", fontWeight: status ? 600 : 400, display: "flex", alignItems: "center", justifyContent: "center", cursor: clicavel ? "pointer" : "default" }}>
                       {dia}
                     </div>
                   );
                 })}
               </div>
+
+              {role !== "admin" && (
+                <p style={{ marginTop: "10px", fontSize: "11px", color: textSecondary }}>
+                  Clique numa aula agendada pra avisar que não vai comparecer.
+                </p>
+              )}
 
               {diaSelecionado && role === "admin" && (
                 <div style={{ marginTop: "16px", padding: "16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
@@ -1470,8 +1592,15 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                       <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>
                         Registrar em Aulas + Homework junto (opcional)
                       </p>
+                      <select value={rascunho.unidade || ""} onChange={(e) => setRascunho((r) => ({ ...r, unidade: e.target.value }))}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }}>
+                        <option value="">Unidade (opcional)...</option>
+                        {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
+                          <option key={codigo} value={codigo}>{rotuloUnidade(codigo)}</option>
+                        ))}
+                      </select>
                       <input type="text" value={rascunho.assunto || ""} onChange={(e) => setRascunho((r) => ({ ...r, assunto: e.target.value }))}
-                        placeholder="Assunto da aula (ex: Unit 4A — Wh-questions)"
+                        placeholder="Assunto da aula (ex: Wh-questions com be)"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
                       <select value={rascunho.cronogramaUrl || homeworkLinks[0].url} onChange={(e) => setRascunho((r) => ({ ...r, cronogramaUrl: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }}>
