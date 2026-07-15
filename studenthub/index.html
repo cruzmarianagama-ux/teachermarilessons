@@ -19,6 +19,7 @@
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   body { font-family: 'Poppins', sans-serif; }
   button { font-family: 'Poppins', sans-serif; }
 </style>
@@ -366,7 +367,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: palette.cream, padding: "24px" }}>
       <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
-        <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden", flexWrap: "wrap", gap: "16px" }}>
           <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: palette.orange, borderRadius: "0 0 0 120px", opacity: 0.15 }} />
           <div style={{ position: "relative", zIndex: 1 }}>
             <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Painel administrativo</p>
@@ -1069,7 +1070,7 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "24px", transition: "background 0.2s ease" }}>
       <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
-        <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden", flexWrap: "wrap", gap: "16px" }}>
           <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: palette.orange, borderRadius: "0 0 0 120px", opacity: 0.15 }} />
           <div style={{ position: "relative", zIndex: 1 }}>
             <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>StudentHub</p>
@@ -1077,7 +1078,7 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
               {role === "admin" ? `Portal de ${student.nome}` : `Welcome back, ${student.nome.split(" ")[0]}!`}
             </h1>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative", zIndex: 1, flexWrap: "wrap" }}>
             <button onClick={() => setDark(!dark)} style={{ width: "36px", height: "36px", borderRadius: "10px", border: "none", background: "rgba(255,255,255,0.12)", cursor: "pointer", color: "#FFF", fontSize: "16px" }}>
               {dark ? "☀" : "☾"}
             </button>
@@ -1097,7 +1098,6 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
               <button onClick={excluirAluno} style={{ fontSize: "12px", color: "#FFF", background: "#E24B4A", border: "none", borderRadius: "10px", padding: "8px 12px", cursor: "pointer" }}>Excluir aluno</button>
             )}
             <button onClick={onLogout} style={{ fontSize: "12px", color: "#FFF", background: "rgba(255,255,255,0.12)", border: "none", borderRadius: "10px", padding: "8px 12px", cursor: "pointer" }}>Sair</button>
-            <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: palette.orange, display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontWeight: 600 }}>C</div>
           </div>
         </div>
 
@@ -1229,7 +1229,7 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                 <div style={{ height: "10px", borderRadius: "6px", background: dark ? "#3A2B7A" : palette.cream, overflow: "hidden" }}>
                   <div style={{ width: `${progressoPercentual}%`, height: "100%", background: palette.orange, borderRadius: "6px", transition: "width 0.3s ease" }} />
                 </div>
-                <p style={{ marginTop: "6px", fontSize: "12px", color: textSecondary }}>{unidadeAtual} of English File {student.nivel || "Beginner"} ({progressoPercentual}% · {sequenciaCurriculo.length} etapas no total)</p>
+                <p style={{ marginTop: "6px", fontSize: "12px", color: textSecondary }}>{unidadeAtual} of English File {student.nivel || "Beginner"} ({progressoPercentual}%)</p>
               </div>
 
               <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
@@ -1594,7 +1594,16 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {cobranca.map((c, i) => {
                 const diasParaVencer = Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000);
-                const venceEmBreve = c.status !== "pago" && diasParaVencer <= 3;
+                let statusLabel, statusBg, statusCor;
+                if (c.status === "pago") {
+                  statusLabel = "Pago"; statusBg = palette.lightGreen; statusCor = palette.green;
+                } else if (diasParaVencer < 0) {
+                  statusLabel = "Atrasado"; statusBg = "#F7C1C1"; statusCor = "#791F1F";
+                } else if (diasParaVencer === 0) {
+                  statusLabel = "Vence hoje"; statusBg = palette.orange; statusCor = "#FFF";
+                } else {
+                  statusLabel = "A vencer"; statusBg = dark ? "#5A4AA0" : "#EEE"; statusCor = textSecondary;
+                }
                 return (
                 <div key={i} style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1602,8 +1611,8 @@ function StudentDashboard({ onLogout, role, student, onBack }) {
                       <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{c.mes}</p>
                       <p style={{ fontSize: "13px", color: textSecondary }}>{c.valor} · vencimento {c.vencimento}</p>
                     </div>
-                    <span style={{ fontSize: "12px", fontWeight: 600, padding: "5px 12px", borderRadius: "20px", background: c.status === "pago" ? palette.lightGreen : (venceEmBreve ? palette.orange : (dark ? "#5A4AA0" : "#EEE")), color: c.status === "pago" ? palette.green : (venceEmBreve ? "#FFF" : textSecondary) }}>
-                      {c.status === "pago" ? "Pago" : (venceEmBreve ? "Vence em breve" : "Próxima cobrança")}
+                    <span style={{ fontSize: "12px", fontWeight: 600, padding: "5px 12px", borderRadius: "20px", background: statusBg, color: statusCor }}>
+                      {statusLabel}
                     </span>
                   </div>
 
