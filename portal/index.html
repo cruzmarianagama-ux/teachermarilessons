@@ -1539,8 +1539,14 @@ function App() {
         onLogin={async (r, user) => {
           if (r === "aluno") {
             setCarregandoLogin(true);
-            const { data } = await supabase.from("students").select("*").eq("id", user.id).single();
+            const { data, error } = await supabase.from("students").select("*").eq("id", user.id).single();
             setCarregandoLogin(false);
+            if (error && error.code !== "PGRST116") {
+              // erro técnico (rede, permissão) — não é "aluno inexistente"
+              alert("Erro ao carregar seus dados: " + error.message + "\nTente novamente em alguns segundos.");
+              await supabase.auth.signOut();
+              return;
+            }
             if (!data) {
               alert("Esse login não está vinculado a nenhum aluno cadastrado. Fale com a Teacher Mari.");
               await supabase.auth.signOut();
