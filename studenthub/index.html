@@ -469,13 +469,18 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   };
 
   const salvarMaterialAdmin = async () => {
-    if (!novoMaterial.titulo || !novoMaterial.url) return;
+    if (!novoMaterial.titulo || !novoMaterial.url) {
+      alert("Preencha pelo menos o título e o link.");
+      return;
+    }
     if (editandoMaterialId) {
       const { error } = await supabase.from("materiais").update({ titulo: novoMaterial.titulo, descricao: novoMaterial.descricao, url: novoMaterial.url }).eq("id", editandoMaterialId);
-      if (!error) setMateriaisAdmin((prev) => prev.map((m) => (m.id === editandoMaterialId ? { ...m, ...novoMaterial } : m)));
+      if (error) { alert("Erro ao salvar: " + error.message); return; }
+      setMateriaisAdmin((prev) => prev.map((m) => (m.id === editandoMaterialId ? { ...m, ...novoMaterial } : m)));
     } else {
       const { data, error } = await supabase.from("materiais").insert({ titulo: novoMaterial.titulo, descricao: novoMaterial.descricao, url: novoMaterial.url, nivel: nivelSelecionado }).select().single();
-      if (!error) setMateriaisAdmin((prev) => [data, ...prev]);
+      if (error) { alert("Erro ao salvar: " + error.message); return; }
+      setMateriaisAdmin((prev) => [data, ...prev]);
     }
     setNovoMaterial({ titulo: "", descricao: "", url: "" });
     setEditandoMaterialId(null);
