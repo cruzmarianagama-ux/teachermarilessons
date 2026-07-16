@@ -399,7 +399,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [diasSemAula, setDiasSemAula] = useState({});
-  const [mesCalGeral, setMesCalGeral] = useState(6);
+  const [mesCalGeral, setMesCalGeral] = useState(0);
   const [novaTurma, setNovaTurma] = useState({
     modalidade: "individual",
     frequencia: "1x",
@@ -498,7 +498,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     const confirmar = window.confirm("Excluir este material? Essa ação não pode ser desfeita.");
     if (!confirmar) return;
     const { error } = await supabase.from("materiais").delete().eq("id", id);
-    if (!error) setMateriaisAdmin((prev) => prev.filter((m) => m.id !== id));
+    if (error) { alert("Erro ao excluir: " + error.message); return; }
+    setMateriaisAdmin((prev) => prev.filter((m) => m.id !== id));
   };
 
   const carregarAvisos = async () => {
@@ -512,7 +513,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
   const dispensarAviso = async (lessonId) => {
     const { error } = await supabase.from("lessons").update({ aviso_pendente: false }).eq("id", lessonId);
-    if (!error) setAvisos((prev) => prev.filter((a) => a.id !== lessonId));
+    if (error) { alert("Erro ao dispensar aviso: " + error.message); return; }
+    setAvisos((prev) => prev.filter((a) => a.id !== lessonId));
   };
 
   const carregarDiasSemAula = async () => {
@@ -529,7 +531,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     } else {
       const motivo = window.prompt("Motivo (opcional, ex: Feriado, Recesso):", "") || "Sem aula";
       const { error } = await supabase.from("dias_sem_aula").insert({ data: iso, motivo });
-      if (!error) setDiasSemAula((prev) => ({ ...prev, [iso]: motivo }));
+      if (error) { alert("Erro ao marcar dia sem aula: " + error.message); return; }
+      setDiasSemAula((prev) => ({ ...prev, [iso]: motivo }));
     }
   };
 
@@ -772,7 +775,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             </p>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", maxWidth: "360px" }}>
-              <button onClick={() => setMesCalGeral((m) => Math.max(6, m - 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>‹</button>
+              <button onClick={() => setMesCalGeral((m) => Math.max(0, m - 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>‹</button>
               <p style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: palette.purple }}>
                 {["January","February","March","April","May","June","July","August","September","October","November","December"][mesCalGeral]} 2026
               </p>
@@ -1075,13 +1078,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       .from("turmas")
       .update({ nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null })
       .eq("id", turmaId);
-    if (!error) {
-      // Cascateia o novo nível pra todos os alunos da turma (afeta o cálculo de progresso e o card "Level" de cada um)
-      await supabase.from("students").update({ nivel: rascunhoTurma.nivel }).eq("turma_id", turmaId);
-      setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null }));
-      if (onStudentUpdated) onStudentUpdated({ nivel: rascunhoTurma.nivel });
-      setMostrarEditarTurma(false);
-    }
+    if (error) { alert("Erro ao salvar a turma: " + error.message); return; }
+    // Cascateia o novo nível pra todos os alunos da turma (afeta o cálculo de progresso e o card "Level" de cada um)
+    await supabase.from("students").update({ nivel: rascunhoTurma.nivel }).eq("turma_id", turmaId);
+    setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null }));
+    if (onStudentUpdated) onStudentUpdated({ nivel: rascunhoTurma.nivel });
+    setMostrarEditarTurma(false);
   };
 
   const abrirEdicaoAluno = () => {
@@ -1231,9 +1233,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       .from("lessons")
       .upsert({ turma_id: turmaId, data: dataISO, status: rascunho.status, conteudo: rascunho.conteudo, feedback: rascunho.feedback, prazo_reposicao: prazoReposicao }, { onConflict: "turma_id,data" })
       .select().single();
-    if (!error) {
-      setAulas((prev) => ({ ...prev, [diaSelecionado]: { ...rascunho, prazo_reposicao: prazoReposicao, rowId: data.id } }));
+    if (error) {
+      alert("Erro ao salvar a aula: " + error.message);
+      return;
     }
+    setAulas((prev) => ({ ...prev, [diaSelecionado]: { ...rascunho, prazo_reposicao: prazoReposicao, rowId: data.id } }));
 
     // Se marcada como realizada e o conteúdo foi preenchido, registra também em Aulas + Homework
     if (rascunho.status === "realizada" && rascunho.assunto) {
@@ -1344,10 +1348,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       const [m, d] = diaSelecionado.split("-").map(Number);
       return `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     })());
-    if (!error) {
-      setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
-      setDiaSelecionado(null);
-    }
+    if (error) { alert("Erro ao excluir a aula: " + error.message); return; }
+    setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
+    setDiaSelecionado(null);
   };
 
   const adicionarEmbed = () => {
@@ -1362,24 +1365,26 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       .from("lesson_records")
       .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds })
       .select().single();
-    if (!error) {
-      setAulasRegistradas((prev) => [{ ...novaAula, rowId: data.id }, ...prev]);
-      if (novaAula.unidade) {
-        const label = rotuloUnidade(novaAula.unidade);
-        await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
-        setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
-      }
+    if (error) {
+      alert("Erro ao registrar a aula: " + error.message);
+      return;
+    }
+    setAulasRegistradas((prev) => [{ ...novaAula, rowId: data.id }, ...prev]);
+    if (novaAula.unidade) {
+      const label = rotuloUnidade(novaAula.unidade);
+      await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
+      setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+    }
 
-      // Marca essa mesma data como "Realizada" no calendário, já que a aula foi dada de fato
-      const { data: lessonData, error: lessonError } = await supabase
-        .from("lessons")
-        .upsert({ turma_id: turmaId, data: novaAula.data, status: "realizada", prazo_reposicao: null }, { onConflict: "turma_id,data" })
-        .select().single();
-      if (!lessonError) {
-        const d = new Date(novaAula.data + "T00:00:00");
-        const chave = `${d.getMonth()}-${d.getDate()}`;
-        setAulas((prev) => ({ ...prev, [chave]: { ...(prev[chave] || {}), status: "realizada", prazo_reposicao: null, rowId: lessonData.id } }));
-      }
+    // Marca essa mesma data como "Realizada" no calendário, já que a aula foi dada de fato
+    const { data: lessonData, error: lessonError } = await supabase
+      .from("lessons")
+      .upsert({ turma_id: turmaId, data: novaAula.data, status: "realizada", prazo_reposicao: null }, { onConflict: "turma_id,data" })
+      .select().single();
+    if (!lessonError) {
+      const d = new Date(novaAula.data + "T00:00:00");
+      const chave = `${d.getMonth()}-${d.getDate()}`;
+      setAulas((prev) => ({ ...prev, [chave]: { ...(prev[chave] || {}), status: "realizada", prazo_reposicao: null, rowId: lessonData.id } }));
     }
     setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   };
@@ -1389,14 +1394,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       .from("lesson_records")
       .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl })
       .eq("id", rascunhoAulaRegistrada.rowId);
-    if (!error) {
-      setAulasRegistradas((prev) => prev.map((a) => (a.rowId === rascunhoAulaRegistrada.rowId ? { ...rascunhoAulaRegistrada } : a)));
-      setCronogramaAberto({ ...rascunhoAulaRegistrada });
-      if (rascunhoAulaRegistrada.unidade) {
-        const label = rotuloUnidade(rascunhoAulaRegistrada.unidade);
-        await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
-        setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
-      }
+    if (error) {
+      alert("Erro ao salvar as alterações: " + error.message);
+      return;
+    }
+    setAulasRegistradas((prev) => prev.map((a) => (a.rowId === rascunhoAulaRegistrada.rowId ? { ...rascunhoAulaRegistrada } : a)));
+    setCronogramaAberto({ ...rascunhoAulaRegistrada });
+    if (rascunhoAulaRegistrada.unidade) {
+      const label = rotuloUnidade(rascunhoAulaRegistrada.unidade);
+      await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
+      setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
     }
     setEditandoAulaRegistrada(false);
   };
@@ -1418,10 +1425,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     const confirmar = window.confirm(`Excluir o registro de "${cronogramaAberto.assunto}"? Essa ação não pode ser desfeita.`);
     if (!confirmar) return;
     const { error } = await supabase.from("lesson_records").delete().eq("id", cronogramaAberto.rowId);
-    if (!error) {
-      setAulasRegistradas((prev) => prev.filter((a) => a.rowId !== cronogramaAberto.rowId));
-      setCronogramaAberto(null);
-    }
+    if (error) { alert("Erro ao excluir: " + error.message); return; }
+    setAulasRegistradas((prev) => prev.filter((a) => a.rowId !== cronogramaAberto.rowId));
+    setCronogramaAberto(null);
   };
 
   const baixarHistoricoPDF = () => {
@@ -1765,9 +1771,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
   const marcarComoPago = async (rowId) => {
     const { error } = await supabase.from("billing").update({ status: "pago" }).eq("id", rowId);
-    if (!error) {
-      setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pago" } : c)));
-    }
+    if (error) { alert("Erro ao marcar como pago: " + error.message); return; }
+    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pago" } : c)));
   };
   const reposicoesPendentes = Object.entries(aulas)
     .filter(([, r]) => typeof r === "object" && r.status === "aRepor" && r.prazo_reposicao)
