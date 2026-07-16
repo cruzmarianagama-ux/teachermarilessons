@@ -388,6 +388,11 @@ const homeworkLinks = [
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
+  const [materiaisAdmin, setMateriaisAdmin] = useState([]);
+  const [nivelSelecionado, setNivelSelecionado] = useState(null);
+  const [mostrarFormMaterial, setMostrarFormMaterial] = useState(false);
+  const [novoMaterial, setNovoMaterial] = useState({ titulo: "", descricao: "", url: "" });
+  const [editandoMaterialId, setEditandoMaterialId] = useState(null);
   const [avisos, setAvisos] = useState([]);
   const [exportando, setExportando] = useState(false);
   const [students, setStudents] = useState([]);
@@ -456,7 +461,39 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     setCarregando(false);
   };
 
-  useEffect(() => { carregarAlunos(); carregarDiasSemAula(); carregarAvisos(); }, []);
+  useEffect(() => { carregarAlunos(); carregarDiasSemAula(); carregarAvisos(); carregarMateriaisAdmin(); }, []);
+
+  const carregarMateriaisAdmin = async () => {
+    const { data } = await supabase.from("materiais").select("*").order("created_at", { ascending: false });
+    setMateriaisAdmin(data || []);
+  };
+
+  const salvarMaterialAdmin = async () => {
+    if (!novoMaterial.titulo || !novoMaterial.url) return;
+    if (editandoMaterialId) {
+      const { error } = await supabase.from("materiais").update({ titulo: novoMaterial.titulo, descricao: novoMaterial.descricao, url: novoMaterial.url }).eq("id", editandoMaterialId);
+      if (!error) setMateriaisAdmin((prev) => prev.map((m) => (m.id === editandoMaterialId ? { ...m, ...novoMaterial } : m)));
+    } else {
+      const { data, error } = await supabase.from("materiais").insert({ titulo: novoMaterial.titulo, descricao: novoMaterial.descricao, url: novoMaterial.url, nivel: nivelSelecionado }).select().single();
+      if (!error) setMateriaisAdmin((prev) => [data, ...prev]);
+    }
+    setNovoMaterial({ titulo: "", descricao: "", url: "" });
+    setEditandoMaterialId(null);
+    setMostrarFormMaterial(false);
+  };
+
+  const editarMaterialAdmin = (m) => {
+    setNovoMaterial({ titulo: m.titulo, descricao: m.descricao || "", url: m.url });
+    setEditandoMaterialId(m.id);
+    setMostrarFormMaterial(true);
+  };
+
+  const excluirMaterialAdmin = async (id) => {
+    const confirmar = window.confirm("Excluir este material? Essa ação não pode ser desfeita.");
+    if (!confirmar) return;
+    const { error } = await supabase.from("materiais").delete().eq("id", id);
+    if (!error) setMateriaisAdmin((prev) => prev.filter((m) => m.id !== id));
+  };
 
   const carregarAvisos = async () => {
     const { data } = await supabase
@@ -627,7 +664,97 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "calendario" ? palette.orange : "#FFF", color: abaAdmin === "calendario" ? "#FFF" : palette.purple }}>
             Calendário geral
           </button>
+          <button onClick={() => { setAbaAdmin("materiais"); setNivelSelecionado(null); }}
+            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "materiais" ? palette.orange : "#FFF", color: abaAdmin === "materiais" ? "#FFF" : palette.purple }}>
+            Materiais
+          </button>
         </div>
+
+        {abaAdmin === "materiais" && (
+          <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
+            {!nivelSelecionado ? (
+              <div>
+                <p style={{ marginBottom: "14px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>Materiais por nível</p>
+                <p style={{ marginBottom: "16px", fontSize: "12px", color: `${palette.purple}99` }}>
+                  Cada nível tem sua própria pasta — os materiais aparecem automaticamente pra todos os alunos daquele nível.
+                </p>
+                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  {["Beginner", "Elementary", "Pre-Intermediate"].map((nv) => {
+                    const qtd = materiaisAdmin.filter((m) => m.nivel === nv).length;
+                    return (
+                      <button key={nv} onClick={() => setNivelSelecionado(nv)}
+                        style={{ flex: "1 1 160px", padding: "20px", borderRadius: "12px", border: "none", cursor: "pointer", background: palette.cream, textAlign: "left" }}>
+                        <p style={{ fontSize: "28px", marginBottom: "6px" }}>📁</p>
+                        <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{nv}</p>
+                        <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>{qtd} material{qtd !== 1 ? "is" : ""}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <button onClick={() => { setNivelSelecionado(null); setMostrarFormMaterial(false); }}
+                  style={{ marginBottom: "16px", padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: palette.cream, color: palette.purple }}>
+                  ‹ Todos os níveis
+                </button>
+                <p style={{ marginBottom: "14px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>📁 {nivelSelecionado}</p>
+
+                <button onClick={() => { setMostrarFormMaterial(!mostrarFormMaterial); setEditandoMaterialId(null); setNovoMaterial({ titulo: "", descricao: "", url: "" }); }}
+                  style={{ marginBottom: "16px", padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
+                  {mostrarFormMaterial ? "Fechar" : "+ Novo material"}
+                </button>
+
+                {mostrarFormMaterial && (
+                  <div style={{ marginBottom: "16px", background: palette.cream, borderRadius: "12px", padding: "16px", maxWidth: "460px" }}>
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Título</label>
+                    <input type="text" value={novoMaterial.titulo} onChange={(e) => setNovoMaterial((m) => ({ ...m, titulo: e.target.value }))}
+                      placeholder="Ex: Lista de phrasal verbs"
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Breve descrição</label>
+                    <input type="text" value={novoMaterial.descricao} onChange={(e) => setNovoMaterial((m) => ({ ...m, descricao: e.target.value }))}
+                      placeholder="Ex: PDF com os principais phrasal verbs do dia a dia"
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                    <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Link (Google Drive, etc.)</label>
+                    <input type="url" value={novoMaterial.url} onChange={(e) => setNovoMaterial((m) => ({ ...m, url: e.target.value }))}
+                      placeholder="https://drive.google.com/..."
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+
+                    <button onClick={salvarMaterialAdmin} style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>
+                      {editandoMaterialId ? "Salvar alterações" : "Adicionar material"}
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {materiaisAdmin.filter((m) => m.nivel === nivelSelecionado).length === 0 && (
+                    <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Nenhum material nessa pasta ainda.</p>
+                  )}
+                  {materiaisAdmin.filter((m) => m.nivel === nivelSelecionado).map((m) => (
+                    <div key={m.id} style={{ padding: "14px 16px", borderRadius: "12px", background: palette.cream }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+                        <div>
+                          <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{m.titulo}</p>
+                          {m.descricao && <p style={{ marginTop: "2px", fontSize: "13px", color: `${palette.purple}99` }}>{m.descricao}</p>}
+                        </div>
+                        <a href={m.url} target="_blank" rel="noopener noreferrer"
+                          style={{ flexShrink: 0, padding: "8px 14px", borderRadius: "8px", background: palette.orange, color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                          Abrir
+                        </a>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                        <button onClick={() => editarMaterialAdmin(m)} style={{ fontSize: "11px", fontWeight: 600, color: palette.purple, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Editar</button>
+                        <button onClick={() => excluirMaterialAdmin(m.id)} style={{ fontSize: "11px", fontWeight: 600, color: "#791F1F", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Excluir</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {abaAdmin === "calendario" && (
           <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
@@ -907,9 +1034,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const [fraseDoDia] = useState(fraseMotivacionalAleatoria);
   const [turma, setTurma] = useState(null);
   const [materiais, setMateriais] = useState([]);
-  const [mostrarFormMaterial, setMostrarFormMaterial] = useState(false);
-  const [novoMaterial, setNovoMaterial] = useState({ titulo: "", descricao: "", url: "" });
-  const [editandoMaterialId, setEditandoMaterialId] = useState(null);
   const [colegas, setColegas] = useState([]);
   const [mostrarEditarTurma, setMostrarEditarTurma] = useState(false);
   const [mostrarEditarAluno, setMostrarEditarAluno] = useState(false);
@@ -2357,63 +2481,28 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
           {active === "materiais" && (
             <div>
-              {role === "admin" && (
-                <div style={{ marginBottom: "16px" }}>
-                  <button onClick={() => { setMostrarFormMaterial(!mostrarFormMaterial); setEditandoMaterialId(null); setNovoMaterial({ titulo: "", descricao: "", url: "" }); }}
-                    style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
-                    {mostrarFormMaterial ? "Fechar" : "+ Novo material"}
-                  </button>
-
-                  {mostrarFormMaterial && (
-                    <div style={{ marginTop: "12px", background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "16px", maxWidth: "460px" }}>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Título</label>
-                      <input type="text" value={novoMaterial.titulo} onChange={(e) => setNovoMaterial((m) => ({ ...m, titulo: e.target.value }))}
-                        placeholder="Ex: Lista de phrasal verbs"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
-
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Breve descrição</label>
-                      <input type="text" value={novoMaterial.descricao} onChange={(e) => setNovoMaterial((m) => ({ ...m, descricao: e.target.value }))}
-                        placeholder="Ex: PDF com os principais phrasal verbs do dia a dia"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
-
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Link (Google Drive, etc.)</label>
-                      <input type="url" value={novoMaterial.url} onChange={(e) => setNovoMaterial((m) => ({ ...m, url: e.target.value }))}
-                        placeholder="https://drive.google.com/..."
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
-
-                      <button onClick={salvarMaterial} style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>
-                        {editandoMaterialId ? "Salvar alterações" : "Adicionar material"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {materiais.length === 0 && (
-                  <p style={{ fontSize: "13px", color: textSecondary }}>Nenhum material disponível ainda.</p>
+                {materiais.filter((m) => m.nivel === (student.nivel || "Beginner")).length === 0 && (
+                  <p style={{ fontSize: "13px", color: textSecondary }}>Nenhum material disponível ainda pro nível {student.nivel || "Beginner"}.</p>
                 )}
-                {materiais.map((m) => (
-                  <div key={m.id} style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
-                      <div>
-                        <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{m.titulo}</p>
-                        {m.descricao && <p style={{ marginTop: "2px", fontSize: "13px", color: textSecondary }}>{m.descricao}</p>}
-                      </div>
-                      <a href={m.url} target="_blank" rel="noopener noreferrer"
-                        style={{ flexShrink: 0, padding: "8px 14px", borderRadius: "8px", background: palette.orange, color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
-                        Baixar
-                      </a>
+                {materiais.filter((m) => m.nivel === (student.nivel || "Beginner")).map((m) => (
+                  <div key={m.id} style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+                    <div>
+                      <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{m.titulo}</p>
+                      {m.descricao && <p style={{ marginTop: "2px", fontSize: "13px", color: textSecondary }}>{m.descricao}</p>}
                     </div>
-                    {role === "admin" && (
-                      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-                        <button onClick={() => editarMaterial(m)} style={{ fontSize: "11px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Editar</button>
-                        <button onClick={() => excluirMaterial(m.id)} style={{ fontSize: "11px", fontWeight: 600, color: "#791F1F", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Excluir</button>
-                      </div>
-                    )}
+                    <a href={m.url} target="_blank" rel="noopener noreferrer"
+                      style={{ flexShrink: 0, padding: "8px 14px", borderRadius: "8px", background: palette.orange, color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                      Baixar
+                    </a>
                   </div>
                 ))}
               </div>
+              {role === "admin" && (
+                <p style={{ marginTop: "14px", fontSize: "11px", color: textSecondary }}>
+                  Pra adicionar ou editar materiais, vá em Painel administrativo → Materiais.
+                </p>
+              )}
             </div>
           )}
 
