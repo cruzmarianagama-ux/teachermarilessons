@@ -546,6 +546,11 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     }
     setEnviando(true);
     const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setStatusForm({ tipo: "erro", texto: "Sua sessão expirou. Saia e entre de novo pra continuar." });
+      setEnviando(false);
+      return;
+    }
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/create-turma`, {
       method: "POST",
       headers: {
@@ -953,6 +958,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     }
     setSalvandoAluno(true);
     const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setStatusEdicaoAluno({ tipo: "erro", texto: "Sua sessão expirou. Saia e entre de novo pra continuar." });
+      setSalvandoAluno(false);
+      return;
+    }
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/update-student`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sessionData.session.access_token}` },
@@ -1263,6 +1273,66 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     }
   };
 
+  const baixarHistoricoPDF = () => {
+    const doc = new window.jspdf.jsPDF();
+    let y = 20;
+
+    doc.setFontSize(16);
+    doc.text(`Histórico de aulas — ${student.nome}`, 14, y);
+    y += 8;
+    doc.setFontSize(11);
+    doc.text(`Nível: ${student.nivel || "-"}  |  Unidade atual: ${(turma && turma.unidade_atual) || "-"}`, 14, y);
+    y += 6;
+    doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 14, y);
+    y += 10;
+
+    doc.setFontSize(13);
+    doc.text("Aulas + Homework registrados", 14, y);
+    y += 8;
+    doc.setFontSize(10);
+    if (aulasRegistradas.length === 0) {
+      doc.text("Nenhum registro.", 14, y);
+      y += 6;
+    }
+    aulasRegistradas.forEach((a) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFont(undefined, "bold");
+      doc.text(`${formatarDataBR(a.data)} — ${a.assunto}`, 14, y);
+      y += 6;
+      doc.setFont(undefined, "normal");
+      if (a.unidade) {
+        doc.text(`Unidade: ${rotuloUnidade(a.unidade)}`, 14, y);
+        y += 6;
+      }
+      if (a.cronogramaUrl) {
+        doc.text(`Cronograma: ${a.cronogramaUrl}`, 14, y);
+        y += 6;
+      }
+      y += 3;
+    });
+
+    y += 6;
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFontSize(13);
+    doc.text("Calendário de aulas", 14, y);
+    y += 8;
+    doc.setFontSize(10);
+    const entradasCalendario = Object.entries(aulas)
+      .map(([chave, r]) => {
+        const [m, d] = chave.split("-").map(Number);
+        return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}/2026`, status: statusDe(r), feedback: typeof r === "object" ? r.feedback : "", ordem: m * 100 + d };
+      })
+      .sort((a, b) => a.ordem - b.ordem);
+    entradasCalendario.forEach((e) => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      const label = statusConfig[e.status] ? statusConfig[e.status].label : e.status;
+      doc.text(`${e.data} — ${label}${e.feedback ? " — " + e.feedback : ""}`, 14, y);
+      y += 6;
+    });
+
+    doc.save(`historico-${student.nome.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+  };
+
   const gerarRelatorioMensal = () => {
     setRelatorioCarregando(true);
     const { mes, ano } = relatorioMesAno;
@@ -1390,19 +1460,26 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     doc.addFileToVFS("Poppins-Bold.ttf", POPPINS_BOLD_B64);
     doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
 
-    const laranja = [255, 92, 35], roxo = [29, 16, 80], creme = [250, 234, 211];
-    const larguraPagina = 210, margem = 18;
-    let y = 20;
+    const laranja = [255, 92, 35], roxo = [29, 16, 80], creme = [250, 234, 211], lavanda = [180, 161, 255];
+    const larguraPagina = 210, alturaPagina = 297, margem = 18;
+    let y = 24;
 
-    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 4, 20, 20);
+    const desenharMoldura = () => {
+      doc.setDrawColor(...laranja); doc.setLineWidth(0.8);
+      doc.rect(8, 8, larguraPagina - 16, alturaPagina - 16, "S");
+    };
+    desenharMoldura();
+
+    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 10, 40, 40);
 
     doc.setFont("Poppins", "bold"); doc.setFontSize(9); doc.setTextColor(...laranja);
-    doc.text("MONTHLY REPORT", larguraPagina - margem, y + 2, { align: "right" });
+    doc.text("MONTHLY REPORT", larguraPagina - margem, y, { align: "right" });
     doc.setFontSize(20); doc.setTextColor(...roxo);
-    doc.text(relatorio.mesNome, larguraPagina - margem, y + 10, { align: "right" });
-    y += 24;
+    doc.text(relatorio.mesNome, larguraPagina - margem, y + 9, { align: "right" });
+    y += 38;
 
-    doc.setFillColor(...creme); doc.roundedRect(margem, y, larguraPagina - margem * 2, 24, 3, 3, "F");
+    doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
+    doc.roundedRect(margem, y, larguraPagina - margem * 2, 24, 3, 3, "FD");
     const colX = [margem + 8, margem + 78, margem + 148];
     const labels = ["STUDENT", "CLASS DAY", "CURRENT LEVEL"];
     const valores = [relatorio.studentName, relatorio.classDay, relatorio.currentLevel];
@@ -1412,11 +1489,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       doc.setFont("Poppins", "bold"); doc.setFontSize(13); doc.setTextColor(...roxo);
       doc.text(String(valores[i]), colX[i], y + 18);
     });
-    y += 36;
+    y += 34;
 
     doc.setFont("Poppins", "bold"); doc.setFontSize(12); doc.setTextColor(...laranja);
     doc.text("MONTHLY SUMMARY", margem, y);
-    y += 10;
+    y += 9;
     const stats = [
       ["SCHEDULED CLASSES", relatorio.scheduledClasses],
       ["COMPLETED CLASSES", relatorio.completedClasses],
@@ -1426,11 +1503,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     const larguraCard = (larguraPagina - margem * 2 - 24) / 4;
     stats.forEach((s, i) => {
       const x = margem + i * (larguraCard + 8);
-      doc.setDrawColor(...laranja); doc.setLineWidth(1.2); doc.line(x, y, x, y + 20);
+      doc.setDrawColor(220, 210, 195); doc.setLineWidth(0.4);
+      doc.roundedRect(x, y, larguraCard, 22, 2, 2, "S");
+      doc.setFillColor(...laranja); doc.rect(x, y, 1.3, 22, "F");
       doc.setFont("Poppins", "normal"); doc.setFontSize(6.5); doc.setTextColor(140, 130, 120);
-      doc.text(doc.splitTextToSize(s[0], larguraCard - 4), x + 5, y + 6);
+      doc.text(doc.splitTextToSize(s[0], larguraCard - 8), x + 5, y + 7);
       doc.setFont("Poppins", "bold"); doc.setFontSize(17); doc.setTextColor(...roxo);
-      doc.text(String(s[1]), x + 5, y + 17);
+      doc.text(String(s[1]), x + 5, y + 18);
     });
     y += 32;
 
@@ -1443,7 +1522,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       doc.text("No units registered for this month.", margem, y); y += 9;
     }
     relatorio.learningJourney.forEach((u) => {
-      if (y > 258) { doc.addPage(); y = 20; }
+      if (y > 258) { doc.addPage(); desenharMoldura(); y = 24; }
       doc.setFont("Poppins", "semibold"); doc.setFontSize(11); doc.setTextColor(...roxo);
       doc.text(u.rotulo, margem, y); y += 7;
       doc.setFont("Poppins", "normal"); doc.setFontSize(9.5); doc.setTextColor(70, 70, 70);
@@ -1456,10 +1535,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       y += 5;
     });
 
-    if (y > 210) { doc.addPage(); y = 20; }
     y += 3;
     const alturaCaixas = 46;
-    doc.setFillColor(...creme); doc.roundedRect(margem, y, 84, alturaCaixas, 3, 3, "F");
+    if (y + alturaCaixas > alturaPagina - 16) { doc.addPage(); desenharMoldura(); y = 24; }
+
+    doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
+    doc.roundedRect(margem, y, 84, alturaCaixas, 3, 3, "FD");
     doc.setFont("Poppins", "bold"); doc.setFontSize(9); doc.setTextColor(...laranja);
     doc.text("LEVEL PROGRESS", margem + 7, y + 9);
     doc.setFont("Poppins", "normal"); doc.setFontSize(8.5); doc.setTextColor(90, 78, 65);
@@ -1469,7 +1550,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     doc.text(`You advanced ${Math.max(relatorio.pctFim - relatorio.pctInicio, 0)}% this month`, margem + 7, y + 40, { maxWidth: 72 });
 
     const xDireita = margem + 92;
-    doc.setFillColor(...roxo); doc.roundedRect(xDireita, y, larguraPagina - margem - xDireita, alturaCaixas, 3, 3, "F");
+    doc.setFillColor(...roxo); doc.setDrawColor(...laranja); doc.setLineWidth(0.4);
+    doc.roundedRect(xDireita, y, larguraPagina - margem - xDireita, alturaCaixas, 3, 3, "FD");
     doc.setFont("Poppins", "bold"); doc.setFontSize(8.5); doc.setTextColor(...laranja);
     doc.text(`WHAT YOU WILL ACHIEVE IN ${meses[(relatorioMesAno.mes + 1) % 12].toUpperCase()}`, xDireita + 7, y + 8, { maxWidth: larguraPagina - margem - xDireita - 12 });
     doc.setFont("Poppins", "normal"); doc.setFontSize(7.5); doc.setTextColor(210, 200, 245);
@@ -1485,8 +1567,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
     const notasValidas = relatorio.notas.filter(Boolean);
     const alturaNotas = 14 + notasValidas.length * 6.5;
-    if (y + alturaNotas > 280) { doc.addPage(); y = 20; }
-    doc.setFillColor(...roxo); doc.roundedRect(margem, y, larguraPagina - margem * 2, alturaNotas, 3, 3, "F");
+    if (y + alturaNotas > alturaPagina - 16) { doc.addPage(); desenharMoldura(); y = 24; }
+    doc.setFillColor(...roxo); doc.setDrawColor(...laranja); doc.setLineWidth(0.4);
+    doc.roundedRect(margem, y, larguraPagina - margem * 2, alturaNotas, 3, 3, "FD");
     doc.setFont("Poppins", "bold"); doc.setFontSize(9); doc.setTextColor(...laranja);
     doc.text("TEACHER NOTES", margem + 7, y + 9);
     doc.setFont("Poppins", "normal"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
@@ -1502,6 +1585,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     const confirmacao = window.confirm(`Tem certeza que quer excluir ${student.nome}? Isso apaga login, aulas, homework e cobrança — não pode ser desfeito.`);
     if (!confirmacao) return;
     const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      alert("Sua sessão expirou. Saia e entre de novo pra continuar.");
+      return;
+    }
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/delete-student`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sessionData.session.access_token}` },
@@ -1594,15 +1681,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "24px", transition: "background 0.2s ease" }}>
       <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
         <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden", flexWrap: "wrap", gap: "16px" }}>
-          <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: palette.orange, borderRadius: "0 0 0 120px", opacity: 0.15 }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>StudentHub</p>
-            <h1 style={{ color: "#FFF", fontSize: "22px", fontWeight: 600 }}>
-              {role === "admin" ? `Portal de ${student.nome}` : `Welcome back, ${student.nome.split(" ")[0]}!`}
-            </h1>
-            {role !== "admin" && (
-              <p style={{ color: `${palette.lightGreen}CC`, fontSize: "12px", fontStyle: "italic", marginTop: "4px" }}>{fraseDoDia}</p>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", position: "relative", zIndex: 1 }}>
+            <img src={LOGO} alt="Teacher Mari Lessons" style={{ height: "58px", flexShrink: 0 }} />
+            <div>
+              <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>StudentHub</p>
+              <h1 style={{ color: "#FFF", fontSize: "22px", fontWeight: 600 }}>
+                {role === "admin" ? `Portal de ${student.nome}` : `Welcome back, ${student.nome.split(" ")[0]}!`}
+              </h1>
+              {role !== "admin" && (
+                <p style={{ color: `${palette.lightGreen}CC`, fontSize: "12px", fontStyle: "italic", marginTop: "4px" }}>{fraseDoDia}</p>
+              )}
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative", zIndex: 1, flexWrap: "wrap" }}>
             <button onClick={() => setDark(!dark)} style={{ width: "36px", height: "36px", borderRadius: "10px", border: "none", background: "rgba(255,255,255,0.12)", cursor: "pointer", color: "#FFF", fontSize: "16px" }}>
