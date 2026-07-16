@@ -572,9 +572,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       }
     }
 
-    const { data: turmasExistentes } = await supabase.from("turmas").select("dias_horarios");
+    const { data: turmasExistentes } = await supabase.from("turmas").select("dias_horarios, students(id)");
+    const turmasComAlunos = (turmasExistentes || []).filter((t) => t.students && t.students.length > 0);
     const conflitos = [];
-    (turmasExistentes || []).forEach((t) => {
+    turmasComAlunos.forEach((t) => {
       (t.dias_horarios || []).forEach((dh) => {
         novaTurma.diasHorarios.forEach((novoDh) => {
           if (dh.dia === novoDh.dia && dh.horario === novoDh.horario) {
@@ -1367,6 +1368,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
         const label = rotuloUnidade(novaAula.unidade);
         await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
         setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
+      }
+
+      // Marca essa mesma data como "Realizada" no calendário, já que a aula foi dada de fato
+      const { data: lessonData, error: lessonError } = await supabase
+        .from("lessons")
+        .upsert({ turma_id: turmaId, data: novaAula.data, status: "realizada", prazo_reposicao: null }, { onConflict: "turma_id,data" })
+        .select().single();
+      if (!lessonError) {
+        const d = new Date(novaAula.data + "T00:00:00");
+        const chave = `${d.getMonth()}-${d.getDate()}`;
+        setAulas((prev) => ({ ...prev, [chave]: { ...(prev[chave] || {}), status: "realizada", prazo_reposicao: null, rowId: lessonData.id } }));
       }
     }
     setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
