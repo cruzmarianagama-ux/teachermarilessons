@@ -406,6 +406,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     nivel: "Beginner",
     diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
     alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
+    dataInicio: new Date().toISOString().slice(0, 10),
   });
   const [statusForm, setStatusForm] = useState({ tipo: "", texto: "" });
   const [enviando, setEnviando] = useState(false);
@@ -619,6 +620,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       modalidade: "individual", frequencia: "1x", nivel: "Beginner",
       diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
       alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
+      dataInicio: new Date().toISOString().slice(0, 10),
     });
     carregarAlunos();
   };
@@ -888,6 +890,14 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                 <option>Pre-Intermediate</option>
               </select>
 
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de início das aulas</label>
+              <input type="date" value={novaTurma.dataInicio} onChange={(e) => setNovaTurma((t) => ({ ...t, dataInicio: e.target.value }))}
+                min="2026-01-01" max="2026-12-13"
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
+              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "16px" }}>
+                Pode ser uma data retroativa — o calendário é gerado a partir dela até 13/12/2026.
+              </p>
+
               <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "10px" }}>
                 {novaTurma.modalidade === "individual" ? "Dados do aluno" : `Alunos da turma (${novaTurma.alunos.length})`}
               </p>
@@ -1030,7 +1040,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const [rascunhoAulaRegistrada, setRascunhoAulaRegistrada] = useState(null);
   const [aulasRegistradas, setAulasRegistradas] = useState([]);
   const [homeworkStatus, setHomeworkStatus] = useState({});
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
@@ -1359,7 +1369,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
         setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
       }
     }
-    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: homeworkLinks[0].url, embeds: [] });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
@@ -1775,6 +1785,28 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     return new Date(`${dataISO}T${horarioDoDia.horario}:00`);
   };
 
+  const proximaAula = (() => {
+    const agora = new Date();
+    const candidatas = Object.entries(aulas)
+      .filter(([, r]) => typeof r === "object" && (r.status === "agendada" || r.status === "reposicaoAgendada"))
+      .map(([chave, r]) => {
+        const [m, d] = chave.split("-").map(Number);
+        const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const dataHora = dataHoraDaAula(dataISO, r.horario);
+        return dataHora ? { dataHora, reagendada: r.status === "reposicaoAgendada" } : null;
+      })
+      .filter((c) => c && c.dataHora >= agora)
+      .sort((a, b) => a.dataHora - b.dataHora);
+    return candidatas[0] || null;
+  })();
+
+  const formatarProximaAula = (dataHora) => {
+    const diaSemana = dataHora.toLocaleDateString("en-US", { weekday: "short" });
+    const mesEDia = dataHora.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const hora = dataHora.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    return `${diaSemana}, ${mesEDia} — ${hora}`;
+  };
+
   // Streak: conta aulas seguidas sem "Perdida", olhando o histórico em ordem cronológica
   const diasComStatus = Object.entries(aulas)
     .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
@@ -1808,6 +1840,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "24px", transition: "background 0.2s ease" }}>
+      <datalist id="lista-cronogramas">
+        {homeworkLinks.map((h, i) => <option key={i} value={h.url}>{h.titulo}</option>)}
+      </datalist>
       <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
         <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden", flexWrap: "wrap", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px", position: "relative", zIndex: 1 }}>
@@ -2128,7 +2163,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
               <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                 <div>
                   <p style={{ fontSize: "12px", color: textSecondary }}>Next lesson</p>
-                  <p style={{ marginTop: "4px", fontSize: "15px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Wed, Jul 16 — 7:00 PM</p>
+                  <p style={{ marginTop: "4px", fontSize: "15px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>
+                    {proximaAula ? formatarProximaAula(proximaAula.dataHora) : "No lesson scheduled"}
+                    {proximaAula && proximaAula.reagendada ? " (rescheduled)" : ""}
+                  </p>
                 </div>
                 {turma && turma.link_aula ? (
                   <a href={turma.link_aula} target="_blank" rel="noopener noreferrer"
@@ -2204,11 +2242,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                         placeholder="Ex: Wh-questions com be"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal (homework)</label>
-                      <select value={novaAula.cronogramaUrl} onChange={(e) => setNovaAula((a) => ({ ...a, cronogramaUrl: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }}>
-                        {homeworkLinks.map((h, i) => <option key={i} value={h.url}>{h.titulo}</option>)}
-                      </select>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal (homework) — opcional</label>
+                      <input type="text" list="lista-cronogramas" value={novaAula.cronogramaUrl} onChange={(e) => setNovaAula((a) => ({ ...a, cronogramaUrl: e.target.value }))}
+                        placeholder="Cole o link do cronograma (ex: .../beginner/unit6a) ou deixe em branco"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
                         Incorporar outro site (Wordwall, jogos, etc.)
@@ -2304,11 +2341,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Assunto</label>
                       <input type="text" value={rascunhoAulaRegistrada.assunto} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, assunto: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma</label>
-                      <select value={rascunhoAulaRegistrada.cronogramaUrl} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramaUrl: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }}>
-                        {homeworkLinks.map((h, i) => <option key={i} value={h.url}>{h.titulo}</option>)}
-                      </select>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma — opcional</label>
+                      <input type="text" list="lista-cronogramas" value={rascunhoAulaRegistrada.cronogramaUrl || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramaUrl: e.target.value }))}
+                        placeholder="Cole o link do cronograma ou deixe em branco"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={salvarEdicaoAulaRegistrada} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>Salvar</button>
                         <button onClick={() => setEditandoAulaRegistrada(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
@@ -2328,8 +2364,14 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                     </React.Fragment>
                   )}
 
-                  <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
-                  <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={2200} alturaMinima={800} />
+                  {cronogramaAberto.cronogramaUrl ? (
+                    <React.Fragment>
+                      <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
+                      <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={2200} alturaMinima={800} />
+                    </React.Fragment>
+                  ) : (
+                    <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum cronograma vinculado a essa aula.</p>
+                  )}
 
                   {cronogramaAberto.embeds && cronogramaAberto.embeds.length > 0 && cronogramaAberto.embeds.map((em, i) => (
                     <div key={i} style={{ marginBottom: "20px" }}>
@@ -2425,10 +2467,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       <input type="text" value={rascunho.assunto || ""} onChange={(e) => setRascunho((r) => ({ ...r, assunto: e.target.value }))}
                         placeholder="Assunto da aula (ex: Wh-questions com be)"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                      <select value={rascunho.cronogramaUrl || homeworkLinks[0].url} onChange={(e) => setRascunho((r) => ({ ...r, cronogramaUrl: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }}>
-                        {homeworkLinks.map((h, i) => <option key={i} value={h.url}>{h.titulo}</option>)}
-                      </select>
+                      <input type="text" list="lista-cronogramas" value={rascunho.cronogramaUrl || ""} onChange={(e) => setRascunho((r) => ({ ...r, cronogramaUrl: e.target.value }))}
+                        placeholder="Cole o link do cronograma ou deixe em branco"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                     </div>
                   )}
 
