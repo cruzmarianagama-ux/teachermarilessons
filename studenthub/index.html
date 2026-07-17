@@ -1000,10 +1000,21 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   );
 }
 
+// Converte URLs comuns pra versão que aceita embed (Wordwall e YouTube bloqueiam iframe nas URLs regulares)
+function normalizarUrlEmbed(url) {
+  if (!url) return url;
+  const wordwall = url.match(/wordwall\.net\/(?:resource|play)\/(\d+)/);
+  if (wordwall) return `https://wordwall.net/embed/${wordwall[1]}?themeId=1&templateId=3&fontStackId=0`;
+  const youtubeWatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (youtubeWatch) return `https://www.youtube.com/embed/${youtubeWatch[1]}`;
+  return url;
+}
+
 function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
   const { useRef, useState: useStateLocal } = React;
   const iframeRef = useRef(null);
   const [altura, setAltura] = useStateLocal(alturaPadrao || 1200);
+  const embedSrc = normalizarUrlEmbed(src);
 
   const ajustarAltura = () => {
     try {
@@ -1011,18 +1022,26 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
       const alturaReal = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
       if (alturaReal > 0) setAltura(Math.max(alturaReal + 30, alturaMinima || 400));
     } catch (e) {
-      // Se por algum motivo não conseguir medir (ex: página de outro domínio), mantém a altura padrão
+      // Cross-origin: mantém altura padrão (é o caso normal pra Wordwall/YouTube)
     }
   };
 
   const onLoadHandler = () => {
     ajustarAltura();
-    setTimeout(ajustarAltura, 500); // segunda checagem, caso algo no cronograma carregue com atraso
+    setTimeout(ajustarAltura, 500);
   };
 
   return (
-    <iframe ref={iframeRef} src={src} title={title} scrolling="no" onLoad={onLoadHandler}
-      style={{ width: "100%", height: `${altura}px`, border: "none", borderRadius: "12px", background: "#FFF", marginBottom: "20px", transition: "height 0.2s ease" }} />
+    <div style={{ marginBottom: "20px" }}>
+      <iframe ref={iframeRef} src={embedSrc} title={title} scrolling="no" onLoad={onLoadHandler}
+        allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write"
+        allowFullScreen
+        style={{ width: "100%", height: `${altura}px`, border: "none", borderRadius: "12px", background: "#FFF", transition: "height 0.2s ease", display: "block" }} />
+      <a href={src} target="_blank" rel="noopener noreferrer"
+        style={{ display: "inline-block", marginTop: "6px", fontSize: "11px", color: palette.purple, textDecoration: "underline", fontWeight: 500 }}>
+        Se não carregar aqui, abra em nova aba →
+      </a>
+    </div>
   );
 }
 
@@ -1045,7 +1064,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const [mostrarNovaCobranca, setMostrarNovaCobranca] = useState(false);
   const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "" });
   const [diaSelecionado, setDiaSelecionado] = useState(null);
-  const [rascunho, setRascunho] = useState({ status: "realizada", conteudo: "", feedback: "" });
+  const [rascunho, setRascunho] = useState({ status: "realizada" });
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [fraseDoDia] = useState(fraseMotivacionalAleatoria);
   const [turma, setTurma] = useState(null);
@@ -1175,7 +1194,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       const aulasObj = {};
       (lessonsData || []).forEach((l) => {
         const d = new Date(l.data + "T00:00:00");
-        aulasObj[`${d.getMonth()}-${d.getDate()}`] = { status: l.status, conteudo: l.conteudo || "", feedback: l.feedback || "", prazo_reposicao: l.prazo_reposicao, horario: l.horario, data_original: l.data_original, rowId: l.id };
+        aulasObj[`${d.getMonth()}-${d.getDate()}`] = { status: l.status, prazo_reposicao: l.prazo_reposicao, horario: l.horario, data_original: l.data_original, rowId: l.id };
       });
       setAulas(aulasObj);
 
@@ -1223,7 +1242,18 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     if (role !== "admin") return;
     setDiaSelecionado(chave);
     const existente = aulas[chave];
-    setRascunho(existente || { status: "realizada", conteudo: "", feedback: "" });
+    // Descobre o horário padrão da turma pra esse dia da semana (se houver), pra usar como sugestão
+    let horarioPadrao = "";
+    if (chave && turma && turma.dias_horarios) {
+      const [m, d] = chave.split("-").map(Number);
+      const diaSemana = new Date(2026, m, d).getDay();
+      const diasMap = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
+      const dhMatch = turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana);
+      if (dhMatch) horarioPadrao = dhMatch.horario;
+    }
+    setRascunho(existente
+      ? { ...existente, horario: existente.horario || horarioPadrao }
+      : { status: "realizada", horario: horarioPadrao });
     if (chave) {
       const [m, d] = chave.split("-").map(Number);
       setNovoDiaMover(`2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
@@ -1253,29 +1283,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
     const { data, error } = await supabase
       .from("lessons")
-      .upsert({ turma_id: turmaId, data: dataISO, status: rascunho.status, conteudo: rascunho.conteudo, feedback: rascunho.feedback, prazo_reposicao: prazoReposicao }, { onConflict: "turma_id,data" })
+      .upsert({ turma_id: turmaId, data: dataISO, status: rascunho.status, prazo_reposicao: prazoReposicao, horario: rascunho.horario || null }, { onConflict: "turma_id,data" })
       .select().single();
     if (error) {
       alert("Erro ao salvar a aula: " + error.message);
       return;
     }
-    setAulas((prev) => ({ ...prev, [diaSelecionado]: { ...rascunho, prazo_reposicao: prazoReposicao, rowId: data.id } }));
-
-    // Se marcada como realizada e o conteúdo foi preenchido, registra também em Aulas + Homework
-    if (rascunho.status === "realizada" && rascunho.assunto) {
-      const { data: registro, error: erroRegistro } = await supabase
-        .from("lesson_records")
-        .insert({ turma_id: turmaId, data: dataISO, assunto: rascunho.assunto, unidade: rascunho.unidade || null, cronograma_url: rascunho.cronogramaUrl || null, embeds: [] })
-        .select().single();
-      if (!erroRegistro) {
-        setAulasRegistradas((prev) => [{ data: dataISO, assunto: rascunho.assunto, unidade: rascunho.unidade, cronogramaUrl: rascunho.cronogramaUrl, embeds: [], rowId: registro.id }, ...prev]);
-        if (rascunho.unidade && deveAtualizarUnidadeAtual(dataISO)) {
-          const label = rotuloUnidade(rascunho.unidade);
-          await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
-          setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
-        }
-      }
-    }
+    setAulas((prev) => ({ ...prev, [diaSelecionado]: { status: rascunho.status, horario: rascunho.horario || null, prazo_reposicao: prazoReposicao, rowId: data.id } }));
 
     setDiaSelecionado(null);
   };
@@ -1356,7 +1370,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       .select().single();
 
     if (!error) {
-      setAulas((prev) => ({ ...prev, [chave]: { status: novoStatus, conteudo: "", feedback: "", prazo_reposicao: prazoReposicao, aviso_pendente: true, rowId: data.id } }));
+      setAulas((prev) => ({ ...prev, [chave]: { status: novoStatus, prazo_reposicao: prazoReposicao, aviso_pendente: true, rowId: data.id } }));
       alert(novoStatus === "aRepor"
         ? "Aviso registrado! Essa aula virou 'A repor', com prazo de 30 dias."
         : "Aviso registrado com menos de 3h de antecedência — essa aula foi marcada como 'Perdida'.");
@@ -1379,6 +1393,20 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     if (!novoEmbed.url) return;
     setNovaAula((a) => ({ ...a, embeds: [...a.embeds, novoEmbed] }));
     setNovoEmbed({ titulo: "", url: "" });
+  };
+
+  const removerEmbedNovaAula = (index) => {
+    setNovaAula((a) => ({ ...a, embeds: a.embeds.filter((_, i) => i !== index) }));
+  };
+
+  const adicionarEmbedNaEdicao = () => {
+    if (!novoEmbed.url) return;
+    setRascunhoAulaRegistrada((r) => ({ ...r, embeds: [...(r.embeds || []), novoEmbed] }));
+    setNovoEmbed({ titulo: "", url: "" });
+  };
+
+  const removerEmbedDaEdicao = (index) => {
+    setRascunhoAulaRegistrada((r) => ({ ...r, embeds: (r.embeds || []).filter((_, i) => i !== index) }));
   };
 
   const registrarAula = async () => {
@@ -1414,7 +1442,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [] })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (error) {
       alert("Erro ao salvar as alterações: " + error.message);
@@ -1444,11 +1472,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   };
 
   const excluirAulaRegistrada = async () => {
-    const confirmar = window.confirm(`Excluir o registro de "${cronogramaAberto.assunto}"? Essa ação não pode ser desfeita.`);
+    const confirmar = window.confirm(`Excluir o registro de "${cronogramaAberto.assunto}"? Isso também vai desmarcar essa aula do calendário.`);
     if (!confirmar) return;
+    const dataDoRegistro = cronogramaAberto.data;
     const { error } = await supabase.from("lesson_records").delete().eq("id", cronogramaAberto.rowId);
     if (error) { alert("Erro ao excluir: " + error.message); return; }
+    // Também remove a entrada correspondente no calendário (lessons), já que estão vinculados
+    await supabase.from("lessons").delete().eq("turma_id", turmaId).eq("data", dataDoRegistro);
     setAulasRegistradas((prev) => prev.filter((a) => a.rowId !== cronogramaAberto.rowId));
+    const d = new Date(dataDoRegistro + "T00:00:00");
+    const chaveCalendario = `${d.getMonth()}-${d.getDate()}`;
+    setAulas((prev) => { const copia = { ...prev }; delete copia[chaveCalendario]; return copia; });
     setCronogramaAberto(null);
   };
 
@@ -1499,13 +1533,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     const entradasCalendario = Object.entries(aulas)
       .map(([chave, r]) => {
         const [m, d] = chave.split("-").map(Number);
-        return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}/2026`, status: statusDe(r), feedback: typeof r === "object" ? r.feedback : "", ordem: m * 100 + d };
+        return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}/2026`, status: statusDe(r), ordem: m * 100 + d };
       })
       .sort((a, b) => a.ordem - b.ordem);
     entradasCalendario.forEach((e) => {
       if (y > 275) { doc.addPage(); y = 20; }
       const label = statusConfig[e.status] ? statusConfig[e.status].label : e.status;
-      doc.text(`${e.data} — ${label}${e.feedback ? " — " + e.feedback : ""}`, 14, y);
+      doc.text(`${e.data} — ${label}`, 14, y);
       y += 6;
     });
 
@@ -1658,17 +1692,19 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     y += 38;
 
     doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
-    doc.roundedRect(margem, y, larguraPagina - margem * 2, 24, 3, 3, "FD");
-    const colX = [margem + 8, margem + 78, margem + 148];
+    doc.roundedRect(margem, y, larguraPagina - margem * 2, 30, 3, 3, "FD");
+    const larguraCol = (larguraPagina - margem * 2) / 3;
+    const colX = [margem + 6, margem + 6 + larguraCol, margem + 6 + larguraCol * 2];
     const labels = ["STUDENT", "CLASS DAY", "CURRENT LEVEL"];
     const valores = [relatorio.studentName, relatorio.classDay, relatorio.currentLevel];
     labels.forEach((l, i) => {
       doc.setFont("Poppins", "normal"); doc.setFontSize(7.5); doc.setTextColor(140, 120, 95);
-      doc.text(l, colX[i], y + 9);
-      doc.setFont("Poppins", "bold"); doc.setFontSize(13); doc.setTextColor(...roxo);
-      doc.text(String(valores[i]), colX[i], y + 18);
+      doc.text(l, colX[i], y + 10);
+      doc.setFont("Poppins", "bold"); doc.setFontSize(12); doc.setTextColor(...roxo);
+      // maxWidth garante que valores longos (ex: "Pre-Intermediate") não vazem pra fora da coluna
+      doc.text(String(valores[i]), colX[i], y + 21, { maxWidth: larguraCol - 4 });
     });
-    y += 34;
+    y += 40;
 
     doc.setFont("Poppins", "bold"); doc.setFontSize(12); doc.setTextColor(...laranja);
     doc.text("MONTHLY SUMMARY", margem, y);
@@ -1937,15 +1973,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const indiceAtual = codigoAtual ? sequenciaCurriculo.indexOf(codigoAtual) : -1;
   const unidadeAtual = codigoAtual ? rotuloUnidade(codigoAtual) : "Ainda não iniciado";
   const progressoPercentual = indiceAtual >= 0 ? Math.round(((indiceAtual + 1) / sequenciaCurriculo.length) * 100) : 0;
-
-  const feedbacksRecentes = Object.entries(aulas)
-    .filter(([, r]) => typeof r === "object" && r.feedback)
-    .map(([chave, r]) => {
-      const [m, d] = chave.split("-").map(Number);
-      return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}`, texto: r.feedback, ordem: m * 100 + d };
-    })
-    .sort((a, b) => b.ordem - a.ordem)
-    .slice(0, 4);
 
   if (carregandoDados) {
     return (
@@ -2296,21 +2323,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                 )}
               </div>
 
-              <div>
-                <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>💬 Recados da Teacher Mari</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {feedbacksRecentes.length === 0 && (
-                    <p style={{ fontSize: "13px", color: textSecondary }}>Nenhum recado ainda.</p>
-                  )}
-                  {feedbacksRecentes.map((f, i) => (
-                    <div key={i} style={{ borderLeft: `3px solid ${palette.lightGreen}`, paddingLeft: "12px" }}>
-                      <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{f.data}</p>
-                      <p style={{ marginTop: "2px", fontSize: "13px", color: textSecondary }}>{f.texto}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div style={{ borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, paddingTop: "16px" }}>
                 <button onClick={() => setMostrarTrocaSenha(!mostrarTrocaSenha)}
                   style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
@@ -2384,7 +2396,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       {novaAula.embeds.length > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "14px" }}>
                           {novaAula.embeds.map((em, i) => (
-                            <p key={i} style={{ fontSize: "12px", color: textSecondary }}>• {em.titulo || em.url}</p>
+                            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                              <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>• {em.titulo || em.url}</p>
+                              <button onClick={() => removerEmbedNovaAula(i)}
+                                style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "13px", fontWeight: 600, padding: "2px 6px" }}>×</button>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -2467,6 +2483,31 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       <input type="text" list="lista-cronogramas" value={rascunhoAulaRegistrada.cronogramaUrl || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramaUrl: e.target.value }))}
                         placeholder="Cole o link do cronograma ou deixe em branco"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
+                        Incorporar outro site (Wordwall, jogos, etc.)
+                      </label>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                        <input type="text" value={novoEmbed.titulo} onChange={(e) => setNovoEmbed((n) => ({ ...n, titulo: e.target.value }))}
+                          placeholder="Título (ex: Wordwall — Family)"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <input type="text" value={novoEmbed.url} onChange={(e) => setNovoEmbed((n) => ({ ...n, url: e.target.value }))}
+                          placeholder="URL"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <button onClick={adicionarEmbedNaEdicao} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>+</button>
+                      </div>
+                      {rascunhoAulaRegistrada.embeds && rascunhoAulaRegistrada.embeds.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "14px" }}>
+                          {rascunhoAulaRegistrada.embeds.map((em, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                              <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>• {em.titulo || em.url}</p>
+                              <button onClick={() => removerEmbedDaEdicao(i)}
+                                style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "13px", fontWeight: 600, padding: "2px 6px" }}>×</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={salvarEdicaoAulaRegistrada} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>Salvar</button>
                         <button onClick={() => setEditandoAulaRegistrada(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
@@ -2547,16 +2588,20 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                   <p style={{ marginBottom: "4px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>
                     Registrar aula — dia {diaSelecionado.split("-")[1]}/{Number(diaSelecionado.split("-")[0]) + 1}
                   </p>
-                  {(() => {
-                    const [m, d] = diaSelecionado.split("-").map(Number);
-                    const dataISOAtual = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-                    const horarioEfetivo = dataHoraDaAula(dataISOAtual, aulas[diaSelecionado] && aulas[diaSelecionado].horario);
-                    return horarioEfetivo ? (
-                      <p style={{ marginBottom: "10px", fontSize: "12px", color: textSecondary }}>
-                        Horário: {horarioEfetivo.toTimeString().slice(0, 5)}{aulas[diaSelecionado] && aulas[diaSelecionado].horario ? " (personalizado)" : " (padrão da turma)"}
-                      </p>
-                    ) : null;
-                  })()}
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px", marginTop: "10px" }}>Horário</label>
+                  <input type="time" value={rascunho.horario || ""} onChange={(e) => setRascunho((r) => ({ ...r, horario: e.target.value }))}
+                    style={{ width: "160px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
+                  <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "14px" }}>
+                    {(() => {
+                      const [m, d] = diaSelecionado.split("-").map(Number);
+                      const diaSemana = new Date(2026, m, d).getDay();
+                      const diasMap = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
+                      const dhMatch = turma && turma.dias_horarios ? turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana) : null;
+                      if (dhMatch && rascunho.horario === dhMatch.horario) return "Padrão da turma nesse dia da semana.";
+                      if (dhMatch) return `Horário padrão da turma nesse dia é ${dhMatch.horario} — você está usando um horário personalizado.`;
+                      return "Esse dia não faz parte da agenda regular da turma — é uma aula extra. Defina o horário livremente.";
+                    })()}
+                  </p>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
                     {Object.entries(statusConfig).filter(([k]) => k !== "reposicaoAgendada").map(([key, cfg]) => (
                       <button key={key} onClick={() => setRascunho((r) => ({ ...r, status: key }))}
@@ -2565,41 +2610,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       </button>
                     ))}
                   </div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Conteúdo ensinado</label>
-                  <textarea value={rascunho.conteudo} onChange={(e) => setRascunho((r) => ({ ...r, conteudo: e.target.value }))}
-                    placeholder="Ex: Unit 4A — Wh-questions com be, prática oral em pares"
-                    style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px", resize: "vertical" }} />
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Feedback para o aluno</label>
-                  <textarea value={rascunho.feedback} onChange={(e) => setRascunho((r) => ({ ...r, feedback: e.target.value }))}
-                    placeholder="Ex: Boa produção oral, revisar pronúncia de 'th'."
-                    style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
-
-                  {rascunho.status === "realizada" && (
-                    <div style={{ marginBottom: "14px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
-                      <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>
-                        Registrar em Aulas + Homework junto (opcional)
-                      </p>
-                      <select value={rascunho.unidade || ""} onChange={(e) => setRascunho((r) => ({ ...r, unidade: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }}>
-                        <option value="">Unidade (opcional)...</option>
-                        {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
-                          <option key={codigo} value={codigo}>{(obterTopico(student.nivel || "Beginner", codigo) || {}).t || rotuloUnidade(codigo)}</option>
-                        ))}
-                      </select>
-                      <input type="text" value={rascunho.assunto || ""} onChange={(e) => setRascunho((r) => ({ ...r, assunto: e.target.value }))}
-                        placeholder="Assunto da aula (ex: Wh-questions com be)"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                      <input type="text" list="lista-cronogramas" value={rascunho.cronogramaUrl || ""} onChange={(e) => setRascunho((r) => ({ ...r, cronogramaUrl: e.target.value }))}
-                        placeholder="Cole o link do cronograma ou deixe em branco"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
-                    </div>
-                  )}
 
                   {rascunho.status === "aRepor" && (
                     <p style={{ fontSize: "12px", color: palette.orange, marginBottom: "14px" }}>
                       Um prazo de 30 dias pra reposição será criado e fixado como lembrete na Home do aluno.
                     </p>
                   )}
+
+                  <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "14px" }}>
+                    Conteúdo da aula, feedback e progresso vão em Aulas + Homework.
+                  </p>
 
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button onClick={salvarAula} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>Salvar</button>
