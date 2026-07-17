@@ -1043,14 +1043,23 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   );
 }
 
-// Converte URLs comuns pra versão que aceita embed (Wordwall e YouTube bloqueiam iframe nas URLs regulares)
+// Converte URLs comuns pra versão que aceita embed (Wordwall e YouTube bloqueiam iframe nas URLs regulares).
+// Também aceita código iframe colado inteiro (ex: '<iframe src="..." ...>') e extrai o src.
 function normalizarUrlEmbed(url) {
   if (!url) return url;
-  const wordwall = url.match(/wordwall\.net\/(?:resource|play)\/(\d+)/);
-  if (wordwall) return `https://wordwall.net/embed/${wordwall[1]}?themeId=1&templateId=3&fontStackId=0`;
-  const youtubeWatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  const original = url.trim();
+  // Se colou código iframe inteiro, pega só o src
+  const iframeSrc = original.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
+  if (iframeSrc) return iframeSrc[1];
+  // Se já é URL de embed do Wordwall (com ou sem params), usa direto
+  if (/wordwall\.net\/embed\//.test(original)) return original;
+  // URL regular do Wordwall: /resource/ ou /play/ com ID (pode ter letras + números)
+  const wordwall = original.match(/wordwall\.net\/(?:resource|play)\/([A-Za-z0-9]+)/);
+  if (wordwall) return `https://wordwall.net/embed/${wordwall[1]}`;
+  // YouTube
+  const youtubeWatch = original.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (youtubeWatch) return `https://www.youtube.com/embed/${youtubeWatch[1]}`;
-  return url;
+  return original;
 }
 
 function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
@@ -2485,15 +2494,18 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         placeholder="Cole o link do cronograma (ex: .../beginner/unit6a) ou deixe em branco"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
                         Incorporar outro site (Wordwall, jogos, etc.)
                       </label>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "8px", lineHeight: 1.4 }}>
+                        Do Wordwall: clique em <strong>Share → Embed</strong> e cole o código iframe inteiro OU só a URL que aparece dentro do <code style={{ fontFamily: "monospace", background: dark ? "#3A2B7A" : "#EEE", padding: "1px 4px", borderRadius: "3px" }}>src="..."</code>.
+                      </p>
                       <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                         <input type="text" value={novoEmbed.titulo} onChange={(e) => setNovoEmbed((n) => ({ ...n, titulo: e.target.value }))}
                           placeholder="Título (ex: Wordwall — Family)"
                           style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                         <input type="text" value={novoEmbed.url} onChange={(e) => setNovoEmbed((n) => ({ ...n, url: e.target.value }))}
-                          placeholder="URL"
+                          placeholder="URL ou código iframe"
                           style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                         <button onClick={adicionarEmbed} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>+</button>
                       </div>
@@ -2588,15 +2600,18 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         placeholder="Cole o link do cronograma ou deixe em branco"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
                         Incorporar outro site (Wordwall, jogos, etc.)
                       </label>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "8px", lineHeight: 1.4 }}>
+                        Do Wordwall: clique em <strong>Share → Embed</strong> e cole o código iframe inteiro OU só a URL que aparece dentro do <code style={{ fontFamily: "monospace", background: dark ? "#3A2B7A" : "#EEE", padding: "1px 4px", borderRadius: "3px" }}>src="..."</code>.
+                      </p>
                       <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                         <input type="text" value={novoEmbed.titulo} onChange={(e) => setNovoEmbed((n) => ({ ...n, titulo: e.target.value }))}
                           placeholder="Título (ex: Wordwall — Family)"
                           style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                         <input type="text" value={novoEmbed.url} onChange={(e) => setNovoEmbed((n) => ({ ...n, url: e.target.value }))}
-                          placeholder="URL"
+                          placeholder="URL ou código iframe"
                           style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                         <button onClick={adicionarEmbedNaEdicao} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>+</button>
                       </div>
