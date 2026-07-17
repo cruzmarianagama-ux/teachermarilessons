@@ -174,16 +174,10 @@ const statusConfig = {
   perdida: { cor: "#F7C1C1", texto: "#791F1F", label: "Perdida" },
 };
 
-// Monta a sequência real do currículo English File: units + Practical English intercalados
-// Beginner: 12 units (A,B) + 6 PE | Elementary/Pre-Intermediate: 12 units (A,B,C) + 6 PE
+// Retorna a sequência real do currículo lendo do SYLLABUS (fonte única de verdade)
 function gerarSequenciaCurriculo(nivel) {
-  const partes = nivel === "Beginner" ? ["A", "B"] : ["A", "B", "C"];
-  const sequencia = [];
-  for (let unit = 1; unit <= 12; unit++) {
-    partes.forEach((p) => sequencia.push(`${unit}${p}`));
-    if (unit % 2 === 0) sequencia.push(`PE${unit / 2}`);
-  }
-  return sequencia;
+  const nivelValido = SYLLABUS[nivel] ? nivel : "Beginner";
+  return SYLLABUS[nivelValido].map((u) => u.id);
 }
 
 function rotuloUnidade(codigo) {
@@ -250,7 +244,6 @@ function fraseMotivacionalAleatoria() {
   return frasesMotivacionais[Math.floor(Math.random() * frasesMotivacionais.length)];
 }
 
-// Extrai o código da unidade (ex: "4A") ou Practical English (ex: "PE2") de um texto de assunto
 const SYLLABUS = {
   Beginner:[
     {id:'1A',t:'1A – Nice to meet you',items:['Apresentar-se e cumprimentar pessoas.','Dizer seu nome.','Perguntar e informar dados pessoais básicos.','Falar números de 0 a 10.','Dizer os dias da semana.','Despedir-se de forma simples.']},
@@ -399,7 +392,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [diasSemAula, setDiasSemAula] = useState({});
-  const [mesCalGeral, setMesCalGeral] = useState(0);
+  const [mesCalGeral, setMesCalGeral] = useState(() => new Date().getMonth());
   const [novaTurma, setNovaTurma] = useState({
     modalidade: "individual",
     frequencia: "1x",
@@ -697,7 +690,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                         style={{ flex: "1 1 160px", padding: "20px", borderRadius: "12px", border: "none", cursor: "pointer", background: palette.cream, textAlign: "left" }}>
                         <p style={{ fontSize: "28px", marginBottom: "6px" }}>📁</p>
                         <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{nv}</p>
-                        <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>{qtd} material{qtd !== 1 ? "is" : ""}</p>
+                        <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>{qtd} {qtd === 1 ? "material" : "materiais"}</p>
                       </button>
                     );
                   })}
@@ -1034,10 +1027,10 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
 }
 
 function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated }) {
-  const { useEffect, useRef } = React;
+  const { useEffect } = React;
   const [active, setActive] = useState("home");
   const [dark, setDark] = useState(false);
-  const [mesAtual, setMesAtual] = useState(6);
+  const [mesAtual, setMesAtual] = useState(() => new Date().getMonth());
   const [aulas, setAulas] = useState({});
   const [cronogramaAberto, setCronogramaAberto] = useState(null);
   const [editandoAulaRegistrada, setEditandoAulaRegistrada] = useState(false);
@@ -1047,6 +1040,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
+  const [editandoCobrancaId, setEditandoCobrancaId] = useState(null);
+  const [rascunhoCobranca, setRascunhoCobranca] = useState({ mes: "", valor: "", vencimento: "" });
+  const [mostrarNovaCobranca, setMostrarNovaCobranca] = useState(false);
+  const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "" });
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [rascunho, setRascunho] = useState({ status: "realizada", conteudo: "", feedback: "" });
   const [carregandoDados, setCarregandoDados] = useState(true);
@@ -1122,12 +1119,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
   };
   const [mostrarTrocaSenha, setMostrarTrocaSenha] = useState(false);
   const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mensagemSenha, setMensagemSenha] = useState("");
 
   const trocarSenha = async () => {
     setMensagemSenha("");
     if (novaSenha.length < 6) {
       setMensagemSenha("Erro: a senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      setMensagemSenha("Erro: as senhas não coincidem. Confira e tente de novo.");
       return;
     }
     const { error } = await supabase.auth.updateUser({ password: novaSenha });
@@ -1137,30 +1139,37 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     }
     setMensagemSenha("Senha alterada com sucesso!");
     setNovaSenha("");
+    setConfirmarSenha("");
   };
 
   const studentId = student.id;
   const turmaId = student.turma_id;
 
   useEffect(() => {
+    let ativo = true; // evita race condition se admin trocar de aluno antes das queries terminarem
     async function carregarDados() {
       setCarregandoDados(true);
 
       const { data: turmaData } = await supabase.from("turmas").select("*").eq("id", turmaId).single();
+      if (!ativo) return;
       setTurma(turmaData || null);
 
       const { data: materiaisData } = await supabase.from("materiais").select("*").order("created_at", { ascending: false });
+      if (!ativo) return;
       setMateriais(materiaisData || []);
 
       const { data: colegasData } = await supabase.from("students").select("id, nome").eq("turma_id", turmaId);
+      if (!ativo) return;
       setColegas((colegasData || []).filter((c) => c.id !== studentId));
 
       const { data: lessonsData } = await supabase
         .from("lessons").select("*").eq("turma_id", turmaId);
+      if (!ativo) return;
       const hojeISO = new Date().toISOString().slice(0, 10);
       const expiradas = (lessonsData || []).filter((l) => l.status === "aRepor" && l.prazo_reposicao && l.prazo_reposicao < hojeISO);
       if (expiradas.length > 0) {
         await supabase.from("lessons").update({ status: "perdida" }).in("id", expiradas.map((l) => l.id));
+        if (!ativo) return;
         expiradas.forEach((l) => { l.status = "perdida"; });
       }
       const aulasObj = {};
@@ -1172,17 +1181,20 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
       const { data: recordsData } = await supabase
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
+      if (!ativo) return;
       setAulasRegistradas((recordsData || []).map((r) => ({
         data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], rowId: r.id,
       })));
 
       const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
+      if (!ativo) return;
       const hwObj = {};
       (homeworkStatusData || []).forEach((h) => { hwObj[h.lesson_record_id] = h.concluido; });
       setHomeworkStatus(hwObj);
 
       const { data: billingData } = await supabase
         .from("billing").select("*").eq("turma_id", turmaId).order("vencimento", { ascending: true });
+      if (!ativo) return;
       setCobranca((billingData || []).map((b) => ({
         mes: b.mes, valor: `R$ ${Number(b.valor).toFixed(2).replace(".", ",")}`, status: b.status,
         vencimento: new Date(b.vencimento + "T00:00:00").toLocaleDateString("pt-BR"), vencimentoISO: b.vencimento, boletoUrl: b.boleto_url, rowId: b.id,
@@ -1191,7 +1203,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       setCarregandoDados(false);
     }
     carregarDados();
-  }, [turmaId]);
+    return () => { ativo = false; };
+  }, [turmaId, studentId]);
 
   const anexarBoleto = async (index, file) => {
     const registro = cobranca[index];
@@ -1216,6 +1229,15 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       setNovoDiaMover(`2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
       setNovoHorarioMover((existente && existente.horario) || "");
     }
+  };
+
+  // Só atualiza turmas.unidade_atual se a nova aula for a mais recente com unidade registrada.
+  // Isso evita que registrar/editar uma aula retroativa faça o portal "voltar" pra uma unidade antiga.
+  const deveAtualizarUnidadeAtual = (dataISO, ignorarRowId = null) => {
+    const outras = aulasRegistradas.filter((a) => a.unidade && a.rowId !== ignorarRowId);
+    if (outras.length === 0) return true;
+    const dataMaisRecente = outras.reduce((max, a) => (a.data > max ? a.data : max), outras[0].data);
+    return dataISO >= dataMaisRecente;
   };
 
   const salvarAula = async () => {
@@ -1247,7 +1269,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
         .select().single();
       if (!erroRegistro) {
         setAulasRegistradas((prev) => [{ data: dataISO, assunto: rascunho.assunto, unidade: rascunho.unidade, cronogramaUrl: rascunho.cronogramaUrl, embeds: [], rowId: registro.id }, ...prev]);
-        if (rascunho.unidade) {
+        if (rascunho.unidade && deveAtualizarUnidadeAtual(dataISO)) {
           const label = rotuloUnidade(rascunho.unidade);
           await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
           setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
@@ -1370,7 +1392,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       return;
     }
     setAulasRegistradas((prev) => [{ ...novaAula, rowId: data.id }, ...prev]);
-    if (novaAula.unidade) {
+    if (novaAula.unidade && deveAtualizarUnidadeAtual(novaAula.data)) {
       const label = rotuloUnidade(novaAula.unidade);
       await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
       setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
@@ -1400,7 +1422,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     }
     setAulasRegistradas((prev) => prev.map((a) => (a.rowId === rascunhoAulaRegistrada.rowId ? { ...rascunhoAulaRegistrada } : a)));
     setCronogramaAberto({ ...rascunhoAulaRegistrada });
-    if (rascunhoAulaRegistrada.unidade) {
+    if (rascunhoAulaRegistrada.unidade && deveAtualizarUnidadeAtual(rascunhoAulaRegistrada.data, rascunhoAulaRegistrada.rowId)) {
       const label = rotuloUnidade(rascunhoAulaRegistrada.unidade);
       await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
       setTurma((t) => (t ? { ...t, unidade_atual: label } : t));
@@ -1774,6 +1796,76 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     if (error) { alert("Erro ao marcar como pago: " + error.message); return; }
     setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pago" } : c)));
   };
+
+  const marcarComoPendente = async (rowId) => {
+    const { error } = await supabase.from("billing").update({ status: "pendente" }).eq("id", rowId);
+    if (error) { alert("Erro ao marcar como pendente: " + error.message); return; }
+    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pendente" } : c)));
+  };
+
+  const abrirEdicaoCobranca = (c) => {
+    setEditandoCobrancaId(c.rowId);
+    // Converte "R$ 250,00" de volta para número editável (250.00)
+    const valorNumerico = c.valor.replace(/[^\d,]/g, "").replace(",", ".");
+    setRascunhoCobranca({ mes: c.mes, valor: valorNumerico, vencimento: c.vencimentoISO });
+  };
+
+  const salvarEdicaoCobranca = async (rowId) => {
+    const valorNum = parseFloat(rascunhoCobranca.valor.replace(",", "."));
+    if (!rascunhoCobranca.mes || isNaN(valorNum) || valorNum <= 0 || !rascunhoCobranca.vencimento) {
+      alert("Preencha mês, valor (maior que zero) e vencimento.");
+      return;
+    }
+    const { error } = await supabase.from("billing")
+      .update({ mes: rascunhoCobranca.mes, valor: valorNum, vencimento: rascunhoCobranca.vencimento })
+      .eq("id", rowId);
+    if (error) { alert("Erro ao salvar: " + error.message); return; }
+    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? {
+      ...c,
+      mes: rascunhoCobranca.mes,
+      valor: `R$ ${valorNum.toFixed(2).replace(".", ",")}`,
+      vencimento: new Date(rascunhoCobranca.vencimento + "T00:00:00").toLocaleDateString("pt-BR"),
+      vencimentoISO: rascunhoCobranca.vencimento,
+    } : c)));
+    setEditandoCobrancaId(null);
+  };
+
+  const excluirCobranca = async (c) => {
+    const confirmar = window.confirm(`Excluir a cobrança de ${c.mes} (${c.valor})? Essa ação não pode ser desfeita.`);
+    if (!confirmar) return;
+    // Se tinha boleto anexado, apaga do storage também pra não deixar arquivo órfão
+    if (c.boletoUrl) {
+      const parts = c.boletoUrl.split("/boletos/");
+      if (parts[1]) await supabase.storage.from("boletos").remove([decodeURIComponent(parts[1])]);
+    }
+    const { error } = await supabase.from("billing").delete().eq("id", c.rowId);
+    if (error) { alert("Erro ao excluir: " + error.message); return; }
+    setCobranca((prev) => prev.filter((row) => row.rowId !== c.rowId));
+  };
+
+  const criarCobranca = async () => {
+    const valorNum = parseFloat(novaCobranca.valor.replace(",", "."));
+    if (!novaCobranca.mes || isNaN(valorNum) || valorNum <= 0 || !novaCobranca.vencimento) {
+      alert("Preencha mês, valor (maior que zero) e vencimento.");
+      return;
+    }
+    const { data, error } = await supabase.from("billing")
+      .insert({ turma_id: turmaId, mes: novaCobranca.mes, valor: valorNum, vencimento: novaCobranca.vencimento, status: "pendente" })
+      .select().single();
+    if (error) { alert("Erro ao criar cobrança: " + error.message); return; }
+    const nova = {
+      mes: data.mes,
+      valor: `R$ ${Number(data.valor).toFixed(2).replace(".", ",")}`,
+      status: data.status,
+      vencimento: new Date(data.vencimento + "T00:00:00").toLocaleDateString("pt-BR"),
+      vencimentoISO: data.vencimento,
+      boletoUrl: null,
+      rowId: data.id,
+    };
+    setCobranca((prev) => [...prev, nova].sort((a, b) => a.vencimentoISO.localeCompare(b.vencimentoISO)));
+    setNovaCobranca({ mes: "", valor: "", vencimento: "" });
+    setMostrarNovaCobranca(false);
+  };
   const reposicoesPendentes = Object.entries(aulas)
     .filter(([, r]) => typeof r === "object" && r.status === "aRepor" && r.prazo_reposicao)
     .map(([chave, r]) => ({ chave, prazo: r.prazo_reposicao }));
@@ -1854,6 +1946,15 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
     })
     .sort((a, b) => b.ordem - a.ordem)
     .slice(0, 4);
+
+  if (carregandoDados) {
+    return (
+      <div style={{ minHeight: "100vh", width: "100%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "16px" }}>
+        <img src={LOGO} alt="Teacher Mari Lessons" style={{ height: "80px", opacity: 0.9 }} />
+        <p style={{ fontFamily: "'Poppins', sans-serif", color: dark ? "#FFF" : palette.purple, fontSize: "14px", fontWeight: 500 }}>Carregando seu portal...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "24px", transition: "background 0.2s ease" }}>
@@ -2219,6 +2320,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                   <div style={{ marginTop: "12px", maxWidth: "280px" }}>
                     <input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)}
                       placeholder="Nova senha (mín. 6 caracteres)"
+                      style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
+                    <input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && trocarSenha()}
+                      placeholder="Confirmar nova senha"
                       style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
                     {mensagemSenha && (
                       <p style={{ fontSize: "12px", marginBottom: "10px", color: mensagemSenha.startsWith("Erro") ? "#E24B4A" : palette.green }}>{mensagemSenha}</p>
@@ -2421,9 +2526,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                   const chave = `${mesAtual}-${dia}`;
                   const status = statusDe(aulas[chave]);
                   const cfg = status ? statusConfig[status] : null;
-                  const clicavel = role === "admin" || status === "agendada";
+                  const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
                   return (
-                    <div key={i} onClick={() => { if (role === "admin") abrirDia(chave); else if (status === "agendada") avisarNaoComparecimento(chave); }}
+                    <div key={i} onClick={() => { if (role === "admin") abrirDia(chave); else if (status === "agendada" || status === "reposicaoAgendada") avisarNaoComparecimento(chave); }}
                       style={{ aspectRatio: "1", borderRadius: "8px", border: status ? "none" : `0.5px solid ${dark ? "#3A2B7A" : "#EEE"}`, background: cfg ? cfg.cor : "transparent", color: cfg ? cfg.texto : textSecondary, fontSize: "12px", fontWeight: status ? 600 : 400, display: "flex", alignItems: "center", justifyContent: "center", cursor: clicavel ? "pointer" : "default" }}>
                       {dia}
                     </div>
@@ -2433,7 +2538,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
               {role !== "admin" && (
                 <p style={{ marginTop: "10px", fontSize: "11px", color: textSecondary }}>
-                  Clique numa aula agendada pra avisar que não vai comparecer.
+                  Clique numa aula agendada ou reposição pra avisar que não vai comparecer.
                 </p>
               )}
 
@@ -2570,8 +2675,44 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
           )}
 
           {active === "cobranca" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div>
+              {role === "admin" && (
+                <div style={{ marginBottom: "16px" }}>
+                  <button onClick={() => setMostrarNovaCobranca(!mostrarNovaCobranca)}
+                    style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
+                    {mostrarNovaCobranca ? "Fechar" : "+ Nova cobrança"}
+                  </button>
+                  {mostrarNovaCobranca && (
+                    <div style={{ marginTop: "12px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, maxWidth: "460px" }}>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Mês / referência</label>
+                      <input type="text" value={novaCobranca.mes} onChange={(e) => setNovaCobranca((n) => ({ ...n, mes: e.target.value }))}
+                        placeholder="Ex: Janeiro 2026"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Valor (R$)</label>
+                      <input type="text" inputMode="decimal" value={novaCobranca.valor} onChange={(e) => setNovaCobranca((n) => ({ ...n, valor: e.target.value }))}
+                        placeholder="Ex: 250,00"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Vencimento</label>
+                      <input type="date" value={novaCobranca.vencimento} onChange={(e) => setNovaCobranca((n) => ({ ...n, vencimento: e.target.value }))}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+
+                      <button onClick={criarCobranca}
+                        style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>
+                        Criar cobrança
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {cobranca.length === 0 && (
+                <p style={{ fontSize: "13px", color: textSecondary }}>Nenhuma cobrança cadastrada ainda.</p>
+              )}
               {cobranca.map((c, i) => {
+                const emEdicao = editandoCobrancaId === c.rowId;
                 const diasParaVencer = Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000);
                 let statusLabel, statusBg, statusCor;
                 if (c.status === "pago") {
@@ -2585,6 +2726,35 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                 }
                 return (
                 <div key={i} style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
+                  {emEdicao ? (
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Mês / referência</label>
+                      <input type="text" value={rascunhoCobranca.mes} onChange={(e) => setRascunhoCobranca((r) => ({ ...r, mes: e.target.value }))}
+                        placeholder="Ex: Janeiro 2026"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Valor (R$)</label>
+                      <input type="text" inputMode="decimal" value={rascunhoCobranca.valor} onChange={(e) => setRascunhoCobranca((r) => ({ ...r, valor: e.target.value }))}
+                        placeholder="250,00"
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Vencimento</label>
+                      <input type="date" value={rascunhoCobranca.vencimento} onChange={(e) => setRascunhoCobranca((r) => ({ ...r, vencimento: e.target.value }))}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => salvarEdicaoCobranca(c.rowId)}
+                          style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
+                          Salvar
+                        </button>
+                        <button onClick={() => setEditandoCobrancaId(null)}
+                          style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                  <React.Fragment>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{c.mes}</p>
@@ -2596,18 +2766,31 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                   </div>
 
                   {role === "admin" ? (
-                    <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                    <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                       <label style={{ display: "inline-block", fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", background: palette.purple, color: "#FFF", cursor: "pointer" }}>
                         {c.boletoUrl ? "Substituir boleto" : "Subir boleto"}
                         <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
                           onChange={(e) => e.target.files[0] && anexarBoleto(i, e.target.files[0])} />
                       </label>
-                      {c.status !== "pago" && (
+                      {c.status !== "pago" ? (
                         <button onClick={() => marcarComoPago(c.rowId)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.lightGreen, color: palette.green }}>
                           Marcar como pago
                         </button>
+                      ) : (
+                        <button onClick={() => marcarComoPendente(c.rowId)}
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
+                          Desmarcar pago
+                        </button>
                       )}
+                      <button onClick={() => abrirEdicaoCobranca(c)}
+                        style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
+                        Editar
+                      </button>
+                      <button onClick={() => excluirCobranca(c)}
+                        style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: "#F7C1C1", color: "#791F1F" }}>
+                        Excluir
+                      </button>
                       {c.nomeArquivo && (
                         <span style={{ fontSize: "12px", color: textSecondary }}>{c.nomeArquivo}</span>
                       )}
@@ -2629,9 +2812,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                   {role !== "admin" && !c.boletoUrl && (
                     <p style={{ marginTop: "10px", fontSize: "12px", color: textSecondary }}>Boleto ainda não disponível.</p>
                   )}
+                  </React.Fragment>
+                  )}
                 </div>
                 );
               })}
+              </div>
             </div>
           )}
         </div>
