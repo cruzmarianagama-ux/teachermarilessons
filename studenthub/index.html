@@ -1244,11 +1244,19 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
   const anexarBoleto = async (index, file) => {
     const registro = cobranca[index];
-    const caminho = `${turmaId}/${registro.rowId}-${file.name}`;
+    // Supabase Storage não aceita acentos, espaços, parênteses e outros caracteres especiais na key
+    // Normaliza (remove acentos), troca espaços/símbolos por _, e mantém só ASCII seguro
+    const nomeSanitizado = file.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // tira os acentos
+      .replace(/[^a-zA-Z0-9._-]/g, "_") // qualquer caractere fora do seguro vira _
+      .replace(/_+/g, "_"); // colapsa múltiplos _ seguidos
+    const caminho = `${turmaId}/${registro.rowId}-${nomeSanitizado}`;
     const { error: erroUpload } = await supabase.storage.from("boletos").upload(caminho, file, { upsert: true });
     if (erroUpload) { alert("Erro ao subir boleto: " + erroUpload.message); return; }
     const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(caminho);
     await supabase.from("billing").update({ boleto_url: urlData.publicUrl }).eq("id", registro.rowId);
+    // Mostra o nome original pra Mari (com acentos), mas guarda internamente o sanitizado
     setCobranca((prev) => prev.map((c, i) => (i === index ? { ...c, boletoUrl: urlData.publicUrl, nomeArquivo: file.name } : c)));
   };
 
@@ -2117,6 +2125,38 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                 {salvandoAluno ? "Salvando..." : "Salvar"}
               </button>
               <button onClick={() => setMostrarEditarAluno(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : palette.cream, color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
+            </div>
+
+            <div style={{ marginTop: "18px", paddingTop: "16px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
+              <p style={{ marginBottom: "8px", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Reenviar acesso pelo WhatsApp</p>
+              <p style={{ marginBottom: "10px", fontSize: "11px", color: `${palette.purple}99` }}>
+                A mensagem inclui o link do portal e as instruções pra instalar como app. Se o aluno esqueceu a senha, ele usa "Esqueci minha senha" pra criar uma nova.
+              </p>
+              {(() => {
+                const telLimpo = (rascunhoAluno.telefone || "").replace(/\D/g, "");
+                if (!telLimpo) {
+                  return (
+                    <p style={{ fontSize: "12px", color: "#E24B4A", margin: 0 }}>
+                      Preencha o telefone acima antes de reenviar.
+                    </p>
+                  );
+                }
+                const msg = encodeURIComponent(
+                  `Olá, ${rascunhoAluno.nome || student.nome}! 👋\n\n` +
+                  `Segue seu acesso ao StudentHub (portal da Teacher Mari Lessons):\n\n` +
+                  `🔗 www.teachermarilessons.com.br/studenthub\n\n` +
+                  `Se não lembra a senha, é só clicar em "Esqueci minha senha" na tela de login — você recebe um link no seu e-mail pra criar uma nova.\n\n` +
+                  `⚠️ INSTALE COMO APP NO SEU CELULAR 📱:\n\n` +
+                  `• Android/Chrome: vai aparecer um banner "Adicionar à tela inicial" (ou toque no ícone de instalação na barra de endereço)\n` +
+                  `• iPhone/Safari: toque no ícone de Compartilhar (quadrado com seta) → "Adicionar à Tela de Início"`
+                );
+                return (
+                  <a href={`https://wa.me/${telLimpo}?text=${msg}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-block", padding: "9px 14px", borderRadius: "8px", background: "#25D366", color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                    Enviar acesso pelo WhatsApp
+                  </a>
+                );
+              })()}
             </div>
           </div>
         )}
