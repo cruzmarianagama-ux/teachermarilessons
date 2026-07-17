@@ -1968,7 +1968,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
 
   // Progresso: pega a última unidade registrada em Aulas + Homework (ex: "Unit 4A — ...")
   const sequenciaCurriculo = gerarSequenciaCurriculo(student.nivel || "Beginner");
-  const ultimaAulaComUnidade = aulasRegistradas.find((a) => a.unidade);
+  const ultimaAulaComUnidade = aulasRegistradas
+    .filter((a) => a.unidade)
+    .sort((a, b) => b.data.localeCompare(a.data))[0];
   const codigoAtual = ultimaAulaComUnidade ? ultimaAulaComUnidade.unidade : null;
   const indiceAtual = codigoAtual ? sequenciaCurriculo.indexOf(codigoAtual) : -1;
   const unidadeAtual = codigoAtual ? rotuloUnidade(codigoAtual) : "Ainda não iniciado";
@@ -2362,14 +2364,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       <input type="date" value={novaAula.data} onChange={(e) => setNovaAula((a) => ({ ...a, data: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade (para o progresso do curso)</label>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade <span style={{ fontWeight: 400, color: textSecondary }}>(opcional)</span></label>
                       <select value={novaAula.unidade} onChange={(e) => setNovaAula((a) => ({ ...a, unidade: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }}>
-                        <option value="">Selecione a unidade...</option>
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }}>
+                        <option value="">— Sem unidade (review, practice, extra) —</option>
                         {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
                           <option key={codigo} value={codigo}>{(obterTopico(student.nivel || "Beginner", codigo) || {}).t || rotuloUnidade(codigo)}</option>
                         ))}
                       </select>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "12px" }}>
+                        Só marque unidade em aulas de conteúdo novo. Aulas de review/practice não avançam a barra de progresso.
+                      </p>
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Assunto da aula</label>
                       <input type="text" value={novaAula.assunto} onChange={(e) => setNovaAula((a) => ({ ...a, assunto: e.target.value }))}
@@ -2468,10 +2473,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Data</label>
                       <input type="date" value={rascunhoAulaRegistrada.data} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, data: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade (para o progresso do curso)</label>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Unidade <span style={{ fontWeight: 400, color: textSecondary }}>(opcional)</span></label>
                       <select value={rascunhoAulaRegistrada.unidade || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, unidade: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }}>
-                        <option value="">Selecione a unidade...</option>
+                        <option value="">— Sem unidade (review, practice, extra) —</option>
                         {gerarSequenciaCurriculo(student.nivel || "Beginner").map((codigo) => (
                           <option key={codigo} value={codigo}>{(obterTopico(student.nivel || "Beginner", codigo) || {}).t || rotuloUnidade(codigo)}</option>
                         ))}
