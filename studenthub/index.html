@@ -975,39 +975,65 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         </div>
 
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
-          <p style={{ marginBottom: "14px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>Alunos</p>
+          <p style={{ marginBottom: "14px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>Turmas</p>
           {carregando && <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando...</p>}
           {!carregando && students.length === 0 && (
-            <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Nenhum aluno cadastrado ainda.</p>
+            <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Nenhuma turma cadastrada ainda.</p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {students.map((s) => {
-              const colegasS = students.filter((c) => c.id !== s.id && s.turma_id && c.turma_id === s.turma_id).map((c) => c.nome);
-              const modalidadeLabel = s.turmas ? { individual: "Individual", dupla: "Dupla", grupo: "Grupo" }[s.turmas.modalidade] : null;
-              const horarios = s.turmas && s.turmas.dias_horarios ? s.turmas.dias_horarios.map((dh) => `${dh.dia} ${dh.horario}`).join(", ") : "";
+            {(() => {
+              // Agrupa alunos por turma_id — cada turma vira uma entrada, e alunos avulsos (sem turma) aparecem individualmente
+              const turmasMap = new Map();
+              const semTurma = [];
+              students.forEach((s) => {
+                if (!s.turma_id) { semTurma.push(s); return; }
+                if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, []);
+                turmasMap.get(s.turma_id).push(s);
+              });
+              const listaTurmas = Array.from(turmasMap.values()).map((alunosDaTurma) => {
+                const alunosOrdenados = [...alunosDaTurma].sort((a, b) => a.nome.localeCompare(b.nome));
+                return { representante: alunosOrdenados[0], todos: alunosOrdenados };
+              }).sort((a, b) => a.representante.nome.localeCompare(b.representante.nome));
+
               return (
-                <button key={s.id} onClick={() => onSelectStudent(s)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: "12px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
-                  <div>
-                    <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{s.nome}</p>
-                    <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>
-                      {s.nivel} · {(s.turmas && s.turmas.unidade_atual) || "sem unidade registrada"}{horarios ? ` · ${horarios}` : ""}
-                    </p>
-                    {colegasS.length > 0 && (
-                      <p style={{ fontSize: "11px", color: `${palette.purple}77`, marginTop: "2px" }}>com {colegasS.join(", ")}</p>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                    {modalidadeLabel && (
-                      <span style={{ fontSize: "11px", fontWeight: 600, padding: "4px 10px", borderRadius: "20px", background: palette.lavender, color: palette.purple }}>
-                        {modalidadeLabel}
-                      </span>
-                    )}
-                    <span style={{ color: palette.purple }}>→</span>
-                  </div>
-                </button>
+                <React.Fragment>
+                  {listaTurmas.map(({ representante: s, todos }) => {
+                    const modalidadeLabel = s.turmas ? { individual: "Individual", dupla: "Dupla", grupo: "Grupo" }[s.turmas.modalidade] : null;
+                    const horarios = s.turmas && s.turmas.dias_horarios ? s.turmas.dias_horarios.map((dh) => `${dh.dia} ${dh.horario}`).join(", ") : "";
+                    const nomesJuntos = todos.map((a) => a.nome).join(" + ");
+                    return (
+                      <button key={s.turma_id} onClick={() => onSelectStudent(s)}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: "12px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
+                        <div>
+                          <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{nomesJuntos}</p>
+                          <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>
+                            {s.nivel} · {(s.turmas && s.turmas.unidade_atual) || "sem unidade registrada"}{horarios ? ` · ${horarios}` : ""}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                          {modalidadeLabel && (
+                            <span style={{ fontSize: "11px", fontWeight: 600, padding: "4px 10px", borderRadius: "20px", background: palette.lavender, color: palette.purple }}>
+                              {modalidadeLabel}
+                            </span>
+                          )}
+                          <span style={{ color: palette.purple }}>→</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {semTurma.map((s) => (
+                    <button key={s.id} onClick={() => onSelectStudent(s)}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: "12px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
+                      <div>
+                        <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>{s.nome}</p>
+                        <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginTop: "2px" }}>Sem turma</p>
+                      </div>
+                      <span style={{ color: palette.purple }}>→</span>
+                    </button>
+                  ))}
+                </React.Fragment>
               );
-            })}
+            })()}
           </div>
         </div>
         </React.Fragment>
@@ -1062,7 +1088,7 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
   );
 }
 
-function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated }) {
+function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, onStudentUpdated }) {
   const { useEffect } = React;
   const [active, setActive] = useState("home");
   const [dark, setDark] = useState(false);
@@ -1194,7 +1220,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
       if (!ativo) return;
       setMateriais(materiaisData || []);
 
-      const { data: colegasData } = await supabase.from("students").select("id, nome").eq("turma_id", turmaId);
+      const { data: colegasData } = await supabase.from("students").select("*").eq("turma_id", turmaId);
       if (!ativo) return;
       setColegas((colegasData || []).filter((c) => c.id !== studentId));
 
@@ -2022,8 +2048,24 @@ function StudentDashboard({ onLogout, role, student, onBack, onStudentUpdated })
             <div>
               <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>StudentHub</p>
               <h1 style={{ color: "#FFF", fontSize: "22px", fontWeight: 600 }}>
-                {role === "admin" ? `Portal de ${student.nome}` : `Welcome back, ${student.nome.split(" ")[0]}!`}
+                {role === "admin"
+                  ? `Portal de ${[student.nome, ...colegas.map((c) => c.nome)].join(" + ")}`
+                  : `Welcome back, ${student.nome.split(" ")[0]}!`}
               </h1>
+              {role === "admin" && colegas.length > 0 && onSwitchStudent && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+                  <span style={{ color: `${palette.lightGreen}CC`, fontSize: "11px", fontWeight: 500 }}>Editar/excluir focado em:</span>
+                  <span style={{ padding: "3px 10px", borderRadius: "20px", background: palette.orange, color: "#FFF", fontSize: "11px", fontWeight: 600 }}>
+                    {student.nome}
+                  </span>
+                  {colegas.map((c) => (
+                    <button key={c.id} onClick={() => onSwitchStudent(c)}
+                      style={{ padding: "3px 10px", borderRadius: "20px", background: "rgba(255,255,255,0.12)", color: "#FFF", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer" }}>
+                      {c.nome}
+                    </button>
+                  ))}
+                </div>
+              )}
               {role !== "admin" && (
                 <p style={{ color: `${palette.lightGreen}CC`, fontSize: "12px", fontStyle: "italic", marginTop: "4px" }}>{fraseDoDia}</p>
               )}
@@ -2990,6 +3032,7 @@ function App() {
       role={papel}
       student={alunoSelecionado}
       onBack={papel === "admin" ? () => setAlunoSelecionado(null) : null}
+      onSwitchStudent={papel === "admin" ? (novoAluno) => setAlunoSelecionado(novoAluno) : null}
       onStudentUpdated={(dados) => setAlunoSelecionado((prev) => (prev ? { ...prev, ...dados } : prev))}
     />
   );
