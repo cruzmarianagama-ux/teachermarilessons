@@ -1107,6 +1107,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [editandoAulaRegistrada, setEditandoAulaRegistrada] = useState(false);
   const [rascunhoAulaRegistrada, setRascunhoAulaRegistrada] = useState(null);
   const [aulasRegistradas, setAulasRegistradas] = useState([]);
+  const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
+  const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
   const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
@@ -1496,6 +1498,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       const chave = `${d.getMonth()}-${d.getDate()}`;
       setAulas((prev) => ({ ...prev, [chave]: { ...(prev[chave] || {}), status: "realizada", prazo_reposicao: null, rowId: lessonData.id } }));
     }
+    // Salta o navegador de mês pra onde a aula foi registrada (senão ela "some" da view atual)
+    const dataNova = new Date(novaAula.data + "T00:00:00");
+    setMesHomework(dataNova.getMonth());
+    setAnoHomework(dataNova.getFullYear());
     setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
   };
 
@@ -1510,6 +1516,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     }
     setAulasRegistradas((prev) => prev.map((a) => (a.rowId === rascunhoAulaRegistrada.rowId ? { ...rascunhoAulaRegistrada } : a)));
     setCronogramaAberto({ ...rascunhoAulaRegistrada });
+    // Se editou a data pra outro mês, sincroniza o navegador pra apontar pro novo mês
+    const dataEditada = new Date(rascunhoAulaRegistrada.data + "T00:00:00");
+    setMesHomework(dataEditada.getMonth());
+    setAnoHomework(dataEditada.getFullYear());
     if (rascunhoAulaRegistrada.unidade && deveAtualizarUnidadeAtual(rascunhoAulaRegistrada.data, rascunhoAulaRegistrada.rowId)) {
       const label = rotuloUnidade(rascunhoAulaRegistrada.unidade);
       await supabase.from("turmas").update({ unidade_atual: label }).eq("id", turmaId);
@@ -2528,32 +2538,66 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   )}
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {aulasRegistradas.length === 0 && (
+                    {aulasRegistradas.length === 0 ? (
                       <p style={{ fontSize: "13px", color: textSecondary }}>Nenhuma aula registrada ainda.</p>
+                    ) : (
+                      <React.Fragment>
+                        {(() => {
+                          // Navegador de mês — mesma UX do calendário
+                          const prefixoMes = `${anoHomework}-${String(mesHomework + 1).padStart(2, "0")}`;
+                          const aulasDoMes = aulasRegistradas.filter((a) => a.data && a.data.startsWith(prefixoMes));
+                          const mesLabel = meses[mesHomework];
+                          const irMesAnterior = () => {
+                            if (mesHomework === 0) { setMesHomework(11); setAnoHomework((a) => a - 1); }
+                            else setMesHomework((m) => m - 1);
+                          };
+                          const irMesProximo = () => {
+                            if (mesHomework === 11) { setMesHomework(0); setAnoHomework((a) => a + 1); }
+                            else setMesHomework((m) => m + 1);
+                          };
+                          return (
+                            <React.Fragment>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px", marginBottom: "4px" }}>
+                                <button onClick={irMesAnterior} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px", padding: "4px 10px" }}>‹</button>
+                                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>
+                                  {mesLabel} {anoHomework} <span style={{ fontWeight: 400, color: textSecondary, fontSize: "12px" }}>· {aulasDoMes.length}</span>
+                                </p>
+                                <button onClick={irMesProximo} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px", padding: "4px 10px" }}>›</button>
+                              </div>
+                              {aulasDoMes.length === 0 ? (
+                                <p style={{ fontSize: "13px", color: textSecondary, textAlign: "center", padding: "24px 12px" }}>
+                                  Nenhuma aula registrada em {mesLabel} {anoHomework}.
+                                </p>
+                              ) : (
+                                aulasDoMes.map((aula, i) => (
+                                  <div key={aula.rowId || i}
+                                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
+                                    {role !== "admin" && (
+                                      <input type="checkbox" checked={!!homeworkStatus[aula.rowId]} onChange={() => alternarHomeworkConcluido(aula.rowId)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{ width: "20px", height: "20px", flexShrink: 0, cursor: "pointer", accentColor: palette.orange }} />
+                                    )}
+                                    <button onClick={() => setCronogramaAberto(aula)}
+                                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flex: 1, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                                      <div>
+                                        <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(aula.data)}</p>
+                                        <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, marginTop: "2px", textDecoration: homeworkStatus[aula.rowId] ? "line-through" : "none", opacity: homeworkStatus[aula.rowId] ? 0.6 : 1 }}>{aula.assunto}</p>
+                                        {aula.unidade && (
+                                          <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>
+                                            {rotuloUnidade(aula.unidade)}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span style={{ color: dark ? "#FFF" : palette.purple }}>→</span>
+                                    </button>
+                                  </div>
+                                ))
+                              )}
+                            </React.Fragment>
+                          );
+                        })()}
+                      </React.Fragment>
                     )}
-                    {aulasRegistradas.map((aula, i) => (
-                      <div key={i}
-                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
-                        {role !== "admin" && (
-                          <input type="checkbox" checked={!!homeworkStatus[aula.rowId]} onChange={() => alternarHomeworkConcluido(aula.rowId)}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{ width: "20px", height: "20px", flexShrink: 0, cursor: "pointer", accentColor: palette.orange }} />
-                        )}
-                        <button onClick={() => setCronogramaAberto(aula)}
-                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flex: 1, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
-                          <div>
-                            <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(aula.data)}</p>
-                            <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, marginTop: "2px", textDecoration: homeworkStatus[aula.rowId] ? "line-through" : "none", opacity: homeworkStatus[aula.rowId] ? 0.6 : 1 }}>{aula.assunto}</p>
-                            {aula.unidade && (
-                              <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>
-                                {rotuloUnidade(aula.unidade)}
-                              </span>
-                            )}
-                          </div>
-                          <span style={{ color: dark ? "#FFF" : palette.purple }}>→</span>
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
