@@ -1110,7 +1110,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
   const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "" });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
   const [editandoCobrancaId, setEditandoCobrancaId] = useState(null);
@@ -1122,6 +1122,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [fraseDoDia] = useState(fraseMotivacionalAleatoria);
   const [turma, setTurma] = useState(null);
+  const [editandoRecado, setEditandoRecado] = useState(false);
+  const [rascunhoRecado, setRascunhoRecado] = useState("");
+  const [salvandoRecado, setSalvandoRecado] = useState(false);
   const [materiais, setMateriais] = useState([]);
   const [colegas, setColegas] = useState([]);
   const [mostrarEditarTurma, setMostrarEditarTurma] = useState(false);
@@ -1154,6 +1157,26 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null }));
     if (onStudentUpdated) onStudentUpdated({ nivel: rascunhoTurma.nivel });
     setMostrarEditarTurma(false);
+  };
+
+  const abrirEdicaoRecado = () => {
+    setRascunhoRecado((turma && turma.recado_atual) || "");
+    setEditandoRecado(true);
+  };
+
+  const salvarRecado = async () => {
+    setSalvandoRecado(true);
+    const valor = rascunhoRecado.trim() || null;
+    const { error } = await supabase.from("turmas").update({ recado_atual: valor }).eq("id", turmaId);
+    setSalvandoRecado(false);
+    if (error) { alert("Erro ao salvar o recado: " + error.message); return; }
+    setTurma((t) => (t ? { ...t, recado_atual: valor } : t));
+    setEditandoRecado(false);
+  };
+
+  const cancelarEdicaoRecado = () => {
+    setRascunhoRecado("");
+    setEditandoRecado(false);
   };
 
   const abrirEdicaoAluno = () => {
@@ -1256,7 +1279,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
       if (!ativo) return;
       setAulasRegistradas((recordsData || []).map((r) => ({
-        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], rowId: r.id,
+        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", rowId: r.id,
       })));
 
       const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
@@ -1475,7 +1498,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     if (!novaAula.data || !novaAula.assunto) return;
     const { data, error } = await supabase
       .from("lesson_records")
-      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds })
+      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null })
       .select().single();
     if (error) {
       alert("Erro ao registrar a aula: " + error.message);
@@ -1502,13 +1525,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const dataNova = new Date(novaAula.data + "T00:00:00");
     setMesHomework(dataNova.getMonth());
     setAnoHomework(dataNova.getFullYear());
-    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [] });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "" });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [] })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (error) {
       alert("Erro ao salvar as alterações: " + error.message);
@@ -1894,7 +1917,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const cobrancaVencida = cobranca
     .filter((c) => c.status !== "pago")
     .map((c) => ({ ...c, diasParaVencer: Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000) }))
-    .filter((c) => c.diasParaVencer <= 3)
+    .filter((c) => c.diasParaVencer < 0)
     .sort((a, b) => a.diasParaVencer - b.diasParaVencer)[0];
 
   const marcarComoPago = async (rowId) => {
@@ -2022,18 +2045,31 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     return `${diaSemana}, ${mesEDia} — ${hora}`;
   };
 
-  // Streak: conta aulas seguidas sem "Perdida", olhando o histórico em ordem cronológica
-  const diasComStatus = Object.entries(aulas)
-    .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
-    .map(([chave, r]) => {
-      const [m, d] = chave.split("-").map(Number);
-      return { ordem: m * 100 + d, status: statusDe(r) };
-    })
-    .sort((a, b) => b.ordem - a.ordem);
+  // Streak
+  // Individual: conta aulas seguidas sem "Perdida" no calendário (behavior original)
+  // Dupla/grupo: conta lesson_records seguidos em que ESSE aluno esteve presente (por data desc)
   let streak = 0;
-  for (const item of diasComStatus) {
-    if (item.status === "realizada") streak++;
-    else break;
+  if (colegas.length > 0) {
+    // Dupla ou grupo — usa lesson_records por presença individual
+    const aulasOrdenadas = [...aulasRegistradas].sort((a, b) => b.data.localeCompare(a.data));
+    for (const aula of aulasOrdenadas) {
+      const faltou = aula.presencas && aula.presencas[studentId] === false;
+      if (!faltou) streak++;
+      else break;
+    }
+  } else {
+    // Individual — usa calendário como antes
+    const diasComStatus = Object.entries(aulas)
+      .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
+      .map(([chave, r]) => {
+        const [m, d] = chave.split("-").map(Number);
+        return { ordem: m * 100 + d, status: statusDe(r) };
+      })
+      .sort((a, b) => b.ordem - a.ordem);
+    for (const item of diasComStatus) {
+      if (item.status === "realizada") streak++;
+      else break;
+    }
   }
 
   // Progresso: pega a última unidade registrada em Aulas + Homework (ex: "Unit 4A — ...")
@@ -2360,13 +2396,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           </div>
         )}
 
-        {cobrancaVencida && (!turma || turma.modalidade !== "grupo") && (
-          <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "center", gap: "10px", background: `${palette.orange}1A`, border: `1px solid ${palette.orange}`, borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
-            <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500 }}>
-              🔔 Pagamento vence em {cobrancaVencida.vencimento} — {cobrancaVencida.mes}
-            </span>
-          </div>
-        )}
+        {cobrancaVencida && (!turma || turma.modalidade !== "grupo") && (() => {
+          const diasAtrasado = Math.abs(cobrancaVencida.diasParaVencer);
+          const diasTexto = diasAtrasado === 1 ? "1 dia" : `${diasAtrasado} dias`;
+          return (
+            <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "flex-start", gap: "10px", background: "#F7C1C122", border: "1px solid #E24B4A", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
+              <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, lineHeight: 1.5 }}>
+                ⚠️ Sua mensalidade deste mês está em atraso há {diasTexto}. Regularize o pagamento para manter sua vaga na agenda. Se o pagamento já foi efetuado, desconsidere este aviso.
+              </span>
+            </div>
+          );
+        })()}
 
         {reposicoesPendentes.length > 0 && (
           <div onClick={() => setActive("calendario")} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#F7C1C11A", border: "1px solid #F7C1C1", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
@@ -2443,6 +2483,57 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                 )}
               </div>
 
+              {(role === "admin" || (turma && turma.recado_atual)) && (
+                <div style={{ background: dark ? "#3A2B7A" : palette.lightGreen + "44", border: `1px solid ${dark ? "#5A4AA0" : palette.lightGreen}`, borderRadius: "12px", padding: "16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: editandoRecado || (turma && turma.recado_atual) || role === "admin" ? "8px" : 0 }}>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.green }}>💬 Recado da Teacher Mari</p>
+                    {role === "admin" && !editandoRecado && (
+                      <button onClick={abrirEdicaoRecado}
+                        style={{ fontSize: "11px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+                        {turma && turma.recado_atual ? "Editar" : "Escrever recado"}
+                      </button>
+                    )}
+                  </div>
+
+                  {editandoRecado ? (
+                    <div>
+                      <textarea value={rascunhoRecado} onChange={(e) => setRascunhoRecado(e.target.value)}
+                        placeholder="Ex: Semana que vem começamos Unit 5. Revise vocabulário de família antes da nossa próxima aula ✨"
+                        style={{ width: "100%", minHeight: "80px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px", resize: "vertical", background: dark ? "#2A1D66" : "#FFF", color: dark ? "#FFF" : palette.purple }} />
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                        <button onClick={salvarRecado} disabled={salvandoRecado}
+                          style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: salvandoRecado ? "default" : "pointer", fontSize: "12px", fontWeight: 600, background: palette.orange, color: "#FFF", opacity: salvandoRecado ? 0.7 : 1 }}>
+                          {salvandoRecado ? "Salvando..." : "Salvar"}
+                        </button>
+                        <button onClick={cancelarEdicaoRecado}
+                          style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
+                          Cancelar
+                        </button>
+                        {turma && turma.recado_atual && (
+                          <button onClick={() => { setRascunhoRecado(""); }}
+                            style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F" }}>
+                            Apagar recado
+                          </button>
+                        )}
+                      </div>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginTop: "8px" }}>
+                        Escrevendo em branco e salvando também remove o recado atual.
+                      </p>
+                    </div>
+                  ) : (
+                    turma && turma.recado_atual ? (
+                      <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, whiteSpace: "pre-wrap", lineHeight: 1.5, margin: 0 }}>
+                        {turma.recado_atual}
+                      </p>
+                    ) : (
+                      <p style={{ fontSize: "12px", color: textSecondary, margin: 0, fontStyle: "italic" }}>
+                        Nenhum recado ativo. Clique em "Escrever recado" pra deixar uma mensagem visível na Home {colegas.length > 0 ? "da turma" : "do aluno"}.
+                      </p>
+                    )
+                  )}
+                </div>
+              )}
+
               <div style={{ borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, paddingTop: "16px" }}>
                 <button onClick={() => setMostrarTrocaSenha(!mostrarTrocaSenha)}
                   style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
@@ -2503,6 +2594,37 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <input type="text" list="lista-cronogramas" value={novaAula.cronogramaUrl} onChange={(e) => setNovaAula((a) => ({ ...a, cronogramaUrl: e.target.value }))}
                         placeholder="Cole o link do cronograma (ex: .../beginner/unit6a) ou deixe em branco"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Anotações de homework — opcional</label>
+                      <textarea value={novaAula.homework} onChange={(e) => setNovaAula((a) => ({ ...a, homework: e.target.value }))}
+                        placeholder="Ex: Workbook page 2, exercícios 1 a 5"
+                        style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
+
+                      {colegas.length > 0 && (
+                        <div style={{ marginBottom: "14px", padding: "12px 14px", borderRadius: "10px", background: dark ? "#2A1D66" : "#FFF", border: `1px solid ${palette.lavender}55` }}>
+                          <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>Presença</p>
+                          {[student, ...colegas].map((aluno) => {
+                            const presente = !(novaAula.presencas && novaAula.presencas[aluno.id] === false);
+                            return (
+                              <label key={aluno.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", cursor: "pointer" }}>
+                                <input type="checkbox" checked={presente} onChange={(e) => {
+                                  const nowPresente = e.target.checked;
+                                  setNovaAula((a) => {
+                                    const p = { ...(a.presencas || {}) };
+                                    if (nowPresente) delete p[aluno.id];
+                                    else p[aluno.id] = false;
+                                    return { ...a, presencas: p };
+                                  });
+                                }} style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: palette.orange }} />
+                                <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, textDecoration: presente ? "none" : "line-through", opacity: presente ? 1 : 0.6 }}>
+                                  {aluno.nome} {presente ? "" : "— faltou"}
+                                </span>
+                              </label>
+                            );
+                          })}
+                          <p style={{ fontSize: "11px", color: textSecondary, marginTop: "6px" }}>Desmarque quem faltou. Todos presentes por padrão.</p>
+                        </div>
+                      )}
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
                         Incorporar outro site (Wordwall, jogos, etc.)
@@ -2583,10 +2705,36 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                                         <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(aula.data)}</p>
                                         <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, marginTop: "2px", textDecoration: homeworkStatus[aula.rowId] ? "line-through" : "none", opacity: homeworkStatus[aula.rowId] ? 0.6 : 1 }}>{aula.assunto}</p>
                                         {aula.unidade && (
-                                          <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>
+                                          <span style={{ display: "inline-block", marginTop: "4px", marginRight: "6px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>
                                             {rotuloUnidade(aula.unidade)}
                                           </span>
                                         )}
+                                        {(() => {
+                                          if (!aula.presencas) return null;
+                                          if (role === "admin") {
+                                            // Admin: mostra quem faltou (nome + faltou/faltaram)
+                                            const faltantes = [student, ...colegas].filter((a) => aula.presencas[a.id] === false);
+                                            if (faltantes.length === 0) return null;
+                                            const texto = faltantes.length === 1
+                                              ? `${faltantes[0].nome} faltou`
+                                              : `${faltantes.map((f) => f.nome).join(", ")} faltaram`;
+                                            return (
+                                              <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: "#F7C1C1", color: "#791F1F" }}>
+                                                {texto}
+                                              </span>
+                                            );
+                                          } else {
+                                            // Aluno: só vê se ele mesmo faltou
+                                            if (aula.presencas[studentId] === false) {
+                                              return (
+                                                <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: "#F7C1C1", color: "#791F1F" }}>
+                                                  você faltou
+                                                </span>
+                                              );
+                                            }
+                                            return null;
+                                          }
+                                        })()}
                                       </div>
                                       <span style={{ color: dark ? "#FFF" : palette.purple }}>→</span>
                                     </button>
@@ -2644,6 +2792,38 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         placeholder="Cole o link do cronograma ou deixe em branco"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Anotações de homework — opcional</label>
+                      <textarea value={rascunhoAulaRegistrada.homework || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, homework: e.target.value }))}
+                        placeholder="Ex: Workbook page 2, exercícios 1 a 5"
+                        style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
+
+                      {colegas.length > 0 && (
+                        <div style={{ marginBottom: "14px", padding: "12px 14px", borderRadius: "10px", background: dark ? "#2A1D66" : "#FFF", border: `1px solid ${palette.lavender}55` }}>
+                          <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>Presença</p>
+                          {[student, ...colegas].map((aluno) => {
+                            const p = rascunhoAulaRegistrada.presencas || {};
+                            const presente = !(p[aluno.id] === false);
+                            return (
+                              <label key={aluno.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", cursor: "pointer" }}>
+                                <input type="checkbox" checked={presente} onChange={(e) => {
+                                  const nowPresente = e.target.checked;
+                                  setRascunhoAulaRegistrada((r) => {
+                                    const np = { ...(r.presencas || {}) };
+                                    if (nowPresente) delete np[aluno.id];
+                                    else np[aluno.id] = false;
+                                    return { ...r, presencas: np };
+                                  });
+                                }} style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: palette.orange }} />
+                                <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, textDecoration: presente ? "none" : "line-through", opacity: presente ? 1 : 0.6 }}>
+                                  {aluno.nome} {presente ? "" : "— faltou"}
+                                </span>
+                              </label>
+                            );
+                          })}
+                          <p style={{ fontSize: "11px", color: textSecondary, marginTop: "6px" }}>Desmarque quem faltou. Todos presentes por padrão.</p>
+                        </div>
+                      )}
+
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
                         Incorporar outro site (Wordwall, jogos, etc.)
                       </label>
@@ -2690,13 +2870,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     </React.Fragment>
                   )}
 
+                  {cronogramaAberto.homework && (
+                    <div style={{ marginBottom: "20px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, borderLeft: `3px solid ${palette.orange}` }}>
+                      <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, marginBottom: "6px", letterSpacing: "0.05em", textTransform: "uppercase" }}>📝 Homework</p>
+                      <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, whiteSpace: "pre-wrap", lineHeight: 1.5, margin: 0 }}>
+                        {cronogramaAberto.homework}
+                      </p>
+                    </div>
+                  )}
+
                   {cronogramaAberto.cronogramaUrl ? (
                     <React.Fragment>
                       <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
                       <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={2200} alturaMinima={800} />
                     </React.Fragment>
                   ) : (
-                    <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum cronograma vinculado a essa aula.</p>
+                    !cronogramaAberto.homework && <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum homework vinculado a essa aula.</p>
                   )}
 
                   {cronogramaAberto.embeds && cronogramaAberto.embeds.length > 0 && cronogramaAberto.embeds.map((em, i) => (
