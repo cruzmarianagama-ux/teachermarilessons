@@ -1120,6 +1120,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [rascunho, setRascunho] = useState({ status: "realizada" });
   const [carregandoDados, setCarregandoDados] = useState(true);
+  const [loadKey, setLoadKey] = useState(0);
   const [fraseDoDia] = useState(fraseMotivacionalAleatoria);
   const [turma, setTurma] = useState(null);
   const [editandoRecado, setEditandoRecado] = useState(false);
@@ -1243,9 +1244,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
   useEffect(() => {
     let ativo = true; // evita race condition se admin trocar de aluno antes das queries terminarem
-    async function carregarDados() {
-      setCarregandoDados(true);
+    // Só mostra a tela "Carregando..." na primeira carga ou quando troca de turma.
+    // Refetch silencioso em background (troca de aba, visibilitychange) não mostra loading.
+    const isPrimeiraCargaOuTrocaDeTurma = !turma || (turma && turma.id !== turmaId);
+    if (isPrimeiraCargaOuTrocaDeTurma) setCarregandoDados(true);
 
+    async function carregarDados() {
       const { data: turmaData } = await supabase.from("turmas").select("*").eq("id", turmaId).single();
       if (!ativo) return;
       setTurma(turmaData || null);
@@ -1300,7 +1304,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     }
     carregarDados();
     return () => { ativo = false; };
-  }, [turmaId, studentId]);
+  }, [turmaId, studentId, loadKey]);
+
+  // Refetch silencioso quando o aluno volta a focar o app (troca de aba, minimiza+volta, etc.)
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") setLoadKey((k) => k + 1);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
   const anexarBoleto = async (index, file) => {
     const registro = cobranca[index];
@@ -2402,7 +2415,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           return (
             <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "flex-start", gap: "10px", background: "#F7C1C122", border: "1px solid #E24B4A", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
               <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, lineHeight: 1.5 }}>
-                ⚠️ Sua mensalidade deste mês está em atraso há {diasTexto}. Regularize o pagamento para manter sua vaga na agenda. Se o pagamento já foi efetuado, desconsidere este aviso.
+                ⚠️ Mensalidade em aberto há {diasTexto}. Por favor regularize o pagamento. Se o pagamento já foi realizado, desconsidere esta mensagem.
               </span>
             </div>
           );
