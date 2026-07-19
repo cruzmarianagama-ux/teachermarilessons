@@ -420,6 +420,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   });
   const [statusForm, setStatusForm] = useState({ tipo: "", texto: "" });
   const [enviando, setEnviando] = useState(false);
+  const [buscaTurma, setBuscaTurma] = useState("");
 
   const vagasPorModalidade = { individual: 1, dupla: 2, grupo: 6 };
 
@@ -975,13 +976,38 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         </div>
 
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
-          <p style={{ marginBottom: "14px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>Turmas</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "14px", flexWrap: "wrap" }}>
+            <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: palette.purple }}>Turmas</p>
+            <div style={{ position: "relative", flex: "1 1 240px", maxWidth: "360px" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={palette.purple} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", opacity: 0.6, pointerEvents: "none" }}>
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={buscaTurma}
+                onChange={(e) => setBuscaTurma(e.target.value)}
+                placeholder="Buscar por nome, nível ou modalidade..."
+                style={{ width: "100%", padding: "8px 12px 8px 36px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", color: palette.purple, outline: "none", boxSizing: "border-box" }} />
+              {buscaTurma && (
+                <button onClick={() => setBuscaTurma("")}
+                  style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: palette.purple, fontSize: "16px", fontWeight: 600, padding: "4px 8px", lineHeight: 1, opacity: 0.6 }}>
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
           {carregando && <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando...</p>}
           {!carregando && students.length === 0 && (
             <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Nenhuma turma cadastrada ainda.</p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {(() => {
+              // Normaliza texto pra busca (remove acentos, case-insensitive)
+              const normalizar = (t) => (t || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+              const termoBusca = normalizar(buscaTurma.trim());
+
               // Agrupa alunos por turma_id — cada turma vira uma entrada, e alunos avulsos (sem turma) aparecem individualmente
               const turmasMap = new Map();
               const semTurma = [];
@@ -990,10 +1016,33 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                 if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, []);
                 turmasMap.get(s.turma_id).push(s);
               });
-              const listaTurmas = Array.from(turmasMap.values()).map((alunosDaTurma) => {
+              const listaTurmasCompleta = Array.from(turmasMap.values()).map((alunosDaTurma) => {
                 const alunosOrdenados = [...alunosDaTurma].sort((a, b) => a.nome.localeCompare(b.nome));
                 return { representante: alunosOrdenados[0], todos: alunosOrdenados };
               }).sort((a, b) => a.representante.nome.localeCompare(b.representante.nome));
+
+              // Aplica filtro se tem termo de busca
+              const listaTurmas = termoBusca ? listaTurmasCompleta.filter(({ representante: s, todos }) => {
+                const modalidadeLabel = s.turmas ? { individual: "Individual", dupla: "Dupla", grupo: "Grupo" }[s.turmas.modalidade] : "";
+                const camposBuscaveis = [
+                  ...todos.map((a) => a.nome),
+                  s.nivel || "",
+                  modalidadeLabel,
+                ].map(normalizar).join(" ");
+                return camposBuscaveis.includes(termoBusca);
+              }) : listaTurmasCompleta;
+
+              const semTurmaFiltrado = termoBusca
+                ? semTurma.filter((s) => normalizar(s.nome).includes(termoBusca))
+                : semTurma;
+
+              if (termoBusca && listaTurmas.length === 0 && semTurmaFiltrado.length === 0) {
+                return (
+                  <p style={{ fontSize: "13px", color: `${palette.purple}99`, textAlign: "center", padding: "20px 8px" }}>
+                    Nenhuma turma encontrada com "{buscaTurma}".
+                  </p>
+                );
+              }
 
               return (
                 <React.Fragment>
@@ -1021,7 +1070,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                       </button>
                     );
                   })}
-                  {semTurma.map((s) => (
+                  {semTurmaFiltrado.map((s) => (
                     <button key={s.id} onClick={() => onSelectStudent(s)}
                       style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: "12px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
                       <div>
