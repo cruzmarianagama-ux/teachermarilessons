@@ -1152,6 +1152,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [dark, setDark] = useState(false);
   const [mesAtual, setMesAtual] = useState(() => new Date().getMonth());
   const [aulas, setAulas] = useState({});
+  const [diasSemAula, setDiasSemAula] = useState({});
   const [cronogramaAberto, setCronogramaAberto] = useState(null);
   const [editandoAulaRegistrada, setEditandoAulaRegistrada] = useState(false);
   const [rascunhoAulaRegistrada, setRascunhoAulaRegistrada] = useState(null);
@@ -1327,6 +1328,14 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         aulasObj[`${d.getMonth()}-${d.getDate()}`] = { status: l.status, prazo_reposicao: l.prazo_reposicao, horario: l.horario, data_original: l.data_original, rowId: l.id };
       });
       setAulas(aulasObj);
+
+      // Carrega feriados / dias sem aula (globais, marcados por Mari no Calendário Geral do admin)
+      // Sobrescreve visualmente qualquer status daquele dia no calendário do aluno
+      const { data: diasSemAulaData } = await supabase.from("dias_sem_aula").select("*");
+      if (!ativo) return;
+      const diasSemAulaObj = {};
+      (diasSemAulaData || []).forEach((d) => { diasSemAulaObj[d.data] = d.motivo || "Sem aula"; });
+      setDiasSemAula(diasSemAulaObj);
 
       const { data: recordsData } = await supabase
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
@@ -2979,6 +2988,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                 {celulas.map((dia, i) => {
                   if (!dia) return <div key={i} />;
                   const chave = `${mesAtual}-${dia}`;
+                  const iso = `2026-${String(mesAtual + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                  const motivoFeriado = diasSemAula[iso];
+                  // Feriado tem prioridade visual sobre qualquer status de aula
+                  if (motivoFeriado) {
+                    return (
+                      <div key={i} title={motivoFeriado}
+                        style={{ aspectRatio: "1", borderRadius: "8px", border: "none", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}>
+                        {dia}
+                      </div>
+                    );
+                  }
                   const status = statusDe(aulas[chave]);
                   const cfg = status ? statusConfig[status] : null;
                   const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
@@ -3077,6 +3097,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <span style={{ fontSize: "11px", color: textSecondary }}>{cfg.label}</span>
                   </div>
                 ))}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "3px", background: "#F7C1C1" }} />
+                  <span style={{ fontSize: "11px", color: textSecondary }}>Feriado / recesso</span>
+                </div>
               </div>
             </div>
           )}
