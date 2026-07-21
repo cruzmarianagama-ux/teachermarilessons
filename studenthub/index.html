@@ -395,6 +395,254 @@ const homeworkLinks = [
   { titulo: "Unit 5B — Present Simple Questions", url: "https://teachermarilessons.com.br/beginner/unit5b" },
 ];
 
+function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
+  const { useEffect } = React;
+  const DIAS_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const DIAS_NOMES = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+  // Estado: data de referência da semana (o Domingo dessa semana). Muda com ‹ ›
+  const [inicioSemana, setInicioSemana] = useState(() => {
+    const hoje = new Date();
+    const domingo = new Date(hoje);
+    domingo.setDate(hoje.getDate() - hoje.getDay());
+    domingo.setHours(0, 0, 0, 0);
+    return domingo;
+  });
+  const [lessonsDaSemana, setLessonsDaSemana] = useState([]);
+  const [diasSemAula, setDiasSemAula] = useState({});
+  const [ultimoPlanoPorTurma, setUltimoPlanoPorTurma] = useState({}); // { turma_id: "para_proxima_aula do último registro" }
+  const [carregando, setCarregando] = useState(true);
+
+  // Calcula as datas da semana (Dom -> Sáb)
+  const datasSemana = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(inicioSemana);
+    d.setDate(inicioSemana.getDate() + i);
+    return d;
+  });
+  const isoDe = (data) => {
+    const y = data.getFullYear();
+    const m = String(data.getMonth() + 1).padStart(2, "0");
+    const d = String(data.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+  const fimSemana = new Date(inicioSemana);
+  fimSemana.setDate(inicioSemana.getDate() + 6);
+
+  // Agrupa alunos por turma
+  const turmasMap = new Map();
+  students.forEach((s) => {
+    if (!s.turma_id) return;
+    if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, []);
+    turmasMap.get(s.turma_id).push(s);
+  });
+  const turmas = Array.from(turmasMap.values()).map((alunos) => {
+    const ordenados = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome));
+    return {
+      turma_id: ordenados[0].turma_id,
+      representante: ordenados[0],
+      nomes: ordenados.map((a) => a.nome).join(" + "),
+      nivel: ordenados[0].nivel,
+      unidadeAtual: (ordenados[0].turmas && ordenados[0].turmas.unidade_atual) || null,
+      diasHorarios: (ordenados[0].turmas && ordenados[0].turmas.dias_horarios) || [],
+    };
+  });
+
+  useEffect(() => {
+    async function carregar() {
+      setCarregando(true);
+      const inicio = isoDe(inicioSemana);
+      const fim = isoDe(fimSemana);
+      const turmaIds = turmas.map((t) => t.turma_id);
+      // Puxa lessons da semana + dias sem aula + último "para próxima aula" por turma
+      const [lessonsRes, diasRes, recordsRes] = await Promise.all([
+        supabase.from("lessons").select("*").gte("data", inicio).lte("data", fim),
+        supabase.from("dias_sem_aula").select("*").gte("data", inicio).lte("data", fim),
+        turmaIds.length > 0
+          ? supabase.from("lesson_records").select("turma_id, data, para_proxima_aula").in("turma_id", turmaIds).order("data", { ascending: false })
+          : Promise.resolve({ data: [] }),
+      ]);
+      setLessonsDaSemana(lessonsRes.data || []);
+      const diasObj = {};
+      (diasRes.data || []).forEach((d) => { diasObj[d.data] = d.motivo || "Sem aula"; });
+      setDiasSemAula(diasObj);
+      // Pega o mais recente "para_proxima_aula" por turma (records vem ordenado por data desc)
+      const ultimoObj = {};
+      (recordsRes.data || []).forEach((r) => {
+        if (!ultimoObj[r.turma_id] && r.para_proxima_aula) ultimoObj[r.turma_id] = r.para_proxima_aula;
+      });
+      setUltimoPlanoPorTurma(ultimoObj);
+      setCarregando(false);
+    }
+    carregar();
+  }, [inicioSemana.getTime(), students.length]);
+
+  const irSemanaAnterior = () => {
+    const nova = new Date(inicioSemana);
+    nova.setDate(inicioSemana.getDate() - 7);
+    setInicioSemana(nova);
+  };
+  const irProximaSemana = () => {
+    const nova = new Date(inicioSemana);
+    nova.setDate(inicioSemana.getDate() + 7);
+    setInicioSemana(nova);
+  };
+  const irEstaSemana = () => {
+    const hoje = new Date();
+    const domingo = new Date(hoje);
+    domingo.setDate(hoje.getDate() - hoje.getDay());
+    domingo.setHours(0, 0, 0, 0);
+    setInicioSemana(domingo);
+  };
+
+  // Movidas: aulas que TINHAM data original nessa semana mas foram remarcadas
+  const movidasSet = new Set(); // "turma_id|dataOriginal"
+  lessonsDaSemana.forEach((l) => {
+    if (l.data_original) movidasSet.add(`${l.turma_id}|${l.data_original}`);
+  });
+
+  // Constrói lista de aulas por dia
+  const aulasPorDia = datasSemana.map((data) => {
+    const dataISO = isoDe(data);
+    const diaSemanaNome = DIAS_NOMES[data.getDay()];
+    const feriado = diasSemAula[dataISO];
+    const aulas = [];
+    if (!feriado) {
+      // Aulas regulares (do dias_horarios) que NÃO foram movidas
+      turmas.forEach((t) => {
+        (t.diasHorarios || []).forEach((dh) => {
+          if (dh.dia !== diaSemanaNome) return;
+          if (movidasSet.has(`${t.turma_id}|${dataISO}`)) return;
+          const lesson = lessonsDaSemana.find((l) => l.turma_id === t.turma_id && l.data === dataISO);
+          aulas.push({
+            turma_id: t.turma_id,
+            representante: t.representante,
+            nomes: t.nomes,
+            nivel: t.nivel,
+            unidade: t.unidadeAtual,
+            horario: dh.horario,
+            status: lesson ? lesson.status : "agendada",
+            vindaDe: null,
+          });
+        });
+      });
+      // Aulas que foram REMARCADAS pra esse dia (data_original diferente)
+      lessonsDaSemana.forEach((lesson) => {
+        if (lesson.data !== dataISO || !lesson.data_original || lesson.data_original === dataISO) return;
+        const alunosTurma = turmasMap.get(lesson.turma_id);
+        if (!alunosTurma) return;
+        const ordenados = [...alunosTurma].sort((a, b) => a.nome.localeCompare(b.nome));
+        const t = turmas.find((x) => x.turma_id === lesson.turma_id);
+        if (!t) return;
+        // Evita duplicar
+        const jaListado = aulas.some((a) => a.turma_id === lesson.turma_id && a.horario === (lesson.horario || ""));
+        if (jaListado) return;
+        const dataOrig = new Date(lesson.data_original + "T00:00:00");
+        aulas.push({
+          turma_id: lesson.turma_id,
+          representante: t.representante,
+          nomes: t.nomes,
+          nivel: t.nivel,
+          unidade: t.unidadeAtual,
+          horario: lesson.horario || "—",
+          status: lesson.status,
+          vindaDe: `${dataOrig.getDate()}/${dataOrig.getMonth() + 1}`,
+        });
+      });
+      aulas.sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
+    }
+    return { data, dataISO, feriado, aulas };
+  });
+
+  const totalAulas = aulasPorDia.reduce((s, d) => s + d.aulas.length, 0);
+  const rotuloSemana = `${inicioSemana.getDate()}/${inicioSemana.getMonth() + 1} – ${fimSemana.getDate()}/${fimSemana.getMonth() + 1}/${fimSemana.getFullYear()}`;
+  const hojeISO = isoDe(new Date());
+
+  const corDoStatus = (status) => {
+    if (status === "realizada") return { bg: palette.lightGreen, fg: palette.green, label: "✓" };
+    if (status === "aRepor") return { bg: "#FFDDB5", fg: palette.orange, label: "A repor" };
+    if (status === "perdida") return { bg: "#F7C1C1", fg: "#791F1F", label: "Perdida" };
+    if (status === "reposicaoAgendada") return { bg: palette.lavender, fg: palette.purple, label: "Repos." };
+    return null; // agendada = sem badge
+  };
+
+  return (
+    <div>
+      <div style={{ background: "#FFF", borderRadius: "16px", padding: "18px 20px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          <button onClick={irSemanaAnterior} style={{ border: "none", background: palette.cream, cursor: "pointer", color: palette.purple, fontSize: "18px", padding: "6px 12px", borderRadius: "8px" }}>‹</button>
+          <p style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: palette.purple }}>{rotuloSemana}</p>
+          <button onClick={irProximaSemana} style={{ border: "none", background: palette.cream, cursor: "pointer", color: palette.purple, fontSize: "18px", padding: "6px 12px", borderRadius: "8px" }}>›</button>
+          <button onClick={irEstaSemana} style={{ border: `1px solid ${palette.lavender}55`, background: "#FFF", cursor: "pointer", color: palette.purple, fontSize: "12px", fontWeight: 600, padding: "6px 12px", borderRadius: "8px" }}>Esta semana</button>
+        </div>
+        <p style={{ margin: 0, fontSize: "12px", color: `${palette.purple}99` }}>
+          {totalAulas} {totalAulas === 1 ? "aula" : "aulas"} na semana
+        </p>
+      </div>
+
+      {carregando && <p style={{ fontSize: "13px", color: `${palette.purple}99`, padding: "20px" }}>Carregando semana...</p>}
+
+      {!carregando && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "10px" }}>
+          {aulasPorDia.map(({ data, dataISO, feriado, aulas }, i) => {
+            const isHoje = dataISO === hojeISO;
+            return (
+              <div key={i} style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 }}>
+                <div style={{ padding: "8px 12px", borderRadius: "10px 10px 0 0", background: isHoje ? palette.orange : (feriado ? "#F7C1C1" : "#FFF"), color: isHoje ? "#FFF" : (feriado ? "#791F1F" : palette.purple), textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: "11px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    {DIAS_LABELS[i]} · {data.getDate()}/{data.getMonth() + 1}
+                  </p>
+                </div>
+                <div style={{ background: "#FFF", borderRadius: "0 0 10px 10px", padding: "8px", flex: 1, display: "flex", flexDirection: "column", gap: "8px", minHeight: "80px" }}>
+                  {feriado && (
+                    <div style={{ padding: "10px 8px", textAlign: "center", background: "#FCF0F0", borderRadius: "8px", border: "1px dashed #F7C1C1" }}>
+                      <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "#791F1F", textTransform: "uppercase" }}>Feriado</p>
+                      <p style={{ margin: "4px 0 0 0", fontSize: "11px", color: "#791F1F" }}>{feriado}</p>
+                    </div>
+                  )}
+                  {!feriado && aulas.length === 0 && (
+                    <p style={{ margin: "10px 6px", fontSize: "11px", color: `${palette.purple}66`, fontStyle: "italic" }}>Sem aulas</p>
+                  )}
+                  {!feriado && aulas.map((a, j) => {
+                    const cor = corDoStatus(a.status);
+                    return (
+                      <button key={j} onClick={() => onSelectStudent(a.representante)}
+                        style={{ padding: "10px", borderRadius: "8px", background: palette.cream, border: "none", cursor: "pointer", textAlign: "left", fontFamily: "'Poppins', sans-serif", display: "block" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px", gap: "4px" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "8px", background: "#FFF", color: palette.purple }}>{a.horario}</span>
+                          {cor && (
+                            <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: "8px", background: cor.bg, color: cor.fg }}>
+                              {cor.label}
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: palette.purple, lineHeight: 1.3, wordBreak: "break-word" }}>{a.nomes}</p>
+                        <p style={{ margin: "2px 0 0 0", fontSize: "10px", color: `${palette.purple}99` }}>
+                          {a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}
+                        </p>
+                        {a.vindaDe && (
+                          <p style={{ margin: "4px 0 0 0", fontSize: "10px", color: palette.orange, fontWeight: 500 }}>🔁 vinda de {a.vindaDe}</p>
+                        )}
+                        {ultimoPlanoPorTurma[a.turma_id] && a.status !== "realizada" && (
+                          <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: `1px dashed ${palette.lavender}88` }}>
+                            <p style={{ margin: 0, fontSize: "9px", fontWeight: 700, color: palette.orange, letterSpacing: "0.05em", textTransform: "uppercase" }}>Plano:</p>
+                            <p style={{ margin: "2px 0 0 0", fontSize: "10px", color: palette.purple, lineHeight: 1.3, wordBreak: "break-word" }}>
+                              {ultimoPlanoPorTurma[a.turma_id]}
+                            </p>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
@@ -854,7 +1102,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "6px", marginBottom: "20px", flexWrap: "wrap" }}>
           <button onClick={() => setAbaAdmin("alunos")}
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "alunos" ? palette.orange : "#FFF", color: abaAdmin === "alunos" ? "#FFF" : palette.purple }}>
             Alunos
@@ -863,11 +1111,19 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "calendario" ? palette.orange : "#FFF", color: abaAdmin === "calendario" ? "#FFF" : palette.purple }}>
             Calendário geral
           </button>
+          <button onClick={() => setAbaAdmin("planejador")}
+            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "planejador" ? palette.orange : "#FFF", color: abaAdmin === "planejador" ? "#FFF" : palette.purple }}>
+            📋 Planejador Semanal
+          </button>
           <button onClick={() => { setAbaAdmin("materiais"); setNivelSelecionado(null); }}
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "materiais" ? palette.orange : "#FFF", color: abaAdmin === "materiais" ? "#FFF" : palette.purple }}>
             Materiais
           </button>
         </div>
+
+        {abaAdmin === "planejador" && (
+          <PlanejadorSemanalEnxuto students={students} onSelectStudent={onSelectStudent} />
+        )}
 
         {abaAdmin === "materiais" && (
           <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
@@ -1518,7 +1774,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
   const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [] });
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
   const [novoMaterialAula, setNovoMaterialAula] = useState({ titulo: "", url: "" });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
@@ -1704,7 +1960,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
       if (!ativo) return;
       setAulasRegistradas((recordsData || []).map((r) => ({
-        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", materiaisAula: r.materiais_aula || [], rowId: r.id,
+        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", materiaisAula: r.materiais_aula || [], conteudoEnsinado: r.conteudo_ensinado || "", paraProximaAula: r.para_proxima_aula || "", rowId: r.id,
       })));
 
       const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
@@ -1958,7 +2214,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     if (!novaAula.data || !novaAula.assunto) return;
     const { data, error } = await supabase
       .from("lesson_records")
-      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null, materiais_aula: novaAula.materiaisAula || [] })
+      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null, materiais_aula: novaAula.materiaisAula || [], conteudo_ensinado: novaAula.conteudoEnsinado || null, para_proxima_aula: novaAula.paraProximaAula || null })
       .select().single();
     if (error) {
       alert("Erro ao registrar a aula: " + error.message);
@@ -1985,13 +2241,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const dataNova = new Date(novaAula.data + "T00:00:00");
     setMesHomework(dataNova.getMonth());
     setAnoHomework(dataNova.getFullYear());
-    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [] });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null, materiais_aula: rascunhoAulaRegistrada.materiaisAula || [] })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null, materiais_aula: rascunhoAulaRegistrada.materiaisAula || [], conteudo_ensinado: rascunhoAulaRegistrada.conteudoEnsinado || null, para_proxima_aula: rascunhoAulaRegistrada.paraProximaAula || null })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (error) {
       alert("Erro ao salvar as alterações: " + error.message);
@@ -3144,6 +3400,23 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         </div>
                       )}
 
+                      <div style={{ marginTop: "8px", paddingTop: "16px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: textSecondary, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>📋 Planejador Semanal</p>
+                        <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "10px", lineHeight: 1.4 }}>
+                          Só você vê estes dois campos. Servem pra você planejar e não esquecer onde parou. O aluno não vê.
+                        </p>
+
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Conteúdo exato ensinado — opcional</label>
+                        <textarea value={novaAula.conteudoEnsinado} onChange={(e) => setNovaAula((a) => ({ ...a, conteudoEnsinado: e.target.value }))}
+                          placeholder="Ex: Wh-questions com be, prática oral em pares"
+                          style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px", resize: "vertical" }} />
+
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Para próxima aula — opcional</label>
+                        <textarea value={novaAula.paraProximaAula} onChange={(e) => setNovaAula((a) => ({ ...a, paraProximaAula: e.target.value }))}
+                          placeholder="Ex: iniciar Unit 5B — common verbs"
+                          style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
+                      </div>
+
                       <button onClick={registrarAula} style={{ padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
                         Registrar aula
                       </button>
@@ -3369,6 +3642,23 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                           ))}
                         </div>
                       )}
+
+                      <div style={{ marginTop: "8px", paddingTop: "16px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: textSecondary, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>📋 Planejador Semanal</p>
+                        <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "10px", lineHeight: 1.4 }}>
+                          Só você vê estes dois campos. O aluno não vê.
+                        </p>
+
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Conteúdo exato ensinado — opcional</label>
+                        <textarea value={rascunhoAulaRegistrada.conteudoEnsinado || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, conteudoEnsinado: e.target.value }))}
+                          placeholder="Ex: Wh-questions com be, prática oral em pares"
+                          style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px", resize: "vertical" }} />
+
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Para próxima aula — opcional</label>
+                        <textarea value={rascunhoAulaRegistrada.paraProximaAula || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, paraProximaAula: e.target.value }))}
+                          placeholder="Ex: iniciar Unit 5B — common verbs"
+                          style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
+                      </div>
 
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={salvarEdicaoAulaRegistrada} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>Salvar</button>
