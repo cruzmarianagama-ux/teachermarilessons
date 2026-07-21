@@ -468,8 +468,9 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
   const [aulasHoje, setAulasHoje] = useState([]);
   const [aulasAmanha, setAulasAmanha] = useState([]);
-  const [cobrancasAbertoCount, setCobrancasAbertoCount] = useState(0);
-  const [reposicoesPendentesCount, setReposicoesPendentesCount] = useState(0);
+  const [cobrancasAbertoLista, setCobrancasAbertoLista] = useState([]);
+  const [reposicoesPendentesLista, setReposicoesPendentesLista] = useState([]);
+  const [modalAberto, setModalAberto] = useState(null); // 'cobrancas' | 'reposicoes' | null
 
   // Recarrega os cards do dashboard a cada 60s pra pegar o "horário passou" das aulas de hoje
   const [tickRelogio, setTickRelogio] = useState(0);
@@ -489,17 +490,66 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     const diaHoje = DIAS_MAP[hoje.getDay()];
     const diaAmanha = DIAS_MAP[amanha.getDay()];
 
+    // Agrupa turmas -> alunos pra poder juntar nome do aluno em cobranças/reposições
+    const alunosPorTurma = new Map();
+    (students || []).forEach((s) => {
+      if (!s.turma_id) return;
+      if (!alunosPorTurma.has(s.turma_id)) alunosPorTurma.set(s.turma_id, []);
+      alunosPorTurma.get(s.turma_id).push(s);
+    });
+    const infoTurma = (turma_id) => {
+      const alunos = alunosPorTurma.get(turma_id) || [];
+      const ordenados = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome));
+      return {
+        nomes: ordenados.map((a) => a.nome).join(" + "),
+        representante: ordenados[0] || null,
+        modalidade: (ordenados[0] && ordenados[0].turmas && ordenados[0].turmas.modalidade) || null,
+      };
+    };
+
     // Aulas cadastradas em `lessons` pra hoje e amanhã
     const { data: lessonsData } = await supabase.from("lessons").select("*").in("data", [hojeISO, amanhaISO]);
 
-    // Cobranças em aberto (não pagas, vencimento no passado)
+    // Cobranças em aberto (não pagas, vencimento no passado) — lista detalhada
     const { data: billingData } = await supabase.from("billing").select("*").neq("status", "pago");
-    const cobrAtrasadas = (billingData || []).filter((b) => b.vencimento && b.vencimento < hojeISO);
-    setCobrancasAbertoCount(cobrAtrasadas.length);
+    const cobrAtrasadas = (billingData || [])
+      .filter((b) => b.vencimento && b.vencimento < hojeISO)
+      .map((b) => {
+        const info = infoTurma(b.turma_id);
+        const diasAtraso = Math.floor((new Date(hojeISO + "T00:00:00") - new Date(b.vencimento + "T00:00:00")) / 86400000);
+        return {
+          rowId: b.id,
+          turma_id: b.turma_id,
+          nomes: info.nomes || "(turma sem alunos)",
+          representante: info.representante,
+          mes: b.mes,
+          valor: `R$ ${Number(b.valor).toFixed(2).replace(".", ",")}`,
+          vencimento: new Date(b.vencimento + "T00:00:00").toLocaleDateString("pt-BR"),
+          diasAtraso,
+        };
+      })
+      .sort((a, b) => b.diasAtraso - a.diasAtraso);
+    setCobrancasAbertoLista(cobrAtrasadas);
 
-    // Reposições pendentes (aulas com status "aRepor")
-    const { data: aRepor } = await supabase.from("lessons").select("id").eq("status", "aRepor");
-    setReposicoesPendentesCount((aRepor || []).length);
+    // Reposições pendentes — lista detalhada
+    const { data: aRepor } = await supabase.from("lessons").select("*").eq("status", "aRepor");
+    const reposicoes = (aRepor || [])
+      .map((l) => {
+        const info = infoTurma(l.turma_id);
+        const diasSemReposicao = Math.floor((new Date(hojeISO + "T00:00:00") - new Date(l.data + "T00:00:00")) / 86400000);
+        return {
+          rowId: l.id,
+          turma_id: l.turma_id,
+          nomes: info.nomes || "(turma sem alunos)",
+          representante: info.representante,
+          dataAula: new Date(l.data + "T00:00:00").toLocaleDateString("pt-BR"),
+          prazo_reposicao: l.prazo_reposicao,
+          prazoBR: l.prazo_reposicao ? new Date(l.prazo_reposicao + "T00:00:00").toLocaleDateString("pt-BR") : null,
+          diasSemReposicao,
+        };
+      })
+      .sort((a, b) => b.diasSemReposicao - a.diasSemReposicao);
+    setReposicoesPendentesLista(reposicoes);
 
     // Agrupa turmas pra gerar as aulas do dia (baseado em dias_horarios da turma)
     const turmasMap = new Map();
@@ -1029,15 +1079,89 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Total de turmas</p>
             <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: palette.purple }}>{new Set(students.map((s) => s.turma_id).filter(Boolean)).size}</p>
           </div>
-          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: cobrancasAbertoCount > 0 ? `1px solid #E24B4A` : "none" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Cobranças em aberto</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: cobrancasAbertoCount > 0 ? "#E24B4A" : palette.purple }}>{cobrancasAbertoCount}</p>
-          </div>
-          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: reposicoesPendentesCount > 0 ? `1px solid ${palette.orange}` : "none" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Reposições pendentes</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: reposicoesPendentesCount > 0 ? palette.orange : palette.purple }}>{reposicoesPendentesCount}</p>
-          </div>
+          <button onClick={() => cobrancasAbertoLista.length > 0 && setModalAberto("cobrancas")} disabled={cobrancasAbertoLista.length === 0}
+            style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: cobrancasAbertoLista.length > 0 ? `1px solid #E24B4A` : "none", cursor: cobrancasAbertoLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: 0 }}>Cobranças em aberto {cobrancasAbertoLista.length > 0 && <span style={{ fontSize: "10px", color: "#E24B4A" }}>· ver quem</span>}</p>
+            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : palette.purple, margin: "4px 0 0 0" }}>{cobrancasAbertoLista.length}</p>
+          </button>
+          <button onClick={() => reposicoesPendentesLista.length > 0 && setModalAberto("reposicoes")} disabled={reposicoesPendentesLista.length === 0}
+            style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: reposicoesPendentesLista.length > 0 ? `1px solid ${palette.orange}` : "none", cursor: reposicoesPendentesLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: 0 }}>Reposições pendentes {reposicoesPendentesLista.length > 0 && <span style={{ fontSize: "10px", color: palette.orange }}>· ver quem</span>}</p>
+            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: reposicoesPendentesLista.length > 0 ? palette.orange : palette.purple, margin: "4px 0 0 0" }}>{reposicoesPendentesLista.length}</p>
+          </button>
         </div>
+
+        {/* Modal — Cobranças em aberto */}
+        {modalAberto === "cobrancas" && (
+          <div onClick={() => setModalAberto(null)}
+            style={{ position: "fixed", inset: 0, background: "rgba(29, 16, 80, 0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", zIndex: 1000 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ background: "#FFF", borderRadius: "16px", padding: "24px", maxWidth: "560px", width: "100%", maxHeight: "85vh", overflow: "auto" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: palette.purple }}>💰 Cobranças em aberto ({cobrancasAbertoLista.length})</p>
+                <button onClick={() => setModalAberto(null)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "20px", color: palette.purple, padding: "4px 8px" }}>×</button>
+              </div>
+              <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginBottom: "16px" }}>
+                Clique num aluno pra abrir o financeiro dele.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {cobrancasAbertoLista.map((c) => (
+                  <button key={c.rowId} onClick={() => { setModalAberto(null); if (c.representante) onSelectStudent(c.representante); }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: "#FCF0F0", border: "1px solid #F7C1C1", cursor: c.representante ? "pointer" : "default", width: "100%", textAlign: "left", fontFamily: "'Poppins', sans-serif", gap: "10px" }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{c.nomes}</p>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>
+                        {c.mes} · {c.valor} · venceu em {c.vencimento}
+                      </p>
+                    </div>
+                    <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: "#F7C1C1", color: "#791F1F", whiteSpace: "nowrap", flexShrink: 0 }}>
+                      {c.diasAtraso === 1 ? "1 dia" : `${c.diasAtraso} dias`}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal — Reposições pendentes */}
+        {modalAberto === "reposicoes" && (
+          <div onClick={() => setModalAberto(null)}
+            style={{ position: "fixed", inset: 0, background: "rgba(29, 16, 80, 0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", zIndex: 1000 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ background: "#FFF", borderRadius: "16px", padding: "24px", maxWidth: "560px", width: "100%", maxHeight: "85vh", overflow: "auto" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: palette.purple }}>🔄 Reposições pendentes ({reposicoesPendentesLista.length})</p>
+                <button onClick={() => setModalAberto(null)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "20px", color: palette.purple, padding: "4px 8px" }}>×</button>
+              </div>
+              <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginBottom: "16px" }}>
+                Clique num aluno pra abrir o calendário e remarcar a aula.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {reposicoesPendentesLista.map((r) => {
+                  const hojeISO = new Date().toISOString().slice(0, 10);
+                  const prazoExpirado = r.prazo_reposicao && r.prazo_reposicao < hojeISO;
+                  return (
+                    <button key={r.rowId} onClick={() => { setModalAberto(null); if (r.representante) onSelectStudent(r.representante); }}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: prazoExpirado ? "#FCF0F0" : "#FFF6EA", border: prazoExpirado ? "1px solid #F7C1C1" : "1px solid #FFDDB5", cursor: r.representante ? "pointer" : "default", width: "100%", textAlign: "left", fontFamily: "'Poppins', sans-serif", gap: "10px" }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{r.nomes}</p>
+                        <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>
+                          Aula perdida em {r.dataAula}{r.prazoBR ? ` · prazo pra repor: ${r.prazoBR}` : ""}
+                        </p>
+                      </div>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: prazoExpirado ? "#F7C1C1" : "#FFDDB5", color: prazoExpirado ? "#791F1F" : palette.orange, whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {prazoExpirado ? "PRAZO EXPIROU" : `${r.diasSemReposicao === 1 ? "1 dia" : r.diasSemReposicao + " dias"}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: mostrarForm ? "16px" : "0" }}>
