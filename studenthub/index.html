@@ -3763,6 +3763,18 @@ function App() {
               return;
             }
             setAlunoSelecionado(data);
+          } else {
+            // Tentando entrar como admin: verifica se esse usuário É admin
+            // Regra: admin é qualquer conta que NÃO está cadastrada como aluno em `students`
+            setCarregandoLogin(true);
+            const { data: alunoExistente } = await supabase.from("students").select("id").eq("id", user.id).single();
+            setCarregandoLogin(false);
+            if (alunoExistente) {
+              // É aluno tentando entrar como professora — bloqueia
+              alert("Este acesso é só pra Teacher Mari. Alunos devem entrar pela opção \"Aluno\" no login.");
+              await supabase.auth.signOut();
+              return;
+            }
           }
           setPapel(r);
           setLogado(true);
