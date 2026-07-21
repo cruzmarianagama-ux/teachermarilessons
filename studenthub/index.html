@@ -466,6 +466,96 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     setNovaTurma((t) => ({ ...t, diasHorarios: t.diasHorarios.filter((_, i) => i !== index) }));
   };
 
+  const [aulasHoje, setAulasHoje] = useState([]);
+  const [aulasAmanha, setAulasAmanha] = useState([]);
+  const [cobrancasAbertoCount, setCobrancasAbertoCount] = useState(0);
+  const [reposicoesPendentesCount, setReposicoesPendentesCount] = useState(0);
+
+  // Recarrega os cards do dashboard a cada 60s pra pegar o "horário passou" das aulas de hoje
+  const [tickRelogio, setTickRelogio] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTickRelogio((k) => k + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const carregarDashboardAdmin = async () => {
+    const hoje = new Date();
+    const amanha = new Date(hoje);
+    amanha.setDate(hoje.getDate() + 1);
+    const isoDe = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const hojeISO = isoDe(hoje);
+    const amanhaISO = isoDe(amanha);
+    const DIAS_MAP = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const diaHoje = DIAS_MAP[hoje.getDay()];
+    const diaAmanha = DIAS_MAP[amanha.getDay()];
+
+    // Aulas cadastradas em `lessons` pra hoje e amanhã
+    const { data: lessonsData } = await supabase.from("lessons").select("*").in("data", [hojeISO, amanhaISO]);
+
+    // Cobranças em aberto (não pagas, vencimento no passado)
+    const { data: billingData } = await supabase.from("billing").select("*").neq("status", "pago");
+    const cobrAtrasadas = (billingData || []).filter((b) => b.vencimento && b.vencimento < hojeISO);
+    setCobrancasAbertoCount(cobrAtrasadas.length);
+
+    // Reposições pendentes (aulas com status "aRepor")
+    const { data: aRepor } = await supabase.from("lessons").select("id").eq("status", "aRepor");
+    setReposicoesPendentesCount((aRepor || []).length);
+
+    // Agrupa turmas pra gerar as aulas do dia (baseado em dias_horarios da turma)
+    const turmasMap = new Map();
+    (students || []).forEach((s) => {
+      if (!s.turma_id) return;
+      if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, { alunos: [], turma: s.turmas || null });
+      turmasMap.get(s.turma_id).alunos.push(s);
+    });
+
+    const construirAulas = (diaSemana, dataISO) => {
+      const lista = [];
+      turmasMap.forEach(({ alunos, turma }, turma_id) => {
+        if (!turma || !turma.dias_horarios) return;
+        turma.dias_horarios.forEach((dh) => {
+          if (dh.dia !== diaSemana) return;
+          const lesson = (lessonsData || []).find((l) => l.turma_id === turma_id && l.data === dataISO);
+          const status = lesson ? lesson.status : "agendada";
+          const nomes = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome)).map((a) => a.nome).join(" + ");
+          const representante = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome))[0];
+          lista.push({ turma_id, horario: dh.horario, nomes, representante, nivel: representante.nivel, unidade: turma.unidade_atual, status });
+        });
+      });
+      // Ordena por horário
+      return lista.sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
+    };
+
+    setAulasHoje(construirAulas(diaHoje, hojeISO));
+    setAulasAmanha(construirAulas(diaAmanha, amanhaISO));
+  };
+
+  useEffect(() => { if (students.length > 0) carregarDashboardAdmin(); }, [students, tickRelogio]);
+
+  // Aniversariantes: extrai do students (que já tem nascimento carregado)
+  const aniversariantes = (() => {
+    const hoje = new Date();
+    const hojeM = hoje.getMonth();
+    const hojeD = hoje.getDate();
+    return (students || [])
+      .filter((s) => s.nascimento)
+      .map((s) => {
+        const partes = s.nascimento.split("-"); // "YYYY-MM-DD"
+        const mes = Number(partes[1]) - 1;
+        const dia = Number(partes[2]);
+        // Calcula quantos dias faltam pro próximo aniversário (a partir de hoje)
+        const proximo = new Date(hoje.getFullYear(), mes, dia);
+        if (proximo < new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) {
+          proximo.setFullYear(hoje.getFullYear() + 1);
+        }
+        const diasAte = Math.round((proximo - new Date(hoje.getFullYear(), hojeM, hojeD)) / 86400000);
+        const isHoje = mes === hojeM && dia === hojeD;
+        return { nome: s.nome, dia, mes, diasAte, isHoje, aluno: s };
+      })
+      .filter((a) => a.diasAte <= 45) // mostra até ~1.5 mês adiante
+      .sort((a, b) => a.diasAte - b.diasAte);
+  })();
+
   const carregarAlunos = async () => {
     setCarregando(true);
     const { data } = await supabase.from("students").select("*, turmas(modalidade, dias_horarios, frequencia, unidade_atual)").order("nome");
@@ -837,6 +927,99 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </button>
         </div>
 
+        {/* Aulas de hoje */}
+        <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📅 Aulas de hoje</p>
+            <p style={{ margin: 0, fontSize: "12px", color: `${palette.purple}99` }}>
+              {(() => { const d = new Date(); const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}`; })()}
+            </p>
+          </div>
+          {aulasHoje.length === 0 ? (
+            <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic", margin: 0 }}>Nenhuma aula agendada pra hoje. Bora descansar 🌴</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {aulasHoje.map((a, i) => {
+                const agora = new Date();
+                const [h, m] = (a.horario || "00:00").split(":").map(Number);
+                const horarioMinutos = h * 60 + m;
+                const agoraMinutos = agora.getHours() * 60 + agora.getMinutes();
+                const horarioPassou = agoraMinutos > horarioMinutos;
+                const pendente = horarioPassou && a.status === "agendada";
+                let corBadge = palette.lavender, textoBadge = palette.purple, labelStatus = null;
+                if (pendente) { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "⚠️ SEM ENTRADA"; }
+                else if (a.status === "realizada") { corBadge = palette.lightGreen; textoBadge = palette.green; labelStatus = "✓ Realizada"; }
+                else if (a.status === "aRepor") { corBadge = "#FFDDB5"; textoBadge = palette.orange; labelStatus = "A repor"; }
+                else if (a.status === "perdida") { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "Perdida"; }
+                else if (a.status === "reposicaoAgendada") { corBadge = palette.lavender; textoBadge = palette.purple; labelStatus = "Reposição"; }
+                return (
+                  <button key={i} onClick={() => onSelectStudent(a.representante)}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: pendente ? "#FCF0F0" : palette.cream, border: pendente ? `1px solid #E24B4A` : "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "10px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                        <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
+                      </div>
+                    </div>
+                    {labelStatus && (
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: corBadge, color: textoBadge, whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {labelStatus}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Aulas de amanhã */}
+        <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📆 Aulas de amanhã</p>
+            <p style={{ margin: 0, fontSize: "12px", color: `${palette.purple}99` }}>
+              {(() => { const d = new Date(); d.setDate(d.getDate() + 1); const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}`; })()}
+            </p>
+          </div>
+          {aulasAmanha.length === 0 ? (
+            <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic", margin: 0 }}>Nenhuma aula agendada pra amanhã.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {aulasAmanha.map((a, i) => (
+                <button key={i} onClick={() => onSelectStudent(a.representante)}
+                  style={{ display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "12px" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Aniversariantes */}
+        {aniversariantes.length > 0 && (
+          <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
+            <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Aniversariantes</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {aniversariantes.map((a, i) => (
+                <button key={i} onClick={() => onSelectStudent(a.aluno)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "10px", background: a.isHoje ? "#FFDDB5" : palette.cream, border: a.isHoje ? `1px solid ${palette.orange}` : "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{a.nome}</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.dia}/{a.mes + 1} · {a.isHoje ? "🎉 HOJE!" : a.diasAte === 1 ? "amanhã" : `em ${a.diasAte} dias`}</p>
+                  </div>
+                  <span style={{ fontSize: "18px" }}>{a.isHoje ? "🎂" : "🗓️"}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Contadores */}
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "20px" }}>
           <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px" }}>
             <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Total de alunos</p>
@@ -845,6 +1028,14 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px" }}>
             <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Total de turmas</p>
             <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: palette.purple }}>{new Set(students.map((s) => s.turma_id).filter(Boolean)).size}</p>
+          </div>
+          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: cobrancasAbertoCount > 0 ? `1px solid #E24B4A` : "none" }}>
+            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Cobranças em aberto</p>
+            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: cobrancasAbertoCount > 0 ? "#E24B4A" : palette.purple }}>{cobrancasAbertoCount}</p>
+          </div>
+          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: reposicoesPendentesCount > 0 ? `1px solid ${palette.orange}` : "none" }}>
+            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Reposições pendentes</p>
+            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: reposicoesPendentesCount > 0 ? palette.orange : palette.purple }}>{reposicoesPendentesCount}</p>
           </div>
         </div>
 
@@ -1160,7 +1351,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
   const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "" });
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [] });
+  const [novoMaterialAula, setNovoMaterialAula] = useState({ titulo: "", url: "" });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
   const [editandoCobrancaId, setEditandoCobrancaId] = useState(null);
@@ -1231,7 +1423,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   };
 
   const abrirEdicaoAluno = () => {
-    setRascunhoAluno({ nome: student.nome, telefone: student.telefone || "", email: "", novoEmail: "" });
+    setRascunhoAluno({ nome: student.nome, telefone: student.telefone || "", email: "", novoEmail: "", nascimento: student.nascimento || "" });
     setStatusEdicaoAluno({ tipo: "", texto: "" });
     setMostrarEditarAluno(true);
   };
@@ -1260,8 +1452,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       setStatusEdicaoAluno({ tipo: "erro", texto: resultado.error || "Erro ao salvar." });
       return;
     }
+    // Salva data de nascimento direto na tabela students (não passa pela edge function)
+    if (rascunhoAluno.nascimento !== (student.nascimento || "")) {
+      await supabase.from("students").update({ nascimento: rascunhoAluno.nascimento || null }).eq("id", studentId);
+    }
     setStatusEdicaoAluno({ tipo: "sucesso", texto: "Dados atualizados!" });
-    if (onStudentUpdated) onStudentUpdated({ nome: rascunhoAluno.nome, telefone: rascunhoAluno.telefone });
+    if (onStudentUpdated) onStudentUpdated({ nome: rascunhoAluno.nome, telefone: rascunhoAluno.telefone, nascimento: rascunhoAluno.nascimento || null });
     setTimeout(() => setMostrarEditarAluno(false), 1200);
   };
   const [mostrarTrocaSenha, setMostrarTrocaSenha] = useState(false);
@@ -1341,7 +1537,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
       if (!ativo) return;
       setAulasRegistradas((recordsData || []).map((r) => ({
-        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", rowId: r.id,
+        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", materiaisAula: r.materiais_aula || [], rowId: r.id,
       })));
 
       const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
@@ -1565,11 +1761,31 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setRascunhoAulaRegistrada((r) => ({ ...r, embeds: (r.embeds || []).filter((_, i) => i !== index) }));
   };
 
+  const adicionarMaterialAula = () => {
+    if (!novoMaterialAula.url) return;
+    setNovaAula((a) => ({ ...a, materiaisAula: [...(a.materiaisAula || []), novoMaterialAula] }));
+    setNovoMaterialAula({ titulo: "", url: "" });
+  };
+
+  const removerMaterialAulaNova = (index) => {
+    setNovaAula((a) => ({ ...a, materiaisAula: (a.materiaisAula || []).filter((_, i) => i !== index) }));
+  };
+
+  const adicionarMaterialAulaNaEdicao = () => {
+    if (!novoMaterialAula.url) return;
+    setRascunhoAulaRegistrada((r) => ({ ...r, materiaisAula: [...(r.materiaisAula || []), novoMaterialAula] }));
+    setNovoMaterialAula({ titulo: "", url: "" });
+  };
+
+  const removerMaterialAulaDaEdicao = (index) => {
+    setRascunhoAulaRegistrada((r) => ({ ...r, materiaisAula: (r.materiaisAula || []).filter((_, i) => i !== index) }));
+  };
+
   const registrarAula = async () => {
     if (!novaAula.data || !novaAula.assunto) return;
     const { data, error } = await supabase
       .from("lesson_records")
-      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null })
+      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null, materiais_aula: novaAula.materiaisAula || [] })
       .select().single();
     if (error) {
       alert("Erro ao registrar a aula: " + error.message);
@@ -1596,13 +1812,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const dataNova = new Date(novaAula.data + "T00:00:00");
     setMesHomework(dataNova.getMonth());
     setAnoHomework(dataNova.getFullYear());
-    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "" });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [] });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null, materiais_aula: rascunhoAulaRegistrada.materiaisAula || [] })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (error) {
       alert("Erro ao salvar as alterações: " + error.message);
@@ -2279,6 +2495,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
             <input type="tel" value={rascunhoAluno.telefone} onChange={(e) => setRascunhoAluno((r) => ({ ...r, telefone: e.target.value }))}
               style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Data de nascimento 🎂</label>
+            <input type="date" value={rascunhoAluno.nascimento || ""} onChange={(e) => setRascunhoAluno((r) => ({ ...r, nascimento: e.target.value }))}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
+
             <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Novo e-mail (deixe em branco pra manter o atual)</label>
             <input type="email" value={rascunhoAluno.novoEmail} onChange={(e) => setRascunhoAluno((r) => ({ ...r, novoEmail: e.target.value }))}
               placeholder="novo@email.com"
@@ -2661,6 +2881,33 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         placeholder="Ex: Wh-questions com be"
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "12px" }} />
 
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
+                        Materiais mostrados em aula — opcional
+                      </label>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "8px", lineHeight: 1.4 }}>
+                        Links do Google Drive, Notion, apresentações etc. O aluno vê como lista clicável. Deixe em branco se a aula foi oral.
+                      </p>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                        <input type="text" value={novoMaterialAula.titulo} onChange={(e) => setNovoMaterialAula((n) => ({ ...n, titulo: e.target.value }))}
+                          placeholder="Título (ex: Slides Unit 4A)"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <input type="text" value={novoMaterialAula.url} onChange={(e) => setNovoMaterialAula((n) => ({ ...n, url: e.target.value }))}
+                          placeholder="URL"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <button onClick={adicionarMaterialAula} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>+</button>
+                      </div>
+                      {novaAula.materiaisAula && novaAula.materiaisAula.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "14px" }}>
+                          {novaAula.materiaisAula.map((m, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                              <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>📎 {m.titulo || m.url}</p>
+                              <button onClick={() => removerMaterialAulaNova(i)}
+                                style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "13px", fontWeight: 600, padding: "2px 6px" }}>×</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal (homework) — opcional</label>
                       <input type="text" list="lista-cronogramas" value={novaAula.cronogramaUrl} onChange={(e) => setNovaAula((a) => ({ ...a, cronogramaUrl: e.target.value }))}
                         placeholder="Cole o link do cronograma (ex: .../beginner/unit6a) ou deixe em branco"
@@ -2858,6 +3105,34 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Assunto</label>
                       <input type="text" value={rascunhoAulaRegistrada.assunto} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, assunto: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>
+                        Materiais mostrados em aula — opcional
+                      </label>
+                      <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "8px", lineHeight: 1.4 }}>
+                        Links do Google Drive, Notion, apresentações etc. O aluno vê como lista clicável.
+                      </p>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                        <input type="text" value={novoMaterialAula.titulo} onChange={(e) => setNovoMaterialAula((n) => ({ ...n, titulo: e.target.value }))}
+                          placeholder="Título"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <input type="text" value={novoMaterialAula.url} onChange={(e) => setNovoMaterialAula((n) => ({ ...n, url: e.target.value }))}
+                          placeholder="URL"
+                          style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                        <button onClick={adicionarMaterialAulaNaEdicao} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>+</button>
+                      </div>
+                      {rascunhoAulaRegistrada.materiaisAula && rascunhoAulaRegistrada.materiaisAula.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "14px" }}>
+                          {rascunhoAulaRegistrada.materiaisAula.map((m, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+                              <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>📎 {m.titulo || m.url}</p>
+                              <button onClick={() => removerMaterialAulaDaEdicao(i)}
+                                style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "13px", fontWeight: 600, padding: "2px 6px" }}>×</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma — opcional</label>
                       <input type="text" list="lista-cronogramas" value={rascunhoAulaRegistrada.cronogramaUrl || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramaUrl: e.target.value }))}
                         placeholder="Cole o link do cronograma ou deixe em branco"
@@ -2931,6 +3206,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <React.Fragment>
                       <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(cronogramaAberto.data)}</p>
                       <p style={{ marginBottom: "14px", fontSize: "16px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{cronogramaAberto.assunto}</p>
+
+                      {cronogramaAberto.materiaisAula && cronogramaAberto.materiaisAula.length > 0 && (
+                        <div style={{ marginBottom: "18px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.lightGreen + "33", borderLeft: `3px solid ${palette.green}` }}>
+                          <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.green, marginBottom: "8px", letterSpacing: "0.05em", textTransform: "uppercase" }}>📎 Materiais mostrados em aula</p>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            {cronogramaAberto.materiaisAula.map((m, i) => (
+                              <a key={i} href={m.url} target="_blank" rel="noopener noreferrer"
+                                style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, textDecoration: "none", padding: "6px 10px", borderRadius: "8px", background: dark ? "rgba(255,255,255,0.08)" : "#FFF", border: `1px solid ${dark ? "#5A4AA0" : palette.lightGreen}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.titulo || m.url}</span>
+                                <span style={{ color: palette.orange, fontSize: "14px", flexShrink: 0 }}>↗</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {role !== "admin" && (
                         <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", cursor: "pointer" }}>
                           <input type="checkbox" checked={!!homeworkStatus[cronogramaAberto.rowId]} onChange={() => alternarHomeworkConcluido(cronogramaAberto.rowId)}
