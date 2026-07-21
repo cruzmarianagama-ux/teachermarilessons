@@ -510,6 +510,16 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     // Aulas cadastradas em `lessons` pra hoje e amanhã
     const { data: lessonsData } = await supabase.from("lessons").select("*").in("data", [hojeISO, amanhaISO]);
 
+    // Aulas que TINHAM como data original hoje ou amanhã mas foram MOVIDAS pra outro dia
+    // Serve pra saber que o horário regular daquele dia foi remarcado — não conta como "sem entrada"
+    const { data: movidasData } = await supabase.from("lessons").select("turma_id, data, data_original, horario").in("data_original", [hojeISO, amanhaISO]);
+    const movidasSet = new Set(); // "turma_id|dataOriginal|horarioRegular"
+    (movidasData || []).forEach((l) => {
+      // Como a lesson pode ter horário customizado, uso o horário original que era esperado
+      // Simplificação: uso só turma_id + data_original — se qualquer lesson da turma teve data_original = hoje, aquela aula foi movida
+      movidasSet.add(`${l.turma_id}|${l.data_original}`);
+    });
+
     // Cobranças em aberto (não pagas, vencimento no passado) — lista detalhada
     const { data: billingData } = await supabase.from("billing").select("*").neq("status", "pago");
     const cobrAtrasadas = (billingData || [])
@@ -565,11 +575,38 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         if (!turma || !turma.dias_horarios) return;
         turma.dias_horarios.forEach((dh) => {
           if (dh.dia !== diaSemana) return;
+          // Pula se essa aula regular foi MOVIDA pra outro dia
+          if (movidasSet.has(`${turma_id}|${dataISO}`)) return;
           const lesson = (lessonsData || []).find((l) => l.turma_id === turma_id && l.data === dataISO);
           const status = lesson ? lesson.status : "agendada";
           const nomes = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome)).map((a) => a.nome).join(" + ");
           const representante = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome))[0];
-          lista.push({ turma_id, horario: dh.horario, nomes, representante, nivel: representante.nivel, unidade: turma.unidade_atual, status });
+          lista.push({ turma_id, horario: dh.horario, nomes, representante, nivel: representante.nivel, unidade: turma.unidade_atual, status, vindaDe: null });
+        });
+      });
+      // Também mostra aulas que foram REMARCADAS pra este dia (com data_original diferente)
+      // Isso pega aulas movidas de outro dia + reposições agendadas — que aparecem em `lessons` com data = hoje
+      (lessonsData || []).forEach((lesson) => {
+        if (lesson.data !== dataISO || !lesson.data_original || lesson.data_original === dataISO) return;
+        // Ver se essa aula já foi contabilizada acima (turma tem horário regular hoje)
+        const turmaData = turmasMap.get(lesson.turma_id);
+        if (!turmaData) return;
+        const alunos = turmaData.alunos;
+        const nomes = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome)).map((a) => a.nome).join(" + ");
+        const representante = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome))[0];
+        // Evita duplicar se essa turma já apareceu (aula movida pra o mesmo horário regular)
+        const jaListado = lista.some((a) => a.turma_id === lesson.turma_id && a.horario === lesson.horario);
+        if (jaListado) return;
+        const dataOrig = new Date(lesson.data_original + "T00:00:00");
+        const vindaDe = `${dataOrig.getDate()}/${dataOrig.getMonth() + 1}`;
+        lista.push({
+          turma_id: lesson.turma_id,
+          horario: lesson.horario || "",
+          nomes, representante,
+          nivel: representante.nivel,
+          unidade: (turmaData.turma && turmaData.turma.unidade_atual) || null,
+          status: lesson.status,
+          vindaDe,
         });
       });
       // Ordena por horário
@@ -1008,7 +1045,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {a.nomes}
+                          {a.vindaDe && <span style={{ fontSize: "10px", fontWeight: 500, color: palette.orange, marginLeft: "6px" }}>· 🔁 vinda de {a.vindaDe}</span>}
+                        </p>
                         <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
                       </div>
                     </div>
@@ -1041,7 +1081,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                   style={{ display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "12px" }}>
                   <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {a.nomes}
+                      {a.vindaDe && <span style={{ fontSize: "10px", fontWeight: 500, color: palette.orange, marginLeft: "6px" }}>· 🔁 vinda de {a.vindaDe}</span>}
+                    </p>
                     <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
                   </div>
                 </button>
@@ -1787,10 +1830,14 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
     const statusOriginal = aulas[diaSelecionado] && aulas[diaSelecionado].status;
     const viraReposicao = statusOriginal === "aRepor" && novoDiaMover !== dataAntiga;
+    const mudouDia = novoDiaMover !== dataAntiga;
     const atualizacao = { data: novoDiaMover, horario: novoHorarioMover || null };
+    // Se mudou o dia, sempre grava a data_original — pra o painel admin saber que a aula regular daquele dia foi movida
+    if (mudouDia) {
+      atualizacao.data_original = (aulas[diaSelecionado] && aulas[diaSelecionado].data_original) || dataAntiga;
+    }
     if (viraReposicao) {
       atualizacao.status = "reposicaoAgendada";
-      atualizacao.data_original = (aulas[diaSelecionado] && aulas[diaSelecionado].data_original) || dataAntiga;
       atualizacao.prazo_reposicao = null;
     }
 
@@ -1808,9 +1855,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setAulas((prev) => {
       const copia = { ...prev };
       const registro = { ...copia[diaSelecionado], horario: novoHorarioMover || null };
+      if (mudouDia) {
+        registro.data_original = atualizacao.data_original;
+      }
       if (viraReposicao) {
         registro.status = "reposicaoAgendada";
-        registro.data_original = atualizacao.data_original;
         registro.prazo_reposicao = null;
       }
       delete copia[diaSelecionado];
