@@ -184,7 +184,11 @@
 </div>
 </div>
 <!-- ===== DAY 4 ===== -->
-<div class="day-content" id="day-2">
+<div class="day-content" id="day-2"></div>
+<!-- ===== DAY 3 ===== -->
+<div class="day-content" id="day-3"></div>
+<script>
+const DAY3_HTML=`<div class="day-content" id="day-2">
 <div class="day-intro">
 <h2>Day 3 — Professional Chunks &amp; Collocations</h2>
 <p>Learn professional expressions used in technical project contexts.</p>
@@ -259,9 +263,8 @@ Despite the initial problems, we finished on the agreed date and <input class="f
 <div class="exercise-body" id="d4ex8-pers-body"></div>
 </div>
 </div>
-</div>
-<!-- ===== DAY 3 ===== -->
-<div class="day-content" id="day-3">
+</div>`;
+const DAY4_HTML=`<div class="day-content" id="day-3">
 <div class="day-intro">
 <h2>Day 4 — Final Task</h2>
 <p>Put everything together. Build your own interview answer and practice speaking.</p>
@@ -301,8 +304,8 @@ Despite the initial problems, we finished on the agreed date and <input class="f
 </div>
 </div>
 </div>
-</div>
-<script>
+</div>`;
+
 const TOTAL_EX = 17;
 const ex1Words = ['address','optimize','collaborate with','deploy','build','troubleshoot','validate','develop','analyze','implement','enhance','resolve','design','support','evaluate','lead'];
 const ex1Answers = {'cat-creating':['build','develop','design','implement'],'cat-people':['collaborate with','support','lead'],'cat-solving':['troubleshoot','resolve','address'],'cat-improving':['optimize','enhance','analyze','evaluate','validate']};
@@ -415,8 +418,14 @@ fb.className='feedback-box show info-fb';
 fb.textContent='👁 Correct answers revealed.';
 }
 function switchDay(idx){
-document.querySelectorAll('.day-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
-document.querySelectorAll('.day-content').forEach((c,i)=>c.classList.toggle('active',i===idx));
+  const dayEl=document.getElementById('day-'+idx);
+  if(!dayEl.dataset.loaded){
+    if(idx===2){dayEl.innerHTML=DAY3_HTML;initDay3();dayEl.dataset.loaded='1';}
+    else if(idx===3){dayEl.innerHTML=DAY4_HTML;initDay4();dayEl.dataset.loaded='1';}
+    else{dayEl.dataset.loaded='1';}
+  }
+  document.querySelectorAll('.day-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.day-content').forEach((c,i)=>c.classList.toggle('active',i===idx));
 }
 function toggleVocab(header){
 const body=header.nextElementSibling;
@@ -997,6 +1006,7 @@ rightCol.appendChild(label);
 items.forEach(item=>rightCol.appendChild(item));
 });
 }
+// Day 1 + Day 2 render immediately
 renderEx1();
 renderMC('ex2-body',ex2Questions,'ex2q',null);
 renderNatItems('ex7-nat-body',natItemsD1,'natd1');
@@ -1006,15 +1016,22 @@ renderMC('d2ex3-body',d2ex3Questions,'d2ex3q',null);
 renderNatItems('d2ex5-nat-body',natItemsD2,'natd2');
 renderTF('d2ex6-body',d2TF,'d2tf');
 renderGuided('d2ex7-guided-body',guidedD2,'d2guided','Day 2 EX 7 — Guided Production');
-renderNatItems('d3ex2-nat-body',natItemsD3,'natd3');
-renderPers('d3ex4-pers-body',persD3,'d3pers','Day 3 EX 4 — Personalise Chunks');
-renderD4Ex1();
-renderD4Ex3();
-renderD4Ex5();
-renderD4Ex6();
-renderD4Ex8();
 shuffleMatchRightColumns();
 updateProgress();
+// Day 3 and Day 4 render on demand
+function initDay3(){
+  renderNatItems('d3ex2-nat-body',natItemsD3,'natd3');
+  renderPers('d3ex4-pers-body',persD3,'d3pers','Day 3 EX 4 — Personalise Chunks');
+  renderD4Ex1();
+  renderD4Ex3();
+  renderD4Ex5();
+  renderD4Ex6();
+  renderD4Ex8();
+  shuffleMatchRightColumns();
+}
+function initDay4(){
+  // Day 4 (Final Task) contains only static content (framework/speaking) - nothing to render dynamically
+}
 </script>
 </body>
 </html>
