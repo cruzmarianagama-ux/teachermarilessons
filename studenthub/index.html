@@ -1783,7 +1783,7 @@ function normalizarUrlEmbed(url) {
   return original;
 }
 
-function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
+function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao, alturaMaxima }) {
   const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
   const cleanupRef = useRef(null);
@@ -1808,8 +1808,17 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
     tipo === "proprio" ? 800 :
     600
   );
+  // Teto máximo: se o iframe tentar crescer além disso, para e deixa scroll interno.
+  // Weekly plans reais raramente ultrapassam 2000px — teto de 1800 é seguro sem cortar conteúdo real.
+  const alturaMax = alturaMaxima || (
+    tipo === "proprio" ? 1800 :
+    tipo === "wordwall" ? 700 :
+    tipo === "youtube" ? 600 :
+    1500
+  );
+  const alturaMin = alturaMinima || 400;
 
-  const [altura, setAltura] = useStateLocal(alturaInicial);
+  const [altura, setAltura] = useStateLocal(Math.min(alturaInicial, alturaMax));
   const embedSrc = normalizarUrlEmbed(src);
 
   // Ajuste com debounce e threshold — só reage a mudanças reais, não a oscilações pequenas
@@ -1828,7 +1837,8 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
           doc.documentElement ? doc.documentElement.offsetHeight : 0,
         );
         if (alturaReal <= 0) return;
-        const novaAltura = Math.max(alturaReal + 30, alturaMinima || 400);
+        // Aplica teto máximo pra não crescer além do razoável (evita "página infinita")
+        const novaAltura = Math.min(alturaMax, Math.max(alturaReal + 30, alturaMin));
         // Só atualiza se a mudança for significativa (mais de 8px) — filtra tremores
         if (alturaAtualRef.current === null || Math.abs(novaAltura - alturaAtualRef.current) > 8) {
           alturaAtualRef.current = novaAltura;
@@ -3885,7 +3895,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   {cronogramaAberto.cronogramaUrl ? (
                     <React.Fragment>
                       <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
-                      <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={2200} alturaMinima={800} />
+                      <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={800} alturaMinima={600} alturaMaxima={1800} />
                     </React.Fragment>
                   ) : (
                     !cronogramaAberto.homework && <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum homework vinculado a essa aula.</p>
