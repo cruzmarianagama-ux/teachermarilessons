@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Elementary 4A – Possessives | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23; --purple: #1D1050; --purple-light: #5340c8; --green: #04392F;
+    --cream: #FAEAD3; --cream-light: #fff8f0; --white: #ffffff; --gray: #6b7280;
+    --gray-light: #f3f4f6; --red: #ef4444; --teal: #0d9488;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10); --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 16px; font-family:'Poppins',sans-serif; font-size:1rem; font-weight:600; color:var(--purple); text-align:center; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width:100%; padding:13px; background:var(--orange); color:var(--white); border:none; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(255,92,35,0.35); transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18; transform:translateY(-1px); }
+  #hello-banner { display:none; background:linear-gradient(90deg,var(--orange),#ff8c5a); color:var(--white); text-align:center; padding:12px 16px; font-size:1rem; font-weight:700; }
+  #hello-banner.show { display:block; }
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%); padding:28px 24px 22px; text-align:center; position:relative; overflow:hidden; }
+  .header::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,92,35,0.18); }
+  .header::after { content:''; position:absolute; bottom:-30px; left:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem; font-weight:800; color:var(--white); letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem; font-weight:500; color:rgba(255,255,255,0.70); margin-top:4px; text-transform:uppercase; letter-spacing:1.2px; }
+  .progress-section { background:var(--white); padding:16px 20px; box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600; color:var(--purple); margin-bottom:8px; }
+  .progress-track { height:10px; background:var(--gray-light); border-radius:99px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),#ff8c5a); border-radius:99px; transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655); color:var(--white); text-align:center; padding:10px 16px; font-size:0.82rem; font-weight:500; }
+  .tabs-wrap { background:var(--white); overflow-x:auto; border-bottom:2px solid var(--gray-light); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
+  .tabs { display:flex; min-width:max-content; padding:0 8px; }
+  .tab-btn { padding:14px 16px; font-size:0.78rem; font-weight:600; color:var(--gray); background:none; border:none; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; transition:all 0.2s; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange); border-bottom-color:var(--orange); }
+  .content { max-width:780px; margin:0 auto; padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+  .day-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+  .day-number { background:var(--orange); color:var(--white); font-size:1.1rem; font-weight:800; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem; font-weight:700; color:var(--purple); }
+  .day-desc { font-size:0.82rem; color:var(--gray); margin-top:2px; }
+  .ex-card { background:var(--white); border-radius:var(--radius); padding:22px; margin-bottom:20px; box-shadow:var(--shadow); border-left:4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color:var(--orange); }
+  .ex-card.reading { border-left-color:var(--teal); }
+  .ex-card.writing { border-left-color:var(--green); }
+  .ex-title { font-size:0.98rem; font-weight:700; color:var(--purple); margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem; color:var(--gray); margin-bottom:18px; line-height:1.5; }
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem; font-weight:600; color:var(--purple); margin-bottom:10px; line-height:1.4; }
+  .mc-options { display:flex; flex-direction:column; gap:8px; }
+  .mc-option { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--radius-sm); border:2px solid var(--gray-light); cursor:pointer; transition:all 0.2s; font-size:0.85rem; font-weight:500; background:var(--white); }
+  .mc-option:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.correct { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .mc-option.wrong { border-color:var(--red); background:#fef2f2; color:var(--red); }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+  .fill-item { margin-bottom:14px; }
+  .fill-line { display:inline; font-size:0.88rem; font-weight:500; color:var(--purple); line-height:2; }
+  .fill-input { border:none; border-bottom:2px solid var(--purple-light); padding:2px 6px; font-family:'Poppins',sans-serif; font-size:0.88rem; font-weight:600; color:var(--purple); background:transparent; min-width:90px; max-width:280px; width:auto; text-align:center; outline:none; transition:border-color 0.2s; display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal); color:var(--teal); }
+  .fill-input.wrong { border-bottom-color:var(--red); color:var(--red); }
+  .writing-area { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 14px; font-family:'Poppins',sans-serif; font-size:0.88rem; color:var(--purple); resize:vertical; outline:none; min-height:120px; transition:border-color 0.2s; margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; border:none; transition:all 0.2s; }
+  .btn-primary { background:var(--orange); color:var(--white); box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18; transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light); color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp { background:#25D366; color:var(--white); box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855; transform:translateY(-1px); }
+  .btn-teal { background:var(--teal); color:var(--white); }
+  .btn-teal:hover { background:#0f766e; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .feedback { display:none; padding:12px 16px; border-radius:var(--radius-sm); font-size:0.83rem; font-weight:600; margin-top:14px; line-height:1.5; }
+  .feedback.show { display:block; }
+  .feedback.ok { background:#f0fdfa; color:var(--teal); border:1px solid #99f6e4; }
+  .feedback.err { background:#fef2f2; color:var(--red); border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .match-select { border:2px solid var(--gray-light); border-radius:6px; padding:5px 10px; font-family:'Poppins',sans-serif; font-size:0.85rem; font-weight:600; color:var(--purple); outline:none; transition:border-color 0.2s; background:var(--white); max-width:min(100%,260px); vertical-align:middle; }
+  .match-select.correct { border-color:var(--teal); color:var(--teal); background:#f0fdfa; }
+  .match-select.wrong { border-color:var(--red); color:var(--red); background:#fef2f2; }
+  .cm-wrap { display:flex; gap:16px; align-items:flex-start; }
+  .cm-col { flex:1; display:flex; flex-direction:column; gap:8px; }
+  .cm-item { padding:10px 14px; border-radius:var(--radius-sm); border:2px solid var(--gray-light); cursor:pointer; transition:all 0.2s; font-size:0.82rem; font-weight:600; color:var(--purple); background:var(--white); text-align:center; user-select:none; line-height:1.4; }
+  .cm-item:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .cm-item.active { border-color:var(--orange); background:#fff5ee; outline:2px solid var(--orange); }
+  .cm-item.linked { border-color:var(--purple-light); background:#f5f3ff; opacity:0.7; }
+  .cm-item.correct-link { border-color:var(--teal); background:#f0fdfa; color:var(--teal); opacity:1; }
+  .cm-item.wrong-link { border-color:var(--red); background:#fef2f2; color:var(--red); opacity:1; }
+  .cm-pair-num { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--purple-light); color:#fff; font-size:0.65rem; font-weight:700; margin-left:6px; }
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6); border-radius:var(--radius-sm); padding:18px; margin-bottom:18px; font-size:0.88rem; line-height:1.75; color:var(--purple); font-weight:500; border-left:4px solid var(--teal); }
+  .tf-item { margin-bottom:10px; }
+  .tf-line { display:flex; align-items:center; gap:10px; font-size:0.88rem; font-weight:500; color:var(--purple); flex-wrap:wrap; }
+  .tf-btns { display:flex; gap:6px; }
+  .tf-btn { padding:4px 14px; border-radius:99px; border:2px solid var(--gray-light); font-family:'Poppins',sans-serif; font-size:0.80rem; font-weight:700; cursor:pointer; background:var(--white); transition:all 0.2s; }
+  .tf-btn.t:hover { border-color:var(--teal); color:var(--teal); }
+  .tf-btn.f:hover { border-color:var(--red); color:var(--red); }
+  .tf-btn.selected-t { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .tf-btn.selected-f { border-color:var(--red); background:#fef2f2; color:var(--red); }
+  .tf-btn.wrong-sel { border-color:var(--red); background:var(--red); color:#fff; }
+  .tf-btn.right-answer { border-color:var(--teal); background:var(--teal); color:#fff; outline:2px solid var(--teal); }
+  .ctf-wordbank { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:10px 12px; background:var(--cream); border-radius:var(--radius-sm); }
+  .ctf-chip { background:var(--purple); color:var(--white); border:none; border-radius:6px; padding:5px 14px; font-family:'Poppins',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.15s; user-select:none; }
+  .ctf-chip:hover { background:var(--purple-light); transform:translateY(-1px); }
+  .ctf-chip.active { background:var(--orange); outline:3px solid #ffb347; transform:scale(1.08); }
+  .ctf-chip.used { background:var(--gray); cursor:default; opacity:0.45; }
+  .ctf-gap { display:inline-block; min-width:80px; text-align:center; border-bottom:2.5px solid var(--purple-light); color:var(--orange); font-weight:700; font-size:0.88rem; padding:0 4px; cursor:pointer; margin:0 2px; transition:border-color 0.2s,background 0.2s; border-radius:4px 4px 0 0; vertical-align:middle; line-height:1.8; }
+  .ctf-gap:empty::before { content:'_ _ _'; color:#bbb; font-weight:400; font-size:0.78rem; }
+  .ctf-gap.ready { border-bottom-color:var(--orange); background:#fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color:var(--teal); color:var(--teal); background:#f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color:var(--red); color:var(--red); background:#fef2f2; }
+  .dialogue-line { display:flex; align-items:baseline; gap:8px; padding:8px 0; font-size:0.88rem; font-weight:500; color:var(--purple); border-bottom:1px solid var(--gray-light); flex-wrap:wrap; line-height:1.6; }
+  .dialogue-line:last-child { border-bottom:none; }
+  .speaker { font-weight:700; color:var(--orange); flex-shrink:0; }
+  .example-box { background:linear-gradient(135deg,var(--cream),#fff5e6); border-radius:var(--radius-sm); padding:16px; margin-bottom:14px; font-size:0.88rem; line-height:1.8; color:var(--purple); font-weight:500; border:2px dashed var(--orange); }
+  .example-box .ex-label { font-size:0.72rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+  .tip-box { background:#fffbeb; border-left:4px solid #f59e0b; border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:12px 16px; font-size:0.82rem; color:#92400e; margin-top:12px; line-height:1.6; }
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light)); border-radius:var(--radius); padding:24px; text-align:center; color:var(--white); margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem; font-weight:800; margin-bottom:6px; }
+  .summary-card p { font-size:0.82rem; opacity:0.8; margin-bottom:16px; }
+  .score-big { font-size:2.8rem; font-weight:800; color:var(--orange); }
+  #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+  .bank-section { margin-bottom:28px; }
+  .bank-title { font-size:0.9rem; font-weight:700; color:var(--purple); margin-bottom:12px; padding-bottom:6px; border-bottom:2px solid var(--gray-light); }
+  .vocab-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .vocab-chip { background:var(--white); border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:10px 12px; text-align:center; font-size:0.82rem; font-weight:600; color:var(--purple); cursor:pointer; transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem; color:var(--gray); font-weight:500; margin-top:2px; }
+  .grammar-table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+  .grammar-table th { background:var(--purple); color:var(--white); padding:8px 12px; text-align:left; font-weight:600; }
+  .grammar-table td { padding:8px 12px; border-bottom:1px solid var(--gray-light); color:var(--purple); font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange); font-weight:700; }
+  .grammar-table .teal { color:var(--teal); font-weight:700; }
+  .checklist { list-style:none; margin:14px 0; }
+  .checklist li { display:flex; align-items:flex-start; gap:10px; padding:7px 0; font-size:0.88rem; font-weight:500; color:var(--purple); border-bottom:1px solid var(--gray-light); }
+  .checklist li:last-child { border-bottom:none; }
+  .checklist li::before { content:"✓"; color:var(--teal); font-weight:700; flex-shrink:0; }
+  @media (max-width:600px) {
+    .header h1 { font-size:1.1rem; } .header { padding:20px 16px 16px; } .content { padding:14px 10px 50px; }
+    .ex-card { padding:14px 12px; } .day-number { width:42px; height:42px; font-size:0.95rem; }
+    .day-title { font-size:1rem; } .tab-btn { padding:12px 10px; font-size:0.72rem; }
+    .mc-option { font-size:0.82rem; padding:8px 10px; } .btn { font-size:0.78rem; padding:9px 16px; }
+    .fill-input { min-width:70px; max-width:180px; font-size:0.82rem; }
+    .grammar-table { font-size:0.75rem; } .grammar-table th,.grammar-table td { padding:6px 8px; }
+    .vocab-grid { grid-template-columns:repeat(auto-fill,minmax(85px,1fr)); gap:8px; }
+    .cm-item { font-size:0.75rem; padding:8px 8px; } .cm-wrap { gap:8px; }
+    .reading-text { font-size:0.82rem; padding:12px; } .score-big { font-size:2.2rem; }
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly exercises!<br><strong>Elementary 4A – Possessives</strong><br>What is your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start!</button>
+  </div>
+</div>
+<div id="hello-banner"></div>
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div><h1>Elementary 4A – Possessives</h1><div class="subtitle">Elementary · Weekly Practice</div></div>
+  </div>
+</div>
+<div class="progress-section">
+  <div class="progress-label"><span>Weekly progress</span><span id="progress-pct">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="motivation-bar"><span id="motivation-text">Loading motivation...</span></div>
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+<div class="content">
+
+<!-- DAY 1 -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header"><div class="day-number">1</div><div><div class="day-title">Family Tree &amp; Possessives</div><div class="day-desc">Family vocabulary · Possessive 's vs Plural · Whose · Possessive adjectives</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Read and Complete</div>
+    <div class="ex-instruction">Read the paragraph about the Miller family. Click a word from the box, then click the gap. There is one extra word.</div>
+    <div class="example-box"><div class="ex-label">Example (already done)</div>Mark is married to Sarah. Sarah is Mark's <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">wife</span>.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e1-check">Check</button><button class="btn btn-secondary" id="d1e1-reset">Reset</button></div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Possessive 's vs Plural S</div>
+    <div class="ex-instruction">Choose the correct sentence (A, B, or C). Pay attention to the difference between a plural noun (-s) and possessive ownership ('s).</div>
+    <div class="example-box"><div class="ex-label">Example (already done)</div>
+      <div style="color:var(--gray);font-size:0.85rem;">( ) A. Look at that dogs tail.</div>
+      <div style="color:var(--teal);font-weight:700;font-size:0.85rem;">(✔) B. Look at that dog's tail.</div>
+      <div style="color:var(--gray);font-size:0.85rem;">( ) C. Look at that dog tail's.</div>
+    </div>
+    <div id="d1e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e2-check">Check</button><button class="btn btn-secondary" id="d1e2-reset">Reset</button></div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Match: Whose Questions</div>
+    <div class="ex-instruction">Click a question on the left, then click the correct answer on the right.</div>
+    <div class="example-box"><div class="ex-label">Example</div>Whose bag is this? → It's my mother's purse.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e3-check">Check</button><button class="btn btn-secondary" id="d1e3-reset">Reset</button></div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Rewrite with Possessive Adjectives</div>
+    <div class="ex-instruction">Rewrite each sentence. Replace the bold word(s) with the correct possessive adjective: my, your, his, her, its, our, their. Type only the adjective.</div>
+    <div class="example-box"><div class="ex-label">Example</div>This is <u>John's</u> desk. → This is <span style="color:var(--teal);font-weight:700;">his</span> desk.</div>
+    <div id="d1e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e4-check">Check</button><button class="btn btn-secondary" id="d1e4-reset">Reset</button></div>
+    <div class="feedback" id="d1e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 2 -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header"><div class="day-number">2</div><div><div class="day-title">Jobs, Routines &amp; Belongings</div><div class="day-desc">Possessive adjectives · Whose questions · Reading · Error correction</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete with Possessive Adjectives</div>
+    <div class="ex-instruction">Click a word from the box, then click the gap. Use the job or situation to choose the correct possessive adjective.</div>
+    <div class="example-box"><div class="ex-label">Example (already done)</div>I am an architect. <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 6px;">My</span> office is in the city center.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e1-check">Check</button><button class="btn btn-secondary" id="d2e1-reset">Reset</button></div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Write Whose Questions</div>
+    <div class="ex-instruction">Look at the bold words in each answer. Write the correct question starting with <em>Whose</em>.</div>
+    <div class="example-box"><div class="ex-label">Example</div>Answer: This is <strong>my uncle's</strong> watch. → <span style="color:var(--teal);font-weight:700;">Whose watch is this?</span></div>
+    <div id="d2e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e2-check">Check</button><button class="btn btn-secondary" id="d2e2-reset">Reset</button></div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – True or False</div>
+    <div class="ex-instruction">Read the text about a family business. Choose True (T) or False (F) for each statement.</div>
+    <div class="reading-text">Marco and his sister Lucia run a family café in Rome. Their parents are retired now, but their father still visits the café every morning for a coffee. Marco's wife, Anna, is the head chef, and her recipes are famous in the neighborhood. Lucia's husband works as an accountant and handles the business's finances. Everyone works hard to keep their family business successful.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e3-check">Check</button><button class="btn btn-secondary" id="d2e3-reset">Reset</button></div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – Sentence Correction</div>
+    <div class="ex-instruction">Find and correct the grammatical error in each sentence. Type the fully correct sentence.</div>
+    <div class="example-box"><div class="ex-label">Example</div>Incorrect: This is the desk of my brother.<br>Correct: <span style="color:var(--teal);font-weight:700;">This is my brother's desk.</span></div>
+    <div id="d2e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e4-check">Check</button><button class="btn btn-secondary" id="d2e4-reset">Reset</button></div>
+    <div class="feedback" id="d2e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 3 -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header"><div class="day-number">3</div><div><div class="day-title">Descriptions, Objects &amp; Family Ties</div><div class="day-desc">Match descriptions · Apostrophes · MC dialogue · Family tree</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Match Descriptions</div>
+    <div class="ex-instruction">Click a description on the left, then click the matching paraphrase on the right.</div>
+    <div class="example-box"><div class="ex-label">Example</div>My mother's sister who has dark hair. → My aunt.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e1-check">Check</button><button class="btn btn-secondary" id="d3e1-reset">Reset</button></div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Add the Apostrophe</div>
+    <div class="ex-instruction">Type only the correct possessive form of the word in brackets (with apostrophe in the right position).</div>
+    <div class="example-box"><div class="ex-label">Example</div>My <strong>parents'</strong> house is near the station. (plural parents)</div>
+    <div id="d3e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e2-check">Check</button><button class="btn btn-secondary" id="d3e2-reset">Reset</button></div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Choose the Correct Option</div>
+    <div class="ex-instruction">Select the best option to complete each short conversation.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e3-check">Check</button><button class="btn btn-secondary" id="d3e3-reset">Reset</button></div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 4 – Family Tree Gap Fill</div>
+    <div class="ex-instruction">Read the family structure below. Click a word from the box, then click the gap.</div>
+    <div class="reading-text" style="font-size:0.83rem;line-height:1.7;"><strong>Arthur &amp; Rose</strong> (Grandparents) → Children: <strong>Mark</strong> and <strong>Claire</strong>.<br>Mark's wife = Helen. Mark &amp; Helen's son = Toby.<br>Claire's husband = Sam. Claire &amp; Sam's daughter = Emma.</div>
+    <div id="d3e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e4-check">Check</button><button class="btn btn-secondary" id="d3e4-reset">Reset</button></div>
+    <div class="feedback" id="d3e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 4 -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header"><div class="day-number">4</div><div><div class="day-title">Routines, Places &amp; Possessions</div><div class="day-desc">Categorize belongings · Whose vs Who's · Sentence transformation · Spot the mistakes</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Categorize the Belongings</div>
+    <div class="ex-instruction">Read the prompts. Click a word from the box, then click the correct gap.</div>
+    <div class="reading-text" style="font-size:0.83rem;">Sarah is a photographer. She always carries <strong>her camera</strong>, <strong>her glasses</strong>, and <strong>her notebook</strong>.<br>The mechanics carry <strong>their tools</strong>, <strong>their keys</strong>, and <strong>their chargers</strong>.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e1-check">Check</button><button class="btn btn-secondary" id="d4e1-reset">Reset</button></div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Whose or Who's?</div>
+    <div class="ex-instruction">Complete the dialogue using <strong>Whose</strong> (possession) or <strong>Who's</strong> (Who is). Click the word, then the gap.</div>
+    <div class="example-box"><div class="ex-label">Examples</div><strong>Who's</strong> that man? He is my uncle.<br><strong>Whose</strong> jacket is this? It's mine.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e2-check">Check</button><button class="btn btn-secondary" id="d4e2-reset">Reset</button></div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Sentence Transformation</div>
+    <div class="ex-instruction">Rewrite using possessive 's or a possessive adjective. Type only the missing part shown by the arrow.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e3-check">Check</button><button class="btn btn-secondary" id="d4e3-reset">Reset</button></div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 4 – Spot the Mistakes</div>
+    <div class="ex-instruction">Read the text. There are 4 grammatical errors regarding possessives. Find and correct each one. Type only the corrected form.</div>
+    <div class="reading-text">"Hello! My name is Roberto. I live with my wife family in Spain. Her parent's house is very big. My wife brother is a pilot, and he often stays with us when he doesn't fly. Whose that boy over there? That's my nephew, Gabriel!"</div>
+    <div id="d4e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e4-check">Check</button><button class="btn btn-secondary" id="d4e4-reset">Reset</button></div>
+    <div class="feedback" id="d4e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 5 -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header"><div class="day-number">5</div><div><div class="day-title">Practical English &amp; Social Situations</div><div class="day-desc">Hotel dialogue · Jobs match · Feelings MC · its vs it's</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Hotel Reception</div>
+    <div class="ex-instruction">Complete the dialogue. Click a word from the box, then click the gap.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e1-check">Check</button><button class="btn btn-secondary" id="d5e1-reset">Reset</button></div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Match Job to Object</div>
+    <div class="ex-instruction">Click a person/job on the left, then click their typical object on the right.</div>
+    <div class="example-box"><div class="ex-label">Example</div>Doctor → stethoscope = It is the doctor's stethoscope.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e2-check">Check</button><button class="btn btn-secondary" id="d5e2-reset">Reset</button></div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Feelings &amp; Family</div>
+    <div class="ex-instruction">Choose the correct answer to complete each sentence.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e3-check">Check</button><button class="btn btn-secondary" id="d5e3-reset">Reset</button></div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 4 – its or it's?</div>
+    <div class="ex-instruction">Click the correct word from the box, then click the gap.<br><strong>its</strong> = possessive (belongs to it) &nbsp;|&nbsp; <strong>it's</strong> = it is</div>
+    <div id="d5e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e4-check">Check</button><button class="btn btn-secondary" id="d5e4-reset">Reset</button></div>
+    <div class="feedback" id="d5e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 6 -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header"><div class="day-number">6</div><div><div class="day-title">Mixed Review &amp; Advanced Drills</div><div class="day-desc">Complex family · Q&amp;A match · Word order · Reading analysis</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complex Family Relationships</div>
+    <div class="ex-instruction">Fill in the gaps with the correct family word. Click a word from the box, then click the gap.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e1-check">Check</button><button class="btn btn-secondary" id="d6e1-reset">Reset</button></div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Question and Answer Matching</div>
+    <div class="ex-instruction">Click a question on the left, then click the correct response on the right.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e2-check">Check</button><button class="btn btn-secondary" id="d6e2-reset">Reset</button></div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Word Order</div>
+    <div class="ex-instruction">Put the words in the correct order. Type your answer in the input.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e3-check">Check</button><button class="btn btn-secondary" id="d6e3-reset">Reset</button></div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 4 – Reading: Identify Possessive Structures</div>
+    <div class="ex-instruction">Read the paragraph. List all possessive adjectives and possessive 's nouns you find.</div>
+    <div class="reading-text">"Meet the Martins. Their house is in Manchester. Mr. Martin's job is very interesting — he is an architect. His wife, Clara, works from home as a graphic designer. Their daughter's school is near the park, and their son plays football for the local youth team."</div>
+    <div id="d6e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e4-check">Check</button><button class="btn btn-secondary" id="d6e4-reset">Reset</button></div>
+    <div class="feedback" id="d6e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 7 -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header"><div class="day-number">7</div><div><div class="day-title">Final Review &amp; Writing Challenge</div><div class="day-desc">Complete the paragraph · Writing challenge</div></div></div>
+  <div class="ex-card">
+    <div class="ex-title">Task 1 – Complete the Paragraph</div>
+    <div class="ex-instruction">Fill in the blanks with the correct word from the box: 's, Their, Their, His, Whose, parents'. Click a word, then the gap.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e1-check">Check</button><button class="btn btn-secondary" id="d7e1-reset">Reset</button></div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+  <div class="ex-card writing">
+    <div class="ex-title">Task 2 – Writing Challenge: Who's in the Photo?</div>
+    <div class="ex-instruction">Write a paragraph (60–90 words) describing a real or imaginary family photo. Use Present Simple only.</div>
+    <ul class="checklist">
+      <li>Use at least 4 family words (aunt, cousin, husband, parents-in-law…)</li>
+      <li>Use at least 3 possessive adjectives (my, his, her, their, our)</li>
+      <li>Use at least 2 possessive 's structures (my brother's wife…)</li>
+      <li>Present Simple only</li>
+    </ul>
+    <div class="example-box" style="margin-top:14px;"><div class="ex-label">Model answer</div>"In this photo, you can see my family in our garden. My father's name is John, and he is next to my mother. My sister's husband, Mark, stands on the right. His smile is very bright! Their children — my nephew and niece — play with our dog on the grass. My brother-in-law works as a chef, so he often cooks dinner for us on weekends. We are a very happy family!"</div>
+    <textarea class="writing-area" id="d7e2-text" placeholder="Write your paragraph here..." rows="6"></textarea>
+    <div class="btn-row"><button class="btn btn-teal" id="d7e2-submit">Submit Writing</button></div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+  <div id="weekly-summary" style="display:none;">
+    <div class="summary-card">
+      <h3>Week Complete — Elementary 4A!</h3>
+      <p>Excellent work! Send your result to Teacher Mari.</p>
+      <div class="score-big" id="final-score">0</div>
+      <p style="font-size:0.75rem;margin-top:4px;">exercises checked</p>
+      <div class="btn-row" style="justify-content:center;margin-top:16px;">
+        <button class="btn btn-whatsapp" id="summary-whatsapp">Send to Teacher Mari</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOCAB BANK -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header"><div class="day-number" style="background:var(--green);font-size:0.85rem;width:52px;height:52px;">V</div><div><div class="day-title">Vocabulary Bank</div><div class="day-desc">Family words &amp; Possessives</div></div></div>
+  <div class="bank-section"><div class="bank-title">Family Vocabulary</div><div class="vocab-grid" id="vocab-family"></div></div>
+  <div class="bank-section"><div class="bank-title">Possessive Forms</div><div class="vocab-grid" id="vocab-poss"></div></div>
+</div>
+
+<!-- GRAMMAR BANK -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header"><div class="day-number" style="background:var(--orange);font-size:0.85rem;">G</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Possessives – Elementary 4A</div></div></div>
+  <div class="ex-card grammar">
+    <div class="bank-title">Possessive Adjectives</div>
+    <table class="grammar-table">
+      <tr><th>Pronoun</th><th>Possessive Adjective</th><th>Example</th></tr>
+      <tr><td>I</td><td class="orange">my</td><td>This is my bag.</td></tr>
+      <tr><td>you</td><td class="orange">your</td><td>Is this your phone?</td></tr>
+      <tr><td>he</td><td class="orange">his</td><td>His name is Tom.</td></tr>
+      <tr><td>she</td><td class="orange">her</td><td>Her sister is a nurse.</td></tr>
+      <tr><td>it</td><td class="orange">its</td><td>The dog wags its tail.</td></tr>
+      <tr><td>we</td><td class="orange">our</td><td>Our house is big.</td></tr>
+      <tr><td>they</td><td class="orange">their</td><td>Their car is new.</td></tr>
+    </table>
+  </div>
+  <div class="ex-card grammar">
+    <div class="bank-title">Possessive 's – Rules</div>
+    <table class="grammar-table">
+      <tr><th>Rule</th><th>Example</th></tr>
+      <tr><td>Singular noun → add 's</td><td><span class="orange">My brother's</span> car is fast.</td></tr>
+      <tr><td>Plural noun ending in -s → add '</td><td><span class="orange">My parents'</span> house is big.</td></tr>
+      <tr><td>Irregular plural → add 's</td><td><span class="orange">The children's</span> toys are on the floor.</td></tr>
+    </table>
+    <div class="tip-box">The possessive 's is NOT the same as a plural -s. "My parents live here" (plural) vs "my parents' car" (both parents' car).</div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="bank-title">Whose vs Who's &nbsp;|&nbsp; its vs it's</div>
+    <table class="grammar-table">
+      <tr><th>Form</th><th>Meaning</th><th>Example</th></tr>
+      <tr><td class="orange">Whose</td><td>asking about possession</td><td>Whose bag is this?</td></tr>
+      <tr><td class="teal">Who's</td><td>Who is / Who has</td><td>Who's that woman over there?</td></tr>
+      <tr><td class="orange">its</td><td>possessive adjective</td><td>The cat licks its paw.</td></tr>
+      <tr><td class="teal">it's</td><td>it is / it has</td><td>It's a beautiful day.</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+<script>
+// WELCOME
+const STUDENT_KEY='teachermari_elementary4a_student';
+let studentName=localStorage.getItem(STUDENT_KEY)||'';
+function startSession(name){
+  studentName=name.trim();localStorage.setItem(STUDENT_KEY,studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const b=document.getElementById('hello-banner');
+  b.textContent=`Hello, ${studentName}! Let's study and improve!`;b.classList.add('show');
+}
+if(studentName)startSession(studentName);
+document.getElementById('welcome-start-btn').addEventListener('click',()=>{
+  const v=document.getElementById('student-name-input').value.trim();
+  if(!v){document.getElementById('student-name-input').style.borderColor='var(--red)';return;}
+  startSession(v);
+});
+document.getElementById('student-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('welcome-start-btn').click();});
+document.getElementById('student-name-input').addEventListener('input',()=>{document.getElementById('student-name-input').style.borderColor='';});
+
+// PROGRESS
+const STORAGE_KEY='teachermari_elementary4a';
+let state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+let totalChecked=parseInt(state.totalChecked||0);
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function incrementChecked(exId){totalChecked++;state.totalChecked=totalChecked;saveState();updateProgress();if(exId)markExerciseDone(exId);}
+function updateProgress(){
+  const pct=Math.min(100,Math.round((totalChecked/28)*100));
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+updateProgress();
+
+// MOTIVATION
+const MOTIVATIONS=["Every day you learn something new!","You are doing great! Keep going!","Small steps, big results!","Mistakes are part of learning. Try again!","You can do it! Teacher Mari believes in you!","Practice every day and you will improve!","Great job! Keep up the good work!"];
+document.getElementById('motivation-text').textContent=MOTIVATIONS[new Date().getDay()%MOTIVATIONS.length];
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// HELPERS
+function showFeedback(id,msg,type){const el=document.getElementById(id);el.innerHTML=msg;el.className='feedback show '+type;}
+function scoreText(correct,total){
+  if(correct===total)return{msg:`All ${total} correct! Excellent work!`,type:'ok'};
+  if(correct>=total*0.7)return{msg:`${correct}/${total} correct. Good job! Review your mistakes.`,type:'partial'};
+  return{msg:`${correct}/${total} correct. Keep practising — you can do it!`,type:'err'};
+}
+
+function buildMC(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='mc-item';
+    div.innerHTML=`<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">`+
+      item.opts.map((o,j)=>`<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('')+'</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      opt.querySelector('input').checked=true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data,prefix,fbId,exId){
+  let correct=0;
+  data.forEach((item,i)=>{
+    const opts=document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o=>o.classList.remove('correct','wrong'));
+    const itemDiv=opts[0]?opts[0].closest('.mc-item'):null;
+    if(itemDiv){const old=itemDiv.querySelector('.mc-explain');if(old)old.remove();}
+    const sel=document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if(sel){
+      const v=parseInt(sel.value);
+      opts[v].classList.add(v===item.ans?'correct':'wrong');
+      if(v===item.ans)correct++;
+      else{
+        opts[item.ans].classList.add('correct');
+        if(item.why&&itemDiv){
+          const hint=document.createElement('div');hint.className='mc-explain';
+          hint.style.cssText='margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent=`Why: ${item.why}`;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend',hint);
+        }
+      }
+    }
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetMC(cId,prefix,data,fbId){
+  document.getElementById(cId).querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected','correct','wrong'));
+  document.getElementById(cId).querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById(cId).querySelectorAll('.mc-explain').forEach(h=>h.remove());
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildFill(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const parts=item.line.split('___');
+    let html=`<div class="fill-line">${i+1}. ${parts[0]}`;
+    for(let k=1;k<parts.length;k++)html+=`<input class="fill-input" id="${prefix}_${i}_${k-1}" placeholder="...">${parts[k]}`;
+    html+='</div>';
+    if(item.hint)html+=`<div style="font-size:0.78rem;color:var(--gray);margin-top:2px;font-style:italic;">${item.hint}</div>`;
+    div.innerHTML=html;wrap.appendChild(div);
+  });
+}
+function checkFillCustom(data,prefix,fbId,exId){
+  let correct=0,total=0;
+  data.forEach((item,i)=>{
+    total++;
+    const inp=document.getElementById(`${prefix}_${i}_0`);if(!inp)return;
+    inp.classList.remove('correct','wrong');
+    const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+    const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+    const ok=item.ans.some(a=>val===a.toLowerCase());
+    if(ok){inp.classList.add('correct');correct++;}
+    else{
+      inp.classList.add('wrong');
+      const hint=document.createElement('span');hint.className='correct-hint';hint.dataset.for=inp.id;
+      hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:4px;';
+      hint.innerHTML=`Correct: <strong>${item.ans[0]}</strong>${item.why?' — '+item.why:''}`;
+      inp.insertAdjacentElement('afterend',hint);
+    }
+  });
+  const r=scoreText(correct,total);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetFillCustom(data,prefix,fbId){
+  data.forEach((_,i)=>{
+    const inp=document.getElementById(`${prefix}_${i}_0`);
+    if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}
+  });
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildTF(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);const sel={};
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='tf-item';
+    div.innerHTML=`<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const idx=btn.id.replace(`${prefix}t_`,'').replace(`${prefix}f_`,'');sel[idx]=btn.dataset.val;
+      ['t','f'].forEach(x=>{const b=document.getElementById(`${prefix}${x}_${idx}`);if(b)b.classList.remove('selected-t','selected-f');});
+      btn.classList.add(btn.dataset.val==='T'?'selected-t':'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTFCustom(data,sel,prefix,fbId,exId,whyFalse){
+  let correct=0;
+  data.forEach((item,i)=>{
+    ['t','f'].forEach(x=>{const b=document.getElementById(`${prefix}${x}_${i}`);if(b)b.classList.remove('wrong-sel','right-answer');});
+    if(sel[i]===item.ans){correct++;}
+    else{
+      if(sel[i]){const w=document.getElementById(`${prefix}${sel[i].toLowerCase()}_${i}`);if(w)w.classList.add('wrong-sel');}
+      const r=document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);if(r)r.classList.add('right-answer');
+    }
+  });
+  let extra='';
+  if(whyFalse)data.forEach((item,i)=>{if(sel[i]&&sel[i]!==item.ans&&whyFalse[i])extra+=`<br><span style="font-size:0.78rem;">Item ${i+1}: ${whyFalse[i]}</span>`;});
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg+(extra||''),r.type);incrementChecked(exId);
+}
+
+function buildCTFSentences(cfg){
+  const wrap=document.getElementById(cfg.containerId);
+  const list=document.createElement('div');
+  const si=cfg.startIndex||1;
+  cfg.items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const html=item.line.replace(/___/g,()=>`<span class="ctf-gap" data-ans="${item.ans}"></span>`);
+    div.innerHTML=`<div class="fill-line">${i+si}. ${html}</div>`;
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank=document.createElement('div');bank.className='ctf-wordbank';
+  cfg.words.forEach((w,wi)=>{
+    const btn=document.createElement('button');btn.className='ctf-chip';btn.dataset.word=w;btn.dataset.wi=wi;btn.textContent=w;bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected=null;
+  bank.addEventListener('click',e=>{
+    const chip=e.target.closest('.ctf-chip');if(!chip||chip.classList.contains('used'))return;
+    if(selected&&selected.chipEl===chip){chip.classList.remove('active');selected=null;list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(selected)selected.chipEl.classList.remove('active');
+    chip.classList.add('active');selected={chipEl:chip,word:chip.dataset.word,wi:chip.dataset.wi};
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.toggle('ready',!g.textContent));
+  });
+  list.addEventListener('click',e=>{
+    const gap=e.target.closest('.ctf-gap');if(!gap)return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if(gap.textContent&&!selected){
+      const rWi=gap.dataset.filledWi;const cb=bank.querySelector(`.ctf-chip[data-wi="${rWi}"]`);if(cb)cb.classList.remove('used');
+      gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';
+      list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;
+    }
+    if(!selected)return;
+    if(gap.textContent){const oWi=gap.dataset.filledWi;const cb=bank.querySelector(`.ctf-chip[data-wi="${oWi}"]`);if(cb)cb.classList.remove('used');}
+    gap.textContent=selected.word;gap.dataset.filled=selected.word;gap.dataset.filledWi=selected.wi;
+    selected.chipEl.classList.remove('active');selected.chipEl.classList.add('used');selected=null;
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click',()=>{
+    let correct=0,total=0;
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{
+      total++;gap.classList.remove('correct-gap','wrong-gap','ready');
+      const old=gap.parentElement.querySelector('.correct-hint');if(old)old.remove();
+      const filled=(gap.textContent||'').trim().toLowerCase();const ans=(gap.dataset.ans||'').toLowerCase();
+      if(filled===ans){gap.classList.add('correct-gap');correct++;}
+      else{
+        gap.classList.add('wrong-gap');
+        const hint=document.createElement('span');hint.className='correct-hint';
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent=`(Correct: ${gap.dataset.ans})`;
+        gap.insertAdjacentElement('afterend',hint);
+      }
+    });
+    const r=scoreText(correct,total);showFeedback(cfg.fbId,r.msg,r.type);incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click',()=>{
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';gap.classList.remove('correct-gap','wrong-gap','ready');});
+    list.querySelectorAll('.correct-hint').forEach(h=>h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c=>c.classList.remove('used','active'));
+    selected=null;document.getElementById(cfg.fbId).className='feedback';
+  });
+}
+
+function buildClickMatch(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);
+  const rs=data.map((item,i)=>({text:item.right,originalIndex:i}));
+  for(let i=rs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rs[i],rs[j]]=[rs[j],rs[i]];}
+  const cmWrap=document.createElement('div');cmWrap.className='cm-wrap';
+  const lc=document.createElement('div');lc.className='cm-col';
+  const rc=document.createElement('div');rc.className='cm-col';
+  data.forEach((item,i)=>{const d=document.createElement('div');d.className='cm-item';d.dataset.side='left';d.dataset.idx=i;d.textContent=item.left;lc.appendChild(d);});
+  rs.forEach(item=>{const d=document.createElement('div');d.className='cm-item';d.dataset.side='right';d.dataset.idx=item.originalIndex;d.textContent=item.text;rc.appendChild(d);});
+  cmWrap.appendChild(lc);cmWrap.appendChild(rc);wrap.appendChild(cmWrap);
+  const links={};let selLeft=null;let pc=0;
+  cmWrap.addEventListener('click',e=>{
+    const item=e.target.closest('.cm-item');if(!item||item.classList.contains('linked'))return;
+    if(item.dataset.side==='left'){
+      if(selLeft===item){item.classList.remove('active');selLeft=null;return;}
+      lc.querySelectorAll('.cm-item').forEach(c=>c.classList.remove('active'));
+      item.classList.add('active');selLeft=item;
+    }else{
+      if(!selLeft)return;pc++;
+      const li=selLeft.dataset.idx;links[li]=item.dataset.idx;const num=pc;
+      selLeft.classList.remove('active');selLeft.classList.add('linked');item.classList.add('linked');
+      selLeft.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());item.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());
+      const bL=document.createElement('span');bL.className='cm-pair-num';bL.textContent=num;
+      const bR=document.createElement('span');bR.className='cm-pair-num';bR.textContent=num;
+      selLeft.appendChild(bL);item.appendChild(bR);selLeft.dataset.pairNum=num;item.dataset.pairNum=num;selLeft=null;
+    }
+  });
+  return{links,leftCol:lc,rightCol:rc,data};
+}
+function checkClickMatch(state,fbId,exId){
+  let correct=0;const{links,leftCol:lc,rightCol:rc,data}=state;
+  lc.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  rc.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item,i)=>{
+    const lEl=lc.querySelector(`.cm-item[data-idx="${i}"]`);
+    const lri=links[i];const cREl=rc.querySelector(`.cm-item[data-idx="${i}"]`);
+    if(lri===undefined){if(cREl)cREl.classList.add('correct-link');if(lEl)lEl.classList.add('wrong-link');return;}
+    if(parseInt(lri)===i){correct++;lEl.classList.add('correct-link');if(cREl)cREl.classList.add('correct-link');}
+    else{
+      lEl.classList.add('wrong-link');
+      const wREl=rc.querySelector(`.cm-item[data-idx="${lri}"]`);if(wREl)wREl.classList.add('wrong-link');
+      if(cREl)cREl.classList.add('correct-link');
+    }
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetClickMatch(state,fbId){
+  const{links,leftCol:lc,rightCol:rc}=state;Object.keys(links).forEach(k=>delete links[k]);
+  [lc,rc].forEach(col=>{col.querySelectorAll('.cm-item').forEach(el=>{el.classList.remove('active','linked','correct-link','wrong-link');el.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());delete el.dataset.pairNum;});});
+  document.getElementById(fbId).className='feedback';
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE DATA
+// ══════════════════════════════════════════════
+
+// DAY 1 EX1 – CTF family terms
+buildCTFSentences({
+  containerId:'d1e1',checkId:'d1e1-check',resetId:'d1e1-reset',fbId:'d1e1-fb',exId:'d1e1',
+  words:['grandparents','nephew','parents-in-law','cousin','aunt'],
+  items:[
+    {line:"David and Mary are over 70 years old. They are Tom's ___.",ans:'grandparents'},
+    {line:"Sarah has a sister named Emma. Emma's son, Leo, is Sarah's ___.",ans:'nephew'},
+    {line:"Tom is married to Sarah. David and Mary are Tom's ___.",ans:'parents-in-law'},
+    {line:"Leo and Paul are the same age. Paul is Leo's ___.",ans:'cousin'},
+  ]
+});
+
+// DAY 1 EX2 – MC possessive 's vs plural
+const d1e2Data=[
+  {q:'Choose the correct sentence:',opts:["My parents live in a big house in London.","My parent's live in a big house in London.","My parents's live in a big house in London."],ans:0,why:'"Parents" is a plural noun — no apostrophe needed here. The apostrophe is only for possession.'},
+  {q:'Choose the correct sentence:',opts:["What is your sister name?","What is your sister's name?","What is your sisters name's?"],ans:1,why:'"Sister\'s" shows the name belongs to your sister. One person → apostrophe before the s.'},
+  {q:'Choose the correct sentence:',opts:["Jack's brother works as a chef in a French restaurant.","Jacks brother works as a chef in a French restaurant.","Jack brother's works as a chef in a French restaurant."],ans:0,why:'"Jack\'s" is the possessive form. The apostrophe goes before the s when there is one owner.'},
+  {q:'Choose the correct sentence:',opts:["Those are the children toys on the floor.","Those are the childrens' toys on the floor.","Those are the children's toys on the floor."],ans:2,why:'"Children" is an irregular plural (not "childrens"), so we add apostrophe + s: children\'s.'},
+];
+buildMC('d1e2',d1e2Data,'d1e2');
+document.getElementById('d1e2-check').addEventListener('click',()=>checkMC(d1e2Data,'d1e2','d1e2-fb','d1e2'));
+document.getElementById('d1e2-reset').addEventListener('click',()=>resetMC('d1e2','d1e2',d1e2Data,'d1e2-fb'));
+
+// DAY 1 EX3 – Click-match Whose
+const d1e3State=buildClickMatch('d1e3',[
+  {left:'Whose keys are on the kitchen table?',right:"They are Mark's car keys."},
+  {left:'Whose car is in front of the house?',right:"It's my uncle's new electric vehicle."},
+  {left:'Whose charger do you need?',right:"I need my sister's phone charger."},
+  {left:'Whose house do they visit on weekends?',right:'They belong to my parents-in-law.'},
+],'d1e3');
+document.getElementById('d1e3-check').addEventListener('click',()=>checkClickMatch(d1e3State,'d1e3-fb','d1e3'));
+document.getElementById('d1e3-reset').addEventListener('click',()=>resetClickMatch(d1e3State,'d1e3-fb'));
+
+// DAY 1 EX4 – Fill possessive adjectives
+(function(){
+  const wrap=document.getElementById('d1e4');
+  const items=[
+    {label:"1. Emma's husband is a lawyer. → ___ husband is a lawyer.",id:'d1e4_0',ans:['her'],why:'Emma is female, so we use "her".'},
+    {label:"2. Look at the dog's shiny coat! → Look at ___ shiny coat!",id:'d1e4_1',ans:['its'],why:'The dog is an animal (it), so we use "its".'},
+    {label:"3. Paul and I share a flat in London. → ___ flat is in London.",id:'d1e4_2',ans:['our'],why:'"Paul and I" = we, so the possessive adjective is "our".'},
+    {label:"4. Are these you and your brother's photos? → Are these ___ photos?",id:'d1e4_3',ans:['your'],why:'"You and your brother" = you (plural), so we use "your".'},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div class="fill-line">${item.label.replace('___',`<input class="fill-input" id="${item.id}" placeholder="...">`)}</div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d1e4-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase();
+      if(item.ans.includes(val)){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d1e4-fb',r.msg,r.type);incrementChecked('d1e4');
+  });
+  document.getElementById('d1e4-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d1e4-fb').className='feedback';
+  });
+})();
+
+// DAY 2 EX1 – CTF possessive adj by job
+buildCTFSentences({
+  containerId:'d2e1',checkId:'d2e1-check',resetId:'d2e1-reset',fbId:'d2e1-fb',exId:'d2e1',
+  words:['her','Our','His','its'],
+  items:[
+    {line:"Julia is a doctor. Patients visit ___ clinic every day.",ans:'her'},
+    {line:"My brother and I are university students. ___ classes start at 8:00 AM.",ans:'Our'},
+    {line:"Mr. Davis is a taxi driver. ___ taxi is very clean and comfortable.",ans:'His'},
+    {line:"The hotel is very old, but ___ rooms are modern and clean.",ans:'its'},
+  ]
+});
+
+// DAY 2 EX2 – Write Whose questions
+(function(){
+  const wrap=document.getElementById('d2e2');
+  const items=[
+    {label:"1. These are my niece's headphones. → Question:",id:'d2e2_0',ans:['whose headphones are these?','whose headphones are these'],why:'Object is plural: "headphones are these".'},
+    {label:"2. That red umbrella belongs to our grandmother. → Question:",id:'d2e2_1',ans:['whose red umbrella is that?','whose umbrella is that?'],why:'Object is singular: "umbrella is that".'},
+    {label:"3. It is the teacher's dictionary. → Question:",id:'d2e2_2',ans:["whose dictionary is it?"],why:'Object is singular: "dictionary is it".'},
+    {label:"4. Those identity cards are the flight attendants'. → Question:",id:'d2e2_3',ans:["whose identity cards are those?"],why:'Object is plural: "identity cards are those".'},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div class="fill-line">${item.label} <input class="fill-input" id="${item.id}" placeholder="Whose...?" style="min-width:200px;max-width:100%;"></div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d2e2-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:4px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d2e2-fb',r.msg,r.type);incrementChecked('d2e2');
+  });
+  document.getElementById('d2e2-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d2e2-fb').className='feedback';
+  });
+})();
+
+// DAY 2 EX3 – TF
+const d2e3Data=[
+  {s:"Lucia is Marco's sister.",ans:'T'},
+  {s:'The father works full-time at the café.',ans:'F'},
+  {s:"Anna is Lucia's wife.",ans:'F'},
+  {s:"The accountant is Lucia's husband.",ans:'T'},
+];
+const d2e3Why=['','The text says the father is retired — he only visits for coffee.','Anna is Marco\'s wife, not Lucia\'s.',''];
+const d2e3Sel=buildTF('d2e3',d2e3Data,'d2e3');
+document.getElementById('d2e3-check').addEventListener('click',()=>checkTFCustom(d2e3Data,d2e3Sel,'d2e3','d2e3-fb','d2e3',d2e3Why));
+document.getElementById('d2e3-reset').addEventListener('click',()=>{
+  Object.keys(d2e3Sel).forEach(k=>delete d2e3Sel[k]);
+  d2e3Data.forEach((_,i)=>['t','f'].forEach(x=>{const b=document.getElementById(`d2e3${x}_${i}`);if(b)b.classList.remove('selected-t','selected-f','wrong-sel','right-answer');}));
+  document.getElementById('d2e3-fb').className='feedback';
+});
+
+// DAY 2 EX4 – Sentence correction
+(function(){
+  const wrap=document.getElementById('d2e4');
+  const items=[
+    {label:"1. Is this your uncle's wife car?",id:'d2e4_0',ans:["is this your uncle's wife's car?","is this your aunt's car?"],why:"Two possessives need two 's: uncle's wife's car."},
+    {label:"2. Whose laptop is those on the table?",id:'d2e4_1',ans:["whose laptop is that on the table?","whose laptops are those on the table?"],why:'"Those" is plural — use "that" for a single laptop.'},
+    {label:"3. Their house's garden is huge.",id:'d2e4_2',ans:["their garden is huge.","their house's garden is huge."],why:'"Their garden" is the most natural form.'},
+    {label:"4. She works with she's cousin at the bank.",id:'d2e4_3',ans:["she works with her cousin at the bank."],why:'"She\'s" is wrong here — use the possessive adjective "her".'},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div style="font-size:0.8rem;color:var(--red);margin-bottom:4px;font-weight:600;">Incorrect: ${item.label}</div>
+    <div class="fill-line">Correct: <input class="fill-input" id="${item.id}" placeholder="Type the correct sentence..." style="min-width:200px;max-width:100%;"></div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d2e4-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:4px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d2e4-fb',r.msg,r.type);incrementChecked('d2e4');
+  });
+  document.getElementById('d2e4-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d2e4-fb').className='feedback';
+  });
+})();
+
+// DAY 3 EX1 – Click-match descriptions
+const d3e1State=buildClickMatch('d3e1',[
+  {left:"My sister's bedroom is very clean.",right:'It is always tidy.'},
+  {left:"My father's laptop is old but works well.",right:'His computer is still good.'},
+  {left:"Our dog's tail is very long.",right:'Its tail is long.'},
+  {left:"My grandparents' car is big and comfortable.",right:'It has a lot of space inside.'},
+],'d3e1');
+document.getElementById('d3e1-check').addEventListener('click',()=>checkClickMatch(d3e1State,'d3e1-fb','d3e1'));
+document.getElementById('d3e1-reset').addEventListener('click',()=>resetClickMatch(d3e1State,'d3e1-fb'));
+
+// DAY 3 EX2 – Add apostrophe
+(function(){
+  const wrap=document.getElementById('d3e2');
+  const items=[
+    {label:"1. My ___ wife is an engineer. (one brother)",id:'d3e2_0',ans:["brother's"],why:"One owner → apostrophe before s: brother's."},
+    {label:"2. The ___ books are on the shelf. (irregular plural: children)",id:'d3e2_1',ans:["children's"],why:'"Children" is irregular — add apostrophe + s: children\'s.'},
+    {label:"3. My ___ car is quite old. (two grandparents)",id:'d3e2_2',ans:["grandparents'"],why:'Two grandparents (plural ending in s) → apostrophe after the s: grandparents\''},
+    {label:"4. Where is the ___ desk? (one receptionist)",id:'d3e2_3',ans:["receptionist's"],why:"One owner → apostrophe before s: receptionist's."},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div class="fill-line">${item.label.replace('___',`<input class="fill-input" id="${item.id}" placeholder="..." style="min-width:120px;">`)}</div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d3e2-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase();
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d3e2-fb',r.msg,r.type);incrementChecked('d3e2');
+  });
+  document.getElementById('d3e2-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d3e2-fb').className='feedback';
+  });
+})();
+
+// DAY 3 EX3 – MC dialogue
+const d3e3Data=[
+  {q:'"Excuse me, is this ___ ticket?" / "No, it isn\'t."',opts:['you','your','yours'],ans:1,why:'"Your" is a possessive adjective used before a noun (ticket). "Is this your ticket?" = Does the ticket belong to you?'},
+  {q:'"Whose children are playing in the garden?" / "They are ___ nephews."',opts:["David's","Davids","David"],ans:0,why:"We need possessive 's to show the nephews belong to David: David's nephews."},
+  {q:'"Does your sister like ___ new job?" / "Yes, she loves it."',opts:['his','her','their'],ans:1,why:'"Your sister" is female, so we use "her" to refer to her job.'},
+  {q:'"Are these glasses ___?" / "No, my glasses are in my bag."',opts:["Tom","Tom's","Toms"],ans:1,why:"To show possession, we need apostrophe + s: Tom's glasses."},
+];
+buildMC('d3e3',d3e3Data,'d3e3');
+document.getElementById('d3e3-check').addEventListener('click',()=>checkMC(d3e3Data,'d3e3','d3e3-fb','d3e3'));
+document.getElementById('d3e3-reset').addEventListener('click',()=>resetMC('d3e3','d3e3',d3e3Data,'d3e3-fb'));
+
+// DAY 3 EX4 – CTF family tree
+buildCTFSentences({
+  containerId:'d3e4',checkId:'d3e4-check',resetId:'d3e4-reset',fbId:'d3e4-fb',exId:'d3e4',
+  words:['grandfather','sister-in-law','cousin','parents'],
+  items:[
+    {line:"Arthur is Toby's ___.",ans:'grandfather'},
+    {line:"Helen is Claire's ___.",ans:'sister-in-law'},
+    {line:"Toby is Emma's ___.",ans:'cousin'},
+    {line:"Claire and Sam are Emma's ___.",ans:'parents'},
+  ]
+});
+
+// DAY 4 EX1 – CTF categorize
+buildCTFSentences({
+  containerId:'d4e1',checkId:'d4e1-check',resetId:'d4e1-reset',fbId:'d4e1-fb',exId:'d4e1',
+  words:['camera','glasses','notebook','tools','keys','chargers'],
+  items:[
+    {line:"Sarah's Belongings — Item 1: ___",ans:'camera'},
+    {line:"Sarah's Belongings — Item 2: ___",ans:'glasses'},
+    {line:"Sarah's Belongings — Item 3: ___",ans:'notebook'},
+    {line:"The Mechanics' Belongings — Item 4: ___",ans:'tools'},
+    {line:"The Mechanics' Belongings — Item 5: ___",ans:'keys'},
+    {line:"The Mechanics' Belongings — Item 6: ___",ans:'chargers'},
+  ]
+});
+
+// DAY 4 EX2 – CTF Whose/Who's dialogue
+buildCTFSentences({
+  containerId:'d4e2',checkId:'d4e2-check',resetId:'d4e2-reset',fbId:'d4e2-fb',exId:'d4e2',
+  words:["Who's","Whose"],
+  items:[
+    {line:'"___ driving that big red car?" / "That\'s my aunt. She\'s a taxi driver."',ans:"Who's"},
+    {line:'"___ diary is on the table?" / "I think it\'s the manager\'s."',ans:'Whose'},
+    {line:'"___ your favourite relative?" / "My grandmother. She cooks amazing meals."',ans:"Who's"},
+    {line:'"___ keys are these in the lock?" / "Oh, they are my father\'s!"',ans:'Whose'},
+  ]
+});
+
+// DAY 4 EX3 – Sentence transformation
+(function(){
+  const wrap=document.getElementById('d4e3');
+  const items=[
+    {label:"1. The bag that belongs to my mother is very heavy.",hint:"→ My ___ is very heavy.",id:'d4e3_0',ans:["mother's bag"],why:"Use possessive 's: mother's bag."},
+    {label:"2. The flat where my cousins live is in the center of town.",hint:"→ My ___ is in the center of town.",id:'d4e3_1',ans:["cousins' flat"],why:"Two cousins (plural ending in s) → cousins' flat."},
+    {label:"3. The car that belongs to Mr. Smith is blue.",hint:"→ Mr. ___ is blue.",id:'d4e3_2',ans:["smith's car","mr. smith's car"],why:"One owner → Smith's car."},
+    {label:"4. The cat has a soft bed.",hint:"→ The cat's ___.",id:'d4e3_3',ans:["bed is soft.","bed is soft"],why:"Use possessive 's: The cat's bed is soft."},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div style="font-size:0.82rem;color:var(--purple);font-weight:600;margin-bottom:4px;">${item.label}</div>
+    <div class="fill-line">${item.hint.replace('___',`<input class="fill-input" id="${item.id}" placeholder="..." style="min-width:160px;max-width:100%;">`)}</div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d4e3-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d4e3-fb',r.msg,r.type);incrementChecked('d4e3');
+  });
+  document.getElementById('d4e3-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d4e3-fb').className='feedback';
+  });
+})();
+
+// DAY 4 EX4 – Spot mistakes
+(function(){
+  const wrap=document.getElementById('d4e4');
+  const items=[
+    {label:'Error 1: "my wife family"',id:'d4e4_0',ans:["my wife's family"],why:"We need possessive 's: wife's family."},
+    {label:"Error 2: \"Her parent's house\"",id:'d4e4_1',ans:["her parents' house"],why:"Two parents (plural) → parents' house (apostrophe after the s)."},
+    {label:'Error 3: "My wife brother"',id:'d4e4_2',ans:["my wife's brother"],why:"The brother belongs to the wife → wife's brother."},
+    {label:'Error 4: "Whose that boy"',id:'d4e4_3',ans:["who's that boy"],why:"Who's = Who is. We are identifying the boy, not asking about possession."},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div style="font-size:0.8rem;color:var(--gray);margin-bottom:4px;font-weight:600;">${item.label}</div>
+    <div class="fill-line">Correct form: <input class="fill-input" id="${item.id}" placeholder="..." style="min-width:180px;max-width:100%;"></div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d4e4-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d4e4-fb',r.msg,r.type);incrementChecked('d4e4');
+  });
+  document.getElementById('d4e4-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d4e4-fb').className='feedback';
+  });
+})();
+
+// DAY 5 EX1 – CTF hotel dialogue (custom with duplicates)
+(function(){
+  const wrap=document.getElementById('d5e1');
+  const lines=[
+    {speaker:'Receptionist:',before:'"Good afternoon! Welcome to the Grand Hotel. What is',ans:'your',after:' name, please?"'},
+    {speaker:'Guest:',before:'"Hello.',ans:'My',after:' name is David Green."'},
+    {speaker:'Receptionist:',before:'"Thank you. Is this',ans:'your',after:' wife with you today?"'},
+    {speaker:'Guest:',before:'"Yes, this is Sarah. And these are',ans:'our',after:' children."'},
+    {speaker:'Receptionist:',before:'"Wonderful. Here are',ans:'your',after:' room keys. Room 402 is on the fourth floor."'},
+  ];
+  const list=document.createElement('div');
+  lines.forEach((l,i)=>{
+    const div=document.createElement('div');div.className='dialogue-line';
+    div.innerHTML=`<span class="speaker">${l.speaker}</span> ${l.before} <span class="ctf-gap" data-ans="${l.ans}" id="d5e1g${i}"></span>${l.after}`;
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const allWords=[{w:'your',wi:0},{w:'My',wi:1},{w:'your',wi:2},{w:'our',wi:3},{w:'your',wi:4}];
+  const bank=document.createElement('div');bank.className='ctf-wordbank';
+  allWords.forEach(({w,wi})=>{
+    const btn=document.createElement('button');btn.className='ctf-chip';btn.dataset.word=w;btn.dataset.wi=wi;btn.textContent=w;bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let sel=null;
+  bank.addEventListener('click',e=>{
+    const chip=e.target.closest('.ctf-chip');if(!chip||chip.classList.contains('used'))return;
+    if(sel&&sel.chipEl===chip){chip.classList.remove('active');sel=null;list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(sel)sel.chipEl.classList.remove('active');
+    chip.classList.add('active');sel={chipEl:chip,word:chip.dataset.word,wi:chip.dataset.wi};
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.toggle('ready',!g.textContent));
+  });
+  list.addEventListener('click',e=>{
+    const gap=e.target.closest('.ctf-gap');if(!gap)return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if(gap.textContent&&!sel){
+      const rWi=gap.dataset.filledWi;const cb=bank.querySelector(`.ctf-chip[data-wi="${rWi}"]`);if(cb)cb.classList.remove('used');
+      gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';
+      list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;
+    }
+    if(!sel)return;
+    if(gap.textContent){const oWi=gap.dataset.filledWi;const cb=bank.querySelector(`.ctf-chip[data-wi="${oWi}"]`);if(cb)cb.classList.remove('used');}
+    gap.textContent=sel.word;gap.dataset.filled=sel.word;gap.dataset.filledWi=sel.wi;
+    sel.chipEl.classList.remove('active');sel.chipEl.classList.add('used');sel=null;
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+  });
+  document.getElementById('d5e1-check').addEventListener('click',()=>{
+    let correct=0,total=0;
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{
+      total++;gap.classList.remove('correct-gap','wrong-gap','ready');
+      const old=gap.parentElement.querySelector('.correct-hint');if(old)old.remove();
+      const filled=(gap.textContent||'').trim().toLowerCase();const ans=(gap.dataset.ans||'').toLowerCase();
+      if(filled===ans){gap.classList.add('correct-gap');correct++;}
+      else{gap.classList.add('wrong-gap');const h=document.createElement('span');h.className='correct-hint';h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';h.textContent=`(Correct: ${gap.dataset.ans})`;gap.insertAdjacentElement('afterend',h);}
+    });
+    const r=scoreText(correct,total);showFeedback('d5e1-fb',r.msg,r.type);incrementChecked('d5e1');
+  });
+  document.getElementById('d5e1-reset').addEventListener('click',()=>{
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';gap.classList.remove('correct-gap','wrong-gap','ready');});
+    list.querySelectorAll('.correct-hint').forEach(h=>h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c=>c.classList.remove('used','active'));
+    sel=null;document.getElementById('d5e1-fb').className='feedback';
+  });
+})();
+
+// DAY 5 EX2 – Click-match jobs
+const d5e2State=buildClickMatch('d5e2',[
+  {left:'The journalist',right:'notepad'},
+  {left:'The hairdresser',right:'scissors'},
+  {left:'The waiter',right:'tray'},
+  {left:'The pilot',right:'uniform'},
+],'d5e2');
+document.getElementById('d5e2-check').addEventListener('click',()=>checkClickMatch(d5e2State,'d5e2-fb','d5e2'));
+document.getElementById('d5e2-reset').addEventListener('click',()=>resetClickMatch(d5e2State,'d5e2-fb'));
+
+// DAY 5 EX3 – MC feelings
+const d5e3Data=[
+  {q:'My grandfather is 85 years old. He gets ___ when the noise is too loud.',opts:['tired','rich','fast'],ans:0,why:'"Tired" is the only adjective that makes sense — loud noise makes elderly people feel tired or bothered.'},
+  {q:"My sister's children are always ___ when they go to the zoo.",opts:['thirsty','excited / happy','expensive'],ans:1,why:'"Excited / happy" describes how children feel at the zoo. The other options are not feelings.'},
+  {q:'"Whose tissue is this?" — "It\'s my ___! She has a cold."',opts:["aunt's","aunts","aunt"],why:"We need possessive 's: aunt's tissue (the tissue belongs to the aunt).",ans:0},
+  {q:'Our parents-in-law are very ___ because we visit them every weekend.',opts:['sad','happy','angry'],ans:1,why:'Regular visits from family make people feel happy, not sad or angry.'},
+];
+buildMC('d5e3',d5e3Data,'d5e3');
+document.getElementById('d5e3-check').addEventListener('click',()=>checkMC(d5e3Data,'d5e3','d5e3-fb','d5e3'));
+document.getElementById('d5e3-reset').addEventListener('click',()=>resetMC('d5e3','d5e3',d5e3Data,'d5e3-fb'));
+
+// DAY 5 EX4 – CTF its/it's
+buildCTFSentences({
+  containerId:'d5e4',checkId:'d5e4-check',resetId:'d5e4-reset',fbId:'d5e4-fb',exId:'d5e4',
+  words:["its","It's"],
+  items:[
+    {line:"I like this hotel because ___ location is very central.",ans:'its'},
+    {line:"Look at that puppy! ___ so tiny and cute.",ans:"It's"},
+    {line:"Where is my passport? ___ in my jacket pocket!",ans:"It's"},
+    {line:"The company changed ___ name last month.",ans:'its'},
+  ]
+});
+
+// DAY 6 EX1 – CTF complex family
+buildCTFSentences({
+  containerId:'d6e1',checkId:'d6e1-check',resetId:'d6e1-reset',fbId:'d6e1-fb',exId:'d6e1',
+  words:['stepmother','niece','grandparents','sister-in-law'],
+  items:[
+    {line:"My father's new wife is my ___.",ans:'stepmother'},
+    {line:"My brother's daughter is my ___.",ans:'niece'},
+    {line:"My mother's parents are my ___.",ans:'grandparents'},
+    {line:"My husband's sister is my ___.",ans:'sister-in-law'},
+  ]
+});
+
+// DAY 6 EX2 – Click-match Q&A
+const d6e2State=buildClickMatch('d6e2',[
+  {left:'Whose children are those in the park?',right:"They are my cousin's kids."},
+  {left:"Is that your sister's car?",right:"No, it's her brother's car."},
+  {left:"Who's that woman near the door?",right:"She's our new manager."},
+  {left:'Whose diary is this on the desk?',right:"It's my father-in-law's diary."},
+],'d6e2');
+document.getElementById('d6e2-check').addEventListener('click',()=>checkClickMatch(d6e2State,'d6e2-fb','d6e2'));
+document.getElementById('d6e2-reset').addEventListener('click',()=>resetClickMatch(d6e2State,'d6e2-fb'));
+
+// DAY 6 EX3 – Word order
+(function(){
+  const wrap=document.getElementById('d6e3');
+  const items=[
+    {label:"1. car / uncle's / very / fast / My / is",id:'d6e3_0',ans:["my uncle's car is very fast.","my uncle's car is very fast"],why:"Possessive before noun: My uncle's car. Then adjective after be: is very fast."},
+    {label:"2. headphones / Whose / on / table / are / the / ?",id:'d6e3_1',ans:['whose headphones are on the table?'],why:'Question word + noun + verb + place: Whose headphones are on the table?'},
+    {label:"3. live / parents-in-law / big / in / My / house / a",id:'d6e3_2',ans:['my parents-in-law live in a big house.','my parents-in-law live in a big house'],why:'Subject + verb + place: My parents-in-law live in a big house.'},
+    {label:"4. bag / her / sister / does / want / Which / ?",id:'d6e3_3',ans:['which bag does her sister want?'],why:'Which + noun + does + subject + verb: Which bag does her sister want?'},
+  ];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='fill-item';
+    div.innerHTML=`<div style="font-size:0.82rem;color:var(--gray);margin-bottom:4px;font-style:italic;">${item.label}</div>
+    <div class="fill-line">Answer: <input class="fill-input" id="${item.id}" placeholder="Type the sentence..." style="min-width:200px;max-width:100%;"></div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('d6e3-check').addEventListener('click',()=>{
+    let correct=0;
+    items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      const old=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(old)old.remove();
+      const val=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+      if(item.ans.some(a=>val===a.toLowerCase())){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const h=document.createElement('span');h.className='correct-hint';h.dataset.for=inp.id;
+        h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:4px;';
+        h.textContent=`Correct: ${item.ans[0]} — ${item.why}`;
+        inp.insertAdjacentElement('afterend',h);
+      }
+    });
+    const r=scoreText(correct,items.length);showFeedback('d6e3-fb',r.msg,r.type);incrementChecked('d6e3');
+  });
+  document.getElementById('d6e3-reset').addEventListener('click',()=>{
+    items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();}});
+    document.getElementById('d6e3-fb').className='feedback';
+  });
+})();
+
+// DAY 6 EX4 – Reading analysis
+(function(){
+  const wrap=document.getElementById('d6e4');
+  wrap.innerHTML=`
+  <div class="fill-item"><div class="fill-line">1. Possessive Adjectives found in the text: <input class="fill-input" id="d6e4a" placeholder="e.g. their, his..." style="min-width:200px;max-width:100%;"></div></div>
+  <div class="fill-item"><div class="fill-line">2. Possessive 's nouns found in the text: <input class="fill-input" id="d6e4b" placeholder="e.g. Martin's, daughter's" style="min-width:200px;max-width:100%;"></div></div>`;
+  document.getElementById('d6e4-check').addEventListener('click',()=>{
+    let correct=0;
+    const inpA=document.getElementById('d6e4a');const inpB=document.getElementById('d6e4b');
+    [inpA,inpB].forEach(inp=>{inp.classList.remove('correct','wrong');const h=inp.parentElement.querySelector(`.correct-hint[data-for="${inp.id}"]`);if(h)h.remove();});
+    const vA=inpA.value.trim().toLowerCase();
+    if(['their','his'].every(w=>vA.includes(w))){inpA.classList.add('correct');correct++;}
+    else{
+      inpA.classList.add('wrong');
+      const h=document.createElement('span');h.className='correct-hint';h.dataset.for='d6e4a';
+      h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      h.textContent="Correct: Their, His, Their, their — four possessive adjectives in the text.";
+      inpA.insertAdjacentElement('afterend',h);
+    }
+    const vB=inpB.value.trim().toLowerCase();
+    if(["martin's","daughter's"].every(w=>vB.includes(w))){inpB.classList.add('correct');correct++;}
+    else{
+      inpB.classList.add('wrong');
+      const h=document.createElement('span');h.className='correct-hint';h.dataset.for='d6e4b';
+      h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      h.textContent="Correct: Mr. Martin's and daughter's";
+      inpB.insertAdjacentElement('afterend',h);
+    }
+    const r=scoreText(correct,2);showFeedback('d6e4-fb',r.msg,r.type);incrementChecked('d6e4');
+  });
+  document.getElementById('d6e4-reset').addEventListener('click',()=>{
+    ['d6e4a','d6e4b'].forEach(id=>{const inp=document.getElementById(id);if(inp){inp.value='';inp.className='fill-input';const h=inp.parentElement.querySelector(`.correct-hint[data-for="${id}"]`);if(h)h.remove();}});
+    document.getElementById('d6e4-fb').className='feedback';
+  });
+})();
+
+// DAY 7 TASK 1 – CTF paragraph
+buildCTFSentences({
+  containerId:'d7e1',checkId:'d7e1-check',resetId:'d7e1-reset',fbId:'d7e1-fb',exId:'d7e1',
+  words:["'s","Their","Their","His","Whose","parents'"],
+  items:[
+    {line:"This is a photo of my family. On the left is my sister ___ husband.",ans:"'s"},
+    {line:"___ names are Peter and Lisa.",ans:'Their'},
+    {line:"___ son, Tim, is my favourite nephew.",ans:'Their'},
+    {line:"___ toy car is always on the living room floor!",ans:'His'},
+    {line:"___ photo is this on the wall?",ans:'Whose'},
+    {line:"Oh, it's my ___ wedding picture from 1985.",ans:"parents'"},
+  ]
+});
+
+// DAY 7 TASK 2 – Writing
+document.getElementById('d7e2-submit').addEventListener('click',()=>{
+  const text=document.getElementById('d7e2-text').value.trim();
+  const words=text.split(/\s+/).filter(w=>w.length>0).length;
+  if(!text||words<15){showFeedback('d7e2-fb','Please write a few sentences before submitting.','err');return;}
+  showFeedback('d7e2-fb','Writing submitted! Well done for completing the week! Send your paragraph to Teacher Mari on WhatsApp.','ok');
+  incrementChecked('d7e2');
+});
+
+// VOCAB BANK
+const VOCAB_FAMILY=[
+  {en:'wife',pt:'spouse (female)'},{en:'husband',pt:'spouse (male)'},{en:'aunt',pt:"parent's sister"},
+  {en:'uncle',pt:"parent's brother"},{en:'nephew',pt:"sibling's son"},{en:'niece',pt:"sibling's daughter"},
+  {en:'cousin',pt:"aunt/uncle's child"},{en:'grandparents',pt:"parents' parents"},{en:'parents-in-law',pt:"spouse's parents"},
+  {en:'brother-in-law',pt:"spouse's brother"},{en:'sister-in-law',pt:"spouse's sister"},
+  {en:'stepmother',pt:"father's new wife"},{en:'stepfather',pt:"mother's new husband"},
+];
+const VOCAB_POSS=[
+  {en:'my',pt:'I → my'},{en:'your',pt:'you → your'},{en:'his',pt:'he → his'},
+  {en:'her',pt:'she → her'},{en:'its',pt:'it → its'},{en:'our',pt:'we → our'},{en:'their',pt:'they → their'},
+  {en:"whose",pt:'question: possession'},{en:"who's",pt:"who is / who has"},
+  {en:"it's",pt:"it is"},{en:"'s",pt:'singular possessive'},{en:"s'",pt:'plural possessive'},
+];
+function speakWord(word){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(word);u.lang='en-US';u.rate=0.85;window.speechSynthesis.speak(u);}
+function renderVocabGrid(id,data){
+  const wrap=document.getElementById(id);
+  data.forEach(item=>{
+    const div=document.createElement('div');div.className='vocab-chip';
+    div.innerHTML=`<button onclick="speakWord('${item.en}')" style="background:none;border:none;cursor:pointer;font-size:1rem;margin-bottom:2px;" title="Listen">🔊</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div><div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-family',VOCAB_FAMILY);
+renderVocabGrid('vocab-poss',VOCAB_POSS);
+
+// CONFETTI
+const DAY_EXERCISES={
+  day1:['d1e1','d1e2','d1e3','d1e4'],
+  day2:['d2e1','d2e2','d2e3','d2e4'],
+  day3:['d3e1','d3e2','d3e3','d3e4'],
+  day4:['d4e1','d4e2','d4e3','d4e4'],
+  day5:['d5e1','d5e2','d5e3','d5e4'],
+  day6:['d6e1','d6e2','d6e3','d6e4'],
+  day7:['d7e1','d7e2'],
+};
+const completedExercises=new Set(JSON.parse(localStorage.getItem('teachermari_elementary4a_done')||'[]'));
+const completedDays=new Set(JSON.parse(localStorage.getItem('teachermari_elementary4a_days')||'[]'));
+function markExerciseDone(exId){
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_elementary4a_done',JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId){
+  for(const[day,exList]of Object.entries(DAY_EXERCISES)){
+    if(exList.includes(exId)&&!completedDays.has(day)){
+      if(exList.every(e=>completedExercises.has(e))){
+        completedDays.add(day);
+        localStorage.setItem('teachermari_elementary4a_days',JSON.stringify([...completedDays]));
+        if(completedDays.size===7){
+          setTimeout(()=>celebrateWeek(),400);
+          document.getElementById('weekly-summary').style.display='block';
+          document.getElementById('final-score').textContent=totalChecked;
+        }else{setTimeout(()=>celebrateDay(),400);}
+      }
+    }
+  }
+}
+function launchConfetti(count,duration){
+  const canvas=document.getElementById('confetti-canvas');const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const particles=Array.from({length:count},()=>({
+    x:Math.random()*canvas.width,y:Math.random()*-canvas.height,r:Math.random()*7+3,
+    color:['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed:Math.random()*4+1,drift:(Math.random()-0.5)*3,angle:Math.random()*360,spin:(Math.random()-0.5)*6
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);ctx.restore();p.y+=p.speed;p.x+=p.drift;p.angle+=p.spin;});
+    frame++;if(frame<duration)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast=null;
+function celebrateDay(){launchConfetti(140,200);showToast('Day complete! Great job!');}
+function celebrateWeek(){launchConfetti(280,360);showToast('Week complete! You are amazing!');}
+function showToast(msg){
+  if(!toast){toast=document.createElement('div');toast.style.cssText=`position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;document.body.appendChild(toast);}
+  toast.textContent=msg;
+  requestAnimationFrame(()=>{toast.style.transform='translateX(-50%) translateY(0)';toast.style.opacity='1';});
+  setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(80px)';toast.style.opacity='0';},3200);
+}
+document.getElementById('summary-whatsapp').addEventListener('click',()=>{
+  const msg=`Elementary 4A complete!\n\nHello, Teacher Mari! I finished all exercises for Elementary 4A – Possessives.\n\nExercises checked: ${totalChecked}\n\nSent from the weekly exercise file.`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`,'_blank');
+});
+</script>
+</body>
+</html>
