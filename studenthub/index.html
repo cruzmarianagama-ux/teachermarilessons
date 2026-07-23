@@ -1728,15 +1728,24 @@ function normalizarUrlEmbed(url) {
 }
 
 function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
-  const { useRef, useState: useStateLocal } = React;
+  const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
-  const [altura, setAltura] = useStateLocal(alturaPadrao || 1200);
+  const cleanupRef = useRef(null);
+  const [altura, setAltura] = useStateLocal(alturaPadrao || 3500);
   const embedSrc = normalizarUrlEmbed(src);
 
   const ajustarAltura = () => {
     try {
-      const doc = iframeRef.current.contentWindow.document;
-      const alturaReal = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+      const iframe = iframeRef.current;
+      if (!iframe || !iframe.contentWindow) return;
+      const doc = iframe.contentWindow.document;
+      if (!doc) return;
+      const alturaReal = Math.max(
+        doc.body ? doc.body.scrollHeight : 0,
+        doc.documentElement ? doc.documentElement.scrollHeight : 0,
+        doc.body ? doc.body.offsetHeight : 0,
+        doc.documentElement ? doc.documentElement.offsetHeight : 0,
+      );
       if (alturaReal > 0) setAltura(Math.max(alturaReal + 30, alturaMinima || 400));
     } catch (e) {
       // Cross-origin: mantém altura padrão (é o caso normal pra Wordwall/YouTube)
@@ -1745,12 +1754,41 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
 
   const onLoadHandler = () => {
     ajustarAltura();
-    setTimeout(ajustarAltura, 500);
+    // Limpa observadores/timers anteriores se o iframe recarregar
+    if (cleanupRef.current) cleanupRef.current();
+
+    // Re-mede em intervalos crescentes pra pegar conteúdo que carrega depois do load inicial
+    const timers = [300, 700, 1200, 2000, 3500, 5500, 8500, 12500].map((delay) => setTimeout(ajustarAltura, delay));
+
+    // Também observa mudanças contínuas de tamanho (quando aluno interage: clica em aba, expande resposta, etc)
+    let resizeObs = null;
+    try {
+      const iframe = iframeRef.current;
+      const doc = iframe && iframe.contentWindow && iframe.contentWindow.document;
+      if (doc && typeof ResizeObserver !== "undefined") {
+        resizeObs = new ResizeObserver(() => ajustarAltura());
+        if (doc.body) resizeObs.observe(doc.body);
+        if (doc.documentElement) resizeObs.observe(doc.documentElement);
+      }
+    } catch (e) {
+      // Cross-origin: sem ResizeObserver
+    }
+
+    cleanupRef.current = () => {
+      timers.forEach((t) => clearTimeout(t));
+      if (resizeObs) { try { resizeObs.disconnect(); } catch (e) {} }
+    };
   };
+
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) cleanupRef.current();
+    };
+  }, []);
 
   return (
     <div style={{ marginBottom: "20px" }}>
-      <iframe ref={iframeRef} src={embedSrc} title={title} scrolling="no" onLoad={onLoadHandler}
+      <iframe ref={iframeRef} src={embedSrc} title={title} scrolling="auto" onLoad={onLoadHandler}
         allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write"
         allowFullScreen
         style={{ width: "100%", height: `${altura}px`, border: "none", borderRadius: "12px", background: "#FFF", transition: "height 0.2s ease", display: "block" }} />
