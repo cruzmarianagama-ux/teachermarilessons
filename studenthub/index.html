@@ -1731,7 +1731,27 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
   const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
   const cleanupRef = useRef(null);
-  const [altura, setAltura] = useStateLocal(alturaPadrao || 3500);
+
+  // Detecta o tipo de conteúdo pra escolher altura inicial adequada
+  // Wordwall/YouTube são cross-origin (não conseguimos medir), então precisam de tamanho realista
+  // Sites próprios (teachermarilessons.com.br) são same-origin, começam pequenos e crescem via ResizeObserver
+  const detectarTipoConteudo = (url) => {
+    if (!url) return "outro";
+    if (/wordwall/i.test(url)) return "wordwall";
+    if (/youtube|youtu\.be/i.test(url)) return "youtube";
+    if (/teachermarilessons\.com\.br/i.test(url)) return "proprio";
+    return "outro";
+  };
+
+  const tipo = detectarTipoConteudo(src);
+  const alturaInicial = alturaPadrao || (
+    tipo === "wordwall" ? 600 :
+    tipo === "youtube" ? 500 :
+    tipo === "proprio" ? 800 :
+    600
+  );
+
+  const [altura, setAltura] = useStateLocal(alturaInicial);
   const embedSrc = normalizarUrlEmbed(src);
 
   const ajustarAltura = () => {
@@ -1748,13 +1768,12 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
       );
       if (alturaReal > 0) setAltura(Math.max(alturaReal + 30, alturaMinima || 400));
     } catch (e) {
-      // Cross-origin: mantém altura padrão (é o caso normal pra Wordwall/YouTube)
+      // Cross-origin (Wordwall/YouTube): mantém altura inicial
     }
   };
 
   const onLoadHandler = () => {
     ajustarAltura();
-    // Limpa observadores/timers anteriores se o iframe recarregar
     if (cleanupRef.current) cleanupRef.current();
 
     // Re-mede em intervalos crescentes pra pegar conteúdo que carrega depois do load inicial
@@ -1771,7 +1790,7 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
         if (doc.documentElement) resizeObs.observe(doc.documentElement);
       }
     } catch (e) {
-      // Cross-origin: sem ResizeObserver
+      // Cross-origin: sem ResizeObserver, altura inicial vale
     }
 
     cleanupRef.current = () => {
