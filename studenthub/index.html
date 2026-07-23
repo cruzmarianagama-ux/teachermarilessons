@@ -666,6 +666,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
     alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
     dataInicio: new Date().toISOString().slice(0, 10),
+    dataFim: "",
   });
   const [statusForm, setStatusForm] = useState({ tipo: "", texto: "" });
   const [enviando, setEnviando] = useState(false);
@@ -1049,6 +1050,25 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       setStatusForm({ tipo: "erro", texto: resultado.error || "Erro ao cadastrar turma." });
       return;
     }
+
+    // Se definiu data de término, aplica na turma recém criada e apaga aulas fora do período
+    if (novaTurma.dataFim) {
+      try {
+        // Busca a turma recém criada: mesma data_inicio, criada agora
+        const { data: turmasRecentes } = await supabase.from("turmas")
+          .select("id")
+          .eq("data_inicio", novaTurma.dataInicio)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (turmasRecentes && turmasRecentes.length > 0) {
+          const turmaId = turmasRecentes[0].id;
+          await supabase.from("turmas").update({ data_fim: novaTurma.dataFim }).eq("id", turmaId);
+          await supabase.from("lessons").delete().eq("turma_id", turmaId).gt("data", novaTurma.dataFim);
+        }
+      } catch (e) {
+        console.warn("Falha ao aplicar data_fim:", e);
+      }
+    }
     const linksWhatsapp = novaTurma.alunos
       .filter((a) => a.telefone)
       .map((a) => {
@@ -1062,6 +1082,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
       alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
       dataInicio: new Date().toISOString().slice(0, 10),
+      dataFim: "",
     });
     carregarAlunos();
   };
@@ -1529,6 +1550,14 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                 Pode ser uma data retroativa — o calendário é gerado a partir dela até 13/12/2026.
               </p>
 
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de término das aulas — opcional</label>
+              <input type="date" value={novaTurma.dataFim} onChange={(e) => setNovaTurma((t) => ({ ...t, dataFim: e.target.value }))}
+                min={novaTurma.dataInicio}
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
+              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "16px" }}>
+                Deixe em branco pra aulas até o fim do ano. Preencha só se este aluno vai estudar por período limitado (1 semana, 1 mês etc.).
+              </p>
+
               <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "10px" }}>
                 {novaTurma.modalidade === "individual" ? "Dados do aluno" : `Alunos da turma (${novaTurma.alunos.length})`}
               </p>
@@ -1867,21 +1896,45 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [rascunhoTurma, setRascunhoTurma] = useState(null);
 
   const abrirEdicaoTurma = () => {
-    if (turma) setRascunhoTurma({ nivel: turma.nivel, dias_horarios: [...turma.dias_horarios], link_aula: turma.link_aula || "" });
+    if (turma) setRascunhoTurma({ nivel: turma.nivel, dias_horarios: [...turma.dias_horarios], link_aula: turma.link_aula || "", data_fim: turma.data_fim || "" });
     setMostrarEditarTurma(true);
   };
 
   const salvarTurma = async () => {
+    const novaDataFim = rascunhoTurma.data_fim || null;
+    const dataFimAnterior = turma.data_fim || null;
+
+    // Se mudou a data de término, avisa antes se vai apagar aulas
+    if (novaDataFim && novaDataFim !== dataFimAnterior) {
+      const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("turma_id", turmaId).gt("data", novaDataFim);
+      if (count && count > 0) {
+        const confirmar = window.confirm(
+          `A nova data de término é ${new Date(novaDataFim + "T00:00:00").toLocaleDateString("pt-BR")}.\n\n` +
+          `Isso vai APAGAR ${count} aula(s) que estão agendadas depois dessa data.\n\n` +
+          `Tem certeza que quer continuar?`
+        );
+        if (!confirmar) return;
+      }
+    }
+
     const { error } = await supabase
       .from("turmas")
-      .update({ nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null })
+      .update({ nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim })
       .eq("id", turmaId);
     if (error) { alert("Erro ao salvar a turma: " + error.message); return; }
     // Cascateia o novo nível pra todos os alunos da turma (afeta o cálculo de progresso e o card "Level" de cada um)
     await supabase.from("students").update({ nivel: rascunhoTurma.nivel }).eq("turma_id", turmaId);
-    setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null }));
+
+    // Apaga aulas fora do período novo
+    if (novaDataFim) {
+      await supabase.from("lessons").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
+    }
+
+    setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim }));
     if (onStudentUpdated) onStudentUpdated({ nivel: rascunhoTurma.nivel });
     setMostrarEditarTurma(false);
+    // Recarrega aulas pra sumir as apagadas
+    setLoadKey((k) => k + 1);
   };
 
   const abrirEdicaoRecado = () => {
@@ -2965,6 +3018,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               placeholder="https://meet.google.com/..."
               style={{ width: "100%", maxWidth: "380px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Data de término das aulas — opcional</label>
+            <input type="date" value={rascunhoTurma.data_fim || ""} onChange={(e) => setRascunhoTurma((t) => ({ ...t, data_fim: e.target.value }))}
+              style={{ width: "100%", maxWidth: "280px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
+            <p style={{ fontSize: "11px", color: dark ? "#B4A1FF" : `${palette.purple}99`, marginBottom: "14px" }}>
+              Deixe em branco pra aulas até o fim do ano. Se preencher uma data mais cedo, aulas depois dela serão apagadas (com confirmação).
+            </p>
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={salvarTurma} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>Salvar</button>
               <button onClick={() => setMostrarEditarTurma(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : palette.cream, color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
