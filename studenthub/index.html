@@ -445,6 +445,7 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
       nivel: ordenados[0].nivel,
       unidadeAtual: (ordenados[0].turmas && ordenados[0].turmas.unidade_atual) || null,
       diasHorarios: (ordenados[0].turmas && ordenados[0].turmas.dias_horarios) || [],
+      dataFim: (ordenados[0].turmas && ordenados[0].turmas.data_fim) || null,
     };
   });
 
@@ -510,6 +511,8 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
     if (!feriado) {
       // Aulas regulares (do dias_horarios) que NÃO foram movidas
       turmas.forEach((t) => {
+        // Turma encerrada — não gera aulas depois da data_fim
+        if (t.dataFim && dataISO > t.dataFim) return;
         (t.diasHorarios || []).forEach((dh) => {
           if (dh.dia !== diaSemanaNome) return;
           if (movidasSet.has(`${t.turma_id}|${dataISO}`)) return;
@@ -823,6 +826,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       const lista = [];
       turmasMap.forEach(({ alunos, turma }, turma_id) => {
         if (!turma || !turma.dias_horarios) return;
+        // Turma encerrada — não gera mais aulas esperadas
+        if (turma.data_fim && dataISO > turma.data_fim) return;
         turma.dias_horarios.forEach((dh) => {
           if (dh.dia !== diaSemana) return;
           // Pula se essa aula regular foi MOVIDA pra outro dia
@@ -895,7 +900,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
   const carregarAlunos = async () => {
     setCarregando(true);
-    const { data } = await supabase.from("students").select("*, turmas(modalidade, dias_horarios, frequencia, unidade_atual)").order("nome");
+    const { data } = await supabase.from("students").select("*, turmas(modalidade, dias_horarios, frequencia, unidade_atual, data_fim)").order("nome");
     setStudents(data || []);
     setCarregando(false);
   };
@@ -1064,6 +1069,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           const turmaId = turmasRecentes[0].id;
           await supabase.from("turmas").update({ data_fim: novaTurma.dataFim }).eq("id", turmaId);
           await supabase.from("lessons").delete().eq("turma_id", turmaId).gt("data", novaTurma.dataFim);
+          await supabase.from("lesson_records").delete().eq("turma_id", turmaId).gt("data", novaTurma.dataFim);
         }
       } catch (e) {
         console.warn("Falha ao aplicar data_fim:", e);
@@ -1292,6 +1298,27 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </button>
         </div>
 
+        {/* 🎂 Alerta de aniversariantes urgentes (HOJE ou AMANHÃ) */}
+        {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).length > 0 && (
+          <div style={{ background: "linear-gradient(135deg, #FFDDB5 0%, #FFE8CC 100%)", borderRadius: "16px", padding: "18px 20px", marginBottom: "16px", border: `2px solid ${palette.orange}` }}>
+            <p style={{ margin: "0 0 10px 0", fontSize: "12px", fontWeight: 700, color: palette.orange, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Aniversário — não esqueça!</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).map((a, i) => (
+                <button key={i} onClick={() => onSelectStudent(a.aluno)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: "#FFF", border: "none", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: palette.purple }}>{a.nome}</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: palette.orange, fontWeight: 600 }}>
+                      {a.isHoje ? `🎉 Faz aniversário HOJE (${a.dia}/${a.mes + 1})` : `📅 Faz aniversário AMANHÃ (${a.dia}/${a.mes + 1})`}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: "24px" }}>🎂</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Aulas de hoje */}
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
@@ -1372,18 +1399,18 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         </div>
 
         {/* Aniversariantes */}
-        {aniversariantes.length > 0 && (
+        {aniversariantes.filter((a) => !a.isHoje && a.diasAte !== 1).length > 0 && (
           <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
-            <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Aniversariantes</p>
+            <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Próximos aniversariantes</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {aniversariantes.map((a, i) => (
+              {aniversariantes.filter((a) => !a.isHoje && a.diasAte !== 1).map((a, i) => (
                 <button key={i} onClick={() => onSelectStudent(a.aluno)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "10px", background: a.isHoje ? "#FFDDB5" : palette.cream, border: a.isHoje ? `1px solid ${palette.orange}` : "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
                   <div>
                     <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{a.nome}</p>
-                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.dia}/{a.mes + 1} · {a.isHoje ? "🎉 HOJE!" : a.diasAte === 1 ? "amanhã" : `em ${a.diasAte} dias`}</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.dia}/{a.mes + 1} · em {a.diasAte} dias</p>
                   </div>
-                  <span style={{ fontSize: "18px" }}>{a.isHoje ? "🎂" : "🗓️"}</span>
+                  <span style={{ fontSize: "18px" }}>🗓️</span>
                 </button>
               ))}
             </div>
@@ -1938,9 +1965,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     // Cascateia o novo nível pra todos os alunos da turma (afeta o cálculo de progresso e o card "Level" de cada um)
     await supabase.from("students").update({ nivel: rascunhoTurma.nivel }).eq("turma_id", turmaId);
 
-    // Apaga aulas fora do período novo
+    // Apaga aulas fora do período novo (incluindo os registros pedagógicos correspondentes)
     if (novaDataFim) {
       await supabase.from("lessons").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
+      await supabase.from("lesson_records").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
     }
 
     setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim }));
@@ -2052,7 +2080,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       if (!ativo) return;
       setMateriais(materiaisData || []);
 
-      const { data: colegasData } = await supabase.from("students").select("*").eq("turma_id", turmaId);
+      // Só puxa os campos que a UI usa (nome + id) — evita vazar telefone/email/nascimento pra colegas de dupla/grupo via console F12
+      const camposColegas = role === "admin" ? "*" : "id, nome, turma_id, nivel";
+      const { data: colegasData } = await supabase.from("students").select(camposColegas).eq("turma_id", turmaId);
       if (!ativo) return;
       setColegas((colegasData || []).filter((c) => c.id !== studentId));
 
