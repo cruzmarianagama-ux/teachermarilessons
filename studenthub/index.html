@@ -1760,6 +1760,8 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
   const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
   const cleanupRef = useRef(null);
+  const alturaAtualRef = useRef(null);
+  const debounceTimerRef = useRef(null);
 
   // Detecta o tipo de conteúdo pra escolher altura inicial adequada
   // Wordwall/YouTube são cross-origin (não conseguimos medir), então precisam de tamanho realista
@@ -1783,30 +1785,40 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
   const [altura, setAltura] = useStateLocal(alturaInicial);
   const embedSrc = normalizarUrlEmbed(src);
 
-  const ajustarAltura = () => {
-    try {
-      const iframe = iframeRef.current;
-      if (!iframe || !iframe.contentWindow) return;
-      const doc = iframe.contentWindow.document;
-      if (!doc) return;
-      const alturaReal = Math.max(
-        doc.body ? doc.body.scrollHeight : 0,
-        doc.documentElement ? doc.documentElement.scrollHeight : 0,
-        doc.body ? doc.body.offsetHeight : 0,
-        doc.documentElement ? doc.documentElement.offsetHeight : 0,
-      );
-      if (alturaReal > 0) setAltura(Math.max(alturaReal + 30, alturaMinima || 400));
-    } catch (e) {
-      // Cross-origin (Wordwall/YouTube): mantém altura inicial
-    }
+  // Ajuste com debounce e threshold — só reage a mudanças reais, não a oscilações pequenas
+  const agendarAjuste = () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      try {
+        const iframe = iframeRef.current;
+        if (!iframe || !iframe.contentWindow) return;
+        const doc = iframe.contentWindow.document;
+        if (!doc) return;
+        const alturaReal = Math.max(
+          doc.body ? doc.body.scrollHeight : 0,
+          doc.documentElement ? doc.documentElement.scrollHeight : 0,
+          doc.body ? doc.body.offsetHeight : 0,
+          doc.documentElement ? doc.documentElement.offsetHeight : 0,
+        );
+        if (alturaReal <= 0) return;
+        const novaAltura = Math.max(alturaReal + 30, alturaMinima || 400);
+        // Só atualiza se a mudança for significativa (mais de 8px) — filtra tremores
+        if (alturaAtualRef.current === null || Math.abs(novaAltura - alturaAtualRef.current) > 8) {
+          alturaAtualRef.current = novaAltura;
+          setAltura(novaAltura);
+        }
+      } catch (e) {
+        // Cross-origin (Wordwall/YouTube): mantém altura inicial
+      }
+    }, 150);
   };
 
   const onLoadHandler = () => {
-    ajustarAltura();
+    agendarAjuste();
     if (cleanupRef.current) cleanupRef.current();
 
     // Re-mede em intervalos crescentes pra pegar conteúdo que carrega depois do load inicial
-    const timers = [300, 700, 1200, 2000, 3500, 5500, 8500, 12500].map((delay) => setTimeout(ajustarAltura, delay));
+    const timers = [300, 700, 1200, 2000, 3500, 5500, 8500, 12500].map((delay) => setTimeout(agendarAjuste, delay));
 
     // Também observa mudanças contínuas de tamanho (quando aluno interage: clica em aba, expande resposta, etc)
     let resizeObs = null;
@@ -1814,7 +1826,7 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
       const iframe = iframeRef.current;
       const doc = iframe && iframe.contentWindow && iframe.contentWindow.document;
       if (doc && typeof ResizeObserver !== "undefined") {
-        resizeObs = new ResizeObserver(() => ajustarAltura());
+        resizeObs = new ResizeObserver(() => agendarAjuste());
         if (doc.body) resizeObs.observe(doc.body);
         if (doc.documentElement) resizeObs.observe(doc.documentElement);
       }
@@ -1825,6 +1837,7 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
     cleanupRef.current = () => {
       timers.forEach((t) => clearTimeout(t));
       if (resizeObs) { try { resizeObs.disconnect(); } catch (e) {} }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   };
 
@@ -1839,7 +1852,7 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao }) {
       <iframe ref={iframeRef} src={embedSrc} title={title} scrolling="auto" onLoad={onLoadHandler}
         allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write"
         allowFullScreen
-        style={{ width: "100%", height: `${altura}px`, border: "none", borderRadius: "12px", background: "#FFF", transition: "height 0.2s ease", display: "block" }} />
+        style={{ width: "100%", height: `${altura}px`, border: "none", borderRadius: "12px", background: "#FFF", display: "block" }} />
       <a href={src} target="_blank" rel="noopener noreferrer"
         style={{ display: "inline-block", marginTop: "6px", fontSize: "11px", color: palette.purple, textDecoration: "underline", fontWeight: 500 }}>
         Se não carregar aqui, abra em nova aba →
