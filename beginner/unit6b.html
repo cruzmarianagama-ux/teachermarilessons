@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Unit 6B – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --orange:#FF5C23;--purple:#1D1050;--purple-light:#5340c8;
+  --green:#04392F;--cream:#FAEAD3;--cream-light:#fff8f0;
+  --white:#ffffff;--gray:#6b7280;--gray-light:#f3f4f6;
+  --red:#ef4444;--teal:#0d9488;--radius:12px;--radius-sm:8px;
+  --shadow:0 4px 20px rgba(29,16,80,0.10);--shadow-sm:0 2px 8px rgba(29,16,80,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Poppins',sans-serif;background:var(--cream-light);color:var(--purple);min-height:100vh;}
+
+#welcome-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px;}
+#welcome-screen.hidden{display:none;}
+.welcome-card{background:var(--white);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(0.85);}to{opacity:1;transform:scale(1);}}
+.welcome-logo{height:52px;object-fit:contain;margin-bottom:16px;}
+.welcome-hi{font-size:1.5rem;font-weight:800;color:var(--purple);margin-bottom:6px;}
+.welcome-sub{font-size:0.82rem;color:var(--gray);margin-bottom:24px;line-height:1.5;}
+.welcome-input{width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:600;color:var(--purple);text-align:center;outline:none;margin-bottom:16px;transition:border-color 0.2s;}
+.welcome-input:focus{border-color:var(--purple-light);}
+.welcome-btn{width:100%;padding:13px;background:var(--orange);color:var(--white);border:none;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,92,35,0.35);transition:all 0.2s;}
+.welcome-btn:hover{background:#e84d18;transform:translateY(-1px);}
+
+#hello-banner{display:none;background:linear-gradient(90deg,var(--orange),#ff8c5a);color:var(--white);text-align:center;padding:12px 16px;font-size:1rem;font-weight:700;}
+#hello-banner.show{display:block;}
+
+.header{background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);padding:28px 24px 22px;text-align:center;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,92,35,0.18);}
+.header::after{content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,92,35,0.12);}
+.header h1{font-size:1.5rem;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.header .subtitle{font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.70);margin-top:4px;text-transform:uppercase;letter-spacing:1.2px;}
+
+.progress-section{background:var(--white);padding:16px 20px;box-shadow:var(--shadow-sm);}
+.progress-label{display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;color:var(--purple);margin-bottom:8px;}
+.progress-track{height:10px;background:var(--gray-light);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),#ff8c5a);border-radius:99px;transition:width 0.5s ease;}
+
+.motivation-bar{background:var(--cream);padding:10px 20px;text-align:center;font-size:0.82rem;font-weight:600;color:var(--purple);border-bottom:1px solid rgba(29,16,80,0.06);}
+
+.tabs-wrap{background:var(--white);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;}
+.tabs{display:flex;overflow-x:auto;gap:4px;padding:8px 12px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:8px 14px;border:none;background:transparent;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.78rem;font-weight:600;color:var(--gray);cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.tab-btn.active,.tab-btn:hover{background:var(--orange);color:var(--white);}
+
+.content{max-width:1100px;margin:0 auto;padding:24px 28px 80px;}
+.day-panel{display:none;}
+.day-panel.active{display:block;}
+.day-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+.day-number{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--orange),#ff8c5a);color:var(--white);font-size:1.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.day-title{font-size:1.3rem;font-weight:800;color:var(--purple);}
+.day-desc{font-size:0.9rem;color:var(--gray);margin-top:2px;}
+
+.ex-card{background:var(--white);border-radius:var(--radius);padding:28px 32px;margin-bottom:20px;box-shadow:var(--shadow-sm);border-left:5px solid var(--cream);}
+.ex-card.grammar{border-left-color:var(--orange);}
+.ex-card.reading{border-left-color:var(--teal);}
+.ex-card.writing{border-left-color:var(--purple-light);}
+.ex-title{font-size:1.1rem;font-weight:700;color:var(--purple);margin-bottom:10px;}
+.ex-instruction{font-size:0.95rem;color:var(--purple);margin-bottom:16px;line-height:1.7;}
+
+.mc-item{margin-bottom:22px;}
+.mc-question{font-size:1rem;font-weight:600;color:var(--purple);margin-bottom:10px;}
+.mc-options{display:flex;flex-direction:column;gap:8px;}
+.mc-option{padding:12px 18px;border:2px solid var(--gray-light);border-radius:var(--radius-sm);font-size:0.97rem;cursor:pointer;transition:all 0.15s;font-family:'Poppins',sans-serif;font-weight:500;color:var(--purple);}
+.mc-option.selected{border-color:var(--purple-light);background:rgba(83,64,200,0.06);}
+.mc-option.correct{border-color:#22c55e;background:#f0fdf4;color:#15803d;}
+.mc-option.wrong{border-color:var(--red);background:#fef2f2;color:#b91c1c;}
+.mc-option input{display:none;}
+.mc-why{font-size:0.88rem;color:#b91c1c;margin-top:8px;padding:8px 12px;background:#fef2f2;border-radius:6px;display:none;}
+.mc-why.show{display:block;}
+
+.fill-item{margin-bottom:18px;}
+.fill-line{font-size:1rem;font-weight:500;color:var(--purple);line-height:2.8;}
+.fill-input{border:none;border-bottom:2px solid var(--purple-light);background:transparent;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:600;color:var(--purple);padding:2px 8px;outline:none;min-width:100px;max-width:200px;text-align:center;}
+.fill-input.correct{border-bottom-color:#22c55e;color:#15803d;}
+.fill-input.wrong{border-bottom-color:var(--red);color:#b91c1c;}
+.fill-why{font-size:0.86rem;color:#b91c1c;margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:6px;display:none;}
+.fill-why.show{display:block;}
+
+.tf-item{margin-bottom:18px;}
+.tf-line{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;font-size:1rem;font-weight:500;color:var(--purple);flex-wrap:wrap;}
+.tf-btns{display:flex;gap:8px;flex-shrink:0;margin-top:2px;}
+.tf-btn{width:42px;height:42px;border-radius:50%;border:2px solid var(--gray-light);background:var(--white);font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.tf-btn.t{color:var(--teal);}
+.tf-btn.f{color:var(--red);}
+.tf-btn.selected-t{background:var(--teal);border-color:var(--teal);color:var(--white);}
+.tf-btn.selected-f{background:var(--red);border-color:var(--red);color:var(--white);}
+.tf-why{font-size:0.86rem;color:#b91c1c;margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:6px;display:none;width:100%;}
+.tf-why.show{display:block;}
+
+.ctf-word-bank{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+.ctf-chip{padding:8px 18px;border-radius:99px;border:2px solid var(--purple-light);background:rgba(83,64,200,0.06);font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;color:var(--purple-light);cursor:pointer;transition:all 0.15s;user-select:none;}
+.ctf-chip.used{opacity:0.35;pointer-events:none;}
+.ctf-chip.active{background:var(--purple-light);color:var(--white);}
+.ctf-gap{display:inline-block;min-width:90px;padding:4px 12px;border-bottom:2px solid var(--purple-light);text-align:center;cursor:pointer;font-weight:700;color:var(--purple-light);font-size:1rem;vertical-align:middle;margin:0 4px;transition:all 0.15s;border-radius:4px 4px 0 0;}
+.ctf-gap:hover{background:rgba(83,64,200,0.10);}
+.ctf-gap.filled{background:rgba(83,64,200,0.07);}
+.ctf-gap.correct{border-bottom-color:#22c55e;color:#15803d;background:#f0fdf4;}
+.ctf-gap.wrong{border-bottom-color:var(--red);color:#b91c1c;background:#fef2f2;}
+.ctf-line{font-size:1rem;font-weight:500;color:var(--purple);line-height:3.4;margin-bottom:2px;}
+.ctf-why{font-size:0.86rem;color:#b91c1c;margin:0 0 10px 0;padding:6px 10px;background:#fef2f2;border-radius:6px;display:none;}
+.ctf-why.show{display:block;}
+
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.match-col{display:flex;flex-direction:column;gap:8px;}
+.match-item{padding:12px 16px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--purple);background:var(--white);text-align:center;}
+.match-item.selected{border-color:var(--orange);background:rgba(255,92,35,0.07);}
+.match-item.matched{border-color:var(--teal);background:rgba(13,148,136,0.07);color:var(--teal);}
+.match-item.wrong-flash{border-color:var(--red);background:#fef2f2;}
+
+.sb-wrap{margin-bottom:18px;}
+.sb-zone{min-height:52px;border:2px dashed var(--purple-light);border-radius:var(--radius-sm);padding:10px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;background:rgba(83,64,200,0.03);}
+.sb-bank{display:flex;flex-wrap:wrap;gap:8px;}
+.sb-chip{padding:8px 16px;border-radius:99px;border:2px solid var(--purple-light);background:rgba(83,64,200,0.06);font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;color:var(--purple-light);cursor:pointer;user-select:none;transition:all 0.15s;}
+.sb-chip:hover{background:var(--purple-light);color:var(--white);}
+.sb-chip.placed{opacity:0.35;pointer-events:none;}
+.sb-chip.in-zone{border-color:var(--orange);color:var(--orange);background:rgba(255,92,35,0.07);}
+.sb-label{font-size:0.88rem;font-weight:600;color:var(--gray);margin-bottom:6px;}
+
+.odd-group{margin-bottom:20px;}
+.odd-label{font-size:0.95rem;font-weight:600;color:var(--gray);margin-bottom:8px;}
+.odd-items{display:flex;flex-wrap:wrap;gap:10px;}
+.odd-item{padding:10px 20px;border-radius:99px;border:2px solid var(--gray-light);font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:600;color:var(--purple);cursor:pointer;transition:all 0.15s;}
+.odd-item.selected{border-color:var(--red);background:#fef2f2;color:#b91c1c;}
+.odd-item.correct-odd{border-color:#22c55e;background:#f0fdf4;color:#15803d;}
+.odd-item.wrong-odd{border-color:var(--red);background:#fef2f2;color:#b91c1c;}
+.odd-why{font-size:0.86rem;color:#b91c1c;margin-top:8px;padding:6px 10px;background:#fef2f2;border-radius:6px;display:none;}
+.odd-why.show{display:block;}
+
+.dialogue-line{font-size:1rem;color:var(--purple);margin-bottom:8px;line-height:1.9;}
+.speaker{color:var(--orange);font-weight:700;}
+
+.open-item{margin-bottom:18px;}
+.open-prompt{font-size:0.97rem;color:var(--purple);margin-bottom:6px;font-weight:600;}
+.open-input{width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Poppins',sans-serif;font-size:1rem;color:var(--purple);outline:none;resize:vertical;transition:border-color 0.2s;}
+.open-input:focus{border-color:var(--purple-light);}
+.open-input.correct{border-color:#22c55e;}
+.open-input.wrong{border-color:var(--red);}
+.open-answer{font-size:0.9rem;color:#15803d;margin-top:6px;background:#f0fdf4;padding:8px 12px;border-radius:6px;display:none;}
+.open-answer.show{display:block;}
+.open-why{font-size:0.86rem;color:#b91c1c;margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:6px;display:none;}
+.open-why.show{display:block;}
+
+.profile-card{background:var(--cream);border-radius:var(--radius-sm);padding:14px 18px;font-size:0.95rem;line-height:1.9;margin-bottom:12px;border-left:3px solid var(--orange);}
+.profile-name{font-weight:700;color:var(--orange);margin-bottom:4px;font-size:1rem;}
+
+.chart-table{width:100%;border-collapse:collapse;font-size:0.92rem;margin-bottom:16px;}
+.chart-table th{background:var(--purple);color:var(--white);padding:10px 12px;text-align:center;}
+.chart-table td{padding:10px 12px;border-bottom:1px solid var(--gray-light);text-align:center;color:var(--purple);}
+
+.scramble-item{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.scramble-num{display:flex;align-items:center;gap:2px;font-size:0.9rem;font-weight:700;color:var(--gray);flex-shrink:0;}
+.scramble-num input{width:36px;border:2px solid var(--gray-light);border-radius:6px;padding:5px;font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:700;color:var(--purple);text-align:center;outline:none;}
+.scramble-num input.correct-num{border-color:#22c55e;background:#f0fdf4;color:#15803d;}
+.scramble-num input.wrong-num{border-color:var(--red);background:#fef2f2;color:#b91c1c;}
+.scramble-text{font-size:0.97rem;color:var(--purple);flex:1;}
+
+.reading-text{background:var(--cream);border-radius:var(--radius-sm);padding:18px 20px;font-size:0.97rem;line-height:1.9;margin-bottom:16px;}
+
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+.btn{padding:11px 22px;border-radius:99px;border:none;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:var(--orange);color:var(--white);box-shadow:0 3px 10px rgba(255,92,35,0.3);}
+.btn-primary:hover{background:#e84d18;}
+.btn-secondary{background:var(--gray-light);color:var(--purple);}
+.btn-secondary:hover{background:#e5e7eb;}
+.btn-wa{background:#25D366;color:var(--white);box-shadow:0 3px 10px rgba(37,211,102,0.3);}
+.btn-wa:hover{background:#1ebe58;}
+
+.feedback{display:none;margin-top:14px;padding:14px 18px;border-radius:var(--radius-sm);font-size:0.97rem;font-weight:600;line-height:1.6;}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;color:#15803d;border:1px solid #86efac;}
+.feedback.partial{background:#fffbeb;color:#92400e;border:1px solid #fcd34d;}
+.feedback.err{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;}
+
+.tip-box{background:var(--cream);border-radius:var(--radius-sm);padding:14px 18px;font-size:0.95rem;color:var(--purple);margin-bottom:16px;line-height:1.7;}
+.answer-key{display:none;margin-top:14px;padding:14px 18px;background:var(--cream);border-radius:var(--radius-sm);font-size:0.95rem;color:var(--purple);line-height:1.9;}
+.answer-key.show{display:block;}
+.example-label{font-size:0.82rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.5px;margin-right:6px;}
+
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
+.vocab-card{background:var(--white);border-radius:var(--radius-sm);padding:14px 12px 10px;text-align:center;box-shadow:var(--shadow-sm);border:2px solid var(--gray-light);transition:all 0.2s;}
+.vocab-card:hover{border-color:var(--orange);transform:translateY(-2px);}
+.vocab-en{font-size:1rem;font-weight:700;color:var(--purple);}
+.vocab-pt{font-size:0.85rem;color:var(--gray);margin-top:3px;}
+.vocab-tts{margin-top:10px;background:var(--orange);border:none;border-radius:99px;padding:5px 14px;font-family:'Poppins',sans-serif;font-size:0.80rem;font-weight:700;color:var(--white);cursor:pointer;transition:all 0.15s;}
+.vocab-tts:hover{background:#e84d18;}
+.bank-title{font-size:1.1rem;font-weight:700;color:var(--purple);margin-bottom:14px;}
+.grammar-table{width:100%;border-collapse:collapse;font-size:0.95rem;margin-bottom:10px;}
+.grammar-table th{background:var(--purple);color:var(--white);padding:10px 14px;text-align:left;}
+.grammar-table td{padding:10px 14px;border-bottom:1px solid var(--gray-light);color:var(--purple);}
+.grammar-table tr:last-child td{border-bottom:none;}
+.orange{color:var(--orange);font-weight:700;}
+.teal{color:var(--teal);font-weight:700;}
+
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;}
+@media(max-width:600px){.match-wrap{grid-template-columns:1fr 1fr;}.content{padding:16px 12px 60px;}}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Good morning, goodnight!</div>
+    <div class="welcome-sub">Unit 6B – Weekly Practice<br>7 days to practice and master adverbs of frequency</div>
+    <input class="welcome-input" id="student-name-input" placeholder="Your name..." autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's go! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div><h1>Unit 6B – Weekly Practice</h1><div class="subtitle">Beginner</div></div>
+  </div>
+</div>
+<div class="progress-section">
+  <div class="progress-label"><span>Progresso da semana</span><span id="progress-pct">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="motivation-bar" id="motivation-bar">🌟 <span id="motivation-text">Carregando...</span></div>
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">📚 Day 1</button>
+    <button class="tab-btn" data-tab="day2">✏️ Day 2</button>
+    <button class="tab-btn" data-tab="day3">💬 Day 3</button>
+    <button class="tab-btn" data-tab="day4">📖 Day 4</button>
+    <button class="tab-btn" data-tab="day5">🔍 Day 5</button>
+    <button class="tab-btn" data-tab="day6">🎧 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🚀 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+<!-- DAY 1 -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header"><div class="day-number">1</div><div><div class="day-title">Review – Daily Routines</div><div class="day-desc">Present Simple · Complete the Text · Odd One Out</div></div></div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Choose the Correct Form</div>
+    <div class="ex-instruction">Choose the correct verb form.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a forma correta do verbo.</span></div>
+    <div id="d1e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d1e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Complete the Text</div>
+    <div class="ex-instruction">Click a word from the bank, then click a gap to fill it. Click a filled gap to return the word.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em uma palavra e depois no espaço. Clique no espaço preenchido para devolver.</span></div>
+    <div class="ctf-word-bank" id="d1e2-bank"></div>
+    <div id="d1e2-text"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d1e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Odd One Out</div>
+    <div class="ex-instruction">Click the word that does not belong to each group.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique na palavra que não pertence ao grupo.</span></div>
+    <div id="d1e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d1e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 2 -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header"><div class="day-number">2</div><div><div class="day-title">Adverbs of Frequency in Context</div><div class="day-desc">Multiple Choice · Word Order · Sentence Builder</div></div></div>
+  <div class="tip-box">💡 <strong>Position:</strong> Adverbs go <strong>before the main verb</strong>, but <strong>after be</strong>.<br>✅ I <em>always</em> have breakfast. &nbsp;|&nbsp; She is <em>usually</em> tired.</div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Multiple Choice</div>
+    <div class="ex-instruction">Read the short texts and choose the correct option.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia os textos e escolha a opção correta.</span></div>
+    <div class="tip-box" style="margin-bottom:12px;"><span class="example-label">example</span> Sarah works in a bank. She <strong>always</strong> gets up early because she starts work at 7:00 am. ✓</div>
+    <div id="d2e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d2e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Word Order</div>
+    <div class="ex-instruction">Put the words in brackets in the correct order to complete the sentences.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Coloque as palavras na ordem correta.</span></div>
+    <div class="tip-box" style="margin-bottom:12px;"><span class="example-label">example</span> My father <strong>always gets up</strong> at 6:00 am. <em style="color:var(--gray)">(gets up / always)</em></div>
+    <div id="d2e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d2e2-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d2e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d2e2-fb"></div>
+    <div class="answer-key" id="d2e2-key"><strong>Gabarito:</strong><br>1. Sarah <strong>usually watches TV</strong> in the evening.<br>2. Mark and Anna go to the gym <strong>twice a week</strong>.<br>3. My brother <strong>never has breakfast</strong> before 8:00 am.<br>4. We go shopping <strong>every month</strong>.<br>5. She <strong>always goes to bed</strong> at 10:30 pm.<br>6. I play video games with my friends <strong>three times a week</strong>.</div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Build the Sentence</div>
+    <div class="ex-instruction">Click the words in the correct order to build each sentence.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique nas palavras na ordem correta.</span></div>
+    <div id="d2e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d2e3-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d2e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d2e3-fb"></div>
+    <div class="answer-key" id="d2e3-key"><strong>Gabarito:</strong><br>1. Emma always has breakfast at seven.<br>2. Mike sometimes goes to the gym after work.<br>3. Sarah is usually tired on Mondays.<br>4. Chris and Emma hardly ever eat junk food.<br>5. I never go to bed after midnight.</div>
+  </div>
+</div>
+
+<!-- DAY 3 -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header"><div class="day-number">3</div><div><div class="day-title">Frequency Expressions · Reading</div><div class="day-desc">Profile Matching · Match Schedules · Error Correction</div></div></div>
+  <div class="tip-box">💡 Frequency expressions go at the <strong>end</strong>: I go to the gym <em>twice a week</em>. &nbsp;|&nbsp; She goes on holiday <em>once a year</em>.</div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Profile Matching</div>
+    <div class="ex-instruction">Read the profiles. For each statement, choose the correct person: <strong>A (Alex)</strong>, <strong>B (Beatriz)</strong>, or <strong>C (Carlos)</strong>.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia os perfis e escolha a pessoa correta para cada afirmação.</span></div>
+    <div class="profile-card"><div class="profile-name">Alex (A)</div>I am a teacher. I always get up at 6:30 am from Monday to Friday. I usually have a coffee at work. I go to the gym three times a week. On Saturday, I do housework and watch a film.</div>
+    <div class="profile-card"><div class="profile-name">Beatriz (B)</div>I work in an office. I never get up early on weekends, but from Monday to Friday I get up at 7:00 am. I have lunch in a small Italian restaurant twice a week. I always go to bed late.</div>
+    <div class="profile-card"><div class="profile-name">Carlos (C)</div>I am a student. I learn English every day. I go for a walk in the park once a day. I rarely do housework, but I always make dinner for my family in the evening.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d3e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Match the Frequency to the Schedule</div>
+    <div class="ex-instruction">David and Emma are planning a shared schedule. Match each frequency expression to the correct schedule.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Associe cada expressão de frequência ao horário correspondente.</span></div>
+    <div class="match-wrap"><div class="match-col" id="d3e2-left"></div><div class="match-col" id="d3e2-right"></div></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d3e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Find and Correct the Mistake</div>
+    <div class="ex-instruction">Read Emma's notes. Each sentence has one mistake. Write the correct sentence.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Cada frase tem um erro. Escreva a frase correta.</span></div>
+    <div id="d3e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d3e3-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d3e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d3e3-fb"></div>
+    <div class="answer-key" id="d3e3-key"><strong>Gabarito:</strong><br>1. David <strong>never goes</strong> to the gym on Sundays.<br>2. Emma has a coffee <strong>twice a day</strong>.<br>3. David does housework <strong>every day</strong>.<br>4. Emma <strong>always studies</strong> English in the evening.</div>
+  </div>
+</div>
+
+<!-- DAY 4 -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header"><div class="day-number">4</div><div><div class="day-title">How often…? + Transformation</div><div class="day-desc">Questions · Write the Question · Sentence Transformation</div></div></div>
+  <div class="tip-box">💡 <strong>How often</strong> asks about frequency.<br>❓ <em>How often do you go to the gym?</em> → I go <em>three times a week</em>.</div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Multiple Choice</div>
+    <div class="ex-instruction">Choose the correct answer.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a resposta correta.</span></div>
+    <div id="d4e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d4e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Write the Question</div>
+    <div class="ex-instruction">Read the answer. Write a "How often…?" question.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia a resposta e escreva a pergunta com "How often".</span></div>
+    <div id="d4e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d4e2-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d4e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d4e2-fb"></div>
+    <div class="answer-key" id="d4e2-key"><strong>Gabarito:</strong><br>1. How often do you go to the gym?<br>2. How often does Emma have lunch at home?<br>3. How often do they go shopping?<br>4. How often does Mike watch TV?</div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Sentence Transformation</div>
+    <div class="ex-instruction">Rewrite the sentence so it means the same. Use the word in brackets.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Reescreva a frase com o mesmo significado usando a palavra entre colchetes.</span></div>
+    <div class="tip-box" style="margin-bottom:12px;"><span class="example-label">example</span> I eat fruit every day of the week. (EVERY) → I eat fruit <strong>every day</strong>.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d4e3-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d4e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d4e3-fb"></div>
+    <div class="answer-key" id="d4e3-key"><strong>Gabarito:</strong><br>1. She <strong>never eats</strong> meat.<br>2. He plays football <strong>twice a week</strong>.<br>3. They do housework <strong>once a week</strong>.<br>4. I <strong>usually go to bed</strong> at 11:00 pm.</div>
+  </div>
+</div>
+
+<!-- DAY 5 -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header"><div class="day-number">5</div><div><div class="day-title">Reading &amp; Data</div><div class="day-desc">Emma's Blog · Chart T/F · Email Gap Fill</div></div></div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read and Decide: True or False</div>
+    <div class="ex-instruction">Read Emma's blog post. Decide: True (T) or False (F).<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o blog e diga se as frases são verdadeiras ou falsas.</span></div>
+    <div class="reading-text"><strong>Emma's Typical Week</strong><br><br>My name is Emma and I'm from Canada. I always get up at seven o'clock. I usually have breakfast at home – I eat toast and drink coffee. I never skip breakfast!<br><br>I go to work by bus. I have lunch at the office every day. I sometimes eat a salad and sometimes I have a sandwich. After work, I often go to the gym – about three times a week.<br><br>In the evenings, I usually make dinner at home. I hardly ever go to a restaurant during the week, but I sometimes go out on Fridays. I always watch a film or a series before I go to bed. I go to bed at around eleven. On weekends, I sometimes go shopping and I go to the cinema once a month.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d5e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Chart Analysis: True or False</div>
+    <div class="ex-instruction">Look at the weekly planner. Decide: True (T) or False (F).<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Olhe o planner semanal e diga se as frases são verdadeiras ou falsas.</span></div>
+    <table class="chart-table">
+      <tr><th>Activity</th><th>Sarah</th><th>Tom</th><th>Rita</th></tr>
+      <tr><td>Go to the gym</td><td>Mon / Wed / Fri</td><td>—</td><td>Every day</td></tr>
+      <tr><td>Do housework</td><td>Sat</td><td>Sat / Sun</td><td>Sat</td></tr>
+      <tr><td>Watch a film</td><td>Fri / Sat</td><td>Fri</td><td>—</td></tr>
+      <tr><td>Eat junk food</td><td>—</td><td>Mon–Fri</td><td>Sun</td></tr>
+    </table>
+    <div id="d5e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d5e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Weekly Schedule: True or False</div>
+    <div class="ex-instruction">Look at the weekly schedule for Chris, Emma, and Mike. Read the sentences and decide: True (T) or False (F). Correct the false ones in your head!<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Olhe o cronograma semanal e diga se as frases são verdadeiras ou falsas.</span></div>
+    <table class="chart-table">
+      <tr><th>Activity</th><th>Chris</th><th>Emma</th><th>Mike</th></tr>
+      <tr><td>Go to the gym</td><td>Mon / Wed / Fri</td><td>Tue / Thu</td><td>—</td></tr>
+      <tr><td>Have lunch at home</td><td>—</td><td>Every day</td><td>Mon / Fri</td></tr>
+      <tr><td>Go to the cinema</td><td>Sat</td><td>—</td><td>Sat / Sun</td></tr>
+      <tr><td>Do housework</td><td>Sun</td><td>Sat / Sun</td><td>Sat</td></tr>
+      <tr><td>Eat junk food</td><td>Fri</td><td>—</td><td>Every day</td></tr>
+    </table>
+    <div id="d5e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d5e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 6 -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header"><div class="day-number">6</div><div><div class="day-title">Dialogue + Mixed Practice</div><div class="day-desc">Complete the Dialogue · Dialogue Reconstruction · Error Correction · Reading</div></div></div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Dialogue Reconstruction</div>
+    <div class="ex-instruction">Put the conversation in the correct order (1–6). Type the number in each box.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Coloque o diálogo na ordem correta. Digite o número.</span></div>
+    <div id="d6e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e2-check">✔ Verificar</button><button class="btn btn-secondary" id="d6e2-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d6e2-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d6e2-fb"></div>
+    <div class="answer-key" id="d6e2-key"><strong>Ordem correta:</strong><br>1 – A: Hi, Elena! How are you?<br>2 – B: I'm fine, thanks! Do you go to the gym after work today?<br>3 – B: No, I never go to the gym on Fridays...<br>4 – A: That sounds nice! How often do you eat out?<br>5 – A: I usually go home, make dinner, and watch YouTube...<br>6 – B: Twice a week — on Friday and Sunday...</div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Spot and Correct the Mistake</div>
+    <div class="ex-instruction">Find the ONE mistake in each sentence and rewrite it correctly.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Encontre o erro em cada frase e reescreva corretamente.</span></div>
+    <div class="tip-box" style="margin-bottom:12px;"><span class="example-label">example</span> She gets up <em>always</em> at 6:00 am. → She <strong>always gets up</strong> at 6:00 am.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e3-check">✔ Verificar</button><button class="btn btn-secondary" id="d6e3-show">👁 Ver gabarito</button><button class="btn btn-secondary" id="d6e3-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d6e3-fb"></div>
+    <div class="answer-key" id="d6e3-key"><strong>Gabarito:</strong><br>1. I do exercise three <strong>times</strong> a week.<br>2. Mark goes to work every <strong>day</strong> by bus.<br>3. We <strong>usually have</strong> lunch at 1:00 pm...<br>4. They go to the cinema once <strong>a</strong> month.<br>5. My sister <strong>is never</strong> late...</div>
+  </div>
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – The Perfect Roommate</div>
+    <div class="ex-instruction">Read the adverts. Match each person (1–4) to the best roommate (A, B, or C).<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia os anúncios e associe cada pessoa ao melhor colega de quarto.</span></div>
+    <div class="profile-card"><div class="profile-name">Roommate A – David</div>"I am very clean! I do housework every day and I never leave dirty dishes. I get up at 6:00 am, go to work, and always go to bed early at 10:00 pm. I am quiet."</div>
+    <div class="profile-card"><div class="profile-name">Roommate B – Sofia</div>"I love games! I play video games three times a week and watch films on weekends. I usually make dinner at home. I have a small cat."</div>
+    <div class="profile-card"><div class="profile-name">Roommate C – Lucas</div>"I am a busy student. I study English every day and go to the gym twice a day. I never cook at home — I always eat fast food or eat out."</div>
+    <div id="d6e4"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e4-check">✔ Verificar</button><button class="btn btn-secondary" id="d6e4-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d6e4-fb"></div>
+  </div>
+</div>
+
+<!-- DAY 7 -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header"><div class="day-number">7</div><div><div class="day-title">Writing – Your Typical Week</div><div class="day-desc">Survey Summary · Free Writing · WhatsApp</div></div></div>
+  <div class="ex-card grammar">
+    <div class="ex-title">🏆 Exercise 1 – Final Quiz</div>
+    <div class="ex-instruction">10 questions covering the whole week. Choose the best answer for each one.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Quiz final com 10 questões sobre toda a semana. Escolha a melhor resposta.</span></div>
+    <div id="d7e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e1-check">✔ Verificar</button><button class="btn btn-secondary" id="d7e1-reset">↺ Reiniciar</button></div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 2 – Write About Your Week</div>
+    <div class="ex-instruction">Write a paragraph (60–80 words) about your typical week. Use adverbs of frequency and expressions like <em>once a week</em>, <em>twice a month</em>.<br><span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escreva um parágrafo sobre sua semana típica.</span></div>
+    <div class="tip-box" style="margin-bottom:12px;"><strong>Guide questions:</strong><br>1. How often do you go to the gym or do exercise?<br>2. What time do you usually get up on weekdays?<br>3. How often do you eat junk food or drink coffee?<br>4. What do you usually do in the evening before you go to bed?</div>
+    <textarea class="open-input" id="d7e2-area" rows="6" placeholder="My typical week is..."></textarea>
+    <div class="btn-row"><button class="btn btn-wa" id="d7e2-wa">📱 Enviar pelo WhatsApp</button></div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+  <div class="ex-card" style="background:linear-gradient(135deg,var(--purple),var(--purple-light));color:var(--white);border:none;">
+    <div style="text-align:center;padding:10px 0;">
+      <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+      <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Week Complete!</div>
+      <div style="font-size:0.84rem;opacity:0.85;margin-bottom:16px;">Congratulations on finishing Unit 6B!</div>
+      <button class="btn btn-wa" id="week-summary-wa">📱 Enviar resumo da semana</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOCAB BANK -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header"><div class="day-number" style="font-size:1.2rem;">🔤</div><div><div class="day-title">Vocab Bank</div><div class="day-desc">Daily routines · Click to listen</div></div></div>
+  <div class="ex-card"><div class="bank-title">🌅 Daily Routines</div><div id="vocab-grid-routines"></div></div>
+  <div class="ex-card">
+    <div class="bank-title">📅 Frequency Expressions</div>
+    <table class="grammar-table">
+      <tr><th>Expression</th><th>Meaning (PT)</th></tr>
+      <tr><td>once a day</td><td>uma vez por dia</td></tr>
+      <tr><td>twice a week</td><td>duas vezes por semana</td></tr>
+      <tr><td>three times a month</td><td>três vezes por mês</td></tr>
+      <tr><td>four times a year</td><td>quatro vezes por ano</td></tr>
+      <tr><td>every day</td><td>todos os dias</td></tr>
+      <tr><td>every month</td><td>todo mês</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- GRAMMAR BANK -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header"><div class="day-number" style="font-size:1.2rem;">📐</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Adverbs of Frequency</div></div></div>
+  <div class="ex-card grammar">
+    <div class="bank-title">📊 Adverbs of Frequency – Scale</div>
+    <table class="grammar-table">
+      <tr><th>Adverb</th><th>%</th><th>Significado</th></tr>
+      <tr><td class="orange">always</td><td>100%</td><td>sempre</td></tr>
+      <tr><td class="orange">usually</td><td>~80%</td><td>geralmente</td></tr>
+      <tr><td class="orange">often</td><td>~60%</td><td>frequentemente</td></tr>
+      <tr><td class="orange">sometimes</td><td>~40%</td><td>às vezes</td></tr>
+      <tr><td class="orange">hardly ever</td><td>~10%</td><td>quase nunca</td></tr>
+      <tr><td class="orange">never</td><td>0%</td><td>nunca</td></tr>
+    </table>
+  </div>
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Position Rules</div>
+    <table class="grammar-table">
+      <tr><th>Rule</th><th>Example</th></tr>
+      <tr><td>Before main verb</td><td>I <span class="orange">always</span> have breakfast.</td></tr>
+      <tr><td>After <em>be</em></td><td>She is <span class="orange">usually</span> tired.</td></tr>
+      <tr><td>Frequency expressions → end</td><td>I go to the gym <span class="orange">twice a week</span>.</td></tr>
+    </table>
+    <div class="tip-box" style="margin-top:12px;">⚠️ <em>Sometimes</em> can go at the start for emphasis: <em>Sometimes I eat out on Fridays.</em> ✅</div>
+  </div>
+  <div class="ex-card grammar">
+    <div class="bank-title">❓ How often…?</div>
+    <table class="grammar-table">
+      <tr><th>Question</th><th>Short Answer</th></tr>
+      <tr><td>How often do you go to the gym?</td><td>Three times a week.</td></tr>
+      <tr><td>How often does she watch TV?</td><td>Every day. / Always.</td></tr>
+      <tr><td>How often do they eat out?</td><td>Once a month. / Hardly ever.</td></tr>
+    </table>
+  </div>
+</div>
+</div><!-- /content -->
+<script>
+// WELCOME
+const STUDENT_KEY = 'teachermari_unit6b_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+function startSession(n) {
+  studentName = n.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const b = document.getElementById('hello-banner');
+  b.textContent = 'Hello, ' + studentName + "! Let's study adverbs of frequency!";
+  b.classList.add('show');
+}
+if (studentName) startSession(studentName);
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const v = document.getElementById('student-name-input').value.trim();
+  if (!v) { document.getElementById('student-name-input').style.borderColor = '#ef4444'; return; }
+  startSession(v);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('welcome-start-btn').click();
+});
+
+// PROGRESS
+const STORAGE_KEY = 'teachermari_unit6b';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+const TOTAL_EXERCISES = 20;
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  if (state['done_' + exId]) return;
+  state['done_' + exId] = true;
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+}
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EXERCISES) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  if (pct === 100) setTimeout(() => launchConfetti(true), 300);
+}
+updateProgress();
+
+// MOTIVATION
+const MOTIVATIONS = ["Great work! Every day you improve! 🌟","Adverbs of frequency – you've got this! 💪","Keep going! You are doing amazing! 🏆","Mistakes help you learn. Try again! 🌱","Teacher Mari believes in you! 🧡","Practice makes perfect! ⭐","Almost there – finish strong! 🎯"];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % 7];
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// CONFETTI
+function launchConfetti(big) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#FF5C23','#1D1050','#04392F','#FAEAD3','#5340c8','#fbbf24'];
+  const count = big ? 200 : 80;
+  const pieces = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 6 + 3, c: colors[Math.floor(Math.random() * colors.length)],
+    vx: (Math.random() - 0.5) * 4, vy: Math.random() * 4 + 2,
+    angle: Math.random() * 360, spin: (Math.random() - 0.5) * 6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.angle += p.spin;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < (big ? 180 : 100)) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+// HELPERS
+function showFeedback(id, msg, type) { const el = document.getElementById(id); el.innerHTML = msg; el.className = 'feedback show ' + type; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: '✅ Well done! You got all ' + total + ' correct! 🎉', type: 'ok' };
+  if (correct >= total * 0.7) return { msg: '🌟 Good job! ' + correct + '/' + total + ' correct. Review the mistakes!', type: 'partial' };
+  return { msg: '💪 ' + correct + '/' + total + ' correct. Keep practising!', type: 'err' };
+}
+
+// MC
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o,j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(97+j) + ') ' + o + '</label>').join('') +
+      '</div><div class="mc-why" id="' + prefix + '_why_' + i + '"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const whyEl = document.getElementById(prefix + '_why_' + i);
+    if (whyEl) whyEl.className = 'mc-why';
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      if (v === item.ans) { opts[v].classList.add('correct'); correct++; }
+      else { opts[v].classList.add('wrong'); opts[item.ans].classList.add('correct'); if (whyEl && item.why) { whyEl.innerHTML = '❌ ' + item.why; whyEl.classList.add('show'); } }
+    } else { opts[item.ans].classList.add('correct'); }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+  if (correct === data.length) launchConfetti(false);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  data.forEach((_,i) => { const w = document.getElementById(prefix + '_why_' + i); if (w) w.className = 'mc-why'; });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// T/F
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line"><span>' + (i+1) + '. ' + item.s + '</span><div class="tf-btns"><button class="tf-btn t" id="' + prefix + 't_' + i + '" data-val="T">T</button><button class="tf-btn f" id="' + prefix + 'f_' + i + '" data-val="F">F</button></div></div><div class="tf-why" id="' + prefix + '_why_' + i + '"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const parts = btn.id.split('_');
+      const i2 = parts[parts.length - 1];
+      sel[i2] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i2); if (b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const whyEl = document.getElementById(prefix + '_why_' + i);
+    if (whyEl) whyEl.className = 'tf-why';
+    if (sel[i] === item.ans) { correct++; }
+    else { if (whyEl && item.why) { whyEl.innerHTML = '❌ ' + item.why; whyEl.classList.add('show'); } }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+  if (correct === data.length) launchConfetti(false);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('selected-t','selected-f'); });
+    const w = document.getElementById(prefix + '_why_' + i); if (w) w.className = 'tf-why';
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// CTF – event delegation (FIXED)
+function buildCTF(bankId, textId, words, lines) {
+  const bank = document.getElementById(bankId);
+  const textWrap = document.getElementById(textId);
+  const wordCount = {};
+  words.forEach(w => { wordCount[w] = (wordCount[w]||0) + 1; });
+  Object.entries(wordCount).forEach(([w, c]) => {
+    for (let i = 0; i < c; i++) {
+      const chip = document.createElement('span');
+      chip.className = 'ctf-chip'; chip.textContent = w; chip.setAttribute('data-word', w);
+      bank.appendChild(chip);
+    }
+  });
+  lines.forEach(line => {
+    const div = document.createElement('div'); div.className = 'ctf-line';
+    div.innerHTML = line.html; textWrap.appendChild(div);
+  });
+  let activeChip = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (activeChip) activeChip.classList.remove('active');
+    if (activeChip === chip) { activeChip = null; return; }
+    activeChip = chip; chip.classList.add('active');
+  });
+  textWrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    if (gap.dataset.filled) {
+      const word = gap.dataset.filled;
+      gap.textContent = ''; delete gap.dataset.filled;
+      gap.classList.remove('filled','correct','wrong');
+      const usedChip = Array.from(bank.querySelectorAll('.ctf-chip')).find(c => c.getAttribute('data-word') === word && c.classList.contains('used'));
+      if (usedChip) usedChip.classList.remove('used');
+      if (activeChip) activeChip.classList.remove('active');
+      activeChip = null; return;
+    }
+    if (!activeChip) return;
+    gap.textContent = activeChip.getAttribute('data-word');
+    gap.dataset.filled = activeChip.getAttribute('data-word');
+    gap.classList.add('filled'); gap.classList.remove('correct','wrong');
+    activeChip.classList.add('used'); activeChip.classList.remove('active');
+    activeChip = null;
+  });
+}
+function checkCTF(textId, allGaps, fbId, exId) {
+  const textWrap = document.getElementById(textId);
+  let correct = 0, total = allGaps.length;
+  allGaps.forEach(g => {
+    const gap = textWrap.querySelector('[data-gapid="' + g.id + '"]');
+    if (!gap) return;
+    gap.classList.remove('correct','wrong');
+    const whyEl = document.getElementById(g.id + '_why');
+    if (whyEl) whyEl.className = 'ctf-why';
+    const val = (gap.dataset.filled || '').toLowerCase().trim();
+    if (val === g.ans.toLowerCase()) { gap.classList.add('correct'); correct++; }
+    else { gap.classList.add('wrong'); if (whyEl && g.why) { whyEl.innerHTML = '❌ ' + g.why + ' ✅ <strong>' + g.ans + '</strong>'; whyEl.classList.add('show'); } }
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+  if (correct === total) launchConfetti(false);
+}
+function resetCTF(bankId, textId, allGaps, fbId) {
+  document.getElementById(bankId).querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+  document.getElementById(textId).querySelectorAll('.ctf-gap').forEach(g => { g.textContent = ''; delete g.dataset.filled; g.classList.remove('filled','correct','wrong'); });
+  allGaps.forEach(g => { const w = document.getElementById(g.id + '_why'); if (w) w.className = 'ctf-why'; });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// CLICK MATCH
+function buildClickMatch(leftId, rightId, pairs) {
+  const lefts = pairs.map(p => p.left);
+  const rights = [...pairs.map(p => p.right)].sort(() => Math.random() - 0.5);
+  const leftCol = document.getElementById(leftId);
+  const rightCol = document.getElementById(rightId);
+  let selLeft = null, selRight = null;
+  const matched = new Set();
+  lefts.forEach((l, i) => {
+    const el = document.createElement('div'); el.className = 'match-item'; el.textContent = l; el.dataset.idx = i;
+    leftCol.appendChild(el);
+    el.addEventListener('click', () => {
+      if (matched.has('L' + i)) return;
+      if (selLeft) selLeft.classList.remove('selected');
+      selLeft = el; el.classList.add('selected'); tryMatch();
+    });
+  });
+  rights.forEach(r => {
+    const el = document.createElement('div'); el.className = 'match-item'; el.textContent = r; el.dataset.val = r;
+    rightCol.appendChild(el);
+    el.addEventListener('click', () => {
+      const origIdx = pairs.findIndex(p => p.right === r);
+      if (matched.has('R' + origIdx)) return;
+      if (selRight) selRight.classList.remove('selected');
+      selRight = el; el.classList.add('selected'); tryMatch();
+    });
+  });
+  function tryMatch() {
+    if (!selLeft || !selRight) return;
+    const li = parseInt(selLeft.dataset.idx);
+    const rv = selRight.dataset.val;
+    if (rv === pairs[li].right) {
+      selLeft.classList.add('matched'); selLeft.classList.remove('selected');
+      selRight.classList.add('matched'); selRight.classList.remove('selected');
+      matched.add('L' + li); const ri = pairs.findIndex(p => p.right === rv); matched.add('R' + ri);
+    } else {
+      selLeft.classList.add('wrong-flash'); selRight.classList.add('wrong-flash');
+      setTimeout(() => { selLeft.classList.remove('wrong-flash','selected'); selRight.classList.remove('wrong-flash','selected'); }, 700);
+    }
+    selLeft = null; selRight = null;
+  }
+  return { matched, total: pairs.length };
+}
+function checkClickMatch(matchObj, fbId, exId, why) {
+  if (matchObj.matched.size / 2 >= matchObj.total) { showFeedback(fbId, '✅ Perfect! All pairs matched! 🎉', 'ok'); launchConfetti(false); }
+  else showFeedback(fbId, '💪 ' + (matchObj.matched.size/2) + '/' + matchObj.total + ' pairs matched.' + (why ? '<br>' + why : ''), 'partial');
+  incrementChecked(exId);
+}
+
+// SENTENCE BUILDER
+function buildSB(containerId, items) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-wrap';
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = '<div class="sb-label">' + (i+1) + '. <em>Build the sentence:</em></div><div class="sb-zone" id="sbzone_' + i + '"></div><div class="sb-bank" id="sbbank_' + i + '"></div>';
+    wrap.appendChild(div);
+    const zone = document.getElementById('sbzone_' + i);
+    const bank = document.getElementById('sbbank_' + i);
+    shuffled.forEach(w => {
+      const chip = document.createElement('span'); chip.className = 'sb-chip'; chip.textContent = w;
+      bank.appendChild(chip);
+      chip.addEventListener('click', () => {
+        if (chip.classList.contains('placed')) { chip.classList.remove('placed','in-zone'); bank.appendChild(chip); return; }
+        chip.classList.add('placed','in-zone'); zone.appendChild(chip);
+      });
+    });
+    zone.addEventListener('click', e => { if (e.target.classList.contains('sb-chip')) { e.target.classList.remove('placed','in-zone'); bank.appendChild(e.target); } });
+  });
+}
+function checkSB(items, fbId, exId) {
+  let correct = 0, errMsgs = [];
+  items.forEach((item, i) => {
+    const zone = document.getElementById('sbzone_' + i);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.textContent).join(' ').toLowerCase().trim();
+    if (built === item.ans.toLowerCase()) correct++;
+    else errMsgs.push('<em>' + (i+1) + '.</em> ✅ <strong>' + item.ans + '</strong>');
+  });
+  let msg = scoreText(correct, items.length).msg;
+  if (errMsgs.length) msg += '<br><br>' + errMsgs.join('<br>');
+  const type = correct === items.length ? 'ok' : correct >= items.length * 0.7 ? 'partial' : 'err';
+  showFeedback(fbId, msg, type);
+  incrementChecked(exId);
+  if (correct === items.length) launchConfetti(false);
+}
+function resetSB(items, fbId) {
+  items.forEach((_, i) => {
+    const zone = document.getElementById('sbzone_' + i);
+    const bank = document.getElementById('sbbank_' + i);
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('placed','in-zone'); bank.appendChild(c); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// OPEN SENTENCES
+function buildOpenSentences(containerId, items, prefix) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'open-item';
+    div.innerHTML = '<div class="open-prompt">' + (i+1) + '. ' + item.prompt + '</div>' +
+      '<input class="open-input" id="' + prefix + '_' + i + '" placeholder="' + (item.ph||'Write your answer here...') + '"/>' +
+      '<div class="open-why" id="' + prefix + '_why_' + i + '"></div>' +
+      '<div class="open-answer" id="' + prefix + '_ans_' + i + '"></div>';
+    wrap.appendChild(div);
+  });
+}
+function checkOpenSentences(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const inp = document.getElementById(prefix + '_' + i);
+    const whyEl = document.getElementById(prefix + '_why_' + i);
+    const ansEl = document.getElementById(prefix + '_ans_' + i);
+    inp.classList.remove('correct','wrong');
+    if (whyEl) whyEl.className = 'open-why';
+    if (ansEl) ansEl.className = 'open-answer';
+    const val = inp.value.trim().toLowerCase().replace(/[?.!]/g,'').replace(/\s+/g,' ');
+    const accepted = item.accepted.map(a => a.toLowerCase().replace(/[?.!]/g,'').replace(/\s+/g,' '));
+    const ok = accepted.some(a => val === a || (a.length > 8 && val.includes(a.substring(0, Math.floor(a.length * 0.7)))));
+    if (ok) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      if (ansEl && item.modelAns) { ansEl.innerHTML = '✅ ' + item.modelAns; ansEl.classList.add('show'); }
+      if (whyEl && item.why) { whyEl.innerHTML = '❌ ' + item.why; whyEl.classList.add('show'); }
+    }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+  if (correct === items.length) launchConfetti(false);
+}
+function resetOpenSentences(items, prefix, fbId) {
+  items.forEach((_, i) => {
+    const inp = document.getElementById(prefix + '_' + i); if (inp) { inp.value = ''; inp.className = 'open-input'; }
+    const w = document.getElementById(prefix + '_why_' + i); if (w) w.className = 'open-why';
+    const a = document.getElementById(prefix + '_ans_' + i); if (a) a.className = 'open-answer';
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// TTS + VOCAB
+function speakWord(text) { if (!window.speechSynthesis) return; const u = new SpeechSynthesisUtterance(text); u.lang = 'en-GB'; u.rate = 0.9; window.speechSynthesis.speak(u); }
+function speakEl(el) { speakWord(el.textContent); }
+function renderVocabGrid(containerId, items) {
+  const wrap = document.getElementById(containerId); if (!wrap) return;
+  wrap.className = 'vocab-grid';
+  items.forEach(item => {
+    const card = document.createElement('div'); card.className = 'vocab-card';
+    card.innerHTML = '<div class="vocab-en">' + item.en + '</div><div class="vocab-pt">' + item.pt + '</div><button class="vocab-tts" aria-label="Listen to ' + item.en + '">🔊 Listen</button>';
+    card.querySelector('.vocab-tts').addEventListener('click', e => { e.stopPropagation(); speakWord(item.en); });
+    wrap.appendChild(card);
+  });
+}
+
+// ════ DAY 1 ════
+const d1e1Data = [
+  { q: 'I ______ up at seven o\'clock every day.', opts: ['get', 'gets', 'go'], ans: 0, why: 'With <em>I</em>, use the base form: <strong>get up</strong> (no -s).' },
+  { q: 'Emma ______ work at six in the evening.', opts: ['finish', 'finishs', 'finishes'], ans: 2, why: 'With <em>she</em>, verbs ending in -sh take <strong>-es</strong>: <em>finishes</em>.' },
+  { q: 'They ______ to the gym on Tuesdays.', opts: ['goes', 'go', 'gos'], ans: 1, why: 'With <em>they</em>, use the base form: <strong>go</strong> (no -s).' },
+  { q: 'Mike ______ breakfast before work.', opts: ['have', 'has', 'haves'], ans: 1, why: '<em>have</em> is irregular: with <em>he/she/it</em>, use <strong>has</strong>.' },
+  { q: 'Chris ______ to bed very late.', opts: ['don\'t go', 'doesn\'t go', 'doesn\'t goes'], ans: 1, why: 'Negative with <em>he/she/it</em>: <strong>doesn\'t</strong> + base form (<em>go</em>, no -s).' },
+  { q: 'Sarah ______ lunch at one o\'clock.', opts: ['have', 'has', 'haves'], ans: 1, why: 'With <em>she</em>, <em>have</em> becomes <strong>has</strong>.' },
+];
+buildMC('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb'));
+
+// Day 1 Ex 2 – CTF: Emma and Sarah talk about their morning routine
+const d1e2Words = ['gets up', 'have', 'starts', 'has', 'walk', 'takes'];
+const d1e2Lines = [
+  { html: '<span class="speaker">Emma:</span> Sarah, what time do you usually get up? <div class="ctf-why" id="d1e2_0_why"></div>' },
+  { html: '<span class="speaker">Sarah:</span> I always <span class="ctf-gap" data-gapid="d1e2_0"></span> at six thirty. My yoga class <span class="ctf-gap" data-gapid="d1e2_1"></span> at seven. <div class="ctf-why" id="d1e2_1_why"></div>' },
+  { html: '<span class="speaker">Emma:</span> Really? I usually <span class="ctf-gap" data-gapid="d1e2_2"></span> breakfast at home first. <div class="ctf-why" id="d1e2_2_why"></div>' },
+  { html: '<span class="speaker">Sarah:</span> Me too! I always <span class="ctf-gap" data-gapid="d1e2_3"></span> a coffee before class. <div class="ctf-why" id="d1e2_3_why"></div>' },
+  { html: '<span class="speaker">Emma:</span> And after work — do you <span class="ctf-gap" data-gapid="d1e2_4"></span> home? <div class="ctf-why" id="d1e2_4_why"></div>' },
+  { html: '<span class="speaker">Sarah:</span> Yes! I always <span class="ctf-gap" data-gapid="d1e2_5"></span> the bus. I never drive. <div class="ctf-why" id="d1e2_5_why"></div>' },
+];
+const d1e2Gaps = [
+  { id:'d1e2_0', ans:'gets up', why:'With <em>she/Sarah</em>, use <strong>gets up</strong> (get + s).' },
+  { id:'d1e2_1', ans:'starts', why:'With <em>it</em> (the class), use <strong>starts</strong> (start + s).' },
+  { id:'d1e2_2', ans:'have', why:'With <em>I</em>, use the base form: <strong>have</strong> (not "has").' },
+  { id:'d1e2_3', ans:'has', why:'With <em>she/Sarah</em>, <em>have</em> becomes <strong>has</strong>.' },
+  { id:'d1e2_4', ans:'walk', why:'With <em>you</em>, use the base form: <strong>walk</strong> (no -s).' },
+  { id:'d1e2_5', ans:'takes', why:'With <em>she/Sarah</em>, use <strong>takes</strong> (take + s).' },
+];
+buildCTF('d1e2-bank', 'd1e2-text', d1e2Words, d1e2Lines);
+document.getElementById('d1e2-check').addEventListener('click', () => checkCTF('d1e2-text', d1e2Gaps, 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetCTF('d1e2-bank', 'd1e2-text', d1e2Gaps, 'd1e2-fb'));
+
+// Day 1 Ex 3 – Odd One Out (group 4 = from MD Ex 5)
+const d1e3Data = [
+  { label: '1. Morning routines', items: ['get up', 'have breakfast', 'go to bed', 'have a shower'], odd: 2, why: '<strong>go to bed</strong> is a night routine, not a morning one.' },
+  { label: '2. Things you do at home', items: ['do housework', 'make dinner', 'have lunch', 'go to work'], odd: 3, why: '<strong>go to work</strong> is not done at home.' },
+  { label: '3. Frequency adverbs (go before the verb)', items: ['always', 'sometimes', 'every day', 'usually'], odd: 2, why: '<strong>every day</strong> is a frequency expression that goes at the END of the sentence, not before the verb like the others.' },
+];
+(function() {
+  const wrap = document.getElementById('d1e3');
+  const userOdd = {};
+  d1e3Data.forEach((g, gi) => {
+    const div = document.createElement('div'); div.className = 'odd-group';
+    div.innerHTML = '<div class="odd-label">' + g.label + '</div><div class="odd-items" id="oddg_' + gi + '"></div><div class="odd-why" id="odd_why_' + gi + '"></div>';
+    wrap.appendChild(div);
+    const iWrap = document.getElementById('oddg_' + gi);
+    g.items.forEach((item, ii) => {
+      const el = document.createElement('span'); el.className = 'odd-item'; el.textContent = item;
+      el.addEventListener('click', () => { iWrap.querySelectorAll('.odd-item').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); userOdd[gi] = ii; });
+      iWrap.appendChild(el);
+    });
+  });
+  document.getElementById('d1e3-check').addEventListener('click', () => {
+    let correct = 0;
+    d1e3Data.forEach((g, gi) => {
+      const iWrap = document.getElementById('oddg_' + gi);
+      const items = iWrap.querySelectorAll('.odd-item');
+      const whyEl = document.getElementById('odd_why_' + gi);
+      items.forEach(i => i.classList.remove('correct-odd','wrong-odd'));
+      if (whyEl) whyEl.className = 'odd-why';
+      const u = userOdd[gi];
+      if (u === undefined) return;
+      if (u === g.odd) { items[u].classList.add('correct-odd'); correct++; }
+      else { items[u].classList.add('wrong-odd'); items[g.odd].classList.add('correct-odd'); if (whyEl) { whyEl.innerHTML = '❌ ' + g.why; whyEl.classList.add('show'); } }
+    });
+    const r = scoreText(correct, d1e3Data.length);
+    showFeedback('d1e3-fb', r.msg, r.type);
+    incrementChecked('d1e3');
+    if (correct === d1e3Data.length) launchConfetti(false);
+  });
+  document.getElementById('d1e3-reset').addEventListener('click', () => {
+    d1e3Data.forEach((_, gi) => {
+      document.getElementById('oddg_' + gi).querySelectorAll('.odd-item').forEach(i => i.classList.remove('selected','correct-odd','wrong-odd'));
+      const w = document.getElementById('odd_why_' + gi); if (w) w.className = 'odd-why'; delete userOdd[gi];
+    });
+    document.getElementById('d1e3-fb').className = 'feedback';
+  });
+})();
+
+// ════ DAY 2 ════
+const d2e1Data = [
+  { q: 'Pablo is very healthy. He eats fruit and vegetables every day and he ______ eats junk food.', opts: ['usually', 'never', 'twice a day'], ans: 1, why: 'Pablo is healthy and eats junk food 0%. <strong>Never</strong> is the correct answer.' },
+  { q: '"How often do you go to the gym?" — "I go ______: on Monday, Wednesday, and Friday."', opts: ['three times a week', 'three times a day', 'once a week'], ans: 0, why: 'Monday + Wednesday + Friday = 3 days per week → <strong>three times a week</strong>.' },
+  { q: 'Luisa stays at home on Sundays. She ______ goes to work on the weekend.', opts: ['always', 'sometimes', 'never'], ans: 2, why: 'She stays home on Sundays — she goes to work 0% on weekends → <strong>never</strong>.' },
+  { q: 'Marco loves films. He goes to the cinema ______.', opts: ['twice a month', 'two time a month', 'once weeks'], ans: 0, why: '"Two time a month" is wrong — it must be plural: <strong>twice</strong> or "two times". "Once weeks" is not correct English.' },
+  { q: 'I usually have a shower in the morning, but I ______ have a bath when I feel tired.', opts: ['never', 'sometimes', 'always'], ans: 1, why: '"Usually... but..." shows contrast — not every day, not never. <strong>Sometimes</strong> (≈40%) fits.' },
+];
+buildMC('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1', 'd2e1', d2e1Data, 'd2e1-fb'));
+
+// Day 2 Ex 2 – Word order fill
+(function() {
+  const items = [
+    { display: '1. Sarah ___ ___ in the evening. <em style="color:var(--gray);font-size:0.78rem;">(watches TV / usually)</em>', inputs: [{id:'d2e2_0a', ans:['usually']}, {id:'d2e2_0b', ans:['watches tv','watches TV']}], why: 'Adverb before main verb: <strong>usually watches TV</strong>.' },
+    { display: '2. Mark and Anna go to the gym ___. <em style="color:var(--gray);font-size:0.78rem;">(a week / twice)</em>', inputs: [{id:'d2e2_1a', ans:['twice a week']}], why: 'Frequency expression at the end: <strong>twice a week</strong>.' },
+    { display: '3. My brother ___ ___ before 8:00 am. <em style="color:var(--gray);font-size:0.78rem;">(has breakfast / never)</em>', inputs: [{id:'d2e2_2a', ans:['never']}, {id:'d2e2_2b', ans:['has breakfast']}], why: 'Adverb before main verb: <strong>never has breakfast</strong>.' },
+    { display: '4. We go shopping ___. <em style="color:var(--gray);font-size:0.78rem;">(month / every)</em>', inputs: [{id:'d2e2_3a', ans:['every month']}], why: 'Frequency expression at the end: <strong>every month</strong>.' },
+    { display: '5. She ___ ___ at 10:30 pm. <em style="color:var(--gray);font-size:0.78rem;">(goes to bed / always)</em>', inputs: [{id:'d2e2_4a', ans:['always']}, {id:'d2e2_4b', ans:['goes to bed']}], why: 'Adverb before main verb: <strong>always goes to bed</strong>.' },
+    { display: '6. I play video games with my friends ___. <em style="color:var(--gray);font-size:0.78rem;">(a week / three times)</em>', inputs: [{id:'d2e2_5a', ans:['three times a week']}], why: 'Frequency expression at the end: <strong>three times a week</strong>.' },
+  ];
+  const wrap = document.getElementById('d2e2');
+  items.forEach(item => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    let html = '<div class="fill-line">' + item.display
+      .replace(/___ ___/, () => '<input class="fill-input" id="' + item.inputs[0].id + '" placeholder="..." style="min-width:80px;max-width:100px;"> <input class="fill-input" id="' + item.inputs[1].id + '" placeholder="..." style="min-width:100px;max-width:160px;">')
+      .replace(/___/, () => '<input class="fill-input" id="' + item.inputs[0].id + '" placeholder="..." style="min-width:130px;max-width:180px;">') +
+      '</div><div class="fill-why" id="' + item.inputs[0].id + '_why"></div>';
+    div.innerHTML = html; wrap.appendChild(div);
+  });
+  document.getElementById('d2e2-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    items.forEach(item => {
+      const whyEl = document.getElementById(item.inputs[0].id + '_why');
+      if (whyEl) whyEl.className = 'fill-why';
+      let itemOk = true;
+      item.inputs.forEach(inp => {
+        total++;
+        const el = document.getElementById(inp.id); if (!el) return;
+        el.classList.remove('correct','wrong');
+        const val = el.value.trim().toLowerCase();
+        const ok = inp.ans.map(a => a.toLowerCase()).includes(val);
+        if (ok) { el.classList.add('correct'); correct++; } else { el.classList.add('wrong'); itemOk = false; }
+      });
+      if (!itemOk && whyEl && item.why) { whyEl.innerHTML = '❌ ' + item.why; whyEl.classList.add('show'); }
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d2e2-fb', r.msg, r.type);
+    incrementChecked('d2e2');
+    if (correct === total) launchConfetti(false);
+  });
+  document.getElementById('d2e2-show').addEventListener('click', () => { document.getElementById('d2e2-key').classList.toggle('show'); });
+  document.getElementById('d2e2-reset').addEventListener('click', () => {
+    items.forEach(item => {
+      item.inputs.forEach(inp => { const el = document.getElementById(inp.id); if(el){el.value='';el.className='fill-input';} });
+      const w = document.getElementById(item.inputs[0].id + '_why'); if (w) w.className = 'fill-why';
+    });
+    document.getElementById('d2e2-fb').className = 'feedback';
+    document.getElementById('d2e2-key').classList.remove('show');
+  });
+})();
+
+const d2e3Items = [
+  { words: ['Emma', 'always', 'has', 'breakfast', 'at seven'], ans: 'Emma always has breakfast at seven.' },
+  { words: ['Mike', 'sometimes', 'goes', 'to the gym', 'after work'], ans: 'Mike sometimes goes to the gym after work.' },
+  { words: ['Sarah', 'is', 'usually', 'tired', 'on Mondays'], ans: 'Sarah is usually tired on Mondays.' },
+  { words: ['Chris and Emma', 'hardly ever', 'eat', 'junk food'], ans: 'Chris and Emma hardly ever eat junk food.' },
+  { words: ['I', 'never', 'go to bed', 'after midnight'], ans: 'I never go to bed after midnight.' },
+];
+buildSB('d2e3', d2e3Items);
+document.getElementById('d2e3-check').addEventListener('click', () => checkSB(d2e3Items, 'd2e3-fb', 'd2e3'));
+document.getElementById('d2e3-show').addEventListener('click', () => { document.getElementById('d2e3-key').classList.toggle('show'); });
+document.getElementById('d2e3-reset').addEventListener('click', () => { resetSB(d2e3Items, 'd2e3-fb'); document.getElementById('d2e3-key').classList.remove('show'); });
+
+// ════ DAY 3 ════
+const d3e1Data = [
+  { q: 'This person goes to the gym 3 times a week.', opts: ['A – Alex', 'B – Beatriz', 'C – Carlos'], ans: 0, why: 'Alex says: <em>"I go to the gym three times a week."</em>' },
+  { q: 'This person eats in a restaurant twice a week.', opts: ['A – Alex', 'B – Beatriz', 'C – Carlos'], ans: 1, why: 'Beatriz says: <em>"I have lunch in a small Italian restaurant twice a week."</em>' },
+  { q: 'This person studies English every day.', opts: ['A – Alex', 'B – Beatriz', 'C – Carlos'], ans: 2, why: 'Carlos says: <em>"I learn English every day."</em>' },
+  { q: 'This person never gets up early on Saturdays and Sundays.', opts: ['A – Alex', 'B – Beatriz', 'C – Carlos'], ans: 1, why: 'Beatriz says: <em>"I never get up early on weekends."</em>' },
+  { q: 'This person always prepares the evening meal for the family.', opts: ['A – Alex', 'B – Beatriz', 'C – Carlos'], ans: 2, why: 'Carlos says: <em>"I always make dinner for my family in the evening."</em>' },
+];
+buildMC('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data, 'd3e1', 'd3e1-fb', 'd3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMC('d3e1', 'd3e1', d3e1Data, 'd3e1-fb'));
+
+const d3e2Pairs = [
+  { left: 'Every day', right: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun' },
+  { left: 'Once a week', right: 'Sunday only' },
+  { left: 'Twice a week', right: 'Monday and Thursday' },
+  { left: 'Three times a week', right: 'Monday, Wednesday, Friday' },
+];
+const d3e2Match = buildClickMatch('d3e2-left', 'd3e2-right', d3e2Pairs);
+document.getElementById('d3e2-check').addEventListener('click', () => checkClickMatch(d3e2Match, 'd3e2-fb', 'd3e2', '❌ Hint: "Twice" = 2 days; "three times" = 3 days.'));
+document.getElementById('d3e2-reset').addEventListener('click', () => {
+  document.getElementById('d3e2-left').innerHTML = '';
+  document.getElementById('d3e2-right').innerHTML = '';
+  d3e2Match.matched.clear();
+  const newM = buildClickMatch('d3e2-left', 'd3e2-right', d3e2Pairs);
+  Object.assign(d3e2Match, newM);
+  document.getElementById('d3e2-fb').className = 'feedback';
+});
+
+const d3e3Items = [
+  { prompt: '1. David goes never to the gym on Sundays.', ph: 'Write the correct sentence...', accepted: ['david never goes to the gym on sundays'], modelAns: 'David never goes to the gym on Sundays.', why: 'Adverb goes <strong>before</strong> the main verb: <em>David <u>never goes</u></em>.' },
+  { prompt: '2. Emma has a coffee two times a day.', ph: 'Write the correct sentence...', accepted: ['emma has a coffee twice a day'], modelAns: 'Emma has a coffee twice a day.', why: '"Two times" → use <strong>twice</strong> (more natural and correct).' },
+  { prompt: '3. David does housework every days.', ph: 'Write the correct sentence...', accepted: ['david does housework every day'], modelAns: 'David does housework every day.', why: '<em>Every</em> takes a singular noun: <strong>every day</strong> (not "days").' },
+  { prompt: '4. Emma studies English always in the evening.', ph: 'Write the correct sentence...', accepted: ['emma always studies english in the evening'], modelAns: 'Emma always studies English in the evening.', why: 'Adverb goes <strong>before</strong> the main verb: <em>Emma <u>always studies</u></em>.' },
+];
+buildOpenSentences('d3e3', d3e3Items, 'd3e3');
+document.getElementById('d3e3-check').addEventListener('click', () => checkOpenSentences(d3e3Items, 'd3e3', 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-show').addEventListener('click', () => { document.getElementById('d3e3-key').classList.toggle('show'); });
+document.getElementById('d3e3-reset').addEventListener('click', () => { resetOpenSentences(d3e3Items, 'd3e3', 'd3e3-fb'); document.getElementById('d3e3-key').classList.remove('show'); });
+
+// ════ DAY 4 ════
+const d4e1Data = [
+  { q: '______ do you go to the gym?', opts: ['How much', 'How often', 'How many'], ans: 1, why: '<strong>How often</strong> asks about frequency. "How much" asks about quantity; "how many" asks about countable items.' },
+  { q: 'A: How often does Sarah go shopping?<br>B: ______', opts: ['Yes, she does.', 'She goes once a week.', 'She goes to the supermarket.'], ans: 1, why: '"How often" needs a frequency answer: <strong>once a week</strong>. "Yes, she does" answers a yes/no question.' },
+  { q: 'A: How often do you have dinner out?<br>B: ______', opts: ['Twice a month.', 'Two times.', 'Two month a week.'], ans: 0, why: '<strong>Twice a month</strong> is correct. "Two times" is incomplete; "two month a week" is not correct English.' },
+  { q: 'A: How often does Mike watch TV?<br>B: He watches TV ______', opts: ['every day', 'everyday', 'all day every'], ans: 0, why: '<strong>every day</strong> (two words, adverb). "Everyday" (one word) is an adjective meaning "ordinary".' },
+  { q: '______ does Emma finish work?<br>B: At six o\'clock.', opts: ['How often', 'What time', 'How much'], ans: 1, why: '"At six o\'clock" is a time, not a frequency. The correct question is <strong>What time</strong>.' },
+];
+buildMC('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data, 'd4e1', 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetMC('d4e1', 'd4e1', d4e1Data, 'd4e1-fb'));
+
+const d4e2Items = [
+  { prompt: 'Answer: I go to the gym three times a week.', ph: 'How often...?', accepted: ['how often do you go to the gym', 'how often do you go to gym'], modelAns: 'How often do you go to the gym?', why: 'Use <strong>How often + do + subject + base verb</strong>.' },
+  { prompt: 'Answer: Emma has lunch at home every day.', ph: 'How often...?', accepted: ['how often does emma have lunch at home', 'how often does emma have lunch'], modelAns: 'How often does Emma have lunch at home?', why: 'With <em>she/Emma</em>, use <strong>does</strong> + base form: <em>does Emma have</em>.' },
+  { prompt: 'Answer: They go shopping twice a month.', ph: 'How often...?', accepted: ['how often do they go shopping', 'how often do they go'], modelAns: 'How often do they go shopping?', why: 'With <em>they</em>, use <strong>do</strong>.' },
+  { prompt: 'Answer: Mike watches TV every evening.', ph: 'How often...?', accepted: ['how often does mike watch tv', 'how often does mike watch television'], modelAns: 'How often does Mike watch TV?', why: 'With <em>he/Mike</em>, use <strong>does</strong> + base form: <em>does Mike watch</em> (no -es).' },
+];
+buildOpenSentences('d4e2', d4e2Items, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkOpenSentences(d4e2Items, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-show').addEventListener('click', () => { document.getElementById('d4e2-key').classList.toggle('show'); });
+document.getElementById('d4e2-reset').addEventListener('click', () => { resetOpenSentences(d4e2Items, 'd4e2', 'd4e2-fb'); document.getElementById('d4e2-key').classList.remove('show'); });
+
+const d4e3Items = [
+  { prompt: '1. She doesn\'t eat meat on any day of the year. (NEVER)', ph: 'She...', accepted: ['she never eats meat'], modelAns: 'She never eats meat.', why: '"Doesn\'t eat on any day" = 0% = <strong>never</strong>. Place adverb before main verb.' },
+  { prompt: '2. He plays football on Tuesday and Thursday. (TWICE)', ph: 'He plays football...', accepted: ['he plays football twice a week'], modelAns: 'He plays football twice a week.', why: 'Tuesday + Thursday = 2 days a week → <strong>twice a week</strong>.' },
+  { prompt: '3. They do housework on Saturday mornings only. (ONCE)', ph: 'They do housework...', accepted: ['they do housework once a week'], modelAns: 'They do housework once a week.', why: 'One day per week → <strong>once a week</strong>.' },
+  { prompt: '4. Most days, I go to bed at 11:00 pm, but not all days. (USUALLY)', ph: 'I...', accepted: ['i usually go to bed at 11', 'i usually go to bed at 11:00', 'i usually go to bed at eleven'], modelAns: 'I usually go to bed at 11:00 pm.', why: '"Most days but not all" ≈ 80% → <strong>usually</strong>. Place adverb before main verb.' },
+];
+buildOpenSentences('d4e3', d4e3Items, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkOpenSentences(d4e3Items, 'd4e3', 'd4e3-fb', 'd4e3'));
+document.getElementById('d4e3-show').addEventListener('click', () => { document.getElementById('d4e3-key').classList.toggle('show'); });
+document.getElementById('d4e3-reset').addEventListener('click', () => { resetOpenSentences(d4e3Items, 'd4e3', 'd4e3-fb'); document.getElementById('d4e3-key').classList.remove('show'); });
+
+// ════ DAY 5 ════
+const d5e1Data = [
+  { s: 'Emma is from Australia.', ans: 'F', why: 'The text says Emma is from <strong>Canada</strong>, not Australia.' },
+  { s: 'Emma never skips breakfast.', ans: 'T', why: 'Correct — the text says: <em>"I never skip breakfast!"</em>' },
+  { s: 'Emma goes to the gym every day.', ans: 'F', why: 'She goes <strong>three times a week</strong> (not every day).' },
+  { s: 'Emma usually makes dinner at home in the evenings.', ans: 'T', why: 'Correct — <em>"I usually make dinner at home."</em>' },
+  { s: 'Emma often goes to a restaurant during the week.', ans: 'F', why: 'The text says <em>"I <strong>hardly ever</strong> go to a restaurant during the week."</em>' },
+  { s: 'Emma goes to the cinema once a month.', ans: 'T', why: 'Correct — <em>"I go to the cinema once a month."</em>' },
+];
+const d5e1Sel = buildTF('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkTF(d5e1Data, d5e1Sel, 'd5e1', 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetTF(d5e1Data, d5e1Sel, 'd5e1', 'd5e1-fb'));
+
+const d5e2Data = [
+  { s: 'Sarah goes to the gym three times a week.', ans: 'T', why: 'Correct — Sarah goes Mon / Wed / Fri = 3 times a week.' },
+  { s: 'Tom never eats junk food.', ans: 'F', why: 'Tom eats junk food Mon–Fri = <strong>five times a week</strong>.' },
+  { s: 'Rita does exercise every day.', ans: 'T', why: 'Correct — Rita goes to the gym "every day".' },
+  { s: 'Sarah and Rita do housework twice a week.', ans: 'F', why: 'Both Sarah and Rita do housework only on Saturday = <strong>once a week</strong>.' },
+  { s: 'Tom watches a film once a week.', ans: 'T', why: 'Correct — Tom watches a film on Friday = once a week.' },
+];
+const d5e2Sel = buildTF('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkTF(d5e2Data, d5e2Sel, 'd5e2', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetTF(d5e2Data, d5e2Sel, 'd5e2', 'd5e2-fb'));
+
+// Day 5 Ex 3 – T/F weekly schedule (Chris / Emma / Mike)
+const d5e3Data = [
+  { s: 'Chris goes to the gym more often than Emma.', ans: 'T', why: 'Chris goes Mon/Wed/Fri (3×) and Emma goes Tue/Thu (2×). So Chris goes more often. ✅ True.' },
+  { s: 'Emma never eats junk food.', ans: 'T', why: 'Emma\'s junk food column is "—" = she <strong>never</strong> eats junk food. ✅ True.' },
+  { s: 'Mike goes to the cinema once a week.', ans: 'F', why: 'Mike goes on Saturday AND Sunday = <strong>twice a week</strong>, not once. ❌ False.' },
+  { s: 'Chris and Emma both do housework at the weekend.', ans: 'T', why: 'Chris does housework on Sunday; Emma does it on Saturday and Sunday. Both do housework at the weekend. ✅ True.' },
+  { s: 'Mike has a healthy diet.', ans: 'F', why: 'Mike eats junk food <strong>every day</strong>. That is not a healthy diet. ❌ False.' },
+  { s: 'Emma goes to the gym twice a week.', ans: 'T', why: 'Emma goes on Tuesday and Thursday = 2 times a week. ✅ True.' },
+];
+const d5e3Sel = buildTF('d5e3', d5e3Data, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkTF(d5e3Data, d5e3Sel, 'd5e3', 'd5e3-fb', 'd5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetTF(d5e3Data, d5e3Sel, 'd5e3', 'd5e3-fb'));
+
+// ════ DAY 6 ════
+
+(function() {
+  const lines = [
+    { speaker:'A', text:"I usually go home, make dinner, and watch YouTube. What about you?", correct: 5 },
+    { speaker:'B', text:"I'm fine, thanks! Do you go to the gym after work today?", correct: 2 },
+    { speaker:'A', text:'Hi, Elena! How are you?', correct: 1 },
+    { speaker:'B', text:"No, I never go to the gym on Fridays. I usually go to a restaurant with my husband.", correct: 3 },
+    { speaker:'A', text:'That sounds nice! How often do you eat out?', correct: 4 },
+    { speaker:'B', text:"Twice a week — on Friday and Sunday. What do you usually do on Friday evenings?", correct: 6 },
+  ];
+  const shuffled = [...lines].sort(() => Math.random() - 0.5);
+  const wrap = document.getElementById('d6e2');
+  shuffled.forEach((line, i) => {
+    const div = document.createElement('div'); div.className = 'scramble-item';
+    div.innerHTML = '<div class="scramble-num"><input type="number" min="1" max="6" id="scr_' + i + '" class="" data-correct="' + line.correct + '"> ]</div><div class="scramble-text"><span class="speaker">' + line.speaker + ':</span> ' + line.text + '</div>';
+    wrap.appendChild(div);
+  });
+  document.getElementById('d6e2-check').addEventListener('click', () => {
+    let correct = 0;
+    shuffled.forEach((_, i) => {
+      const inp = document.getElementById('scr_' + i);
+      inp.classList.remove('correct-num','wrong-num');
+      const val = parseInt(inp.value);
+      const expected = parseInt(inp.dataset.correct);
+      if (val === expected) { correct++; inp.classList.add('correct-num'); }
+      else inp.classList.add('wrong-num');
+    });
+    const r = scoreText(correct, shuffled.length);
+    showFeedback('d6e2-fb', r.msg, r.type);
+    incrementChecked('d6e2');
+    if (correct === shuffled.length) launchConfetti(false);
+  });
+  document.getElementById('d6e2-show').addEventListener('click', () => { document.getElementById('d6e2-key').classList.toggle('show'); });
+  document.getElementById('d6e2-reset').addEventListener('click', () => {
+    shuffled.forEach((_, i) => { const inp = document.getElementById('scr_' + i); if(inp) { inp.value = ''; inp.classList.remove('correct-num','wrong-num'); } });
+    document.getElementById('d6e2-fb').className = 'feedback';
+    document.getElementById('d6e2-key').classList.remove('show');
+  });
+})();
+
+const d6e3Items = [
+  { prompt: '1. I do exercise three time a week.', ph: 'Write the correct sentence...', accepted: ['i do exercise three times a week'], modelAns: 'I do exercise three times a week.', why: '"time" must be plural: <strong>three times</strong> (not "three time").' },
+  { prompt: '2. Mark goes to work every days by bus.', ph: 'Write the correct sentence...', accepted: ['mark goes to work every day by bus'], modelAns: 'Mark goes to work every day by bus.', why: '<em>Every</em> takes a singular noun: <strong>every day</strong> (not "every days").' },
+  { prompt: '3. We have lunch usually at 1:00 pm in an Italian restaurant.', ph: 'Write the correct sentence...', accepted: ['we usually have lunch at 1:00 pm in an italian restaurant', 'we usually have lunch at 1 pm in an italian restaurant'], modelAns: 'We usually have lunch at 1:00 pm in an Italian restaurant.', why: 'Adverb goes <strong>before</strong> the main verb: <em>We <u>usually have</u></em>.' },
+  { prompt: '4. They go to the cinema once the month.', ph: 'Write the correct sentence...', accepted: ['they go to the cinema once a month'], modelAns: 'They go to the cinema once a month.', why: 'The correct expression uses <em>a</em>: <strong>once a month</strong> (not "once the month").' },
+  { prompt: '5. My sister never is late for her English class.', ph: 'Write the correct sentence...', accepted: ['my sister is never late for her english class', 'my sister is never late'], modelAns: 'My sister is never late for her English class.', why: 'With <em>be</em>, the adverb goes <strong>after</strong> be: <em>My sister <u>is never</u> late</em>.' },
+];
+buildOpenSentences('d6e3', d6e3Items, 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkOpenSentences(d6e3Items, 'd6e3', 'd6e3-fb', 'd6e3'));
+document.getElementById('d6e3-show').addEventListener('click', () => { document.getElementById('d6e3-key').classList.toggle('show'); });
+document.getElementById('d6e3-reset').addEventListener('click', () => { resetOpenSentences(d6e3Items, 'd6e3', 'd6e3-fb'); document.getElementById('d6e3-key').classList.remove('show'); });
+
+const d6e4Data = [
+  { q: 'Someone who wants a housemate that keeps the flat very clean.', opts: ['A – David', 'B – Sofia', 'C – Lucas'], ans: 0, why: 'David says: <em>"I do housework every day and I never leave dirty dishes."</em>' },
+  { q: 'Someone who loves animals and likes staying at home in the evening.', opts: ['A – David', 'B – Sofia', 'C – Lucas'], ans: 1, why: 'Sofia has a cat and usually makes dinner at home and watches films.' },
+  { q: "Someone who doesn't like cooking and works out a lot.", opts: ['A – David', 'B – Sofia', 'C – Lucas'], ans: 2, why: 'Lucas says: <em>"I never cook at home"</em> and <em>"I go to the gym twice a day."</em>' },
+  { q: 'Someone who goes to bed early and needs quiet mornings.', opts: ['A – David', 'B – Sofia', 'C – Lucas'], ans: 0, why: 'David says: <em>"I always go to bed early at 10:00 pm. I get up at 6:00 am. I am quiet."</em>' },
+];
+buildMC('d6e4', d6e4Data, 'd6e4');
+document.getElementById('d6e4-check').addEventListener('click', () => checkMC(d6e4Data, 'd6e4', 'd6e4-fb', 'd6e4'));
+document.getElementById('d6e4-reset').addEventListener('click', () => resetMC('d6e4', 'd6e4', d6e4Data, 'd6e4-fb'));
+
+// ════ DAY 7 ════
+// Ex 1 – Final Quiz (10 MC items covering the whole week)
+const d7e1Data = [
+  { q: 'She ______ gets up early. She is always in the office before eight.', opts: ['never', 'always', 'hardly ever'], ans: 1, why: '"Always in the office before eight" tells us she <strong>always</strong> gets up early.' },
+  { q: 'Adverbs of frequency (always, usually, never…) go ______ the main verb.', opts: ['after', 'before', 'at the end of the sentence after'], ans: 1, why: 'Adverbs go <strong>before</strong> the main verb: <em>I <u>always</u> have breakfast</em>. (Exception: after "be").' },
+  { q: 'I go to the gym on Monday, Wednesday, and Friday. I go ______.', opts: ['once a week', 'twice a week', 'three times a week'], ans: 2, why: 'Monday + Wednesday + Friday = 3 days → <strong>three times a week</strong>.' },
+  { q: 'How often ______ Mike have lunch at home?', opts: ['do', 'does', 'is'], ans: 1, why: 'With <em>he/Mike</em>, use <strong>does</strong> in questions.' },
+  { q: '"I go to the cinema on Saturdays." How often does she go?', opts: ['every day', 'once a week', 'twice a month'], ans: 1, why: 'Saturday = one day per week → <strong>once a week</strong>.' },
+  { q: 'My sister ______ late for work. She always arrives on time.', opts: ['is never', 'never is', 'is always'], ans: 0, why: 'With <em>be</em>, the adverb goes <strong>after</strong> the verb: <em>is never</em>. "Never is" is incorrect word order.' },
+  { q: '"I eat junk food on 0 days." This means I ______ eat junk food.', opts: ['usually', 'sometimes', 'never'], ans: 2, why: '0 days = 0% = <strong>never</strong>.' },
+  { q: 'Which sentence has the CORRECT word order?', opts: ['She goes always to bed late.', 'She always goes to bed late.', 'Always she goes to bed late.'], ans: 1, why: '<strong>She always goes to bed late.</strong> — adverb before main verb, after subject.' },
+  { q: 'Emma goes shopping ______. She goes on Saturdays.', opts: ['every day', 'once a week', 'twice a month'], ans: 1, why: 'One day per week (Saturday) = <strong>once a week</strong>.' },
+  { q: 'Which sentence uses the frequency expression CORRECTLY?', opts: ['I twice a week go to the gym.', 'I go to the gym twice a week.', 'I go twice to the gym a week.'], ans: 1, why: 'Frequency expressions go at the <strong>end</strong>: <em>I go to the gym <u>twice a week</u>.</em>' },
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb'));
+
+document.getElementById('d7e2-wa').addEventListener('click', () => {
+  const text = document.getElementById('d7e2-area').value.trim();
+  if (!text) { showFeedback('d7e2-fb', '✏️ Write your paragraph first!', 'partial'); return; }
+  const msg = 'Unit 6B – My Typical Week\nStudent: ' + studentName + '\n\n' + text;
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d7e2');
+});
+
+document.getElementById('week-summary-wa').addEventListener('click', () => {
+  const msg = 'Unit 6B – Weekly Practice Complete! ✅\nStudent: ' + studentName + '\nProgress: ' + document.getElementById('progress-pct').textContent;
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// VOCAB
+renderVocabGrid('vocab-grid-routines', [
+  {en:'get up', pt:'levantar'}, {en:'have a shower', pt:'tomar banho'},
+  {en:'have breakfast', pt:'tomar café'}, {en:'go to work', pt:'ir trabalhar'},
+  {en:'have a coffee', pt:'tomar café'}, {en:'have lunch', pt:'almoçar'},
+  {en:'finish work', pt:'terminar o trabalho'}, {en:'go home', pt:'ir para casa'},
+  {en:'go shopping', pt:'fazer compras'}, {en:'go to the gym', pt:'ir à academia'},
+  {en:'make dinner', pt:'fazer jantar'}, {en:'have dinner', pt:'jantar'},
+  {en:'do housework', pt:'fazer tarefas'}, {en:'watch TV', pt:'assistir TV'},
+  {en:'have a bath', pt:'tomar banho de banheira'}, {en:'go to bed', pt:'ir dormir'},
+  {en:'do homework', pt:'fazer dever'}, {en:'go to the cinema', pt:'ir ao cinema'},
+]);
+</script>
+</body>
+</html>
