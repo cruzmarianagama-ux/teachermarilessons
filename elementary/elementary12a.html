@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Elementary 12A – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23; --purple: #1D1050; --purple-light: #5340c8; --green: #04392F;
+    --cream: #FAEAD3; --cream-light: #fff8f0; --white: #ffffff; --gray: #6b7280;
+    --gray-light: #f3f4f6; --red: #ef4444; --teal: #0d9488;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10); --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--purple); text-align: center; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width: 100%; padding: 13px; background: var(--orange); color: var(--white); border: none; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s; }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+  #hello-banner { display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a); color: var(--white); text-align: center; padding: 12px 16px; font-size: 1rem; font-weight: 700; }
+  #hello-banner.show { display: block; }
+  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,92,35,0.18); }
+  .header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,92,35,0.12); }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; }
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn { padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number { background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white); }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+  .fill-item { margin-bottom: 14px; }
+  .fill-line { display: inline; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2.2; }
+  .fill-input { border: none; border-bottom: 2px solid var(--purple-light); padding: 2px 6px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--purple); background: transparent; min-width: 100px; max-width: 200px; text-align: center; outline: none; transition: border-color 0.2s; display: inline-block; }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+  .fill-input.wide { min-width: 200px; max-width: 100%; }
+  .writing-area { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--purple); resize: vertical; outline: none; min-height: 110px; transition: border-color 0.2s; margin-bottom: 8px; }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .reading-text { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; font-size: 0.9rem; line-height: 1.85; color: var(--purple); font-weight: 500; border-left: 4px solid var(--teal); }
+  .tf-item { margin-bottom: 10px; }
+  .tf-line { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn { padding: 4px 14px; border-radius: 99px; border: 2px solid var(--gray-light); font-family: 'Poppins', sans-serif; font-size: 0.80rem; font-weight: 700; cursor: pointer; background: var(--white); transition: all 0.2s; }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; outline: 2px solid var(--teal); }
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item { padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 600; color: var(--purple); background: var(--white); text-align: center; user-select: none; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--purple-light); color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); }
+  .ctf-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 5px 14px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .ctf-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-gap { display: inline-block; min-width: 72px; text-align: center; border-bottom: 2.5px solid var(--purple-light); color: var(--orange); font-weight: 700; font-size: 0.88rem; padding: 0 4px; cursor: pointer; margin: 0 2px; transition: border-color 0.2s; border-radius: 4px 4px 0 0; vertical-align: middle; line-height: 1.8; }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+  .example-box { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; font-size: 0.88rem; line-height: 1.8; color: var(--purple); font-weight: 500; border: 2px dashed var(--orange); }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .dialogue-line { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); flex-wrap: wrap; }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; min-width: 50px; }
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--purple); transition: all 0.2s; }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--white); margin-top: 10px; }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; } .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; } .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; } .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; } .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; } .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { min-width: 70px; font-size: 0.82rem; }
+    .grammar-table { font-size: 0.75rem; } .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
+    .vocab-chip { padding: 8px; font-size: 0.78rem; } .reading-text { font-size: 0.85rem; padding: 14px; }
+    .tf-line { font-size: 0.82rem; } .writing-area { font-size: 0.85rem; }
+    .cm-wrap { gap: 12px; } .cm-item { font-size: 0.78rem; padding: 8px 10px; }
+  }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 14px; min-height: 38px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); background: #f0fdfa; }
+  .sb-zone.wrong-zone   { border-color: var(--red);  background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-item { margin-bottom: 18px; }
+  .sb-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+</style>
+
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly exercises for<br><strong>Elementary 12A</strong>.<br>What is your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's start!</button>
+  </div>
+</div>
+<div id="hello-banner"></div>
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div><h1>Elementary 12A – Weekly Practice</h1><div class="subtitle">Present Perfect · Life Experiences</div></div>
+  </div>
+</div>
+<div class="progress-section">
+  <div class="progress-label"><span>Weekly progress</span><span id="progress-pct">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="motivation-bar"><span id="motivation-text">Loading your daily message...</span></div>
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+<div class="content">
+<!-- ══ DAY 1 ══ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header"><div class="day-number">1</div><div><div class="day-title">Present Perfect – Affirmative & Negative</div><div class="day-desc">have / has · Rewrite with Never · Multiple Choice · Error Correction</div></div></div>
+  
+    <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Complete with have or has</div><div class="ex-instruction">Click <strong>have</strong> or <strong>has</strong> from the box and place it in the correct gap.</div><div class="example-box"><div class="ex-label">Example</div>She <strong style="color:var(--teal);">has</strong> visited London.</div><div id="d1_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d1n1-check">Check</button><button class="btn btn-secondary" id="d1n1-reset">Reset</button></div><div class="feedback" id="d1n1-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Complete with have / has + Past Participle</div><div class="ex-instruction">Complete each sentence with <strong>have</strong> or <strong>has</strong> + the past participle of the verb in brackets.</div><div class="example-box"><div class="ex-label">Example</div>She <strong style="color:var(--teal);">has visited</strong> (visit) London twice.</div><div id="d1e2"></div><div class="btn-row"><button class="btn btn-primary" id="d1e2-check">Check</button><button class="btn btn-secondary" id="d1e2-reset">Reset</button></div><div class="feedback" id="d1e2-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 3 – Have you ever…? (Multiple Choice)</div><div class="ex-instruction">Choose the correct option (A, B, or C) to complete each Present Perfect question or short answer.</div><div class="example-box"><div class="ex-label">Example</div><strong style="color:var(--teal);">A. Have</strong> you ever tried seafood risotto?</div><div id="d1e3"></div><div class="btn-row"><button class="btn btn-primary" id="d1e3-check">Check</button><button class="btn btn-secondary" id="d1e3-reset">Reset</button></div><div class="feedback" id="d1e3-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 4 – Error Correction</div><div class="ex-instruction">Each sentence has one mistake. Write the corrected sentence in full.</div><div class="example-box"><div class="ex-label">Example</div>Incorrect: I <span style="color:var(--red);">has</span> visited the national museum. → Correct: <strong style="color:var(--teal);">I have visited the national museum.</strong></div><div id="d1e4"></div><div class="btn-row"><button class="btn btn-primary" id="d1e4-check">Check</button><button class="btn btn-secondary" id="d1e4-reset">Reset</button></div><div class="feedback" id="d1e4-fb"></div></div>
+</div>
+
+<!-- ══ DAY 2 ══ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header"><div class="day-number">2</div><div><div class="day-title">Present Perfect – Negative & Questions</div><div class="day-desc">haven't / hasn't · Question Formation · Match Short Answers · Click-to-Fill</div></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Negative Statements (haven't / hasn't)</div><div class="ex-instruction">Complete each sentence with <strong>haven't</strong> or <strong>hasn't</strong> + the past participle of the verb in brackets.</div><div class="example-box"><div class="ex-label">Example</div>He <strong style="color:var(--teal);">hasn't booked</strong> (not book) the hotel tickets yet.</div><div id="d2e1"></div><div class="btn-row"><button class="btn btn-primary" id="d2e1-check">Check</button><button class="btn btn-secondary" id="d2e1-reset">Reset</button></div><div class="feedback" id="d2e1-fb"></div></div>
+  
+    <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Put the Words in Order</div><div class="ex-instruction">Click the words to build the correct question. Click a word again to send it back. The example is already done.</div><div class="example-box"><div class="ex-label">Example</div>ever / Have / travelled / you / ? → <strong style="color:var(--teal);">Have you ever travelled?</strong></div><div id="d2_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d2n1-check">Check</button><button class="btn btn-secondary" id="d2n1-reset">Reset</button></div><div class="feedback" id="d2n1-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 3 – Match Questions to Short Answers</div><div class="ex-instruction">Click a question on the left, then click the matching short answer on the right.</div><div class="example-box"><div class="ex-label">Example</div>Have you ever traveled by plane? → <strong style="color:var(--teal);">Yes, I have.</strong></div><div id="d2e3"></div><div class="btn-row"><button class="btn btn-primary" id="d2e3-check">Check</button><button class="btn btn-secondary" id="d2e3-reset">Reset</button></div><div class="feedback" id="d2e3-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 4 – Complete with the Correct Present Perfect Form</div><div class="ex-instruction">Click a word from the box, then click the gap to fill it. The example is already done.</div><div id="d2e4"></div><div class="btn-row"><button class="btn btn-primary" id="d2e4-check">Check</button><button class="btn btn-secondary" id="d2e4-reset">Reset</button></div><div class="feedback" id="d2e4-fb"></div></div>
+</div>
+
+<!-- ══ DAY 3 ══ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header"><div class="day-number">3</div><div><div class="day-title">Never · Dialogues · Reading</div><div class="day-desc">Match Q&amp;A · Dialogue Fill · Rewrite with Never · True or False</div></div></div>
+  
+    <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Match the Questions and Answers</div><div class="ex-instruction">Click a question on the left, then click the correct short answer on the right.</div><div class="example-box"><div class="ex-label">Example</div>Have you ever visited London? → <strong style="color:var(--teal);">Yes, I have.</strong></div><div id="d3_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d3n1-check">Check</button><button class="btn btn-secondary" id="d3n1-reset">Reset</button></div><div class="feedback" id="d3n1-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Complete the Dialogue</div><div class="ex-instruction">Fill in each blank with <strong>Have</strong>, <strong>ordered</strong>, <strong>travelled</strong>, or <strong>has</strong>.</div><div class="example-box"><div class="ex-label">Example</div><span style="color:var(--orange);">A:</span> Have you ever visited France? &nbsp; <span style="color:var(--orange);">B:</span> Yes, I have.</div><div id="d3e2"></div><div class="btn-row"><button class="btn btn-primary" id="d3e2-check">Check</button><button class="btn btn-secondary" id="d3e2-reset">Reset</button></div><div class="feedback" id="d3e2-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 3 – Rewrite with <em>Never</em></div><div class="ex-instruction">Rewrite each negative sentence using <strong>never</strong> instead of <em>not</em>. Write the full new sentence.</div><div class="example-box"><div class="ex-label">Example</div>I haven't visited an art gallery. → <strong style="color:var(--teal);">I have never visited an art gallery.</strong></div><div id="d3e3"></div><div class="btn-row"><button class="btn btn-primary" id="d3e3-check">Check</button><button class="btn btn-secondary" id="d3e3-reset">Reset</button></div><div class="feedback" id="d3e3-fb"></div></div>
+  <div class="ex-card reading"><div class="ex-title">Exercise 4 – Reading: True or False?</div><div class="ex-instruction">Read the text about Laura and click <strong>T</strong> (True) or <strong>F</strong> (False) for each statement.</div><div class="reading-text">"Laura is a travel writer. She has lived in three countries: England, Italy, and Japan. She has visited over thirty famous museums around the world, but she has never rented a car abroad because she prefers taking the train. She has also cooked traditional meals with local chefs in every place she visits."</div><div class="example-box"><div class="ex-label">Example</div>Laura is a travel writer. → <strong style="color:var(--teal);">T (True)</strong></div><div id="d3e4"></div><div class="btn-row"><button class="btn btn-primary" id="d3e4-check">Check</button><button class="btn btn-secondary" id="d3e4-reset">Reset</button></div><div class="feedback" id="d3e4-fb"></div></div>
+</div>
+
+<!-- ══ DAY 4 ══ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header"><div class="day-number">4</div><div><div class="day-title">Present Perfect – Review</div><div class="day-desc">Dialogue · Word Order · Error Correction</div></div></div>
+  
+    <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Complete the Dialogue</div><div class="ex-instruction">Click a question from the box, then click the gap to place it in the correct position in the dialogue.</div><div id="d4_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d4n1-check">Check</button><button class="btn btn-secondary" id="d4n1-reset">Reset</button></div><div class="feedback" id="d4n1-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Put the Words in Order</div><div class="ex-instruction">Click the words to build the correct Present Perfect question. Click a word again to send it back.</div><div class="example-box"><div class="ex-label">Example</div>ever / Have / a theater show / watched / you / ? → <strong style="color:var(--teal);">Have you ever watched a theater show?</strong></div><div id="d4e2"></div><div class="btn-row"><button class="btn btn-primary" id="d4e2-check">Check</button><button class="btn btn-secondary" id="d4e2-reset">Reset</button></div><div class="feedback" id="d4e2-fb"></div></div>
+  
+  <div class="ex-card grammar"><div class="ex-title">Exercise 4 – Spot and Correct the Mistakes</div><div class="ex-instruction">Find the error in each sentence and write the corrected version in full.</div><div class="example-box"><div class="ex-label">Example</div>I have never <span style="color:var(--red);">stay</span> in that hotel. → <strong style="color:var(--teal);">I have never stayed in that hotel.</strong></div><div id="d4e4"></div><div class="btn-row"><button class="btn btn-primary" id="d4e4-check">Check</button><button class="btn btn-secondary" id="d4e4-reset">Reset</button></div><div class="feedback" id="d4e4-fb"></div></div>
+</div>
+
+<!-- ══ DAY 5 ══ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header"><div class="day-number">5</div><div><div class="day-title">ever / never · Dialogue · Negatives</div><div class="day-desc">Match Verb + Noun · Insert ever/never · Dialogue · Transform to Negative</div></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Match Verb to Noun Phrase</div><div class="ex-instruction">Click a verb on the left, then click the noun phrase on the right that goes with it to form a natural expression.</div><div class="example-box"><div class="ex-label">Example</div>Visit → <strong style="color:var(--teal);">a famous museum</strong></div><div id="d5e1"></div><div class="btn-row"><button class="btn btn-primary" id="d5e1-check">Check</button><button class="btn btn-secondary" id="d5e1-reset">Reset</button></div><div class="feedback" id="d5e1-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Insert <em>ever</em> or <em>never</em></div><div class="ex-instruction">Rewrite each sentence inserting <strong>ever</strong> or <strong>never</strong> in the correct position (shown in brackets). Write the full new sentence.</div><div class="example-box"><div class="ex-label">Example</div>I have visited that town. (never) → <strong style="color:var(--teal);">I have never visited that town.</strong></div><div id="d5e2"></div><div class="btn-row"><button class="btn btn-primary" id="d5e2-check">Check</button><button class="btn btn-secondary" id="d5e2-reset">Reset</button></div><div class="feedback" id="d5e2-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 3 – Dialogue Completion</div><div class="ex-instruction">Complete the dialogue using the Present Perfect form of the verbs in brackets.</div><div id="d5e3"></div><div class="btn-row"><button class="btn btn-primary" id="d5e3-check">Check</button><button class="btn btn-secondary" id="d5e3-reset">Reset</button></div><div class="feedback" id="d5e3-fb"></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 4 – Transform to Negative</div><div class="ex-instruction">Change each affirmative sentence to a negative one using <strong>haven't</strong> or <strong>hasn't</strong>. Write the full sentence.</div><div class="example-box"><div class="ex-label">Example</div>I have lived in London. → <strong style="color:var(--teal);">I haven't lived in London.</strong></div><div id="d5e4"></div><div class="btn-row"><button class="btn btn-primary" id="d5e4-check">Check</button><button class="btn btn-secondary" id="d5e4-reset">Reset</button></div><div class="feedback" id="d5e4-fb"></div></div>
+</div>
+
+<!-- ══ DAY 6 ══ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header"><div class="day-number">6</div><div><div class="day-title">Mixed Present Perfect Practice</div><div class="day-desc">Choose Correct Sentence · Complete with Have/Has/ever · Reading Fill</div></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Choose the Correct Sentence</div><div class="ex-instruction">Select the grammatically correct sentence (A, B, or C).</div><div class="example-box"><div class="ex-label">Example</div><strong style="color:var(--teal);">B. I have visited Paris.</strong> (A uses wrong auxiliary; C missing past participle)</div><div id="d6e1"></div><div class="btn-row"><button class="btn btn-primary" id="d6e1-check">Check</button><button class="btn btn-secondary" id="d6e1-reset">Reset</button></div><div class="feedback" id="d6e1-fb"></div></div>
+  
+    <div class="ex-card grammar"><div class="ex-title">Exercise 2 – Complete with Have, Has, or ever</div><div class="ex-instruction">Fill in each gap with <strong>Have</strong>, <strong>Has</strong>, or <strong>ever</strong>.</div><div class="example-box"><div class="ex-label">Example</div><strong style="color:var(--teal);">Have</strong> you <strong style="color:var(--teal);">ever</strong> travelled by plane?</div><div id="d6_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d6n1-check">Check</button><button class="btn btn-secondary" id="d6n1-reset">Reset</button></div><div class="feedback" id="d6n1-fb"></div></div>
+  <div class="ex-card reading"><div class="ex-title">Exercise 3 – Reading: Fill in have / has / ever / never</div><div class="ex-instruction">Read the interview and fill in each blank with <strong>have</strong>, <strong>has</strong>, <strong>ever</strong>, or <strong>never</strong>.</div><div id="d6e3"></div><div class="btn-row"><button class="btn btn-primary" id="d6e3-check">Check</button><button class="btn btn-secondary" id="d6e3-reset">Reset</button></div><div class="feedback" id="d6e3-fb"></div></div>
+  
+</div>
+
+<!-- ══ DAY 7 ══ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header"><div class="day-number">7</div><div><div class="day-title">Final Review & Writing Challenge</div><div class="day-desc">Integrated Text Fill · Writing: My Life Experiences</div></div></div>
+  <div class="ex-card grammar"><div class="ex-title">Exercise 1 – Integrated Review</div><div class="ex-instruction">Complete the text using the correct Present Perfect forms of the verbs in brackets.</div><div id="d7e1"></div><div class="btn-row"><button class="btn btn-primary" id="d7e1-check">Check</button><button class="btn btn-secondary" id="d7e1-reset">Reset</button></div><div class="feedback" id="d7e1-fb"></div></div>
+  <div class="ex-card reading"><div class="ex-title">Exercise 2 – Reading: Olivia's Experiences</div><div class="ex-instruction">Read the text and write short answers to the questions.</div><div class="reading-text">"Hi! My name is Olivia. I have travelled to three countries. I have stayed in small hotels and I have visited many museums. I have tried local food in every country, but I have never rented a car. I have watched many classic films about Europe because I love travelling."</div><div id="d7_new1"></div><div class="btn-row"><button class="btn btn-primary" id="d7n1-check">Check</button><button class="btn btn-secondary" id="d7n1-reset">Reset</button></div><div class="feedback" id="d7n1-fb"></div></div>
+  <div class="ex-card writing">
+    <div class="ex-title">Writing Challenge – My Life Experiences</div>
+    <div class="ex-instruction">Write a short paragraph (25–40 words) about your own life experiences or those of a family member or friend.</div>
+    <ul style="font-size:0.82rem;color:var(--gray);margin-bottom:14px;padding-left:18px;line-height:2.2;">
+      <li>At least <strong>two Present Perfect affirmative sentences</strong> (e.g., I have visited…, She has lived…)</li>
+      <li>At least <strong>one sentence with 'never'</strong> (e.g., I have never rented…)</li>
+      <li>Include <strong>places, activities, or cultural experiences</strong> from the unit vocabulary</li>
+    </ul>
+    <div class="example-box"><div class="ex-label">Model Answer</div>"I have visited three different countries in Europe. I have stayed in a historic hotel near a famous museum, and I have tried traditional local food. However, I have never rented a car abroad!" (34 words)</div>
+    <textarea class="writing-area" id="d7e2-text" placeholder="Write your paragraph here..."></textarea>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e2-check">Submit</button><button class="btn btn-secondary" id="d7e2-reset">Clear</button></div>
+    <div class="feedback" id="d7e2-fb"></div>
+    <div id="weekly-summary" style="display:none;margin-top:20px;">
+      <div class="summary-card"><h3>Week Complete!</h3><p>You finished all 7 days of Elementary 12A. Excellent work!</p><div class="score-big" id="final-score">0</div><p style="margin-top:4px;">exercises checked</p><div class="btn-row" style="justify-content:center;margin-top:16px;"><button class="btn btn-whatsapp" id="summary-whatsapp">Send to Teacher Mari</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VOCAB BANK ══ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header"><div class="day-number" style="font-size:0.75rem;width:42px;height:42px;">V</div><div><div class="day-title">Vocabulary Bank</div><div class="day-desc">Unit 12A – Key Words</div></div></div>
+  <div class="bank-section"><div class="bank-title">Verbs (base form → past participle)</div><div class="vocab-grid" id="vocab-verbs"></div></div>
+  <div class="bank-section"><div class="bank-title">Places & Experiences</div><div class="vocab-grid" id="vocab-places"></div></div>
+</div>
+
+<!-- ══ GRAMMAR BANK ══ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header"><div class="day-number" style="font-size:0.75rem;width:42px;height:42px;">G</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Present Perfect – Structure & Use</div></div></div>
+  <div class="bank-section"><div class="bank-title">Affirmative</div><table class="grammar-table"><tr><th>Subject</th><th>Auxiliary</th><th>Past Participle</th><th>Example</th></tr><tr><td>I / You / We / They</td><td class="orange">have</td><td>visited / lived / played</td><td>I <strong>have visited</strong> Rome.</td></tr><tr><td>He / She / It</td><td class="orange">has</td><td>visited / lived / played</td><td>She <strong>has lived</strong> in London.</td></tr></table></div>
+  <div class="bank-section"><div class="bank-title">Negative</div><table class="grammar-table"><tr><th>Subject</th><th>Auxiliary</th><th>Past Participle</th><th>Example</th></tr><tr><td>I / You / We / They</td><td class="red">haven't</td><td>travelled / booked</td><td>I <strong>haven't travelled</strong> by ship.</td></tr><tr><td>He / She / It</td><td class="red">hasn't</td><td>worked / tried</td><td>She <strong>hasn't booked</strong> the hotel.</td></tr></table></div>
+  <div class="bank-section"><div class="bank-title">Questions with <em>ever</em></div><table class="grammar-table"><tr><th>Question</th><th>Yes</th><th>No</th></tr><tr><td>Have <strong>you / we / they</strong> ever visited…?</td><td class="teal">Yes, I / we / they have.</td><td class="red">No, I / we / they haven't.</td></tr><tr><td>Has <strong>he / she</strong> ever lived…?</td><td class="teal">Yes, he / she has.</td><td class="red">No, he / she hasn't.</td></tr></table></div>
+  <div class="bank-section"><div class="bank-title">Never</div><table class="grammar-table"><tr><th>Structure</th><th>Example</th></tr><tr><td>Subject + <span class="orange">have/has never</span> + past participle</td><td>I <strong>have never rented</strong> a car abroad.</td></tr></table><div class="tip-box">Use <strong>never</strong> in affirmative sentences to express a negative life experience. It goes between <em>have/has</em> and the past participle.</div></div>
+  <div class="bank-section"><div class="bank-title">Regular Past Participles</div><table class="grammar-table"><tr><th>Base Form</th><th>Past Participle</th><th>Rule</th></tr><tr><td>visit</td><td class="teal">visited</td><td>+ ed</td></tr><tr><td>watch</td><td class="teal">watched</td><td>+ ed</td></tr><tr><td>travel</td><td class="teal">travelled / traveled</td><td>+ led</td></tr><tr><td>live</td><td class="teal">lived</td><td>+ d (ends in -e)</td></tr><tr><td>play</td><td class="teal">played</td><td>+ ed</td></tr><tr><td>book</td><td class="teal">booked</td><td>+ ed</td></tr><tr><td>try</td><td class="teal">tried</td><td>y → ied</td></tr><tr><td>arrive</td><td class="teal">arrived</td><td>+ d</td></tr><tr><td>work</td><td class="teal">worked</td><td>+ ed</td></tr><tr><td>cook</td><td class="teal">cooked</td><td>+ ed</td></tr></table></div>
+</div>
+
+</div><!-- /content -->
+<script>
+
+// ══ WELCOME ══
+(function(){
+  const ws=document.getElementById('welcome-screen');
+  const hb=document.getElementById('hello-banner');
+  function showBanner(name){hb.textContent=`Welcome${name?', '+name:''}! Let's practise Present Perfect today!`;hb.classList.add('show');}
+  const stored=localStorage.getItem('teachermari_student_name');
+  if(stored){ws.classList.add('hidden');showBanner(stored);}
+  document.getElementById('welcome-start-btn').addEventListener('click',()=>{
+    const n=document.getElementById('student-name-input').value.trim();
+    if(!n)return;
+    localStorage.setItem('teachermari_student_name',n);
+    ws.classList.add('hidden');showBanner(n);
+  });
+  document.getElementById('student-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('welcome-start-btn').click();});
+})();
+
+// ══ PROGRESS ══
+const STORAGE_KEY='teachermari_elementary12a';
+let appState=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+let totalChecked=parseInt(appState.totalChecked||0);
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(appState));}
+function updateProgress(){
+  const pct=Math.min(100,Math.round((totalChecked/25)*100));
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+updateProgress();
+const MOTIVATIONS=['Every sentence you write is progress!','Mistakes help you learn — try again!','Present Perfect? You have got this!','One day closer to fluency. Keep going!','You are doing better than yesterday!','Practice makes progress, not just perfect!','Teacher Mari is proud of your effort!'];
+document.getElementById('motivation-text').textContent=MOTIVATIONS[new Date().getDay()%MOTIVATIONS.length];
+
+// ══ TABS ══
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// ══ HELPERS ══
+function showFeedback(id,msg,type){const el=document.getElementById(id);el.innerHTML=msg;el.className='feedback show '+type;}
+function scoreText(correct,total){
+  if(correct===total)return{msg:`All ${total} correct! Excellent work!`,type:'ok'};
+  if(correct>=total*0.7)return{msg:`${correct}/${total} correct. Good effort! Review the errors and try again.`,type:'partial'};
+  return{msg:`${correct}/${total} correct. Keep practising — you can do it!`,type:'err'};
+}
+function incrementChecked(exId){totalChecked++;appState.totalChecked=totalChecked;saveState();updateProgress();if(exId)markExerciseDone(exId);}
+
+function buildMC(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='mc-item';
+    div.innerHTML=`<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">`+
+      item.opts.map((o,j)=>`<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(65+j)}) ${o}</label>`).join('')+'</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt=>{
+    opt.addEventListener('click',()=>{opt.querySelector('input').checked=true;opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected'));opt.classList.add('selected');});
+  });
+}
+function checkMC(data,prefix,fbId,exId){
+  let correct=0;
+  data.forEach((item,i)=>{
+    const opts=document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o=>o.classList.remove('correct','wrong'));
+    const itemDiv=opts[0]?opts[0].closest('.mc-item'):null;
+    if(itemDiv){const h=itemDiv.querySelector('.mc-explain');if(h)h.remove();}
+    const sel=document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if(sel){
+      const v=parseInt(sel.value);
+      opts[v].classList.add(v===item.ans?'correct':'wrong');
+      if(v===item.ans)correct++;
+      else{
+        opts[item.ans].classList.add('correct');
+        if(item.why&&itemDiv){
+          const hint=document.createElement('div');hint.className='mc-explain';
+          hint.style.cssText='margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent='Why: '+item.why;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend',hint);
+        }
+      }
+    }
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetMC(containerId,prefix,data,fbId){
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o=>o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h=>h.remove());
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildFill(containerId,items){
+  const wrap=document.getElementById(containerId);
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const parts=item.line.split('___');
+    let html=`<div class="fill-line">${i+1}. ${parts[0]}`;
+    for(let k=1;k<parts.length;k++){
+      html+=`<input class="fill-input${item.wide?' wide':''}" id="fill_${containerId}_${i}_${k-1}" placeholder="...">${parts[k]}`;
+    }
+    html+='</div>';
+    div.innerHTML=html;wrap.appendChild(div);
+  });
+}
+function checkFillCustom(items,containerId,fbId,exId,explanations){
+  let correct=0,total=0;
+  items.forEach((item,i)=>{
+    const nb=(item.line.match(/___/g)||[]).length;
+    for(let k=0;k<nb;k++){
+      total++;
+      const inp=document.getElementById(`fill_${containerId}_${i}_${k}`);
+      if(!inp)return;
+      inp.classList.remove('correct','wrong');
+      inp.parentElement.querySelectorAll(`.fhint[data-for="fill_${containerId}_${i}_${k}"]`).forEach(h=>h.remove());
+      const val=inp.value.trim().toLowerCase().replace(/[?!.]/g,'').replace(/\s+/g,' ');
+      const ans=item.ans[k];
+      const accepted=Array.isArray(ans)?ans.map(a=>a.toLowerCase().replace(/[?!.]/g,'').replace(/\s+/g,' ')):[ans.toLowerCase().replace(/[?!.]/g,'').replace(/\s+/g,' ')];
+      if(accepted.includes(val)){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const ca=Array.isArray(ans)?ans[0]:ans;
+        const hint=document.createElement('span');hint.className='fhint';hint.dataset.for=`fill_${containerId}_${i}_${k}`;
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.79rem;margin-left:6px;display:inline-block;line-height:1.4;';
+        hint.textContent=`Correct: "${ca}"${explanations&&explanations[i]?' — '+explanations[i]:''}`;
+        inp.insertAdjacentElement('afterend',hint);
+      }
+    }
+  });
+  const r=scoreText(correct,total);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetFillCustom(items,containerId,fbId){
+  items.forEach((item,i)=>{
+    const nb=(item.line.match(/___/g)||[]).length;
+    for(let k=0;k<nb;k++){
+      const inp=document.getElementById(`fill_${containerId}_${i}_${k}`);
+      if(inp){inp.value='';inp.className='fill-input'+(item.wide?' wide':'');}
+      document.querySelectorAll(`.fhint[data-for="fill_${containerId}_${i}_${k}"]`).forEach(h=>h.remove());
+    }
+  });
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildTF(containerId,data,prefix){
+  const wrap=document.getElementById(containerId);const sel={};
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='tf-item';
+    div.innerHTML=`<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">T</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">F</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const idx=btn.id.replace(`${prefix}t_`,'').replace(`${prefix}f_`,'');
+      sel[idx]=btn.dataset.val;
+      ['t','f'].forEach(x=>{const b=document.getElementById(`${prefix}${x}_${idx}`);if(b)b.classList.remove('selected-t','selected-f');});
+      btn.classList.add(btn.dataset.val==='T'?'selected-t':'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data,sel,fbId,exId,prefix,explanations){
+  let correct=0;
+  data.forEach((item,i)=>{
+    ['t','f'].forEach(x=>{const b=document.getElementById(`${prefix}${x}_${i}`);if(b)b.classList.remove('wrong-sel','right-answer');});
+    const eh=document.getElementById(`${prefix}-tfhint-${i}`);if(eh)eh.remove();
+    if(sel[i]===item.ans){correct++;}
+    else{
+      if(sel[i]){const wb=document.getElementById(`${prefix}${sel[i].toLowerCase()}_${i}`);if(wb)wb.classList.add('wrong-sel');}
+      const rb=document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);if(rb)rb.classList.add('right-answer');
+      if(explanations&&explanations[i]){
+        const hint=document.createElement('div');hint.id=`${prefix}-tfhint-${i}`;
+        hint.style.cssText='font-size:0.78rem;color:var(--teal);margin-top:4px;margin-left:4px;font-weight:600;';
+        hint.textContent='Why: '+explanations[i];
+        const line=document.getElementById(`${prefix}t_${i}`).closest('.tf-line');
+        line.insertAdjacentElement('afterend',hint);
+      }
+    }
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetTF(data,sel,prefix,fbId){
+  Object.keys(sel).forEach(k=>delete sel[k]);
+  data.forEach((_,i)=>{
+    ['t','f'].forEach(x=>{const b=document.getElementById(`${prefix}${x}_${i}`);if(b)b.classList.remove('selected-t','selected-f','wrong-sel','right-answer');});
+    const h=document.getElementById(`${prefix}-tfhint-${i}`);if(h)h.remove();
+  });
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildClickMatch(containerId,data){
+  const wrap=document.getElementById(containerId);
+  const rs=data.map((item,i)=>({text:item.right,originalIndex:i}));
+  for(let i=rs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rs[i],rs[j]]=[rs[j],rs[i]];}
+  const cw=document.createElement('div');cw.className='cm-wrap';
+  const lc=document.createElement('div');lc.className='cm-col';
+  const rc=document.createElement('div');rc.className='cm-col';
+  data.forEach((item,i)=>{const d=document.createElement('div');d.className='cm-item';d.dataset.side='left';d.dataset.idx=i;d.textContent=item.left;lc.appendChild(d);});
+  rs.forEach(item=>{const d=document.createElement('div');d.className='cm-item';d.dataset.side='right';d.dataset.idx=item.originalIndex;d.textContent=item.text;rc.appendChild(d);});
+  cw.appendChild(lc);cw.appendChild(rc);wrap.appendChild(cw);
+  const links={};let selLeft=null,pc=0;
+  cw.addEventListener('click',e=>{
+    const item=e.target.closest('.cm-item');
+    if(!item||item.classList.contains('linked'))return;
+    if(item.dataset.side==='left'){
+      if(selLeft===item){item.classList.remove('active');selLeft=null;return;}
+      lc.querySelectorAll('.cm-item').forEach(c=>c.classList.remove('active'));
+      item.classList.add('active');selLeft=item;
+    }else{
+      if(!selLeft)return;pc++;
+      const li=selLeft.dataset.idx;links[li]=item.dataset.idx;
+      selLeft.classList.remove('active');selLeft.classList.add('linked');item.classList.add('linked');
+      selLeft.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());item.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());
+      const bL=document.createElement('span');bL.className='cm-pair-num';bL.textContent=pc;
+      const bR=document.createElement('span');bR.className='cm-pair-num';bR.textContent=pc;
+      selLeft.appendChild(bL);item.appendChild(bR);
+      selLeft.dataset.pairNum=pc;item.dataset.pairNum=pc;selLeft=null;
+    }
+  });
+  return{links,lc,rc,data};
+}
+function checkClickMatch(state,fbId,exId){
+  let correct=0;const{links,lc,rc,data}=state;
+  lc.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  rc.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item,i)=>{
+    const lEl=lc.querySelector(`.cm-item[data-idx="${i}"]`);
+    const lri=links[i];const cREl=rc.querySelector(`.cm-item[data-idx="${i}"]`);
+    if(lri===undefined){if(cREl)cREl.classList.add('correct-link');if(lEl)lEl.classList.add('wrong-link');return;}
+    if(parseInt(lri)===i){correct++;lEl.classList.add('correct-link');if(cREl)cREl.classList.add('correct-link');}
+    else{lEl.classList.add('wrong-link');const wEl=rc.querySelector(`.cm-item[data-idx="${lri}"]`);if(wEl)wEl.classList.add('wrong-link');if(cREl)cREl.classList.add('correct-link');}
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetClickMatch(state,fbId){
+  const{links,lc,rc}=state;Object.keys(links).forEach(k=>delete links[k]);
+  [lc,rc].forEach(col=>col.querySelectorAll('.cm-item').forEach(el=>{el.classList.remove('active','linked','correct-link','wrong-link');el.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());delete el.dataset.pairNum;}));
+  document.getElementById(fbId).className='feedback';
+}
+
+function buildCTFSentences(cfg){
+  const wrap=document.getElementById(cfg.containerId);
+  const list=document.createElement('div');const si=cfg.startIndex||1;
+  cfg.items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const html=item.line.replace(/___/g,()=>`<span class="ctf-gap" data-ans="${item.ans}"></span>`);
+    div.innerHTML=`<div class="fill-line">${i+si}. ${html}</div>`;list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank=document.createElement('div');bank.className='ctf-wordbank';
+  cfg.words.forEach((w,wi)=>{const btn=document.createElement('button');btn.className='ctf-chip';btn.dataset.word=w;btn.dataset.wi=wi;btn.textContent=w;bank.appendChild(btn);});
+  wrap.appendChild(bank);
+  let selected=null;
+  bank.addEventListener('click',e=>{
+    const chip=e.target.closest('.ctf-chip');if(!chip||chip.classList.contains('used'))return;
+    if(selected&&selected.chipEl===chip){chip.classList.remove('active');selected=null;list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(selected)selected.chipEl.classList.remove('active');
+    chip.classList.add('active');selected={chipEl:chip,word:chip.dataset.word,wi:chip.dataset.wi};
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.toggle('ready',!g.textContent));
+  });
+  list.addEventListener('click',e=>{
+    const gap=e.target.closest('.ctf-gap');if(!gap)return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if(gap.textContent&&!selected){const cB=bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.filledWi}"]`);if(cB)cB.classList.remove('used');gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(!selected)return;
+    if(gap.textContent){const cB=bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.filledWi}"]`);if(cB)cB.classList.remove('used');}
+    gap.textContent=selected.word;gap.dataset.filled=selected.word;gap.dataset.filledWi=selected.wi;
+    selected.chipEl.classList.remove('active');selected.chipEl.classList.add('used');selected=null;
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click',()=>{
+    let correct=0,total=0;
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{
+      total++;gap.classList.remove('correct-gap','wrong-gap','ready');
+      gap.parentElement.querySelectorAll('.ctf-hint').forEach(h=>h.remove());
+      const filled=(gap.textContent||'').trim().toLowerCase();const ans=(gap.dataset.ans||'').toLowerCase();
+      if(filled===ans){gap.classList.add('correct-gap');correct++;}
+      else{gap.classList.add('wrong-gap');const hint=document.createElement('span');hint.className='ctf-hint';hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';hint.textContent=`Correct: ${gap.dataset.ans}`;gap.insertAdjacentElement('afterend',hint);}
+    });
+    const r=scoreText(correct,total);showFeedback(cfg.fbId,r.msg,r.type);incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click',()=>{
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';gap.classList.remove('correct-gap','wrong-gap','ready');});
+    list.querySelectorAll('.ctf-hint').forEach(h=>h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c=>c.classList.remove('used','active'));
+    selected=null;document.getElementById(cfg.fbId).className='feedback';
+  });
+}
+
+// helper: inline dialogue check
+function makeDialogueCheck(dialogueData,fbId,exId){
+  document.getElementById(fbId.replace('-fb','-check')).addEventListener('click',()=>{
+    let correct=0;
+    dialogueData.forEach(item=>{
+      const inp=document.getElementById(item.id);if(!inp)return;
+      inp.classList.remove('correct','wrong');
+      inp.parentElement.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());
+      const val=inp.value.trim().toLowerCase().replace(/[?!.]/g,'').replace(/\s+/g,' ');
+      const accepted=item.ans.map(a=>a.toLowerCase().replace(/[?!.]/g,'').replace(/\s+/g,' '));
+      if(accepted.includes(val)){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');const hint=document.createElement('span');hint.className='fhint';hint.dataset.for=item.id;
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.79rem;margin-left:6px;display:inline-block;line-height:1.4;';
+        hint.textContent=`Correct: "${item.ans[0]}" — ${item.expl}`;inp.insertAdjacentElement('afterend',hint);
+      }
+    });
+    const r=scoreText(correct,dialogueData.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+  });
+  document.getElementById(fbId.replace('-fb','-reset')).addEventListener('click',()=>{
+    dialogueData.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input wide';}document.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());});
+    document.getElementById(fbId).className='feedback';
+  });
+}
+
+// ── SENTENCE BUILDER (click words in order to build a sentence) ──
+function buildSentenceBuilder(containerId, items, prefix) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = `
+      <div class="sb-label">${i+1}.</div>
+      <div class="sb-words" id="${prefix}-words-${i}">
+        ${shuffled.map(w => `<button class="sb-chip" data-word="${w}" data-item="${i}">${w}</button>`).join('')}
+      </div>
+      <div class="sb-label">Your question:</div>
+      <div class="sb-zone" id="${prefix}-zone-${i}"></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if (chip.parentElement === words) {
+      chip.classList.add('in-zone');
+      zone.appendChild(chip);
+    } else {
+      chip.classList.remove('in-zone');
+      words.appendChild(chip);
+    }
+  });
+}
+function checkSentenceBuilder(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const zone = document.getElementById(`${prefix}-zone-${i}`);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    const existingHint = document.getElementById(`${prefix}-hint-${i}`);
+    if (existingHint) existingHint.remove();
+    if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      const hint = document.createElement('div');
+      hint.id = `${prefix}-hint-${i}`;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = `✔ ${item.ans}`;
+      zone.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetSentenceBuilder(items, prefix, fbId) {
+  items.forEach((item, i) => {
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    const hint = document.getElementById(`${prefix}-hint-${i}`);
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ DAY 1 ══
+const d1e2Items=[
+  {line:'They ___ (play) tennis in three different countries.',ans:['have played'],wide:true},
+  {line:'He ___ (live) in a big house near the museum.',ans:['has lived'],wide:true},
+  {line:'I ___ (watch) many classic films on my tablet.',ans:['have watched'],wide:true},
+  {line:'We ___ (travel) to Spain by plane.',ans:['have travelled','have traveled'],wide:true},
+];
+const d1e2Expl=['"They" → have. Past participle of play = played.','"He" is third person singular → has. Past participle of live = lived.','"I" → have. Past participle of watch = watched.','"We" → have. Past participle of travel = travelled/traveled.'];
+buildFill('d1e2',d1e2Items);
+document.getElementById('d1e2-check').addEventListener('click',()=>checkFillCustom(d1e2Items,'d1e2','d1e2-fb','d1e2',d1e2Expl));
+document.getElementById('d1e2-reset').addEventListener('click',()=>resetFillCustom(d1e2Items,'d1e2','d1e2-fb'));
+
+const d1e3Data=[
+  {q:'___ she ever lived in another country?',opts:['Have','Has','Is'],ans:1,why:'"She" is third person singular. Use "Has" with he/she/it.'},
+  {q:'Have they ever ___ in a hotel near the station?',opts:['stay','stayed','staying'],ans:1,why:'After have/has, always use the past participle. "Stayed" is the past participle of "stay".'},
+  {q:'"Have you ever rented a car on holiday?" — "Yes, I ___."',opts:['have','has','do'],ans:0,why:'Short answer: "Yes, I have." Repeat the auxiliary "have" — do not use "do" or "has".'},
+  {q:'Has Mark ever ___ to a full opera show?',opts:['listen','listens','listened'],ans:2,why:'After "has", use the past participle. Past participle of "listen" = "listened".'},
+];
+buildMC('d1e3',d1e3Data,'d1e3');
+document.getElementById('d1e3-check').addEventListener('click',()=>checkMC(d1e3Data,'d1e3','d1e3-fb','d1e3'));
+document.getElementById('d1e3-reset').addEventListener('click',()=>resetMC('d1e3','d1e3',d1e3Data,'d1e3-fb'));
+
+const d1e4Items=[
+  {line:'Incorrect: She have lived in London for two years. → Correct: ___',ans:['She has lived in London for two years'],wide:true},
+  {line:'Incorrect: Have you ever stay in a castle? → Correct: ___',ans:['Have you ever stayed in a castle'],wide:true},
+  {line:'Incorrect: They has watched that classic film three times. → Correct: ___',ans:['They have watched that classic film three times'],wide:true},
+  {line:'Incorrect: We have travel by bus across Europe. → Correct: ___',ans:['We have travelled by bus across Europe','We have traveled by bus across Europe'],wide:true},
+];
+const d1e4Expl=['"She" is third person singular → use "has", not "have".','After "have" in questions, use the past participle "stayed", not the base form "stay".','"They" is plural → use "have", not "has".','After "have", use the past participle "travelled/traveled", not the base form "travel".'];
+buildFill('d1e4',d1e4Items);
+document.getElementById('d1e4-check').addEventListener('click',()=>checkFillCustom(d1e4Items,'d1e4','d1e4-fb','d1e4',d1e4Expl));
+document.getElementById('d1e4-reset').addEventListener('click',()=>resetFillCustom(d1e4Items,'d1e4','d1e4-fb'));
+
+// ══ DAY 2 ══
+const d2e1Items=[
+  {line:"I ___ (not try) the local food in this town.",ans:["haven't tried"],wide:true},
+  {line:"She ___ (not work) in a bank before.",ans:["hasn't worked"],wide:true},
+  {line:"They ___ (not arrive) at the railway station.",ans:["haven't arrived"],wide:true},
+  {line:"We ___ (not play) this computer game.",ans:["haven't played"],wide:true},
+];
+const d2e1Expl=['"I" → haven\'t. Past participle of try: tried.','"She" → hasn\'t. Past participle of work: worked.','"They" → haven\'t. Past participle of arrive: arrived.','"We" → haven\'t. Past participle of play: played.'];
+buildFill('d2e1',d2e1Items);
+document.getElementById('d2e1-check').addEventListener('click',()=>checkFillCustom(d2e1Items,'d2e1','d2e1-fb','d2e1',d2e1Expl));
+document.getElementById('d2e1-reset').addEventListener('click',()=>resetFillCustom(d2e1Items,'d2e1','d2e1-fb'));
+
+const d2e3Data=[
+  {left:'Has your brother ever worked abroad?',right:'Yes, he has.'},
+  {left:'Have you ever missed a flight at the airport?',right:"No, I haven't."},
+  {left:'Have your parents ever visited a museum in Paris?',right:"No, they haven't."},
+  {left:'Has Sarah ever studied Spanish at university?',right:'Yes, she has.'},
+];
+const d2e3state=buildClickMatch('d2e3',d2e3Data);
+document.getElementById('d2e3-check').addEventListener('click',()=>checkClickMatch(d2e3state,'d2e3-fb','d2e3'));
+document.getElementById('d2e3-reset').addEventListener('click',()=>resetClickMatch(d2e3state,'d2e3-fb'));
+
+(function(){
+  const wrap=document.getElementById('d2e4');
+  const exDiv=document.createElement('div');exDiv.className='fill-item';
+  exDiv.innerHTML=`<div class="fill-line">Example: I <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 4px;">have packed</span> my suitcase for the holiday. <span style="color:var(--orange);font-size:0.76rem;">(example)</span></div>`;
+  wrap.appendChild(exDiv);
+  buildCTFSentences({containerId:'d2e4',words:['has booked','have walked','has cooked','have packed'],
+    items:[{line:'She ___ a table at the new Italian restaurant.',ans:'has booked'},{line:'They ___ across the ancient bridge in the city centre.',ans:'have walked'},{line:'My grandfather ___ dinner for the whole family many times.',ans:'has cooked'},{line:'We ___ our bags for the trip to London.',ans:'have packed'}],
+    startIndex:1,exId:'d2e4',fbId:'d2e4-fb',checkId:'d2e4-check',resetId:'d2e4-reset'});
+})();
+
+// ══ DAY 3 ══
+(function(){
+  const wrap=document.getElementById('d3e2');
+  const dd=[
+    {speaker:'A',text:'___ (1) you ever tried mushroom risotto?',id:'d3e2_0',ans:['Have'],expl:'"You" uses "Have" in Present Perfect questions.'},
+    {speaker:'B',text:"No, I haven't, but I have ___ (2) seafood pasta before.",id:'d3e2_1',ans:['ordered'],expl:'After "have", use the past participle. Past participle of "order" = "ordered".'},
+    {speaker:'A',text:'Has your sister ___ (3) to South America?',id:'d3e2_2',ans:['travelled','traveled'],expl:'After "Has", use the past participle. Past participle of "travel" = "travelled/traveled".'},
+    {speaker:'B',text:'Yes, she ___ (4). She visited Brazil last year.',id:'d3e2_3',ans:['has'],expl:'Short answer: "Yes, she has." Repeat the auxiliary "has".'},
+  ];
+  dd.forEach(item=>{
+    const div=document.createElement('div');div.className='dialogue-line';
+    const parts=item.text.split('___');
+    div.innerHTML=`<span class="speaker">${item.speaker}:</span> <span class="fill-line">${parts[0]}<input class="fill-input wide" id="${item.id}" placeholder="...">${parts[1]||''}</span>`;
+    wrap.appendChild(div);
+  });
+  makeDialogueCheck(dd,'d3e2-fb','d3e2');
+})();
+
+const d3e3Items=[
+  {line:"She hasn't stayed in a five-star hotel. → ___",ans:['She has never stayed in a five-star hotel'],wide:true},
+  {line:"They haven't played golf in the rain. → ___",ans:['They have never played golf in the rain'],wide:true},
+  {line:"We haven't travelled by ship. → ___",ans:['We have never travelled by ship','We have never traveled by ship'],wide:true},
+  {line:"He hasn't used that mobile app. → ___",ans:['He has never used that mobile app'],wide:true},
+];
+const d3e3Expl=['Replace "hasn\'t" with "has never". The past participle stays the same.','Replace "haven\'t" with "have never".','Replace "haven\'t" with "have never".','Replace "hasn\'t" with "has never".'];
+buildFill('d3e3',d3e3Items);
+document.getElementById('d3e3-check').addEventListener('click',()=>checkFillCustom(d3e3Items,'d3e3','d3e3-fb','d3e3',d3e3Expl));
+document.getElementById('d3e3-reset').addEventListener('click',()=>resetFillCustom(d3e3Items,'d3e3','d3e3-fb'));
+
+const d3e4Data=[
+  {s:'Laura has lived in four different countries.',ans:'F'},
+  {s:'She has visited more than thirty museums.',ans:'T'},
+  {s:'She has rented cars many times in other countries.',ans:'F'},
+  {s:'She has never cooked with local chefs.',ans:'F'},
+];
+const d3e4Expl=['The text says she has lived in three countries: England, Italy, and Japan — not four.','The text says "over thirty famous museums" — more than thirty is correct.','The text says she has NEVER rented a car abroad.','The text says she HAS cooked traditional meals with local chefs.'];
+const d3e4sel=buildTF('d3e4',d3e4Data,'d3e4');
+document.getElementById('d3e4-check').addEventListener('click',()=>checkTF(d3e4Data,d3e4sel,'d3e4-fb','d3e4','d3e4',d3e4Expl));
+document.getElementById('d3e4-reset').addEventListener('click',()=>resetTF(d3e4Data,d3e4sel,'d3e4','d3e4-fb'));
+
+// ══ DAY 4 ══
+
+// D4E2 – Word Order Sentence Builder (converted from text fill)
+const d4e2SBItems=[
+  {words:['Have','you','ever','sung','in a choir','?'],ans:'Have you ever sung in a choir ?'},
+  {words:['Has','he','ever','painted','a portrait','?'],ans:'Has he ever painted a portrait ?'},
+  {words:['Have','they','ever','visited','a historic castle','?'],ans:'Have they ever visited a historic castle ?'},
+  {words:['Has','she','ever','studied','classical music','?'],ans:'Has she ever studied classical music ?'},
+];
+buildSentenceBuilder('d4e2',d4e2SBItems,'d4e2sb');
+document.getElementById('d4e2-check').addEventListener('click',()=>checkSentenceBuilder(d4e2SBItems,'d4e2sb','d4e2-fb','d4e2'));
+document.getElementById('d4e2-reset').addEventListener('click',()=>resetSentenceBuilder(d4e2SBItems,'d4e2sb','d4e2-fb'));
+
+const d4e4Items=[
+  {line:"Has you ever visited the modern art museum? → ___",ans:['Have you ever visited the modern art museum'],wide:true},
+  {line:"My friends has travelled across South America. → ___",ans:['My friends have travelled across South America','My friends have traveled across South America'],wide:true},
+  {line:"She has never try vegetarian food. → ___",ans:['She has never tried vegetarian food'],wide:true},
+  {line:"Have he ever worked as a tour guide? → ___",ans:['Has he ever worked as a tour guide'],wide:true},
+];
+const d4e4Expl=['"You" uses "Have", not "Has". "Has" is for he/she/it.','"My friends" is plural → use "have", not "has".','After "has never", use the past participle. "try" → "tried".','"He" is third person singular → use "Has", not "Have".'];
+buildFill('d4e4',d4e4Items);
+document.getElementById('d4e4-check').addEventListener('click',()=>checkFillCustom(d4e4Items,'d4e4','d4e4-fb','d4e4',d4e4Expl));
+document.getElementById('d4e4-reset').addEventListener('click',()=>resetFillCustom(d4e4Items,'d4e4','d4e4-fb'));
+
+// ══ DAY 5 ══
+const d5e1Data=[{left:'Rent',right:'a car for a road trip'},{left:'Watch',right:'a classic film on DVD'},{left:'Live',right:'in a traditional village'},{left:'Book',right:'a room with a sea view'}];
+const d5e1state=buildClickMatch('d5e1',d5e1Data);
+document.getElementById('d5e1-check').addEventListener('click',()=>checkClickMatch(d5e1state,'d5e1-fb','d5e1'));
+document.getElementById('d5e1-reset').addEventListener('click',()=>resetClickMatch(d5e1state,'d5e1-fb'));
+
+const d5e2Items=[
+  {line:"Have you tried gluten-free pasta? (ever) → ___",ans:['Have you ever tried gluten-free pasta'],wide:true},
+  {line:"He has stayed in an apartment by the river. (never) → ___",ans:['He has never stayed in an apartment by the river'],wide:true},
+  {line:"Has she worked as a receptionist? (ever) → ___",ans:['Has she ever worked as a receptionist'],wide:true},
+  {line:"They have packed their bags so quickly. (never) → ___",ans:['They have never packed their bags so quickly'],wide:true},
+];
+const d5e2Expl=['"Ever" goes after the subject in questions: Have you EVER tried?','"Never" goes between "has" and the past participle: has NEVER stayed.','"Ever" goes after the subject in questions: Has she EVER worked?','"Never" goes between "have" and the past participle: have NEVER packed.'];
+buildFill('d5e2',d5e2Items);
+document.getElementById('d5e2-check').addEventListener('click',()=>checkFillCustom(d5e2Items,'d5e2','d5e2-fb','d5e2',d5e2Expl));
+document.getElementById('d5e2-reset').addEventListener('click',()=>resetFillCustom(d5e2Items,'d5e2','d5e2-fb'));
+
+(function(){
+  const wrap=document.getElementById('d5e3');
+  const dd=[
+    {speaker:'Travel Agent',text:'Welcome! ___ (1) Italy?',id:'d5e3_0',ans:['Have you ever visited'],expl:'Structure: Have + you + ever + past participle (visited). Full form: "Have you ever visited Italy?"'},
+    {speaker:'Client',text:"No, I haven't. But my wife ___ (2) to Rome twice for work.",id:'d5e3_1',ans:['has travelled','has traveled'],expl:'"My wife" → has. Past participle of "travel" = "travelled/traveled".'},
+    {speaker:'Travel Agent',text:'Great! ___ (3) at the Grand Hotel near the square?',id:'d5e3_2',ans:['Has she ever stayed'],expl:'"She" → Has. Question: Has + she + ever + past participle (stayed).'},
+    {speaker:'Client',text:"No, she hasn't. She ___ (4) smaller hotels.",id:'d5e3_3',ans:['has always preferred'],expl:'"She" → has. Past participle of "prefer" = "preferred". "Always" goes between has and the past participle.'},
+  ];
+  dd.forEach(item=>{
+    const div=document.createElement('div');div.className='dialogue-line';
+    const parts=item.text.split('___');
+    div.innerHTML=`<span class="speaker">${item.speaker}:</span> <span class="fill-line">${parts[0]}<input class="fill-input wide" id="${item.id}" placeholder="...">${parts[1]||''}</span>`;
+    wrap.appendChild(div);
+  });
+  makeDialogueCheck(dd,'d5e3-fb','d5e3');
+})();
+
+const d5e4Items=[
+  {line:"She has booked the plane tickets. → ___",ans:["She hasn't booked the plane tickets"],wide:true},
+  {line:"They have arrived at the theater. → ___",ans:["They haven't arrived at the theater"],wide:true},
+  {line:"He has tried the new sports app. → ___",ans:["He hasn't tried the new sports app"],wide:true},
+  {line:"We have visited the historic castle. → ___",ans:["We haven't visited the historic castle"],wide:true},
+];
+const d5e4Expl=['"She has" → "She hasn\'t". The past participle stays the same.','"They have" → "They haven\'t".','"He has" → "He hasn\'t".','"We have" → "We haven\'t".'];
+buildFill('d5e4',d5e4Items);
+document.getElementById('d5e4-check').addEventListener('click',()=>checkFillCustom(d5e4Items,'d5e4','d5e4-fb','d5e4',d5e4Expl));
+document.getElementById('d5e4-reset').addEventListener('click',()=>resetFillCustom(d5e4Items,'d5e4','d5e4-fb'));
+
+// ══ DAY 6 ══
+const d6e1Data=[
+  {q:'Which sentence is correct?',opts:['Has you ever stayed in a hotel room with a balcony?','Have you ever stayed in a hotel room with a balcony?','Have you ever stay in a hotel room with a balcony?'],ans:1,why:'A is wrong: "you" uses "Have", not "Has". C is wrong: use the past participle "stayed", not the base form "stay".'},
+  {q:'Which sentence is correct?',opts:['She has never worked in digital marketing.','She have never worked in digital marketing.','She has never work in digital marketing.'],ans:0,why:'B is wrong: "she" uses "has", not "have". C is wrong: use the past participle "worked", not the base form "work".'},
+  {q:'Which sentence is correct?',opts:['They have travel to five different countries.','They has travelled to five different countries.','They have travelled to five different countries.'],ans:2,why:'A is wrong: use the past participle "travelled". B is wrong: "they" uses "have", not "has".'},
+  {q:'Which sentence is correct?',opts:["We haven't watched that classic movie yet.","We hasn't watched that classic movie yet.","We haven't watch that classic movie yet."],ans:0,why:"B is wrong: \"we\" uses \"haven't\", not \"hasn't\". C is wrong: use the past participle \"watched\"."},
+];
+buildMC('d6e1',d6e1Data,'d6e1');
+document.getElementById('d6e1-check').addEventListener('click',()=>checkMC(d6e1Data,'d6e1','d6e1-fb','d6e1'));
+document.getElementById('d6e1-reset').addEventListener('click',()=>resetMC('d6e1','d6e1',d6e1Data,'d6e1-fb'));
+
+(function(){
+  const wrap=document.getElementById('d6e3');
+  wrap.innerHTML=`<div class="reading-text">
+<strong>Interviewer:</strong> Today we are talking to Marco, a famous chef. Marco, <input class="fill-input" id="d6e3_0" placeholder="..." style="min-width:60px;"> (1) you ever cooked for royalty?<br><br>
+<strong>Marco:</strong> No, I have <input class="fill-input" id="d6e3_1" placeholder="..." style="min-width:70px;"> (2) cooked for a king or queen, but I <input class="fill-input" id="d6e3_2" placeholder="..." style="min-width:60px;"> (3) prepared meals for famous actors!<br><br>
+<strong>Interviewer:</strong> That is amazing. Has your restaurant <input class="fill-input" id="d6e3_3" placeholder="..." style="min-width:60px;"> (4) won an international award?<br><br>
+<strong>Marco:</strong> Yes, it has!
+</div>`;
+  const items=[
+    {id:'d6e3_0',ans:['have'],expl:'"Marco" = "you" in the question. Use "Have" for questions with "you".'},
+    {id:'d6e3_1',ans:['never'],expl:'"I have never" = negative life experience. "Never" goes after "have".'},
+    {id:'d6e3_2',ans:['have'],expl:'"I" uses "have" in affirmative Present Perfect.'},
+    {id:'d6e3_3',ans:['ever'],expl:'"Ever" is used in Present Perfect questions to ask about life experiences.'},
+  ];
+  document.getElementById('d6e3-check').addEventListener('click',()=>{
+    let correct=0;items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      inp.parentElement.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());
+      const val=inp.value.trim().toLowerCase();
+      if(item.ans.includes(val)){inp.classList.add('correct');correct++;}
+      else{inp.classList.add('wrong');const hint=document.createElement('span');hint.className='fhint';hint.dataset.for=item.id;hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.79rem;margin-left:6px;display:inline-block;';hint.textContent=`Correct: "${item.ans[0]}" — ${item.expl}`;inp.insertAdjacentElement('afterend',hint);}
+    });
+    const r=scoreText(correct,items.length);showFeedback('d6e3-fb',r.msg,r.type);incrementChecked('d6e3');
+  });
+  document.getElementById('d6e3-reset').addEventListener('click',()=>{items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input';}document.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());});document.getElementById('d6e3-fb').className='feedback';});
+})();
+
+// ══ DAY 7 ══
+(function(){
+  const wrap=document.getElementById('d7e1');
+  wrap.innerHTML=`<div class="reading-text">"My friend Clara has an exciting life. She <input class="fill-input wide" id="d7e1_0" placeholder="..."> (1) (travel) to many countries in Europe and Asia. She <input class="fill-input wide" id="d7e1_1" placeholder="..."> (2) (visit) famous castles, museums, and historic cities. However, she <input class="fill-input wide" id="d7e1_2" placeholder="..."> (3) (never / live) abroad for more than a month because she loves her home town. '<input class="fill-input wide" id="d7e1_3" placeholder="..."> (4) (you / ever / think) about moving to another country?' I asked her last week. She smiled and said, 'No, I haven't!'"</div>`;
+  const items=[
+    {id:'d7e1_0',ans:['has travelled','has traveled'],expl:'"She" → has. Past participle of "travel" = "travelled/traveled".'},
+    {id:'d7e1_1',ans:['has visited'],expl:'"She" → has. Past participle of "visit" = "visited".'},
+    {id:'d7e1_2',ans:['has never lived'],expl:'"She" → has. "Never" goes between "has" and "lived".'},
+    {id:'d7e1_3',ans:['Have you ever thought'],expl:'Question with "you" → Have you ever + past participle. Past participle of "think" = "thought" (irregular).'},
+  ];
+  document.getElementById('d7e1-check').addEventListener('click',()=>{
+    let correct=0;items.forEach(item=>{
+      const inp=document.getElementById(item.id);inp.classList.remove('correct','wrong');
+      inp.parentElement.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());
+      const val=inp.value.trim().toLowerCase().replace(/[?!]/g,'').replace(/\s+/g,' ');
+      const accepted=item.ans.map(a=>a.toLowerCase());
+      if(accepted.includes(val)){inp.classList.add('correct');correct++;}
+      else{inp.classList.add('wrong');const hint=document.createElement('span');hint.className='fhint';hint.dataset.for=item.id;hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.79rem;margin-left:6px;display:inline-block;';hint.textContent=`Correct: "${item.ans[0]}" — ${item.expl}`;inp.insertAdjacentElement('afterend',hint);}
+    });
+    const r=scoreText(correct,items.length);showFeedback('d7e1-fb',r.msg,r.type);incrementChecked('d7e1');
+  });
+  document.getElementById('d7e1-reset').addEventListener('click',()=>{items.forEach(item=>{const inp=document.getElementById(item.id);if(inp){inp.value='';inp.className='fill-input wide';}document.querySelectorAll(`.fhint[data-for="${item.id}"]`).forEach(h=>h.remove());});document.getElementById('d7e1-fb').className='feedback';});
+})();
+
+document.getElementById('d7e2-check').addEventListener('click',()=>{
+  const text=document.getElementById('d7e2-text').value.trim();
+  const wc=text.split(/\s+/).filter(w=>w).length;
+  if(!text){showFeedback('d7e2-fb','Please write your paragraph first!','err');return;}
+  if(wc<15){showFeedback('d7e2-fb',`Your paragraph has ${wc} words. Try to write at least 25 words.`,'err');return;}
+  showFeedback('d7e2-fb',`Great job! Your paragraph has ${wc} words. Check: at least 2 Present Perfect sentences, one with "never", and vocabulary from the unit. Your teacher will review the details!`,'ok');
+  incrementChecked('d7e2');
+});
+document.getElementById('d7e2-reset').addEventListener('click',()=>{document.getElementById('d7e2-text').value='';document.getElementById('d7e2-fb').className='feedback';});
+
+document.getElementById('summary-whatsapp').addEventListener('click',()=>{
+  const name=localStorage.getItem('teachermari_student_name')||'Student';
+  const msg=`Elementary 12A complete!\n\nHello, Teacher Mari! ${name} has finished all the exercises in Elementary 12A.\n\nExercises checked: ${totalChecked}\n\n_Sent from the weekly exercise file_`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`,'_blank');
+});
+
+
+// ══ NEW EXERCISES FROM MD ══
+
+// D1 NEW 1 – have / has CTF
+(function(){
+  const wrap=document.getElementById('d1_new1');
+  if(!wrap)return;
+  const exDiv=document.createElement('div');exDiv.className='fill-item';
+  exDiv.innerHTML=`<div class="fill-line">Example: She <span style="color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);padding:0 4px;">has</span> visited London. <span style="color:var(--orange);font-size:0.76rem;">(example)</span></div>`;
+  wrap.appendChild(exDiv);
+  buildCTFSentences({containerId:'d1_new1',
+    words:['have','has'],
+    items:[
+      {line:'I ___ watched a classic film.',ans:'have'},
+      {line:'My brother ___ stayed in a hotel before.',ans:'has'},
+      {line:'We ___ visited a historic castle.',ans:'have'},
+      {line:'Anna ___ packed a suitcase for a trip.',ans:'has'},
+      {line:'They ___ travelled by train.',ans:'have'},
+      {line:'My parents ___ cooked Italian food before.',ans:'have'},
+      {line:'Tom ___ listened to that song.',ans:'has'},
+      {line:'I ___ rented a car.',ans:'have'},
+    ],
+    startIndex:1,exId:'d1_new1',fbId:'d1n1-fb',checkId:'d1n1-check',resetId:'d1n1-reset'});
+})();
+
+// D2 NEW 1 – Sentence Builder (word order questions)
+const d2n1Items=[
+  {words:['Have','you','ever','visited','London','?'],ans:'Have you ever visited London ?'},
+  {words:['Has','she','ever','stayed','in a hotel','?'],ans:'Has she ever stayed in a hotel ?'},
+  {words:['Have','they','ever','tried','local food','?'],ans:'Have they ever tried local food ?'},
+  {words:['Have','your parents','ever','watched','a classic film','?'],ans:'Have your parents ever watched a classic film ?'},
+  {words:['Has','Tom','ever','played','tennis','?'],ans:'Has Tom ever played tennis ?'},
+  {words:['Have','you','ever','rented','a car','?'],ans:'Have you ever rented a car ?'},
+];
+buildSentenceBuilder('d2_new1',d2n1Items,'d2n1');
+document.getElementById('d2n1-check').addEventListener('click',()=>checkSentenceBuilder(d2n1Items,'d2n1','d2n1-fb','d2_new1'));
+document.getElementById('d2n1-reset').addEventListener('click',()=>resetSentenceBuilder(d2n1Items,'d2n1','d2n1-fb'));
+
+// D3 NEW 1 – Match Questions and Answers (click match)
+const d3n1Data=[
+  {left:'Have you ever visited London?',right:'Yes, I have.'},
+  {left:'Has your sister travelled abroad?',right:"No, she hasn't."},
+  {left:'Have your parents stayed in a hotel?',right:'Yes, they have.'},
+  {left:'Has Tom cooked Mexican food?',right:"No, he hasn't."},
+  {left:'Have you ever watched a classic film?',right:'Yes, I have, many times!'},
+];
+const d3n1state=buildClickMatch('d3_new1',d3n1Data);
+document.getElementById('d3n1-check').addEventListener('click',()=>checkClickMatch(d3n1state,'d3n1-fb','d3_new1'));
+document.getElementById('d3n1-reset').addEventListener('click',()=>resetClickMatch(d3n1state,'d3n1-fb'));
+
+// D4 NEW 1 – Complete the Dialogue (CTF from question box)
+(function(){
+  const wrap=document.getElementById('d4_new1');
+  if(!wrap)return;
+  const questions=[
+    'Have you ever travelled abroad?',
+    'Have you ever stayed in a hostel?',
+    'Have you ever tried local food?',
+    'Have you ever visited a museum?',
+    'Have you ever watched that classic film?',
+  ];
+  const dialogue=[
+    {speaker:'Ben',text:"Hi, Lucy! I'm planning a trip."},
+    {speaker:'Lucy',text:"That's great! ___",gap:0,ans:'Have you ever travelled abroad?'},
+    {speaker:'Ben',text:'Yes, I have. I went to Spain.'},
+    {speaker:'Lucy',text:'___',gap:1,ans:'Have you ever visited a museum?'},
+    {speaker:'Ben',text:'Yes, I have. It was very interesting.'},
+    {speaker:'Lucy',text:'___',gap:2,ans:'Have you ever stayed in a hostel?'},
+    {speaker:'Ben',text:"No, I haven't. I usually stay in hotels."},
+    {speaker:'Lucy',text:'___',gap:3,ans:'Have you ever tried local food?'},
+    {speaker:'Ben',text:'Yes, I have. It was delicious!'},
+    {speaker:'Lucy',text:'___',gap:4,ans:'Have you ever watched that classic film?'},
+    {speaker:'Ben',text:"No, I haven't, but I'd like to watch it."},
+  ];
+  const gapIds={};
+  let selected=null;
+  // build word bank
+  const bank=document.createElement('div');bank.className='ctf-wordbank';bank.style.marginBottom='16px';
+  questions.forEach((q,wi)=>{
+    const btn=document.createElement('button');btn.className='ctf-chip';btn.dataset.word=q;btn.dataset.wi=wi;
+    btn.style.fontSize='0.76rem';btn.style.padding='5px 10px';
+    btn.textContent=q;bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  // build dialogue
+  const dlgWrap=document.createElement('div');
+  dialogue.forEach((line,li)=>{
+    const div=document.createElement('div');div.className='dialogue-line';
+    if(line.gap!==undefined){
+      const gId='d4dlg_gap_'+line.gap;
+      gapIds[line.gap]={id:gId,ans:line.ans};
+      div.innerHTML=`<span class="speaker">${line.speaker}:</span> <span class="ctf-gap" id="${gId}" data-ans="${line.ans}" style="min-width:260px;font-size:0.82rem;"></span>`;
+    }else{
+      div.innerHTML=`<span class="speaker">${line.speaker}:</span> <span style="font-size:0.88rem;">${line.text}</span>`;
+    }
+    dlgWrap.appendChild(div);
+  });
+  wrap.appendChild(dlgWrap);
+  bank.addEventListener('click',e=>{
+    const chip=e.target.closest('.ctf-chip');if(!chip||chip.classList.contains('used'))return;
+    if(selected&&selected===chip){chip.classList.remove('active');selected=null;dlgWrap.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(selected)selected.classList.remove('active');
+    chip.classList.add('active');selected=chip;
+    dlgWrap.querySelectorAll('.ctf-gap').forEach(g=>g.classList.toggle('ready',!g.textContent));
+  });
+  dlgWrap.addEventListener('click',e=>{
+    const gap=e.target.closest('.ctf-gap');if(!gap)return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if(gap.textContent&&!selected){
+      const wi=gap.dataset.filledWi;const chipBack=bank.querySelector(`.ctf-chip[data-wi="${wi}"]`);
+      if(chipBack)chipBack.classList.remove('used');gap.textContent='';gap.dataset.filledWi='';
+      dlgWrap.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;
+    }
+    if(!selected)return;
+    if(gap.textContent){const wi=gap.dataset.filledWi;const cb=bank.querySelector(`.ctf-chip[data-wi="${wi}"]`);if(cb)cb.classList.remove('used');}
+    gap.textContent=selected.dataset.word;gap.dataset.filledWi=selected.dataset.wi;
+    selected.classList.remove('active');selected.classList.add('used');selected=null;
+    dlgWrap.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+  });
+  document.getElementById('d4n1-check').addEventListener('click',()=>{
+    let correct=0,total=0;
+    dlgWrap.querySelectorAll('.ctf-gap').forEach(gap=>{
+      total++;gap.classList.remove('correct-gap','wrong-gap','ready');
+      gap.parentElement.querySelectorAll('.ctf-hint').forEach(h=>h.remove());
+      const filled=(gap.textContent||'').trim();const ans=gap.dataset.ans||'';
+      if(filled===ans){gap.classList.add('correct-gap');correct++;}
+      else{gap.classList.add('wrong-gap');const hint=document.createElement('span');hint.className='ctf-hint';hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.78rem;margin-left:6px;display:block;margin-top:4px;';hint.textContent=`Correct: "${ans}"`;gap.insertAdjacentElement('afterend',hint);}
+    });
+    const r=scoreText(correct,total);showFeedback('d4n1-fb',r.msg,r.type);incrementChecked('d4_new1');
+  });
+  document.getElementById('d4n1-reset').addEventListener('click',()=>{
+    dlgWrap.querySelectorAll('.ctf-gap').forEach(gap=>{gap.textContent='';gap.dataset.filledWi='';gap.classList.remove('correct-gap','wrong-gap','ready');gap.parentElement.querySelectorAll('.ctf-hint').forEach(h=>h.remove());});
+    bank.querySelectorAll('.ctf-chip').forEach(c=>c.classList.remove('used','active'));selected=null;
+    document.getElementById('d4n1-fb').className='feedback';
+  });
+})();
+
+// D6 NEW 1 – Complete with Have / Has / ever
+const d6n1Items=[
+  {line:'___ you ever visited a museum?',ans:['Have'],wide:false},
+  {line:'___ she ever cooked Italian food?',ans:['Has'],wide:false},
+  {line:'Have they ___ stayed in a hostel?',ans:['ever'],wide:false},
+  {line:'___ your brother ever watched this film?',ans:['Has'],wide:false},
+  {line:'Have your parents ___ travelled abroad?',ans:['ever'],wide:false},
+  {line:'___ Tom ever packed a suitcase by himself?',ans:['Has'],wide:false},
+];
+const d6n1Expl=[
+  '"You" uses "Have" in Present Perfect questions.',
+  '"She" is third person singular → use "Has".',
+  '"Ever" goes between "Have/Has" and the past participle in questions.',
+  '"Your brother" = he → use "Has".',
+  '"Ever" goes between "Have/Has" and the past participle.',
+  '"Tom" = he → use "Has".'
+];
+buildFill('d6_new1',d6n1Items);
+document.getElementById('d6n1-check').addEventListener('click',()=>checkFillCustom(d6n1Items,'d6_new1','d6n1-fb','d6_new1',d6n1Expl));
+document.getElementById('d6n1-reset').addEventListener('click',()=>resetFillCustom(d6n1Items,'d6_new1','d6n1-fb'));
+
+// D7 NEW 1 – Olivia reading Q&A
+const d7n1Items=[
+  {line:'How many countries has Olivia travelled to? → ___',ans:['Three countries','three countries','Three','three'],wide:true},
+  {line:'Where has she stayed? → ___',ans:['In small hotels','in small hotels','Small hotels','small hotels'],wide:true},
+  {line:'What has she visited? → ___',ans:['Many museums','many museums'],wide:true},
+  {line:"Has she ever rented a car? → ___",ans:["No, she hasn't","No she hasn't",'No',],wide:true},
+  {line:'Why has she watched many classic films? → ___',ans:['Because she loves travelling','Because she loves traveling','because she loves travelling','because she loves traveling'],wide:true},
+];
+const d7n1Expl=[
+  'The text says "I have travelled to three countries."',
+  'The text says "I have stayed in small hotels."',
+  'The text says "I have visited many museums."',
+  'The text says "I have never rented a car."',
+  'The text says "because I love travelling."'
+];
+buildFill('d7_new1',d7n1Items);
+document.getElementById('d7n1-check').addEventListener('click',()=>checkFillCustom(d7n1Items,'d7_new1','d7n1-fb','d7_new1',d7n1Expl));
+document.getElementById('d7n1-reset').addEventListener('click',()=>resetFillCustom(d7n1Items,'d7_new1','d7n1-fb'));
+
+// D4E2 convert to Sentence Builder (was text fill, now clickable)
+// Re-register D4E2 as sentence builder
+
+// ══ VOCAB BANK ══
+function renderVocabGrid(id,data){const wrap=document.getElementById(id);if(!wrap)return;data.forEach(item=>{const div=document.createElement('div');div.className='vocab-chip';div.innerHTML=`<div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div><div class="vc-pt">${item.pt}</div>`;wrap.appendChild(div);});}
+renderVocabGrid('vocab-verbs',[
+  {en:'visit → visited',pt:'regular, +ed'},{en:'watch → watched',pt:'regular, +ed'},{en:'travel → travelled',pt:'regular, +led'},{en:'live → lived',pt:'regular, +d'},{en:'play → played',pt:'regular, +ed'},
+  {en:'book → booked',pt:'regular, +ed'},{en:'cook → cooked',pt:'regular, +ed'},{en:'try → tried',pt:'regular, y→ied'},{en:'arrive → arrived',pt:'regular, +d'},{en:'work → worked',pt:'regular, +ed'},
+  {en:'stay → stayed',pt:'regular, +ed'},{en:'rent → rented',pt:'regular, +ed'},{en:'listen → listened',pt:'regular, +ed'},{en:'pack → packed',pt:'regular, +ed'},{en:'walk → walked',pt:'regular, +ed'},
+  {en:'finish → finished',pt:'regular, +ed'},{en:'order → ordered',pt:'regular, +ed'},{en:'study → studied',pt:'regular, y→ied'},
+]);
+renderVocabGrid('vocab-places',[
+  {en:'museum',pt:'a place with art or history'},{en:'hotel',pt:'a place to stay on trips'},{en:'restaurant',pt:'a place to eat'},{en:'castle',pt:'a large historic building'},
+  {en:'art gallery',pt:'a place with paintings'},{en:'railway station',pt:'where trains stop'},{en:'airport',pt:'where planes take off'},{en:'cathedral',pt:'a large historic church'},
+  {en:'resort',pt:'a holiday destination'},{en:'theater',pt:'a place for shows'},{en:'classic film',pt:'an old, famous film'},{en:'traditional music',pt:'music from a culture'},
+  {en:'capital city',pt:'the main city of a country'},{en:'local food',pt:'food from that place'},{en:'historic town',pt:'a town with old history'},
+]);
+
+// ══ CONFETTI & COMPLETION ══
+const DAY_EXERCISES={day1:['d1_new1','d1e2','d1e3','d1e4'],day2:['d2e1','d2_new1','d2e3','d2e4'],day3:['d3_new1','d3e2','d3e3','d3e4'],day4:['d4_new1','d4e2','d4e4'],day5:['d5e1','d5e2','d5e3','d5e4'],day6:['d6e1','d6_new1','d6e3'],day7:['d7e1','d7_new1','d7e2']};
+const TOTAL_DAYS=Object.keys(DAY_EXERCISES).length;
+const completedExercises=new Set(JSON.parse(localStorage.getItem('teachermari_elementary12a_done')||'[]'));
+const completedDays=new Set(JSON.parse(localStorage.getItem('teachermari_elementary12a_days')||'[]'));
+function markExerciseDone(exId){completedExercises.add(exId);localStorage.setItem('teachermari_elementary12a_done',JSON.stringify([...completedExercises]));checkDayCompletion(exId);}
+function checkDayCompletion(exId){
+  for(const[day,exList]of Object.entries(DAY_EXERCISES)){
+    if(exList.includes(exId)&&!completedDays.has(day)){
+      if(exList.every(e=>completedExercises.has(e))){
+        completedDays.add(day);localStorage.setItem('teachermari_elementary12a_days',JSON.stringify([...completedDays]));
+        if(completedDays.size===TOTAL_DAYS){setTimeout(()=>celebrateWeek(),400);document.getElementById('weekly-summary').style.display='block';document.getElementById('final-score').textContent=totalChecked;}
+        else{setTimeout(()=>celebrateDay(),400);}
+      }
+    }
+  }
+}
+function launchConfetti(count,duration){
+  const canvas=document.getElementById('confetti-canvas');const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const p=Array.from({length:count},()=>({x:Math.random()*canvas.width,y:Math.random()*-canvas.height,r:Math.random()*7+3,color:['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],speed:Math.random()*4+1,drift:(Math.random()-.5)*3,angle:Math.random()*360,spin:(Math.random()-.5)*6}));
+  let frame=0;
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);p.forEach(q=>{ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.angle*Math.PI/180);ctx.fillStyle=q.color;ctx.fillRect(-q.r/2,-q.r/2,q.r,q.r);ctx.restore();q.y+=q.speed;q.x+=q.drift;q.angle+=q.spin;});frame++;if(frame<duration)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);}
+  draw();
+}
+let toast=null;
+function showToast(msg){
+  if(!toast){toast=document.createElement('div');toast.style.cssText=`position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;document.body.appendChild(toast);}
+  toast.textContent=msg;requestAnimationFrame(()=>{toast.style.transform='translateX(-50%) translateY(0)';toast.style.opacity='1';});
+  setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(80px)';toast.style.opacity='0';},3200);
+}
+function celebrateDay(){launchConfetti(140,200);showToast('Day complete! Great job!');}
+function celebrateWeek(){launchConfetti(280,360);showToast('Week complete! You are amazing!');}
+
+</script>
+</body>
+</html>
