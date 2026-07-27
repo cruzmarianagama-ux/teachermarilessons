@@ -324,7 +324,7 @@ audio{width:100%;border-radius:var(--radius-sm);margin-bottom:12px;}
     <div class="example-box"><span class="ex-label">Model – Read this first</span>On a typical weekday, I usually wake up at 7 a.m. I always have breakfast before I leave home. I don't drink coffee, but I often have tea. I work from 9 to 5. I sometimes go to the gym after work. I never watch TV late at night.</div>
     <p style="font-size:.82rem;color:var(--gray);margin-bottom:10px;font-weight:600;">Guide: What time do you wake up? · Do you have breakfast? · What do you do in the morning? · What do you do after work? · What do you never do?</p>
     <textarea class="writing-area" id="d3e4-text" placeholder="Write your paragraph here..."></textarea>
-    <div class="btn-row"><button class="btn btn-primary" id="d3e4-save">Save</button></div>
+    <div class="btn-row"><button class="btn btn-whatsapp" id="d3e4-send">Send to Teacher Mari</button></div>
     <div class="feedback" id="d3e4-fb"></div>
   </div>
 </div>
@@ -398,7 +398,7 @@ audio{width:100%;border-radius:var(--radius-sm);margin-bottom:12px;}
     <div class="example-box"><span class="ex-label">Model – Read this first</span>Last weekend, I went to the beach with my family. The weather was sunny and hot. We arrived early and stayed all day. I swam in the sea and ate delicious seafood. In the evening, we went to a nice restaurant. It was a fantastic day!</div>
     <p style="font-size:.82rem;color:var(--gray);margin-bottom:10px;font-weight:600;">Guide: Where did you go? · Who did you go with? · What was the weather like? · What did you do? · What did you eat? · How was it?</p>
     <textarea class="writing-area" id="d5e4-text" placeholder="Write your paragraph here..."></textarea>
-    <div class="btn-row"><button class="btn btn-primary" id="d5e4-save">Save</button></div>
+    <div class="btn-row"><button class="btn btn-whatsapp" id="d5e4-send">Send to Teacher Mari</button></div>
     <div class="feedback" id="d5e4-fb"></div>
   </div>
 </div>
@@ -470,7 +470,7 @@ audio{width:100%;border-radius:var(--radius-sm);margin-bottom:12px;}
     <div class="example-box"><span class="ex-label">Model – Read this first</span>Next month is going to be very busy! I'm going to visit my family in the north. We're going to stay in a nice hotel. I'm not going to drive – we're going to travel by train because it's faster and more comfortable than the bus. In my opinion, it's the best way to travel.</div>
     <p style="font-size:.82rem;color:var(--gray);margin-bottom:10px;font-weight:600;">Guide: What are you going to do? · Who are you going to go with? · How are you going to travel? · Why is it better? · What is the best part?</p>
     <textarea class="writing-area" id="d7e4-text" placeholder="Write your paragraph here..."></textarea>
-    <div class="btn-row"><button class="btn btn-primary" id="d7e4-save">Save</button></div>
+    <div class="btn-row"><button class="btn btn-whatsapp" id="d7e4-send">Send to Teacher Mari</button></div>
     <div class="feedback" id="d7e4-fb"></div>
   </div>
 </div>
@@ -542,7 +542,7 @@ audio{width:100%;border-radius:var(--radius-sm);margin-bottom:12px;}
     <div class="example-box"><span class="ex-label">Model – Read this first</span>I have done a lot of interesting things in my life. I've been to three countries: Brazil, Argentina, and the USA. I went to the USA in 2018 and it was amazing. I've never tried Japanese food, but I'd like to. The best meal I've ever had was in a small Italian restaurant in São Paulo.</div>
     <p style="font-size:.82rem;color:var(--gray);margin-bottom:10px;font-weight:600;">Guide: Where have you been? · When did you go? · What have you never done? · What's the best experience you've ever had?</p>
     <textarea class="writing-area" id="d9e4-text" placeholder="Write your paragraph here..."></textarea>
-    <div class="btn-row"><button class="btn btn-primary" id="d9e4-save">Save</button></div>
+    <div class="btn-row"><button class="btn btn-whatsapp" id="d9e4-send">Send to Teacher Mari</button></div>
     <div class="feedback" id="d9e4-fb"></div>
   </div>
 </div>
@@ -808,7 +808,18 @@ function launchConfetti(dbl){const canvas=document.getElementById('confetti-canv
 // WRITING SAVE/RESTORE
 ['d3e4','d5e4','d7e4','d9e4'].forEach(id=>{
   const saved=localStorage.getItem('eoc_w_'+id);const ta=document.getElementById(id+'-text');if(ta&&saved)ta.value=saved;
-  const btn=document.getElementById(id+'-save');if(btn)btn.addEventListener('click',()=>{if(ta.value.trim()){localStorage.setItem('eoc_w_'+id,ta.value);showFeedback(id+'-fb','Saved! Great work.','ok');}else showFeedback(id+'-fb','Please write something first!','err');});
+  const btn=document.getElementById(id+'-send');
+  if(btn)btn.addEventListener('click',()=>{
+    const ta=document.getElementById(id+'-text');
+    if(!ta||!ta.value.trim()){showFeedback(id+'-fb','Please write something before sending!','err');return;}
+    localStorage.setItem('eoc_w_'+id,ta.value);
+    const studentName=localStorage.getItem('eoc_student')||'Student';
+    const dayMap={d3e4:'Day 3',d5e4:'Day 5',d7e4:'Day 7',d9e4:'Day 9'};
+    const day=dayMap[id]||id;
+    const msg=encodeURIComponent('Hi Teacher Mari! 👋\nThis is '+studentName+' – here is my writing task from '+day+' of the End of Course Review:\n\n'+ta.value);
+    window.open('https://wa.me/5524992723816?text='+msg,'_blank');
+    showFeedback(id+'-fb','Opening WhatsApp... Great work, '+studentName+'!','ok');
+  });
 });
 
 // TRANSCRIPT TOGGLE
