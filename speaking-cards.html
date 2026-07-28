@@ -715,12 +715,12 @@
         <select id="imgSearchType">
           <option value="all">All types</option>
           <option value="photo">Photos</option>
-          <option value="clipart">Clipart</option>
-          <option value="lineart">Line art</option>
+          <option value="illustration">Illustrations</option>
+          <option value="vector">Vectors</option>
         </select>
         <button class="btn btn-primary" id="imgSearchBtn">Search</button>
       </div>
-      <p class="img-attribution">Google Images · licença aberta · 100 buscas/dia grátis</p>
+      <p class="img-attribution">Images via <a href="https://pixabay.com" target="_blank">Pixabay</a> — free for use ✓</p>
     </div>
     <div class="img-search-body">
       <div class="img-search-status" id="imgSearchStatus">Type a word and press Search to find images.</div>
@@ -1616,8 +1616,7 @@ function openBox(idx){
 }
 
 /* ---------------- IMAGE SEARCH MODAL ---------------- */
-const GOOGLE_API_KEY = 'AIzaSyAwFBES3WBP_WS_ASG8S-556hMuRX2gPPc';
-const GOOGLE_CSE_ID  = '81e600dff6eac4db3';
+const PIXABAY_KEY = '56893076-e007c6a0cdf738da2aeabb494';
 let imgSearchCallback = null;
 let imgSearchPage = 1;
 let imgSearchLastQuery = '';
@@ -1679,47 +1678,40 @@ async function runPixabaySearch(page){
   imgSearchStatus.style.display = 'block';
   imgSearchStatus.textContent = '🔎 Searching...';
 
-  const startIndex = (page - 1) * 10 + 1; // Google uses 1-based index, 10 per page
-  const typeParam = imgSearchLastType !== 'all' ? `&imgType=${imgSearchLastType}` : '';
-  const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CSE_ID}&q=${encodeURIComponent(query)}&searchType=image&num=10&start=${startIndex}&safe=active&rights=cc_publicdomain|cc_attribute|cc_sharealike${typeParam}`;
+  const perPage = 20;
+  const typeParam = imgSearchLastType !== 'all' ? `&image_type=${imgSearchLastType}` : '&image_type=photo';
+  const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}&safesearch=true&orientation=horizontal${typeParam}`;
 
   try{
     const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
-    if(data.error){
-      imgSearchStatus.textContent = '⚠ ' + (data.error.message || 'Search error. Try again.');
-      return;
-    }
-
-    if(!data.items || data.items.length === 0){
+    if(!data.hits || data.hits.length === 0){
       imgSearchStatus.textContent = '😕 No images found. Try different keywords.';
       return;
     }
 
-    imgSearchTotalPages = Math.min(10, Math.ceil((data.searchInformation?.totalResults || 10) / 10));
+    imgSearchTotalPages = Math.min(50, Math.ceil(data.totalHits / perPage));
     imgSearchStatus.style.display = 'none';
     imgResultsGrid.style.display = 'grid';
     imgResultsGrid.innerHTML = '';
 
-    data.items.forEach(item=>{
-      const thumbUrl = item.image?.thumbnailLink || item.link;
-      const fullUrl  = item.link;
-      const div = document.createElement('div');
-      div.className = 'img-result-item';
-      div.title = item.title || '';
-      div.innerHTML = `
-        <img src="${thumbUrl}" alt="${escapeAttr(item.title||'')}" loading="lazy">
+    data.hits.forEach(hit=>{
+      const item = document.createElement('div');
+      item.className = 'img-result-item';
+      item.title = hit.tags;
+      item.innerHTML = `
+        <img src="${hit.webformatURL}" alt="${escapeAttr(hit.tags)}" loading="lazy">
         <div class="img-pick-overlay">Use this image</div>
       `;
-      div.onclick = ()=>{
-        if(imgSearchCallback) imgSearchCallback(fullUrl);
+      item.onclick = ()=>{
+        if(imgSearchCallback) imgSearchCallback(hit.webformatURL);
         imgSearchOverlay.classList.remove('open');
       };
-      imgResultsGrid.appendChild(div);
+      imgResultsGrid.appendChild(item);
     });
 
-    // Pagination (Google Custom Search allows max 100 results = 10 pages)
     if(imgSearchTotalPages > 1){
       imgSearchFooter.style.display = 'flex';
       imgSearchPageLabel.textContent = `Page ${imgSearchPage} of ${imgSearchTotalPages}`;
@@ -1732,7 +1724,7 @@ async function runPixabaySearch(page){
   }catch(err){
     imgSearchStatus.style.display = 'block';
     imgSearchStatus.textContent = '⚠ Could not fetch images. Check your internet connection and try again.';
-    console.error('Google Search error:', err);
+    console.error('Pixabay error:', err);
   }
 }
 
