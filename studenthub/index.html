@@ -647,6 +647,243 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
   );
 }
 
+// ---------- CERTIFICADO ADMIN ----------
+function CertificadoAdmin({ students }) {
+  const { useState, useEffect, useRef } = React;
+  const canvasRef = useRef(null);
+  const logoRef = useRef(null);
+  const today = new Date().toISOString().split("T")[0];
+  const [template, setTemplate] = useState(0);
+  const [form, setForm] = useState({ nome: "", nivel: "", data: today, professor: "Teacher Mari" });
+  const [manualNome, setManualNome] = useState("");
+
+  const LOGO_URL = "https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png";
+
+  const TEMPLATES = [
+    { id: 0, label: "Prestige",       emoji: "🏅" },
+    { id: 1, label: "Cream & Purple", emoji: "✨" },
+    { id: 2, label: "Classic",        emoji: "🏛️" },
+    { id: 3, label: "Forest",         emoji: "🌿" },
+    { id: 4, label: "Blush",          emoji: "🎀" },
+  ];
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => { logoRef.current = img; draw(); };
+    img.onerror = () => { logoRef.current = null; draw(); };
+    img.src = LOGO_URL;
+  }, []);
+
+  useEffect(() => { draw(); }, [form, template, manualNome]);
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-");
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    return months[parseInt(m)-1] + " " + parseInt(d) + ", " + y;
+  }
+
+  function resolvedName() {
+    return form.nome === "__manual" ? (manualNome || "[Student Name]") : (form.nome || "[Student Name]");
+  }
+
+  function drawLogoAt(ctx, x, y, size) {
+    if (logoRef.current) ctx.drawImage(logoRef.current, x - size/2, y, size, size);
+  }
+
+  // Wrap + draw centered text, returns final Y
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(" ");
+    let line = "";
+    let currentY = y;
+    for (let i = 0; i < words.length; i++) {
+      const test = line + words[i] + " ";
+      if (ctx.measureText(test).width > maxWidth && i > 0) {
+        ctx.fillText(line.trim(), x, currentY);
+        line = words[i] + " ";
+        currentY += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    ctx.fillText(line.trim(), x, currentY);
+    return currentY;
+  }
+
+  // Shared body text block — large, dark, readable
+  function bodyText(ctx, W, nivel, startY, mainColor, italicColor, maxW) {
+    const course = nivel || "[Level]";
+    ctx.textAlign = "center";
+
+    // "for successfully completing..."
+    ctx.fillStyle = mainColor;
+    ctx.font = "400 26px Poppins, sans-serif";
+    const line1 = "for successfully completing the " + course + " at Teacher Mari Lessons.";
+    let y = wrapText(ctx, line1, W/2, startY, maxW, 40);
+    y += 52;
+
+    // Paragraph
+    ctx.fillStyle = italicColor;
+    ctx.font = "italic 24px Georgia, serif";
+    const para = "Your dedication has strengthened your English skills and brought you one step closer to communicating with confidence and fluency. We are proud of your progress and excited to see where your English journey takes you next.";
+    y = wrapText(ctx, para, W/2, y, maxW, 38);
+    y += 52;
+
+    // Congratulations
+    ctx.fillStyle = mainColor;
+    ctx.font = "700 26px Poppins, sans-serif";
+    ctx.fillText("Congratulations!", W/2, y);
+    return y;
+  }
+
+  function sigBlock(ctx, W, y, professor, lineColor, nameColor) {
+    ctx.strokeStyle = lineColor; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(W/2-140, y); ctx.lineTo(W/2+140, y); ctx.stroke();
+    ctx.fillStyle = nameColor;
+    ctx.font = "italic bold 26px Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.fillText(professor || "Teacher Mari", W/2, y + 36);
+    ctx.fillStyle = "#999";
+    ctx.font = "400 18px Poppins, sans-serif";
+    ctx.fillText("English Teacher · Teacher Mari Lessons", W/2, y + 62);
+  }
+
+  // Shared card layout — used by all 5 templates
+  function drawCard(ctx, W, H, f, bgOuter, bgCard, topBar, accentColor, titleColor, nameColor, mainText, italicText, starColor) {
+    ctx.fillStyle = bgOuter; ctx.fillRect(0,0,W,H);
+    const pad = 24;
+    ctx.fillStyle = bgCard; ctx.fillRect(pad,pad,W-pad*2,H-pad*2);
+    ctx.fillStyle = topBar; ctx.fillRect(pad,pad,W-pad*2,12);
+    ctx.fillStyle = bgOuter; ctx.fillRect(pad,H-pad-12,W-pad*2,12);
+    ctx.strokeStyle = accentColor + "33"; ctx.lineWidth = 1;
+    ctx.strokeRect(36,44,W-72,H-88);
+    ctx.fillStyle = bgOuter + "0D";
+    ctx.beginPath(); ctx.arc(W-80,80,180,0,Math.PI*2); ctx.fill();
+
+    // Logo
+    drawLogoAt(ctx, W/2, 52, 115);
+
+    // Title
+    ctx.fillStyle = titleColor;
+    ctx.font = "700 20px Poppins, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("CERTIFICATE OF COMPLETION", W/2, 204);
+
+    // Double rule
+    ctx.strokeStyle = accentColor; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(W/2-220,216); ctx.lineTo(W/2+220,216); ctx.stroke();
+    ctx.strokeStyle = accentColor + "44"; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(W/2-220,221); ctx.lineTo(W/2+220,221); ctx.stroke();
+
+    // Awarded to
+    ctx.fillStyle = "#777";
+    ctx.font = "italic 22px Georgia, serif";
+    ctx.fillText("This certificate is awarded to", W/2, 262);
+
+    // Name
+    const nome = f.nome;
+    ctx.fillStyle = nameColor;
+    ctx.font = "italic 60px Georgia, serif";
+    ctx.fillText(nome, W/2, 342);
+    const nw = ctx.measureText(nome).width;
+    ctx.strokeStyle = accentColor; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(W/2-Math.min(nw/2,380),356); ctx.lineTo(W/2+Math.min(nw/2,380),356); ctx.stroke();
+
+    // Body
+    const lastY = bodyText(ctx, W, f.nivel, 410, mainText, italicText, 860);
+
+    // Date
+    ctx.fillStyle = "#aaa"; ctx.font = "400 18px Poppins, sans-serif";
+    ctx.fillText(formatDate(f.data), W/2, lastY + 64);
+
+    // Sig (no stars)
+    sigBlock(ctx, W, lastY + 108, f.professor, accentColor, titleColor);
+  }
+
+  function draw() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const W = 1400, H = 1100;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,W,H);
+    const f = { ...form, nome: resolvedName() };
+
+    if (template === 0) {
+      // Prestige: dark green outer, cream card, orange topbar
+      drawCard(ctx,W,H,f, "#04392F","#FAEAD3","#FF5C23","#FF5C23","#04392F","#04392F","#1a1a1a","#2a2a2a","#FF5C23");
+    } else if (template === 1) {
+      // Cream & Purple: dark purple outer, cream card, orange topbar
+      drawCard(ctx,W,H,f, "#1D1050","#FAEAD3","#FF5C23","#FF5C23","#1D1050","#1D1050","#1a1a1a","#2a2a2a","#B4A1FF");
+    } else if (template === 2) {
+      // Classic: cream outer, white card, dark green topbar + accents
+      drawCard(ctx,W,H,f, "#04392F","#FAEAD3","#04392F","#04392F","#04392F","#04392F","#1a1a1a","#2a2a2a","#CAE78D");
+    } else if (template === 3) {
+      // Forest: dark green outer, white card, lime topbar
+      drawCard(ctx,W,H,f, "#04392F","#FFFFFF","#CAE78D","#04392F","#04392F","#04392F","#1a1a1a","#2a2a2a","#CAE78D");
+    } else {
+      // Blush: lavender outer, cream card, orange topbar
+      drawCard(ctx,W,H,f, "#B4A1FF","#FAEAD3","#FF5C23","#B4A1FF","#1D1050","#1D1050","#1a1a1a","#2a2a2a","#FF5C23");
+    }
+  }
+
+  function downloadCert() {
+    draw();
+    const canvas = canvasRef.current;
+    const link = document.createElement("a");
+    const nome = resolvedName().replace(/\s+/g,"-").toLowerCase();
+    link.download = "certificate-" + nome + "-" + TEMPLATES[template].label.toLowerCase().replace(/[\s&]+/g,"-") + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  function setField(k, v) { setForm(f => ({...f, [k]: v})); }
+
+  const iS = { width:"100%", boxSizing:"border-box", padding:"8px 10px", borderRadius:"8px", border:"1px solid " + palette.lavender, fontFamily:"Poppins,sans-serif", fontSize:"13px", color:palette.purple, background:"#fff" };
+  const lS = { fontSize:"12px", color:palette.purple + "99", display:"block", marginBottom:"4px", fontWeight:600 };
+
+  return React.createElement("div", { style:{ background:"#FFF", borderRadius:"16px", padding:"24px" } },
+    React.createElement("p", { style:{ fontSize:"14px", fontWeight:700, color:palette.purple, marginBottom:"4px" } }, "Certificate Generator"),
+    React.createElement("p", { style:{ fontSize:"12px", color:palette.purple+"99", marginBottom:"20px" } }, "Fill in the details, pick a template, and download the PNG to send on WhatsApp! 🎉"),
+    React.createElement("p", { style:lS }, "Template"),
+    React.createElement("div", { style:{ display:"flex", gap:"8px", marginBottom:"20px", flexWrap:"wrap" } },
+      TEMPLATES.map(t => React.createElement("button", {
+        key: t.id, onClick: () => setTemplate(t.id),
+        style:{ padding:"8px 14px", borderRadius:"10px", border:"2px solid "+(template===t.id?palette.orange:palette.lavender), background:template===t.id?palette.orange:"#fff", color:template===t.id?"#fff":palette.purple, fontFamily:"Poppins,sans-serif", fontSize:"12px", fontWeight:600, cursor:"pointer" }
+      }, t.emoji+" "+t.label))
+    ),
+    React.createElement("div", { style:{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"12px" } },
+      React.createElement("div", null,
+        React.createElement("label", { style:lS }, "Student name"),
+        React.createElement("select", { style:iS, value:form.nome, onChange:e=>setField("nome",e.target.value) },
+          React.createElement("option", { value:"" }, "— select student —"),
+          (students||[]).map(s => React.createElement("option", { key:s.id, value:s.nome }, s.nome)),
+          React.createElement("option", { value:"__manual" }, "✏️ Type manually")
+        ),
+        form.nome==="__manual" && React.createElement("input", { style:{...iS,marginTop:"6px"}, placeholder:"Type student name", value:manualNome, onChange:e=>setManualNome(e.target.value) })
+      ),
+      React.createElement("div", null,
+        React.createElement("label", { style:lS }, "Level completed"),
+        React.createElement("input", { style:iS, placeholder:"e.g. Beginner — Book 1", value:form.nivel, onChange:e=>setField("nivel",e.target.value) })
+      )
+    ),
+    React.createElement("div", { style:{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"20px" } },
+      React.createElement("div", null,
+        React.createElement("label", { style:lS }, "Date"),
+        React.createElement("input", { type:"date", style:iS, value:form.data, onChange:e=>setField("data",e.target.value) })
+      ),
+      React.createElement("div", null,
+        React.createElement("label", { style:lS }, "Signature name"),
+        React.createElement("input", { style:iS, value:form.professor, onChange:e=>setField("professor",e.target.value) })
+      )
+    ),
+    React.createElement("button", { onClick:downloadCert, style:{ background:palette.orange, color:"#fff", border:"none", borderRadius:"10px", padding:"10px 22px", fontFamily:"Poppins,sans-serif", fontWeight:700, fontSize:"14px", cursor:"pointer", marginBottom:"20px" } }, "⬇ Download certificate (PNG)"),
+    React.createElement("p", { style:{ fontSize:"11px", color:palette.purple+"88", marginBottom:"8px" } }, "Preview — "+TEMPLATES[template].emoji+" "+TEMPLATES[template].label),
+    React.createElement("canvas", { ref:canvasRef, style:{ width:"100%", borderRadius:"12px", border:"1px solid "+palette.lavender+"44", display:"block" } })
+  );
+}
+
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
@@ -1147,6 +1384,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "materiais" ? palette.orange : "#FFF", color: abaAdmin === "materiais" ? "#FFF" : palette.purple }}>
             Materiais
           </button>
+          <button onClick={() => setAbaAdmin("certificados")}
+            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "certificados" ? palette.orange : "#FFF", color: abaAdmin === "certificados" ? "#FFF" : palette.purple }}>
+            🎓 Certificados
+          </button>
         </div>
 
         {abaAdmin === "planejador" && (
@@ -1237,6 +1478,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
               </div>
             )}
           </div>
+        )}
+
+        {abaAdmin === "certificados" && (
+          <CertificadoAdmin students={students} />
         )}
 
         {abaAdmin === "calendario" && (
