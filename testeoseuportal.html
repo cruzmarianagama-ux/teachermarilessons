@@ -2130,13 +2130,11 @@ function normalizarUrlEmbed(url) {
 function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao, alturaMaxima }) {
   const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
-  const cleanupRef = useRef(null);
+  const timersRef = useRef([]);
+  const resizeObsRef = useRef(null);
+  const estabilizadoRef = useRef(false);
   const alturaAtualRef = useRef(null);
-  const debounceTimerRef = useRef(null);
 
-  // Detecta o tipo de conteúdo pra escolher altura inicial adequada
-  // Wordwall/YouTube são cross-origin (não conseguimos medir), então precisam de tamanho realista
-  // Sites próprios (teachermarilessons.com.br) são same-origin, começam pequenos e crescem via ResizeObserver
   const detectarTipoConteudo = (url) => {
     if (!url) return "outro";
     if (/wordwall/i.test(url)) return "wordwall";
@@ -2146,86 +2144,72 @@ function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao, alturaMa
   };
 
   const tipo = detectarTipoConteudo(src);
-  const alturaInicial = alturaPadrao || (
-    tipo === "wordwall" ? 600 :
-    tipo === "youtube" ? 500 :
-    tipo === "proprio" ? 800 :
-    600
-  );
-  // Teto máximo: se o iframe tentar crescer além disso, para e deixa scroll interno.
-  // Weekly plans reais raramente ultrapassam 2000px — teto de 1800 é seguro sem cortar conteúdo real.
-  const alturaMax = alturaMaxima || (
-    tipo === "proprio" ? 1800 :
-    tipo === "wordwall" ? 700 :
-    tipo === "youtube" ? 600 :
-    1500
-  );
+  const alturaInicial = alturaPadrao || (tipo === "proprio" ? 900 : tipo === "wordwall" ? 600 : tipo === "youtube" ? 500 : 600);
+  const alturaMax = alturaMaxima || (tipo === "proprio" ? 9999 : tipo === "wordwall" ? 700 : tipo === "youtube" ? 600 : 1500);
   const alturaMin = alturaMinima || 400;
 
-  const [altura, setAltura] = useStateLocal(Math.min(alturaInicial, alturaMax));
+  const [altura, setAltura] = useStateLocal(alturaInicial);
   const embedSrc = normalizarUrlEmbed(src);
 
-  // Ajuste com debounce e threshold — só reage a mudanças reais, não a oscilações pequenas
-  const agendarAjuste = () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      try {
-        const iframe = iframeRef.current;
-        if (!iframe || !iframe.contentWindow) return;
-        const doc = iframe.contentWindow.document;
-        if (!doc) return;
-        const alturaReal = Math.max(
-          doc.body ? doc.body.scrollHeight : 0,
-          doc.documentElement ? doc.documentElement.scrollHeight : 0,
-          doc.body ? doc.body.offsetHeight : 0,
-          doc.documentElement ? doc.documentElement.offsetHeight : 0,
-        );
-        if (alturaReal <= 0) return;
-        // Aplica teto máximo pra não crescer além do razoável (evita "página infinita")
-        const novaAltura = Math.min(alturaMax, Math.max(alturaReal + 30, alturaMin));
-        // Só atualiza se a mudança for significativa (mais de 8px) — filtra tremores
-        if (alturaAtualRef.current === null || Math.abs(novaAltura - alturaAtualRef.current) > 8) {
-          alturaAtualRef.current = novaAltura;
-          setAltura(novaAltura);
-        }
-      } catch (e) {
-        // Cross-origin (Wordwall/YouTube): mantém altura inicial
+  const limpar = () => {
+    timersRef.current.forEach((t) => clearTimeout(t));
+    timersRef.current = [];
+    if (resizeObsRef.current) {
+      try { resizeObsRef.current.disconnect(); } catch (e) {}
+      resizeObsRef.current = null;
+    }
+  };
+
+  const medir = () => {
+    try {
+      const iframe = iframeRef.current;
+      if (!iframe || !iframe.contentWindow) return;
+      const doc = iframe.contentWindow.document;
+      if (!doc || !doc.body) return;
+      const alturaReal = Math.max(
+        doc.body.scrollHeight,
+        doc.documentElement ? doc.documentElement.scrollHeight : 0,
+      );
+      if (alturaReal <= 0) return;
+      const novaAltura = Math.min(alturaMax, Math.max(alturaReal + 20, alturaMin));
+      // Só atualiza se mudou mais de 10px
+      if (alturaAtualRef.current === null || Math.abs(novaAltura - alturaAtualRef.current) > 10) {
+        alturaAtualRef.current = novaAltura;
+        setAltura(novaAltura);
       }
-    }, 150);
+    } catch (e) {}
   };
 
   const onLoadHandler = () => {
-    agendarAjuste();
-    if (cleanupRef.current) cleanupRef.current();
+    limpar();
+    estabilizadoRef.current = false;
+    alturaAtualRef.current = null;
 
-    // Re-mede em intervalos crescentes pra pegar conteúdo que carrega depois do load inicial
-    const timers = [300, 700, 1200, 2000, 3500, 5500, 8500, 12500].map((delay) => setTimeout(agendarAjuste, delay));
-
-    // Também observa mudanças contínuas de tamanho (quando aluno interage: clica em aba, expande resposta, etc)
-    let resizeObs = null;
-    try {
-      const iframe = iframeRef.current;
-      const doc = iframe && iframe.contentWindow && iframe.contentWindow.document;
-      if (doc && typeof ResizeObserver !== "undefined") {
-        resizeObs = new ResizeObserver(() => agendarAjuste());
-        if (doc.body) resizeObs.observe(doc.body);
-        if (doc.documentElement) resizeObs.observe(doc.documentElement);
-      }
-    } catch (e) {
-      // Cross-origin: sem ResizeObserver, altura inicial vale
-    }
-
-    cleanupRef.current = () => {
-      timers.forEach((t) => clearTimeout(t));
-      if (resizeObs) { try { resizeObs.disconnect(); } catch (e) {} }
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
+    // Mede em intervalos curtos após o load — para de medir depois que estabilizar por 2s
+    let medidasSemMudanca = 0;
+    const tentativas = [200, 500, 900, 1400, 2000, 2800, 3800, 5000];
+    tentativas.forEach((delay) => {
+      const t = setTimeout(() => {
+        if (estabilizadoRef.current) return;
+        const anterior = alturaAtualRef.current;
+        medir();
+        if (alturaAtualRef.current === anterior) {
+          medidasSemMudanca++;
+          // 3 leituras consecutivas sem mudança = estabilizou
+          if (medidasSemMudanca >= 3) {
+            estabilizadoRef.current = true;
+            limpar();
+          }
+        } else {
+          medidasSemMudanca = 0;
+        }
+      }, delay);
+      timersRef.current.push(t);
+    });
   };
 
   useEffect(() => {
-    return () => {
-      if (cleanupRef.current) cleanupRef.current();
-    };
+    return () => limpar();
   }, []);
 
   return (
