@@ -29,6 +29,10 @@
     color:var(--purple);
     min-height:100vh;
   }
+  body.present-mode{
+    overflow:hidden;
+    height:100vh;
+  }
 
   /* ---------- TOP NAV ---------- */
   .topbar{
@@ -76,6 +80,7 @@
   /* ---------- LAYOUT ---------- */
   .view{display:none;padding:28px;max-width:1200px;margin:0 auto;}
   .view.active{display:block;}
+  /* present view overrides the generic .view via its own id */
 
   .panel{
     background:var(--cream);
@@ -252,183 +257,214 @@
     margin-top:4px;
   }
   .voice-select{font-size:12px;padding:6px 8px;}
-  .speak-btn{
-    background:var(--lavender);
-    border:none;
-    border-radius:999px;
-    width:56px;height:56px;
-    font-size:22px;
-    cursor:pointer;
-    color:var(--purple);
-    margin-top:16px;
-  }
-  .speak-btn:disabled{opacity:.4;cursor:default;}
+  /* speak-btn styles live in the presentation section below */
 
-  /* ---------- PRESENTATION ---------- */
-  .present-wrap{
-    background:var(--purple);
-    border-radius:24px;
-    min-height:92vh;
-    max-height:92vh;
-    padding:30px;
-    display:flex;
+  /* ---------- PRESENTATION (fit-to-screen, no scroll) ---------- */
+
+  /* The present view itself takes the full remaining height */
+  #presentView{
+    display:none;
     flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-    position:relative;
-    overflow-y:auto;
+    height:calc(100vh - 83px); /* 83px = topbar height */
+    overflow:hidden;
+    padding:0;
+    max-width:none;
   }
-  .present-wrap:fullscreen{
-    max-height:100vh;
-    height:100vh;
-  }
-  .present-controls{
+  #presentView.active{display:flex;}
+
+  /* Top bar inside present view: set selector + mode buttons */
+  .present-topbar{
     display:flex;
-    gap:10px;
+    align-items:center;
+    gap:12px;
+    padding:10px 20px;
+    background:var(--white);
+    border-bottom:2px solid #ede0cc;
+    flex-shrink:0;
     flex-wrap:wrap;
+  }
+  .present-topbar select{
+    width:auto;
+    min-width:180px;
+    max-width:280px;
+    flex:1;
+    margin:0;
+    font-size:13px;
+    padding:7px 10px;
+  }
+  .present-topbar .mode-pills{display:flex;gap:6px;margin-left:auto;}
+  .mode-btn{
+    background:transparent;
+    color:var(--purple);
+    border:2px solid #d8c7ab;
+    padding:6px 14px;
+    border-radius:999px;
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:12px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .mode-btn:hover{border-color:var(--orange);color:var(--orange);}
+  .mode-btn.active{background:var(--orange);border-color:var(--orange);color:var(--white);}
+
+  /* Main stage: fills remaining height */
+  .present-stage-wrap{
+    flex:1;
+    min-height:0;
+    background:var(--purple);
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  #presentInner{
+    width:100%;
+    height:100%;
+    display:flex;
     align-items:center;
     justify-content:center;
-    margin-bottom:20px;
   }
-  .mode-btn{
-    background:var(--lavender);
-    color:var(--purple);
-    border:none;
-    padding:9px 18px;
-    border-radius:999px;
-    font-weight:700;
-    font-size:13px;
-    cursor:pointer;
-  }
-  .mode-btn.active{background:var(--green-light);}
 
   .stage{
     width:100%;
-    max-width:1100px;
+    height:100%;
+    max-width:1200px;
     display:flex;
     flex-direction:column;
     align-items:center;
+    justify-content:center;
+    padding:16px 24px;
+    gap:8px;
   }
 
-  /* Card deck / stack effect */
+  /* Card area — grows to fill available height */
   .card-deck{
     position:relative;
     width:100%;
+    flex:1;
+    min-height:0;
   }
   .card-deck::before, .card-deck::after{
     content:'';
     position:absolute;
     inset:0;
-    border-radius:28px;
+    border-radius:20px;
     z-index:0;
   }
   .card-deck::before{
     background:var(--lavender);
-    transform:translate(9px,9px);
-    opacity:.55;
+    transform:translate(6px,6px);
+    opacity:.4;
   }
   .card-deck::after{
     background:var(--green-light);
-    transform:translate(18px,18px);
-    opacity:.35;
+    transform:translate(12px,12px);
+    opacity:.25;
   }
 
   .big-card{
-    position:relative;
+    position:absolute;
+    inset:0;
     z-index:1;
-    background:var(--purple);
-    border:3px dashed var(--orange);
-    border-radius:28px;
-    width:100%;
-    aspect-ratio:4/3;
-    min-height:640px;
+    background:var(--white);
+    border-radius:20px;
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:18px;
-    gap:14px;
-    box-shadow:0 14px 0 rgba(0,0,0,0.2);
+    padding:16px;
+    gap:10px;
     overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,0.25);
   }
   .media-frame{
     flex:1;
     width:100%;
     min-height:0;
-    background:var(--green-dark);
-    border-radius:16px;
+    background:#f4ede0;
+    border-radius:12px;
     display:flex;
     align-items:center;
     justify-content:center;
     overflow:hidden;
-    padding:12px;
   }
   .big-card img{
     max-width:100%;
     max-height:100%;
-    border-radius:8px;
     object-fit:contain;
+    border-radius:8px;
   }
   .big-card .prompt-text{
-    font-size:26px;
+    font-size:clamp(18px,3vw,32px);
     font-weight:800;
-    color:var(--cream);
+    color:var(--purple);
+    text-align:center;
+    flex-shrink:0;
+    line-height:1.3;
+  }
+  .big-card .placeholder{color:#b0a090;font-size:15px;text-align:center;}
+
+  /* Bottom controls row */
+  .stage-controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .stage-controls .btn:disabled{opacity:.35;cursor:default;}
+  .stage-controls .btn{font-size:15px;padding:10px 24px;}
+  .counter{
+    color:rgba(250,234,211,.65);
+    font-size:12px;
+    flex-shrink:0;
+  }
+  .kbd-hint{color:rgba(250,234,211,.5);font-size:11px;flex-shrink:0;}
+
+  /* Box mode */
+  .box-instruction{
+    color:rgba(250,234,211,.75);
+    font-size:13px;
+    font-weight:500;
     text-align:center;
     flex-shrink:0;
   }
-  .big-card .placeholder{color:rgba(250,234,211,.65);font-size:16px;text-align:center;}
-
-  .stage-controls{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap;justify-content:center;}
-  .stage-controls .btn:disabled{opacity:.35;cursor:default;}
-  .stage-controls .btn{font-size:17px;padding:13px 28px;}
-  .counter{color:var(--cream);font-size:13px;margin-top:10px;opacity:.8;}
-
-  .box-instruction{
-    color:var(--cream);
-    font-size:15px;
-    font-weight:600;
-    opacity:.85;
-    margin-bottom:16px;
-    text-align:center;
-  }
   .box-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(80px,1fr));
-    gap:14px;
+    grid-template-columns:repeat(auto-fill,minmax(70px,1fr));
+    gap:10px;
     width:100%;
+    flex-shrink:0;
   }
   .box{
     aspect-ratio:1;
-    background:var(--lavender);
-    border-radius:14px;
+    background:rgba(180,161,255,0.18);
+    border:2px solid rgba(180,161,255,0.35);
+    border-radius:12px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:26px;
+    font-size:22px;
     font-weight:800;
-    color:var(--purple);
+    color:var(--cream);
     cursor:pointer;
     transition:.15s;
-    border:none;
     position:relative;
   }
-  .box:hover{transform:scale(1.05);}
-  .box.opened{background:#5c4d99;color:var(--cream);}
+  .box:hover{background:rgba(180,161,255,0.35);border-color:var(--lavender);transform:scale(1.05);}
+  .box.opened{background:rgba(255,92,35,0.2);border-color:var(--orange);color:var(--orange);}
   .box .open-count{
     position:absolute;
-    top:-6px;
-    right:-6px;
+    top:-6px;right:-6px;
     background:var(--orange);
     color:var(--white);
-    font-size:11px;
-    font-weight:800;
+    font-size:10px;font-weight:800;
     border-radius:999px;
-    min-width:20px;
-    height:20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:0 4px;
+    min-width:18px;height:18px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 3px;
   }
 
   .empty-msg{color:var(--cream);text-align:center;padding:40px;font-size:15px;}
@@ -436,23 +472,137 @@
 
   .fullscreen-btn{
     position:absolute;
-    top:16px;
-    right:16px;
-    background:var(--lavender);
+    top:12px;right:12px;
+    background:rgba(255,255,255,0.12);
     border:none;
     border-radius:999px;
-    width:40px;height:40px;
-    font-size:16px;
+    width:36px;height:36px;
+    font-size:15px;
     cursor:pointer;
-    color:var(--purple);
+    color:var(--cream);
     z-index:5;
+    transition:.15s;
   }
-  .present-wrap:fullscreen{border-radius:0;}
-  .present-wrap:fullscreen .stage{max-width:1300px;}
-  .present-wrap:fullscreen .big-card{min-height:760px;}
+  .fullscreen-btn:hover{background:rgba(255,255,255,0.22);}
 
-  .kbd-hint{color:var(--cream);font-size:12px;opacity:.7;margin-top:6px;}
-  .stage-error{color:#ffb199;font-size:15px;text-align:center;padding:0 20px;}
+  .present-stage-wrap:fullscreen{border-radius:0;}
+  .present-stage-wrap:fullscreen .stage{max-width:none;}
+
+  .stage-error{color:#ffb199;font-size:14px;text-align:center;padding:0 16px;}
+
+  .speak-btn{
+    background:var(--orange);
+    border:none;
+    border-radius:999px;
+    width:52px;height:52px;
+    font-size:20px;
+    cursor:pointer;
+    color:var(--white);
+    margin-top:4px;
+    flex-shrink:0;
+    transition:.15s;
+    box-shadow:0 4px 12px rgba(255,92,35,0.35);
+  }
+  .speak-btn:hover{background:#e64f18;}
+  .speak-btn:disabled{opacity:.4;cursor:default;}
+
+  /* ---------- IMAGE SEARCH MODAL ---------- */
+  .img-search-modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(29,16,80,0.72);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .img-search-modal-overlay.open{display:flex;}
+  .img-search-modal{
+    background:var(--cream);
+    border-radius:24px;
+    width:100%;
+    max-width:780px;
+    max-height:88vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .img-search-header{
+    padding:20px 24px 14px;
+    border-bottom:2px solid #e3d4bd;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .img-search-header h3{
+    margin:0;
+    color:var(--purple);
+    font-size:17px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .img-search-header h3 span{font-size:13px;color:#8a7e6d;font-weight:500;}
+  .img-search-row{display:flex;gap:8px;}
+  .img-search-row input{flex:1;margin:0;}
+  .img-search-row select{width:140px;flex-shrink:0;}
+  .img-search-close{
+    background:none;border:none;font-size:22px;cursor:pointer;
+    color:#8a7e6d;line-height:1;padding:0;
+  }
+  .img-search-close:hover{color:var(--orange);}
+  .img-search-body{
+    flex:1;
+    overflow-y:auto;
+    padding:16px 24px;
+  }
+  .img-search-status{
+    text-align:center;
+    color:#8a7e6d;
+    font-size:14px;
+    padding:32px 0;
+  }
+  .img-results-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    gap:10px;
+  }
+  .img-result-item{
+    border-radius:12px;
+    overflow:hidden;
+    cursor:pointer;
+    border:3px solid transparent;
+    transition:.15s;
+    position:relative;
+    aspect-ratio:4/3;
+    background:#e3d4bd;
+  }
+  .img-result-item:hover{border-color:var(--orange);transform:scale(1.03);}
+  .img-result-item img{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .img-result-item .img-pick-overlay{
+    position:absolute;inset:0;
+    background:rgba(255,92,35,0.0);
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-weight:800;font-size:13px;
+    transition:.15s;
+    opacity:0;
+  }
+  .img-result-item:hover .img-pick-overlay{background:rgba(255,92,35,0.55);opacity:1;}
+  .img-search-footer{
+    padding:12px 24px;
+    border-top:2px solid #e3d4bd;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+  }
+  .img-attribution{
+    font-size:11px;color:#8a7e6d;text-align:center;padding:4px 0 0;
+  }
+  .img-attribution a{color:var(--orange);}
 
   /* ---------- TABLET (also catches phones, since these rules are additive) ---------- */
   @media (max-width:1024px){
@@ -537,19 +687,52 @@
 </div>
 
 <!-- ========== PRESENT VIEW ========== -->
-<div id="presentView" class="view">
-  <div class="panel">
-    <h2>Choose the set for class</h2>
+<div id="presentView">
+  <div class="present-topbar" id="presentTopbar">
     <select id="presentSetSelect"></select>
+    <div class="mode-pills" id="modePills">
+      <!-- injected by JS after set is chosen -->
+    </div>
   </div>
-
-  <div class="present-wrap" id="presentWrap">
+  <div class="present-stage-wrap" id="presentWrap">
     <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
     <div id="presentInner"></div>
   </div>
 </div>
 
 <button class="back-to-top" id="backToTopBtn" title="Back to top">↑</button>
+
+<!-- ========== IMAGE SEARCH MODAL ========== -->
+<div class="img-search-modal-overlay" id="imgSearchOverlay">
+  <div class="img-search-modal">
+    <div class="img-search-header">
+      <h3>
+        🔍 Search images
+        <button class="img-search-close" id="imgSearchClose" title="Close">✕</button>
+      </h3>
+      <div class="img-search-row">
+        <input type="text" id="imgSearchInput" placeholder="E.g.: apple, airport, doctor...">
+        <select id="imgSearchType">
+          <option value="all">All types</option>
+          <option value="photo">Photos</option>
+          <option value="illustration">Illustrations</option>
+          <option value="vector">Vectors</option>
+        </select>
+        <button class="btn btn-primary" id="imgSearchBtn">Search</button>
+      </div>
+      <p class="img-attribution">Images via <a href="https://pixabay.com" target="_blank">Pixabay</a> — free for use ✓</p>
+    </div>
+    <div class="img-search-body">
+      <div class="img-search-status" id="imgSearchStatus">Type a word and press Search to find images.</div>
+      <div class="img-results-grid" id="imgResultsGrid" style="display:none;"></div>
+    </div>
+    <div class="img-search-footer" id="imgSearchFooter" style="display:none;">
+      <button class="btn btn-ghost" id="imgSearchPrevBtn">◀ Previous</button>
+      <span id="imgSearchPageLabel" style="align-self:center;font-size:13px;color:#8a7e6d;"></span>
+      <button class="btn btn-ghost" id="imgSearchNextBtn">Next ▶</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ---------------- SUPABASE CONNECTION ---------------- */
@@ -643,8 +826,15 @@ function switchTab(tab){
   tabAdminBtn.classList.toggle('active', tab==='admin');
   tabPresentBtn.classList.toggle('active', tab==='present');
   actionBar.style.display = tab==='admin' ? 'flex' : 'none';
+  if(tab==='present'){
+    document.body.classList.add('present-mode');
+    const topbarH = document.querySelector('.topbar').offsetHeight;
+    presentView.style.height = `calc(100vh - ${topbarH}px)`;
+    renderPresentSetSelect();
+  }else{
+    document.body.classList.remove('present-mode');
+  }
   if(tab==='admin'){ refreshSetsFromDb(); }
-  if(tab==='present') renderPresentSetSelect();
 }
 
 /* ---------------- ADMIN: SETS GRID ---------------- */
@@ -705,6 +895,9 @@ async function useSetInClass(id){
   tabAdminBtn.classList.remove('active');
   tabPresentBtn.classList.add('active');
   actionBar.style.display = 'none';
+  document.body.classList.add('present-mode');
+  const topbarH = document.querySelector('.topbar').offsetHeight;
+  presentView.style.height = `calc(100vh - ${topbarH}px)`;
   try{
     sets = await fetchAllSets();
   }catch(e){
@@ -870,6 +1063,7 @@ function renderCardEditorList(){
         <small>IMAGE LINK</small>
         <input type="text" data-field="image-url" placeholder="https://..." value="${card.image && !card.image.startsWith('data:') ? escapeAttr(card.image) : ''}">
         <span class="img-status" data-field="img-status"></span>
+        <button type="button" class="btn btn-secondary btn-sm" data-field="image-search" style="margin-top:4px;">🔍 Search image</button>
         <small>OR UPLOAD</small>
         <input type="file" accept="image/*" data-field="image-upload">
       </div>
@@ -943,6 +1137,14 @@ function renderCardEditorList(){
         row.querySelector('[data-field="image-url"]').value = '';
       };
       reader.readAsDataURL(file);
+    };
+    row.querySelector('[data-field="image-search"]').onclick = ()=>{
+      openImageSearch((url)=>{
+        card.image = url;
+        urlInput.value = url;
+        row.querySelector('.card-thumb').src = url;
+        checkImageUrl(url);
+      });
     };
     row.querySelector('[data-field="prompt"]').oninput = (e)=>{
       card.prompt = e.target.value;
@@ -1145,23 +1347,25 @@ function startPresentation(setId){
 }
 
 function buildModeUI(){
-  presentInner.innerHTML = `
-    <div class="present-controls">
-      <button class="mode-btn" data-mode="random">🎲 Random draw</button>
-      <button class="mode-btn" data-mode="order">➡️ In order</button>
-      <button class="mode-btn" data-mode="box">📦 Open the box</button>
-    </div>
-    <div id="stageArea"></div>
+  // Put mode buttons in the topbar
+  const modePills = document.getElementById('modePills');
+  modePills.innerHTML = `
+    <button class="mode-btn" data-mode="random">🎲 Random</button>
+    <button class="mode-btn" data-mode="order">➡️ In order</button>
+    <button class="mode-btn" data-mode="box">📦 Open the box</button>
   `;
-  presentInner.querySelectorAll('.mode-btn').forEach(btn=>{
+  modePills.querySelectorAll('.mode-btn').forEach(btn=>{
     btn.onclick = ()=> setMode(btn.dataset.mode);
   });
+  // Stage area inside the present-stage-wrap
+  presentInner.innerHTML = `<div id="stageArea" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>`;
   setMode(currentMode);
 }
 
 function setMode(mode){
   currentMode = mode;
-  presentInner.querySelectorAll('.mode-btn').forEach(b=>{
+  const modePills = document.getElementById('modePills');
+  if(modePills) modePills.querySelectorAll('.mode-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.mode===mode);
   });
   if(mode==='random' || mode==='order'){
@@ -1175,6 +1379,7 @@ function setMode(mode){
 
 function renderRandomOrOrderStage(){
   const stageArea = document.getElementById('stageArea');
+  stageArea.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
   stageArea.innerHTML = `
     <div class="stage">
       <div class="card-deck">
@@ -1183,12 +1388,12 @@ function renderRandomOrOrderStage(){
         </div>
       </div>
       <div class="stage-controls">
-        <button class="btn btn-ghost-dark" id="prevBtn">◀ Previous card</button>
-        <button class="btn btn-primary" id="nextBtn">Next card</button>
-        <button class="btn btn-ghost-dark" id="resetBtn">Restart</button>
+        <button class="btn btn-ghost-dark" id="prevBtn">◀ Prev</button>
+        <button class="btn btn-primary" id="nextBtn">Next card ▶</button>
+        <button class="btn btn-ghost-dark" id="resetBtn">↺ Restart</button>
       </div>
       <div class="counter" id="counterText"></div>
-      <div class="kbd-hint">Tip: press the spacebar for the next card, and the left arrow key to go back</div>
+      <div class="kbd-hint">Space = next card · ← = previous</div>
     </div>
   `;
   document.getElementById('nextBtn').onclick = showNextCard;
@@ -1338,6 +1543,7 @@ function shuffleArray(arr){
 
 function renderBoxStage(){
   const stageArea = document.getElementById('stageArea');
+  stageArea.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
   boxOrder = shuffleArray(currentSet.cards);
   boxOpenCounts = new Array(boxOrder.length).fill(0);
   boxHistory = [];
@@ -1346,15 +1552,15 @@ function renderBoxStage(){
     <div class="stage">
       <div class="card-deck">
         <div class="big-card" id="bigCard">
-          <p class="placeholder">Pick a number to open the box</p>
+          <p class="placeholder">Pick a number to open a box</p>
         </div>
       </div>
-      <p class="box-instruction" style="margin-top:20px;">🔀 Questions are shuffled — tap a box to open (numbers 1–9 also work on your keyboard)</p>
+      <p class="box-instruction">🔀 Shuffled — tap a box · keys 1–9 also work</p>
       <div class="box-grid" id="boxGrid"></div>
       <div class="counter" id="boxCounterText"></div>
       <div class="stage-controls">
-        <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Previous card</button>
-        <button class="btn btn-ghost-dark" id="resetBoxBtn">Restart</button>
+        <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Prev</button>
+        <button class="btn btn-ghost-dark" id="resetBoxBtn">↺ Restart</button>
       </div>
     </div>
   `;
@@ -1407,6 +1613,120 @@ function openBox(idx){
   updatePrevBoxBtnState();
   updateBoxCounter();
   renderCardOnStage(boxOrder[idx], false);
+}
+
+/* ---------------- IMAGE SEARCH MODAL ---------------- */
+const PIXABAY_KEY = '56893076-e007c6a0cdf738da2aeabb494';
+let imgSearchCallback = null;
+let imgSearchPage = 1;
+let imgSearchLastQuery = '';
+let imgSearchLastType = 'all';
+let imgSearchTotalPages = 1;
+
+const imgSearchOverlay = document.getElementById('imgSearchOverlay');
+const imgSearchInput   = document.getElementById('imgSearchInput');
+const imgSearchType    = document.getElementById('imgSearchType');
+const imgSearchBtn     = document.getElementById('imgSearchBtn');
+const imgResultsGrid   = document.getElementById('imgResultsGrid');
+const imgSearchStatus  = document.getElementById('imgSearchStatus');
+const imgSearchFooter  = document.getElementById('imgSearchFooter');
+const imgSearchPrevBtn = document.getElementById('imgSearchPrevBtn');
+const imgSearchNextBtn = document.getElementById('imgSearchNextBtn');
+const imgSearchPageLabel = document.getElementById('imgSearchPageLabel');
+
+function openImageSearch(onPick){
+  imgSearchCallback = onPick;
+  imgSearchOverlay.classList.add('open');
+  imgSearchInput.focus();
+  // reset
+  imgResultsGrid.innerHTML = '';
+  imgResultsGrid.style.display = 'none';
+  imgSearchFooter.style.display = 'none';
+  imgSearchStatus.textContent = 'Type a word and press Search to find images.';
+  imgSearchStatus.style.display = 'block';
+  imgSearchInput.value = '';
+  imgSearchPage = 1;
+}
+
+document.getElementById('imgSearchClose').onclick = ()=>{
+  imgSearchOverlay.classList.remove('open');
+};
+imgSearchOverlay.addEventListener('click',(e)=>{
+  if(e.target === imgSearchOverlay) imgSearchOverlay.classList.remove('open');
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape' && imgSearchOverlay.classList.contains('open')){
+    imgSearchOverlay.classList.remove('open');
+  }
+});
+
+imgSearchBtn.onclick = ()=> runPixabaySearch(1);
+imgSearchInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') runPixabaySearch(1); });
+imgSearchPrevBtn.onclick = ()=> runPixabaySearch(imgSearchPage - 1);
+imgSearchNextBtn.onclick = ()=> runPixabaySearch(imgSearchPage + 1);
+
+async function runPixabaySearch(page){
+  const query = imgSearchInput.value.trim();
+  if(!query){ imgSearchStatus.textContent = 'Please type a word to search.'; return; }
+
+  imgSearchLastQuery = query;
+  imgSearchLastType  = imgSearchType.value;
+  imgSearchPage = page;
+
+  imgResultsGrid.style.display = 'none';
+  imgSearchFooter.style.display = 'none';
+  imgSearchStatus.style.display = 'block';
+  imgSearchStatus.textContent = '🔎 Searching...';
+
+  const perPage = 20;
+  const typeParam = imgSearchLastType !== 'all' ? `&image_type=${imgSearchLastType}` : '';
+  const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}&safesearch=true${typeParam}`;
+
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    if(!data.hits || data.hits.length === 0){
+      imgSearchStatus.textContent = '😕 No images found. Try different keywords.';
+      return;
+    }
+
+    imgSearchTotalPages = Math.ceil(data.totalHits / perPage);
+    imgSearchStatus.style.display = 'none';
+    imgResultsGrid.style.display = 'grid';
+    imgResultsGrid.innerHTML = '';
+
+    data.hits.forEach(hit=>{
+      const item = document.createElement('div');
+      item.className = 'img-result-item';
+      item.title = hit.tags;
+      item.innerHTML = `
+        <img src="${hit.webformatURL}" alt="${escapeAttr(hit.tags)}" loading="lazy">
+        <div class="img-pick-overlay">Use this image</div>
+      `;
+      item.onclick = ()=>{
+        if(imgSearchCallback) imgSearchCallback(hit.webformatURL);
+        imgSearchOverlay.classList.remove('open');
+      };
+      imgResultsGrid.appendChild(item);
+    });
+
+    // Pagination
+    if(imgSearchTotalPages > 1){
+      imgSearchFooter.style.display = 'flex';
+      imgSearchPageLabel.textContent = `Page ${imgSearchPage} of ${Math.min(imgSearchTotalPages, 50)}`;
+      imgSearchPrevBtn.disabled = imgSearchPage <= 1;
+      imgSearchNextBtn.disabled = imgSearchPage >= Math.min(imgSearchTotalPages, 50);
+    }else{
+      imgSearchFooter.style.display = 'none';
+    }
+
+  }catch(err){
+    imgSearchStatus.style.display = 'block';
+    imgSearchStatus.textContent = '⚠ Could not fetch images. Check your internet connection and try again.';
+    console.error('Pixabay error:', err);
+  }
 }
 
 /* ---------------- HELPERS ---------------- */
@@ -1480,6 +1800,9 @@ async function initStudentModeIfNeeded(){
   adminView.classList.remove('active');
   presentView.classList.add('active');
   tabPresentBtn.classList.add('active');
+  document.body.classList.add('present-mode');
+  const topbarH = document.querySelector('.topbar').offsetHeight;
+  presentView.style.height = `calc(100vh - ${topbarH}px)`;
 
   presentSetSelect.innerHTML = '';
   const opt = document.createElement('option');
