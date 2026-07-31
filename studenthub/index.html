@@ -2227,7 +2227,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     }
 
     setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim }));
-    if (onStudentUpdated) onStudentUpdated({ nivel: rascunhoTurma.nivel });
+    if (onStudentUpdated) onStudentUpdated({
+      nivel: rascunhoTurma.nivel,
+      turmas: { dias_horarios: rascunhoTurma.dias_horarios, data_fim: novaDataFim },
+    });
     setMostrarEditarTurma(false);
     // Recarrega aulas pra sumir as apagadas
     setLoadKey((k) => k + 1);
@@ -4566,7 +4569,15 @@ function App() {
       student={alunoSelecionado}
       onBack={papel === "admin" ? () => setAlunoSelecionado(null) : null}
       onSwitchStudent={papel === "admin" ? (novoAluno) => setAlunoSelecionado(novoAluno) : null}
-      onStudentUpdated={(dados) => setAlunoSelecionado((prev) => (prev ? { ...prev, ...dados } : prev))}
+      onStudentUpdated={(dados) => setAlunoSelecionado((prev) => {
+        if (!prev) return prev;
+        const { turmas: novasTurmas, ...restoDosDados } = dados;
+        return {
+          ...prev,
+          ...restoDosDados,
+          turmas: novasTurmas ? { ...(prev.turmas || {}), ...novasTurmas } : prev.turmas,
+        };
+      })}
     />
   );
 }
