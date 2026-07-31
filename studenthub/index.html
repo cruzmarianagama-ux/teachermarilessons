@@ -189,7 +189,7 @@ const statusConfig = {
   realizada: { cor: palette.lightGreen, texto: palette.green, label: "Realizada" },
   aRepor: { cor: "#F5D547", texto: "#6B5A00", label: "A repor" },
   perdida: { cor: "#F7C1C1", texto: "#791F1F", label: "Perdida" },
-  cancelada: { cor: "transparent", texto: "#CCC", label: "Cancelada" },
+  cancelada: { cor: "transparent", texto: "transparent", label: "Cancelada" },
 };
 
 // Retorna a sequência real do currículo lendo do SYLLABUS (fonte única de verdade)
@@ -2430,7 +2430,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const abrirDia = (chave) => {
     if (role !== "admin") return;
     setDiaSelecionado(chave);
-    const existente = aulas[chave];
+    const bruto = aulas[chave];
+    // Se está cancelada, tratamos como implícita — o admin abre pra reagendar/registrar do zero
+    const existente = bruto && bruto.status === "cancelada" ? null : bruto;
     // Descobre o horário padrão da turma pra esse dia da semana (se houver), pra usar como sugestão
     let horarioPadrao = "";
     if (chave && turma && turma.dias_horarios) {
@@ -2442,7 +2444,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     }
     setRascunho(existente
       ? { ...existente, horario: existente.horario || horarioPadrao }
-      : { status: "realizada", horario: horarioPadrao });
+      : { status: "agendada", horario: horarioPadrao });
     if (chave) {
       const [m, d] = chave.split("-").map(Number);
       setNovoDiaMover(`2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
@@ -2493,49 +2495,65 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
     const novaData = new Date(novoDiaMover + "T00:00:00");
     const novaChave = `${novaData.getMonth()}-${novaData.getDate()}`;
-    if (novoDiaMover !== dataAntiga && aulas[novaChave]) {
+    const registroDestinoExistente = aulas[novaChave];
+    if (novoDiaMover !== dataAntiga && registroDestinoExistente && registroDestinoExistente.status !== "cancelada") {
       alert("Já existe uma aula marcada nesse dia. Escolha outro dia ou mova/apague a aula existente primeiro.");
       return;
     }
 
-    const statusOriginal = aulas[diaSelecionado] && aulas[diaSelecionado].status;
-    const viraReposicao = statusOriginal === "aRepor" && novoDiaMover !== dataAntiga;
+    const registroOrigem = aulas[diaSelecionado];
+    const temRegistroReal = registroOrigem && registroOrigem.rowId;
+    const statusOriginal = registroOrigem && registroOrigem.status;
     const mudouDia = novoDiaMover !== dataAntiga;
-    const atualizacao = { data: novoDiaMover, horario: novoHorarioMover || null };
-    // Se mudou o dia, sempre grava a data_original — pra o painel admin saber que a aula regular daquele dia foi movida
-    if (mudouDia) {
-      atualizacao.data_original = (aulas[diaSelecionado] && aulas[diaSelecionado].data_original) || dataAntiga;
-    }
-    if (viraReposicao) {
-      atualizacao.status = "reposicaoAgendada";
-      atualizacao.prazo_reposicao = null;
-    }
+    const viraReposicao = statusOriginal === "aRepor" && mudouDia;
 
-    const { error } = await supabase
-      .from("lessons")
-      .update(atualizacao)
-      .eq("turma_id", turmaId)
-      .eq("data", dataAntiga);
-
-    if (error) {
-      alert("Erro ao mover a aula: " + error.message);
-      return;
+    // Descobre horário default do dia destino se não foi fornecido
+    let horarioFinal = novoHorarioMover;
+    if (!horarioFinal && turma && turma.dias_horarios) {
+      const diaSemanaDestino = novaData.getDay();
+      const dhMatch = turma.dias_horarios.find((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemanaDestino);
+      if (dhMatch) horarioFinal = dhMatch.horario;
     }
 
-    setAulas((prev) => {
-      const copia = { ...prev };
-      const registro = { ...copia[diaSelecionado], horario: novoHorarioMover || null };
+    if (temRegistroReal) {
+      // UPDATE do registro existente para nova data/horário
+      const atualizacao = { data: novoDiaMover, horario: horarioFinal || null };
       if (mudouDia) {
-        registro.data_original = atualizacao.data_original;
+        atualizacao.data_original = registroOrigem.data_original || dataAntiga;
       }
       if (viraReposicao) {
-        registro.status = "reposicaoAgendada";
-        registro.prazo_reposicao = null;
+        atualizacao.status = "reposicaoAgendada";
+        atualizacao.prazo_reposicao = null;
       }
-      delete copia[diaSelecionado];
-      copia[novaChave] = registro;
-      return copia;
-    });
+      const { error } = await supabase.from("lessons").update(atualizacao).eq("id", registroOrigem.rowId);
+      if (error) { alert("Erro ao mover a aula: " + error.message); return; }
+    } else {
+      // Aula implícita — INSERT registro na nova data
+      const { error } = await supabase.from("lessons").insert({
+        turma_id: turmaId,
+        data: novoDiaMover,
+        status: "agendada",
+        horario: horarioFinal || null,
+        data_original: mudouDia ? dataAntiga : null,
+      });
+      if (error) { alert("Erro ao mover a aula: " + error.message); return; }
+    }
+
+    // Se mudou de dia E a data antiga era dia oficial → INSERT cancelada pra não voltar como implícita
+    if (mudouDia) {
+      const diaSemanaAntigo = new Date(dataAntiga + "T00:00:00").getDay();
+      const antigoEraOficial = turma && turma.dias_horarios && turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemanaAntigo);
+      if (antigoEraOficial && !temRegistroReal) {
+        // Só insere cancelada se a origem era implícita (o UPDATE do registro real já "sumiu" com a data antiga)
+        await supabase.from("lessons").upsert({ turma_id: turmaId, data: dataAntiga, status: "cancelada", prazo_reposicao: null, horario: null }, { onConflict: "turma_id,data" });
+      } else if (antigoEraOficial && temRegistroReal) {
+        // Registro real foi movido pra nova data; agora precisa criar cancelada na data antiga
+        await supabase.from("lessons").insert({ turma_id: turmaId, data: dataAntiga, status: "cancelada", prazo_reposicao: null, horario: null });
+      }
+    }
+
+    // Recarrega estado buscando do banco pra garantir consistência
+    setLoadKey((k) => k + 1);
     setMesAtual(novaData.getMonth());
     setDiaSelecionado(null);
   };
@@ -2578,13 +2596,26 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const [m, d] = diaSelecionado.split("-").map(Number);
     const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const registroExistente = aulas[diaSelecionado];
+
     if (registroExistente && registroExistente.rowId) {
       // Tem registro real → deleta do banco
       const { error } = await supabase.from("lessons").delete().eq("id", registroExistente.rowId);
       if (error) { alert("Erro ao excluir a aula: " + error.message); return; }
-      setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
+      // Se era dia oficial da turma, precisa marcar como cancelada pra não voltar como agendada implícita
+      const diaSemana = new Date(dataISO + "T00:00:00").getDay();
+      const ehDiaOficial = turma && turma.dias_horarios && turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
+      if (ehDiaOficial) {
+        const { data, error: erroCancelada } = await supabase
+          .from("lessons")
+          .insert({ turma_id: turmaId, data: dataISO, status: "cancelada", prazo_reposicao: null, horario: null })
+          .select().single();
+        if (erroCancelada) { alert("Erro ao marcar como cancelada: " + erroCancelada.message); return; }
+        setAulas((prev) => ({ ...prev, [diaSelecionado]: { status: "cancelada", rowId: data.id } }));
+      } else {
+        setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
+      }
     } else {
-      // Dia implícito (agendada gerada pelo dias_horarios, sem registro no banco) → insere "cancelada" para suprimir
+      // Aula implícita (do dia oficial, sem registro) → insere cancelada pra suprimir
       const { data, error } = await supabase
         .from("lessons")
         .upsert({ turma_id: turmaId, data: dataISO, status: "cancelada", prazo_reposicao: null, horario: null }, { onConflict: "turma_id,data" })
@@ -4230,15 +4261,17 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       </div>
                     );
                   }
-                  // Status explícito salvo em lessons (realizada, faltou, aRepor, etc.)
+                  // Status explícito salvo em lessons
                   let status = statusDe(aulas[chave]);
-                  // Se não há registro (ou é cancelada) e o dia é regular da turma (a partir de hoje) → "agendada"
-                  if ((!status || status === "cancelada") && turma && turma.dias_horarios) {
+                  // cancelada = aula excluída explicitamente do calendário → dia fica em branco
+                  if (status === "cancelada") status = null;
+                  // Se não há registro e o dia é regular da turma (a partir de hoje) → "agendada" implícita
+                  else if (!status && turma && turma.dias_horarios) {
                     const diaSemana = new Date(iso + "T00:00:00").getDay();
                     const ehDiaDaTurma = turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
                     const hojeISO = new Date().toISOString().slice(0, 10);
                     const encerrada = turma.data_fim && iso > turma.data_fim;
-                    if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = status === "cancelada" ? null : "agendada";
+                    if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = "agendada";
                   }
                   const cfg = status ? statusConfig[status] : null;
                   const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
@@ -4300,27 +4333,39 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <button onClick={() => setDiaSelecionado(null)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
                   </div>
 
-                  {aulas[diaSelecionado] && aulas[diaSelecionado].rowId && (
-                    <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
-                        Mover esta aula para outro dia/horário
-                      </label>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <input type="date" value={novoDiaMover} onChange={(e) => setNovoDiaMover(e.target.value)} min="2026-07-01" max="2026-12-13"
-                          style={{ flex: "1 1 140px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
-                        <input type="time" value={novoHorarioMover} onChange={(e) => setNovoHorarioMover(e.target.value)}
-                          style={{ flex: "1 1 110px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
-                        <button onClick={moverAula} style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>Mover</button>
+                  {(() => {
+                    // Aula existe visualmente? Ou seja: tem registro real (que não seja cancelada) OU é dia oficial da turma
+                    const bruto = aulas[diaSelecionado];
+                    const temRegistroReal = bruto && bruto.rowId && bruto.status !== "cancelada";
+                    let ehDiaOficial = false;
+                    if (turma && turma.dias_horarios && diaSelecionado) {
+                      const [m, d] = diaSelecionado.split("-").map(Number);
+                      const diaSemana = new Date(2026, m, d).getDay();
+                      ehDiaOficial = turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
+                    }
+                    const temAula = temRegistroReal || ehDiaOficial;
+                    if (!temAula) return null;
+                    return (
+                      <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
+                          Mover esta aula para outro dia/horário
+                        </label>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <input type="date" value={novoDiaMover} onChange={(e) => setNovoDiaMover(e.target.value)} min="2026-07-01" max="2026-12-13"
+                            style={{ flex: "1 1 140px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                          <input type="time" value={novoHorarioMover} onChange={(e) => setNovoHorarioMover(e.target.value)}
+                            style={{ flex: "1 1 110px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                          <button onClick={moverAula} style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>Mover</button>
+                        </div>
+                        <p style={{ fontSize: "11px", color: textSecondary, marginTop: "6px" }}>
+                          Deixe o horário em branco pra usar o horário padrão da turma nesse dia da semana.
+                        </p>
+                        <button onClick={excluirAulaCalendario} style={{ marginTop: "14px", padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F" }}>
+                          Excluir esta aula do calendário
+                        </button>
                       </div>
-                      <p style={{ fontSize: "11px", color: textSecondary, marginTop: "6px" }}>
-                        Deixe o horário em branco pra usar o horário padrão da turma nesse dia da semana. Essa é a única forma de trocar o dia/horário de uma aula já marcada.
-                      </p>
-                    </div>
-                  )}
-
-                  <button onClick={excluirAulaCalendario} style={{ marginTop: "14px", padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F" }}>
-                    Excluir esta aula do calendário
-                  </button>
+                    );
+                  })()}
 
                 </div>
               )}
