@@ -518,6 +518,8 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
           if (dh.dia !== diaSemanaNome) return;
           if (movidasSet.has(`${t.turma_id}|${dataISO}`)) return;
           const lesson = lessonsDaSemana.find((l) => l.turma_id === t.turma_id && l.data === dataISO);
+          // Aula excluída explicitamente do calendário → não aparece no painel
+          if (lesson && lesson.status === "cancelada") return;
           aulas.push({
             turma_id: t.turma_id,
             representante: t.representante,
@@ -533,6 +535,7 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
       // Aulas que foram REMARCADAS pra esse dia (data_original diferente)
       lessonsDaSemana.forEach((lesson) => {
         if (lesson.data !== dataISO || !lesson.data_original || lesson.data_original === dataISO) return;
+        if (lesson.status === "cancelada") return;
         const alunosTurma = turmasMap.get(lesson.turma_id);
         if (!alunosTurma) return;
         const ordenados = [...alunosTurma].sort((a, b) => a.nome.localeCompare(b.nome));
@@ -900,6 +903,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [diasSemAula, setDiasSemAula] = useState({});
   const [mesCalGeral, setMesCalGeral] = useState(() => new Date().getMonth());
+  const [anoCalGeral, setAnoCalGeral] = useState(() => new Date().getFullYear());
   const [novaTurma, setNovaTurma] = useState({
     modalidade: "individual",
     frequencia: "1x",
@@ -1071,6 +1075,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           // Pula se essa aula regular foi MOVIDA pra outro dia
           if (movidasSet.has(`${turma_id}|${dataISO}`)) return;
           const lesson = (lessonsData || []).find((l) => l.turma_id === turma_id && l.data === dataISO);
+          // Aula excluída explicitamente do calendário → não aparece
+          if (lesson && lesson.status === "cancelada") return;
           const status = lesson ? lesson.status : "agendada";
           const nomes = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome)).map((a) => a.nome).join(" + ");
           const representante = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome))[0];
@@ -1081,6 +1087,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       // Isso pega aulas movidas de outro dia + reposições agendadas — que aparecem em `lessons` com data = hoje
       (lessonsData || []).forEach((lesson) => {
         if (lesson.data !== dataISO || !lesson.data_original || lesson.data_original === dataISO) return;
+        if (lesson.status === "cancelada") return;
         // Ver se essa aula já foi contabilizada acima (turma tem horário regular hoje)
         const turmaData = turmasMap.get(lesson.turma_id);
         if (!turmaData) return;
@@ -1493,16 +1500,22 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             </p>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", maxWidth: "360px" }}>
-              <button onClick={() => setMesCalGeral((m) => Math.max(0, m - 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>‹</button>
+              <button onClick={() => {
+                if (mesCalGeral === 0) { setMesCalGeral(11); setAnoCalGeral((a) => a - 1); }
+                else setMesCalGeral((m) => m - 1);
+              }} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>‹</button>
               <p style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: palette.purple }}>
-                {["January","February","March","April","May","June","July","August","September","October","November","December"][mesCalGeral]} 2026
+                {["January","February","March","April","May","June","July","August","September","October","November","December"][mesCalGeral]} {anoCalGeral}
               </p>
-              <button onClick={() => setMesCalGeral((m) => Math.min(11, m + 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>›</button>
+              <button onClick={() => {
+                if (mesCalGeral === 11) { setMesCalGeral(0); setAnoCalGeral((a) => a + 1); }
+                else setMesCalGeral((m) => m + 1);
+              }} style={{ border: "none", background: "transparent", cursor: "pointer", color: palette.purple, fontSize: "18px" }}>›</button>
             </div>
 
             {(() => {
-              const diasNoMes = new Date(2026, mesCalGeral + 1, 0).getDate();
-              const primeiroDia = new Date(2026, mesCalGeral, 1).getDay();
+              const diasNoMes = new Date(anoCalGeral, mesCalGeral + 1, 0).getDate();
+              const primeiroDia = new Date(anoCalGeral, mesCalGeral, 1).getDay();
               const celulas = [];
               for (let i = 0; i < primeiroDia; i++) celulas.push(null);
               for (let d = 1; d <= diasNoMes; d++) celulas.push(d);
@@ -1516,7 +1529,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "4px" }}>
                     {celulas.map((dia, i) => {
                       if (!dia) return <div key={i} />;
-                      const iso = `2026-${String(mesCalGeral + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                      const iso = `${anoCalGeral}-${String(mesCalGeral + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
                       const bloqueado = diasSemAula[iso];
                       return (
                         <button key={i} onClick={() => alternarDiaSemAula(iso, bloqueado)}
@@ -1817,10 +1830,9 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
               <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de início das aulas</label>
               <input type="date" value={novaTurma.dataInicio} onChange={(e) => setNovaTurma((t) => ({ ...t, dataInicio: e.target.value }))}
-                min="2026-01-01" max="2026-12-13"
                 style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
               <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "16px" }}>
-                Pode ser uma data retroativa — o calendário é gerado a partir dela até 13/12/2026.
+                Pode ser uma data retroativa — o calendário é gerado a partir dela.
               </p>
 
               <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de término das aulas — opcional</label>
@@ -2149,6 +2161,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [active, setActive] = useState("home");
   const [dark, setDark] = useState(false);
   const [mesAtual, setMesAtual] = useState(() => new Date().getMonth());
+  const [anoAtual, setAnoAtual] = useState(() => new Date().getFullYear());
   const [aulas, setAulas] = useState({});
   const [diasSemAula, setDiasSemAula] = useState({});
   const [cronogramaAberto, setCronogramaAberto] = useState(null);
@@ -2202,7 +2215,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
     // Se mudou a data de término, avisa antes se vai apagar aulas
     if (novaDataFim && novaDataFim !== dataFimAnterior) {
-      const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("turma_id", turmaId).gt("data", novaDataFim);
+      const { count } = await supabase.from("lessons").select("id", { count: "exact", head: true }).eq("turma_id", turmaId).gt("data", novaDataFim).neq("status", "cancelada");
       if (count && count > 0) {
         const confirmar = window.confirm(
           `A nova data de término é ${new Date(novaDataFim + "T00:00:00").toLocaleDateString("pt-BR")}.\n\n` +
@@ -2225,6 +2238,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     if (novaDataFim) {
       await supabase.from("lessons").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
       await supabase.from("lesson_records").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
+    }
+
+    // Cleanup: se mudou os dias/horários da turma, deleta canceladas futuras (que ficaram sem propósito)
+    const diasMudaram = JSON.stringify(turma.dias_horarios) !== JSON.stringify(rascunhoTurma.dias_horarios);
+    if (diasMudaram) {
+      const hojeISO = new Date().toISOString().slice(0, 10);
+      await supabase.from("lessons").delete().eq("turma_id", turmaId).eq("status", "cancelada").gte("data", hojeISO);
     }
 
     setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim }));
@@ -2358,7 +2378,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       const aulasObj = {};
       (lessonsData || []).forEach((l) => {
         const d = new Date(l.data + "T00:00:00");
-        aulasObj[`${d.getMonth()}-${d.getDate()}`] = { status: l.status, prazo_reposicao: l.prazo_reposicao, horario: l.horario, data_original: l.data_original, rowId: l.id };
+        aulasObj[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`] = { status: l.status, prazo_reposicao: l.prazo_reposicao, horario: l.horario, data_original: l.data_original, rowId: l.id };
       });
       setAulas(aulasObj);
 
@@ -2436,8 +2456,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     // Descobre o horário padrão da turma pra esse dia da semana (se houver), pra usar como sugestão
     let horarioPadrao = "";
     if (chave && turma && turma.dias_horarios) {
-      const [m, d] = chave.split("-").map(Number);
-      const diaSemana = new Date(2026, m, d).getDay();
+      const [y, m, d] = chave.split("-").map(Number);
+      const diaSemana = new Date(y, m, d).getDay();
       const diasMap = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
       const dhMatch = turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana);
       if (dhMatch) horarioPadrao = dhMatch.horario;
@@ -2446,8 +2466,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       ? { ...existente, horario: existente.horario || horarioPadrao }
       : { status: "agendada", horario: horarioPadrao });
     if (chave) {
-      const [m, d] = chave.split("-").map(Number);
-      setNovoDiaMover(`2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+      const [y, m, d] = chave.split("-").map(Number);
+      setNovoDiaMover(`${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
       setNovoHorarioMover((existente && existente.horario) || "");
     }
   };
@@ -2462,8 +2482,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   };
 
   const salvarAula = async () => {
-    const [m, d] = diaSelecionado.split("-").map(Number);
-    const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const [y, m, d] = diaSelecionado.split("-").map(Number);
+    const dataISO = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
     let prazoReposicao = null;
     if (rascunho.status === "aRepor") {
@@ -2488,13 +2508,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const moverAula = async () => {
     if (!novoDiaMover) return;
     const dataAntiga = (() => {
-      const [m, d] = diaSelecionado.split("-").map(Number);
-      return `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const [y, m, d] = diaSelecionado.split("-").map(Number);
+      return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     })();
     if (novoDiaMover === dataAntiga && !novoHorarioMover) return;
 
     const novaData = new Date(novoDiaMover + "T00:00:00");
-    const novaChave = `${novaData.getMonth()}-${novaData.getDate()}`;
+    const novaChave = `${novaData.getFullYear()}-${novaData.getMonth()}-${novaData.getDate()}`;
     const registroDestinoExistente = aulas[novaChave];
     if (novoDiaMover !== dataAntiga && registroDestinoExistente && registroDestinoExistente.status !== "cancelada") {
       alert("Já existe uma aula marcada nesse dia. Escolha outro dia ou mova/apague a aula existente primeiro.");
@@ -2555,12 +2575,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     // Recarrega estado buscando do banco pra garantir consistência
     setLoadKey((k) => k + 1);
     setMesAtual(novaData.getMonth());
+    setAnoAtual(novaData.getFullYear());
     setDiaSelecionado(null);
   };
 
   const avisarNaoComparecimento = async (chave) => {
-    const [m, d] = chave.split("-").map(Number);
-    const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const [y, m, d] = chave.split("-").map(Number);
+    const dataISO = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const horarioAula = dataHoraDaAula(dataISO, aulas[chave] && aulas[chave].horario);
 
     const confirmar = window.confirm("Avisar que você não vai comparecer a essa aula?");
@@ -2593,8 +2614,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const excluirAulaCalendario = async () => {
     const confirmar = window.confirm("Excluir esta aula do calendário? Isso não apaga nenhum registro de Aulas + Homework vinculado.");
     if (!confirmar) return;
-    const [m, d] = diaSelecionado.split("-").map(Number);
-    const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const [y, m, d] = diaSelecionado.split("-").map(Number);
+    const dataISO = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const registroExistente = aulas[diaSelecionado];
 
     if (registroExistente && registroExistente.rowId) {
@@ -2690,7 +2711,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       .select().single();
     if (!lessonError) {
       const d = new Date(novaAula.data + "T00:00:00");
-      const chave = `${d.getMonth()}-${d.getDate()}`;
+      const chave = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       setAulas((prev) => ({ ...prev, [chave]: { ...(prev[chave] || {}), status: "realizada", prazo_reposicao: null, rowId: lessonData.id } }));
     }
     // Salta o navegador de mês pra onde a aula foi registrada (senão ela "some" da view atual)
@@ -2746,7 +2767,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     await supabase.from("lessons").delete().eq("turma_id", turmaId).eq("data", dataDoRegistro);
     setAulasRegistradas((prev) => prev.filter((a) => a.rowId !== cronogramaAberto.rowId));
     const d = new Date(dataDoRegistro + "T00:00:00");
-    const chaveCalendario = `${d.getMonth()}-${d.getDate()}`;
+    const chaveCalendario = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     setAulas((prev) => { const copia = { ...prev }; delete copia[chaveCalendario]; return copia; });
     setCronogramaAberto(null);
   };
@@ -2797,8 +2818,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     doc.setFontSize(10);
     const entradasCalendario = Object.entries(aulas)
       .map(([chave, r]) => {
-        const [m, d] = chave.split("-").map(Number);
-        return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}/2026`, status: statusDe(r), ordem: m * 100 + d };
+        const [y, m, d] = chave.split("-").map(Number);
+        return { data: `${String(d).padStart(2, "0")}/${String(m + 1).padStart(2, "0")}/${y}`, status: statusDe(r), ordem: y * 10000 + m * 100 + d };
       })
       .sort((a, b) => a.ordem - b.ordem);
     entradasCalendario.forEach((e) => {
@@ -2816,8 +2837,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const { mes, ano } = relatorioMesAno;
 
     const aulasDoMes = Object.entries(aulas)
-      .filter(([chave]) => Number(chave.split("-")[0]) === mes)
-      .map(([, r]) => (typeof r === "object" ? r : { status: r }));
+      .filter(([chave]) => {
+        const partes = chave.split("-").map(Number);
+        return partes[0] === ano && partes[1] === mes;
+      })
+      .map(([, r]) => (typeof r === "object" ? r : { status: r }))
+      .filter((a) => a.status !== "cancelada");
 
     const scheduledClasses = aulasDoMes.length;
     const completedClasses = aulasDoMes.filter((a) => a.status === "realizada").length;
@@ -3172,12 +3197,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     .map(([chave, r]) => ({ chave, prazo: r.prazo_reposicao }));
 
   const hojeDate = new Date();
-  const chaveHoje = `${hojeDate.getMonth()}-${hojeDate.getDate()}`;
+  const chaveHoje = `${hojeDate.getFullYear()}-${hojeDate.getMonth()}-${hojeDate.getDate()}`;
   const registroHoje = aulas[chaveHoje];
   const reposicaoHoje = registroHoje && registroHoje.status === "reposicaoAgendada" ? registroHoje : null;
 
-  const diasNoMes = new Date(2026, mesAtual + 1, 0).getDate();
-  const primeiroDiaSemana = new Date(2026, mesAtual, 1).getDay();
+  const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const primeiroDiaSemana = new Date(anoAtual, mesAtual, 1).getDay();
   const celulas = [];
   for (let i = 0; i < primeiroDiaSemana; i++) celulas.push(null);
   for (let d = 1; d <= diasNoMes; d++) celulas.push(d);
@@ -3204,8 +3229,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     Object.entries(aulas)
       .filter(([, r]) => typeof r === "object" && r.status === "reposicaoAgendada")
       .forEach(([chave, r]) => {
-        const [m, d] = chave.split("-").map(Number);
-        const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const [y, m, d] = chave.split("-").map(Number);
+        const dataISO = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
         const dataHora = dataHoraDaAula(dataISO, r.horario);
         if (dataHora && dataHora >= agora) candidatas.push({ dataHora, reagendada: true });
       });
@@ -3223,9 +3248,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         if (diasSemAula[dataISO]) continue;
         const dh = turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana);
         if (!dh) continue;
+        const anoAtualD = d.getFullYear();
         const mesAtualD = d.getMonth();
         const diaD = d.getDate();
-        const chave = `${mesAtualD}-${diaD}`;
+        const chave = `${anoAtualD}-${mesAtualD}-${diaD}`;
         const registroExistente = aulas[chave];
         // Só considera se não há registro (ou se é agendada explícita)
         if (!registroExistente || (typeof registroExistente === "object" && registroExistente.status === "agendada")) {
@@ -3263,8 +3289,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const diasComStatus = Object.entries(aulas)
       .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
       .map(([chave, r]) => {
-        const [m, d] = chave.split("-").map(Number);
-        return { ordem: m * 100 + d, status: statusDe(r) };
+        const [y, m, d] = chave.split("-").map(Number);
+        return { ordem: y * 10000 + m * 100 + d, status: statusDe(r) };
       })
       .sort((a, b) => b.ordem - a.ordem);
     for (const item of diasComStatus) {
@@ -4235,9 +4261,15 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           {active === "calendario" && (
             <div style={{ maxWidth: "420px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                <button onClick={() => setMesAtual((m) => Math.max(0, m - 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>‹</button>
-                <p style={{ fontSize: "15px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{meses[mesAtual]} 2026</p>
-                <button onClick={() => setMesAtual((m) => Math.min(11, m + 1))} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>›</button>
+                <button onClick={() => {
+                  if (mesAtual === 0) { setMesAtual(11); setAnoAtual((a) => a - 1); }
+                  else setMesAtual((m) => m - 1);
+                }} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>‹</button>
+                <p style={{ fontSize: "15px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{meses[mesAtual]} {anoAtual}</p>
+                <button onClick={() => {
+                  if (mesAtual === 11) { setMesAtual(0); setAnoAtual((a) => a + 1); }
+                  else setMesAtual((m) => m + 1);
+                }} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>›</button>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px", marginBottom: "6px" }}>
@@ -4249,8 +4281,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "4px" }}>
                 {celulas.map((dia, i) => {
                   if (!dia) return <div key={i} />;
-                  const chave = `${mesAtual}-${dia}`;
-                  const iso = `2026-${String(mesAtual + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                  const chave = `${anoAtual}-${mesAtual}-${dia}`;
+                  const iso = `${anoAtual}-${String(mesAtual + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
                   const motivoFeriado = diasSemAula[iso];
                   // Feriado tem prioridade visual sobre qualquer status de aula
                   if (motivoFeriado) {
@@ -4300,8 +4332,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     style={{ width: "160px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
                   <p style={{ fontSize: "11px", color: textSecondary, marginBottom: "14px" }}>
                     {(() => {
-                      const [m, d] = diaSelecionado.split("-").map(Number);
-                      const diaSemana = new Date(2026, m, d).getDay();
+                      const [y, m, d] = diaSelecionado.split("-").map(Number);
+                      const diaSemana = new Date(y, m, d).getDay();
                       const diasMap = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
                       const dhMatch = turma && turma.dias_horarios ? turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana) : null;
                       if (dhMatch && rascunho.horario === dhMatch.horario) return "Padrão da turma nesse dia da semana.";
@@ -4339,8 +4371,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     const temRegistroReal = bruto && bruto.rowId && bruto.status !== "cancelada";
                     let ehDiaOficial = false;
                     if (turma && turma.dias_horarios && diaSelecionado) {
-                      const [m, d] = diaSelecionado.split("-").map(Number);
-                      const diaSemana = new Date(2026, m, d).getDay();
+                      const [y, m, d] = diaSelecionado.split("-").map(Number);
+                      const diaSemana = new Date(y, m, d).getDay();
                       ehDiaOficial = turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
                     }
                     const temAula = temRegistroReal || ehDiaOficial;
@@ -4351,7 +4383,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                           Mover esta aula para outro dia/horário
                         </label>
                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                          <input type="date" value={novoDiaMover} onChange={(e) => setNovoDiaMover(e.target.value)} min="2026-07-01" max="2026-12-13"
+                          <input type="date" value={novoDiaMover} onChange={(e) => setNovoDiaMover(e.target.value)}
                             style={{ flex: "1 1 140px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                           <input type="time" value={novoHorarioMover} onChange={(e) => setNovoHorarioMover(e.target.value)}
                             style={{ flex: "1 1 110px", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
@@ -4430,7 +4462,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <div style={{ marginTop: "12px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, maxWidth: "460px" }}>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Mês / referência</label>
                       <input type="text" value={novaCobranca.mes} onChange={(e) => setNovaCobranca((n) => ({ ...n, mes: e.target.value }))}
-                        placeholder="Ex: Janeiro 2026"
+                        placeholder={`Ex: Janeiro ${new Date().getFullYear()}`}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Valor (R$)</label>
@@ -4474,7 +4506,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <div>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Mês / referência</label>
                       <input type="text" value={rascunhoCobranca.mes} onChange={(e) => setRascunhoCobranca((r) => ({ ...r, mes: e.target.value }))}
-                        placeholder="Ex: Janeiro 2026"
+                        placeholder={`Ex: Janeiro ${new Date().getFullYear()}`}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Valor (R$)</label>
