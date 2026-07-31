@@ -3154,16 +3154,45 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
   const proximaAula = (() => {
     const agora = new Date();
-    const candidatas = Object.entries(aulas)
-      .filter(([, r]) => typeof r === "object" && (r.status === "agendada" || r.status === "reposicaoAgendada"))
-      .map(([chave, r]) => {
+    const hojeISO = new Date().toISOString().slice(0, 10);
+    const candidatas = [];
+
+    // 1. Reposições agendadas (sempre têm registro explícito)
+    Object.entries(aulas)
+      .filter(([, r]) => typeof r === "object" && r.status === "reposicaoAgendada")
+      .forEach(([chave, r]) => {
         const [m, d] = chave.split("-").map(Number);
         const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
         const dataHora = dataHoraDaAula(dataISO, r.horario);
-        return dataHora ? { dataHora, reagendada: r.status === "reposicaoAgendada" } : null;
-      })
-      .filter((c) => c && c.dataHora >= agora)
-      .sort((a, b) => a.dataHora - b.dataHora);
+        if (dataHora && dataHora >= agora) candidatas.push({ dataHora, reagendada: true });
+      });
+
+    // 2. Dias regulares da turma sem registro (agendadas implícitas) — próximas 90 dias
+    if (turma && turma.dias_horarios && turma.dias_horarios.length > 0) {
+      const diasMap = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
+      for (let offset = 0; offset <= 90; offset++) {
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        d.setHours(0, 0, 0, 0);
+        const diaSemana = d.getDay();
+        const dataISO = d.toISOString().slice(0, 10);
+        if (turma.data_fim && dataISO > turma.data_fim) break;
+        if (diasSemAula[dataISO]) continue;
+        const dh = turma.dias_horarios.find((dh) => diasMap[dh.dia] === diaSemana);
+        if (!dh) continue;
+        const mesAtualD = d.getMonth();
+        const diaD = d.getDate();
+        const chave = `${mesAtualD}-${diaD}`;
+        const registroExistente = aulas[chave];
+        // Só considera se não há registro (ou se é agendada explícita)
+        if (!registroExistente || (typeof registroExistente === "object" && registroExistente.status === "agendada")) {
+          const dataHora = new Date(`${dataISO}T${dh.horario}:00`);
+          if (dataHora >= agora) { candidatas.push({ dataHora, reagendada: false }); break; }
+        }
+      }
+    }
+
+    candidatas.sort((a, b) => a.dataHora - b.dataHora);
     return candidatas[0] || null;
   })();
 
@@ -4189,7 +4218,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       </div>
                     );
                   }
-                  const status = statusDe(aulas[chave]);
+                  // Status explícito salvo em lessons (realizada, faltou, aRepor, etc.)
+                  let status = statusDe(aulas[chave]);
+                  // Se não há registro e o dia é regular da turma (a partir de hoje) → "agendada"
+                  if (!status && turma && turma.dias_horarios) {
+                    const diaSemana = new Date(iso + "T00:00:00").getDay();
+                    const ehDiaDaTurma = turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
+                    const hojeISO = new Date().toISOString().slice(0, 10);
+                    const encerrada = turma.data_fim && iso > turma.data_fim;
+                    if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = "agendada";
+                  }
                   const cfg = status ? statusConfig[status] : null;
                   const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
                   return (
