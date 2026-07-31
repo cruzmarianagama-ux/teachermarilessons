@@ -189,6 +189,7 @@ const statusConfig = {
   realizada: { cor: palette.lightGreen, texto: palette.green, label: "Realizada" },
   aRepor: { cor: "#F5D547", texto: "#6B5A00", label: "A repor" },
   perdida: { cor: "#F7C1C1", texto: "#791F1F", label: "Perdida" },
+  cancelada: { cor: "transparent", texto: "#CCC", label: "Cancelada" },
 };
 
 // Retorna a sequência real do currículo lendo do SYLLABUS (fonte única de verdade)
@@ -2574,12 +2575,23 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const excluirAulaCalendario = async () => {
     const confirmar = window.confirm("Excluir esta aula do calendário? Isso não apaga nenhum registro de Aulas + Homework vinculado.");
     if (!confirmar) return;
-    const { error } = await supabase.from("lessons").delete().eq("turma_id", turmaId).eq("data", (() => {
-      const [m, d] = diaSelecionado.split("-").map(Number);
-      return `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    })());
-    if (error) { alert("Erro ao excluir a aula: " + error.message); return; }
-    setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
+    const [m, d] = diaSelecionado.split("-").map(Number);
+    const dataISO = `2026-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const registroExistente = aulas[diaSelecionado];
+    if (registroExistente && registroExistente.rowId) {
+      // Tem registro real → deleta do banco
+      const { error } = await supabase.from("lessons").delete().eq("id", registroExistente.rowId);
+      if (error) { alert("Erro ao excluir a aula: " + error.message); return; }
+      setAulas((prev) => { const copia = { ...prev }; delete copia[diaSelecionado]; return copia; });
+    } else {
+      // Dia implícito (agendada gerada pelo dias_horarios, sem registro no banco) → insere "cancelada" para suprimir
+      const { data, error } = await supabase
+        .from("lessons")
+        .upsert({ turma_id: turmaId, data: dataISO, status: "cancelada", prazo_reposicao: null, horario: null }, { onConflict: "turma_id,data" })
+        .select().single();
+      if (error) { alert("Erro ao excluir a aula: " + error.message); return; }
+      setAulas((prev) => ({ ...prev, [diaSelecionado]: { status: "cancelada", rowId: data.id } }));
+    }
     setDiaSelecionado(null);
   };
 
@@ -4220,13 +4232,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   }
                   // Status explícito salvo em lessons (realizada, faltou, aRepor, etc.)
                   let status = statusDe(aulas[chave]);
-                  // Se não há registro e o dia é regular da turma (a partir de hoje) → "agendada"
-                  if (!status && turma && turma.dias_horarios) {
+                  // Se não há registro (ou é cancelada) e o dia é regular da turma (a partir de hoje) → "agendada"
+                  if ((!status || status === "cancelada") && turma && turma.dias_horarios) {
                     const diaSemana = new Date(iso + "T00:00:00").getDay();
                     const ehDiaDaTurma = turma.dias_horarios.some((dh) => DIAS_SEMANA_MAP[dh.dia] === diaSemana);
                     const hojeISO = new Date().toISOString().slice(0, 10);
                     const encerrada = turma.data_fim && iso > turma.data_fim;
-                    if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = "agendada";
+                    if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = status === "cancelada" ? null : "agendada";
                   }
                   const cfg = status ? statusConfig[status] : null;
                   const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
@@ -4265,7 +4277,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     })()}
                   </p>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
-                    {Object.entries(statusConfig).filter(([k]) => k !== "reposicaoAgendada").map(([key, cfg]) => (
+                    {Object.entries(statusConfig).filter(([k]) => k !== "reposicaoAgendada" && k !== "cancelada").map(([key, cfg]) => (
                       <button key={key} onClick={() => setRascunho((r) => ({ ...r, status: key }))}
                         style={{ padding: "8px 14px", borderRadius: "8px", border: rascunho.status === key ? `2px solid ${palette.purple}` : "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: cfg.cor, color: cfg.texto }}>
                         {cfg.label}
@@ -4288,7 +4300,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     <button onClick={() => setDiaSelecionado(null)} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>Cancelar</button>
                   </div>
 
-                  {aulas[diaSelecionado] && (
+                  {aulas[diaSelecionado] && aulas[diaSelecionado].rowId && (
                     <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}` }}>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>
                         Mover esta aula para outro dia/horário
@@ -4303,12 +4315,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <p style={{ fontSize: "11px", color: textSecondary, marginTop: "6px" }}>
                         Deixe o horário em branco pra usar o horário padrão da turma nesse dia da semana. Essa é a única forma de trocar o dia/horário de uma aula já marcada.
                       </p>
-
-                      <button onClick={excluirAulaCalendario} style={{ marginTop: "14px", padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F" }}>
-                        Excluir esta aula do calendário
-                      </button>
                     </div>
                   )}
+
+                  <button onClick={excluirAulaCalendario} style={{ marginTop: "14px", padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F" }}>
+                    Excluir esta aula do calendário
+                  </button>
 
                 </div>
               )}
@@ -4320,7 +4332,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               )}
 
               <div style={{ display: "flex", gap: "14px", marginTop: "10px", flexWrap: "wrap" }}>
-                {Object.entries(statusConfig).map(([key, cfg]) => (
+                {Object.entries(statusConfig).filter(([k]) => k !== "cancelada").map(([key, cfg]) => (
                   <div key={key} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <div style={{ width: "10px", height: "10px", borderRadius: "3px", background: cfg.cor, border: key === "agendada" ? `1px solid ${textSecondary}` : "none" }} />
                     <span style={{ fontSize: "11px", color: textSecondary }}>{cfg.label}</span>
