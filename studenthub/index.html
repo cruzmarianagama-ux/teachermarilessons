@@ -3106,12 +3106,25 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     }
 
     // ==================== LEVEL PROGRESS + WHAT YOU WILL ACHIEVE ====================
-    const alturaCaixa = 44;
-    if (y + alturaCaixa > alturaPagina - 30) { novaPagina(); y = 24; }
-
     const leftW = (larguraPagina - margem * 2 - 8) * 0.42;
     const rightX = margem + leftW + 8;
     const rightW = larguraPagina - margem - rightX;
+
+    // Pré-calcula as alturas necessárias de cada caixa e usa a maior (mantém alinhamento visual)
+    const achieveValidos = relatorio.achieve.filter(Boolean);
+    // Simula a quebra de linha pra calcular altura real (levando em conta itens longos que quebram em 2+ linhas)
+    doc.setFont("Poppins", "normal"); doc.setFontSize(10);
+    let linhasAchieve = 0;
+    achieveValidos.forEach((a) => {
+      linhasAchieve += doc.splitTextToSize(`\u2022 ${a}`, rightW - 8).length;
+    });
+    // Altura mínima da esquerda (Level Progress): header 9 + 3 linhas + destaque + padding = ~44mm
+    const alturaMinLeft = 44;
+    // Altura calculada da direita: header 9 + linha "Scheduled classes" (8mm) + itens (5mm cada linha) + padding 4mm
+    const alturaMinRight = 9 + 8 + linhasAchieve * 5 + 5;
+    const alturaCaixa = Math.max(alturaMinLeft, alturaMinRight);
+
+    if (y + alturaCaixa > alturaPagina - 30) { novaPagina(); y = 24; }
 
     // LEVEL PROGRESS
     // Header roxo (arredondado no topo, reto embaixo — truque: roundedRect + rect por cima)
@@ -3141,9 +3154,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(80, 80, 80);
     doc.text(`\u2022 Scheduled classes: ${relatorio.aulasProxMes}`, rightX + 4, y + 16);
     let yAch = y + 24;
-    relatorio.achieve.forEach((a) => {
-      if (!a || yAch > y + alturaCaixa - 4) return;
-      const linhas = doc.splitTextToSize(`\u27a4 ${a}`, rightW - 8);
+    achieveValidos.forEach((a) => {
+      const linhas = doc.splitTextToSize(`\u2022 ${a}`, rightW - 8);
       doc.text(linhas, rightX + 4, yAch);
       yAch += linhas.length * 5;
     });
