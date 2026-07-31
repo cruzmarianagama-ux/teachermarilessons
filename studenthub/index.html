@@ -2964,34 +2964,34 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
 
     const verdeEscuro = [4, 57, 47], laranja = [255, 92, 35], roxo = [29, 16, 80], lavanda = [180, 161, 255], creme = [250, 234, 211];
-    const larguraPagina = 210, alturaPagina = 297, margem = 22;
+    const larguraPagina = 210, alturaPagina = 297, margem = 20;
 
     const desenharMoldura = () => {
-      // Moldura externa verde escuro
-      doc.setDrawColor(...verdeEscuro); doc.setLineWidth(2.5);
-      doc.roundedRect(7, 7, larguraPagina - 14, alturaPagina - 14, 5, 5, "S");
-      // Moldura interna laranja
-      doc.setDrawColor(...laranja); doc.setLineWidth(0.8);
-      doc.roundedRect(12, 12, larguraPagina - 24, alturaPagina - 24, 3, 3, "S");
+      // Moldura verde sólida grossa (~6mm) colada ao cantinho da folha
+      doc.setFillColor(...verdeEscuro);
+      doc.roundedRect(3, 3, larguraPagina - 6, alturaPagina - 6, 5, 5, "F");
+      // Área branca de conteúdo por cima
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(9, 9, larguraPagina - 18, alturaPagina - 18, 2.5, 2.5, "F");
     };
     const novaPagina = () => { doc.addPage(); desenharMoldura(); };
     desenharMoldura();
 
-    let y = 22;
+    let y = 18;
 
     // ==================== HEADER ====================
-    // Logo top-left
-    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 4, 28, 28);
+    // Logo top-left (menor e mais próximo dos títulos)
+    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 2, 24, 24);
     // "Monthly Report"
-    doc.setFont("Poppins", "bold"); doc.setFontSize(26); doc.setTextColor(...verdeEscuro);
-    doc.text("Monthly Report", margem, y + 34);
+    doc.setFont("Poppins", "bold"); doc.setFontSize(24); doc.setTextColor(...verdeEscuro);
+    doc.text("Monthly Report", margem, y + 28);
     // "JULY 2026"
-    doc.setFontSize(24); doc.setTextColor(...laranja);
-    doc.text(relatorio.mesNome.toUpperCase(), margem, y + 46);
+    doc.setFontSize(22); doc.setTextColor(...laranja);
+    doc.text(relatorio.mesNome.toUpperCase(), margem, y + 38);
 
     // Info chips à direita
     const chipsX = 128, chipsW = larguraPagina - margem - chipsX;
-    let chipY = y + 4;
+    let chipY = y + 3;
     const infos = [
       ["STUDENT", relatorio.studentName],
       ["CLASS DAY", relatorio.classDay],
@@ -2999,25 +2999,25 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     ];
     infos.forEach((info) => {
       doc.setDrawColor(...lavanda); doc.setLineWidth(0.3); doc.setFillColor(255, 255, 255);
-      doc.roundedRect(chipsX, chipY, chipsW, 11, 2.5, 2.5, "S");
+      doc.roundedRect(chipsX, chipY, chipsW, 10, 2, 2, "S");
       doc.setFont("Poppins", "bold"); doc.setFontSize(10); doc.setTextColor(...roxo);
-      doc.text(`${info[0]}:`, chipsX + 4, chipY + 7.2);
+      doc.text(`${info[0]}:`, chipsX + 4, chipY + 6.5);
       const labelW = doc.getTextWidth(`${info[0]}:`);
       doc.setFont("Poppins", "normal");
-      doc.text(String(info[1]), chipsX + 6 + labelW, chipY + 7.2, { maxWidth: chipsW - labelW - 10 });
-      chipY += 13;
+      doc.text(String(info[1]), chipsX + 6 + labelW, chipY + 6.5, { maxWidth: chipsW - labelW - 10 });
+      chipY += 11;
     });
-    y = Math.max(y + 52, chipY + 2);
+    y = Math.max(y + 44, chipY + 2);
 
     // Divisor
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
     doc.line(margem, y, larguraPagina - margem, y);
-    y += 8;
+    y += 7;
 
     // ==================== MONTHLY SUMMARY ====================
-    doc.setFont("Poppins", "bold"); doc.setFontSize(14); doc.setTextColor(...roxo);
+    doc.setFont("Poppins", "bold"); doc.setFontSize(13); doc.setTextColor(...roxo);
     doc.text("MONTHLY SUMMARY", larguraPagina / 2, y, { align: "center" });
-    y += 10;
+    y += 8;
 
     const stats = [
       ["Scheduled classes:", relatorio.scheduledClasses],
@@ -3025,39 +3025,39 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       ["Attendance:", `${relatorio.attendancePct}%`],
       ["Classes to reschedule:", relatorio.toReschedule],
     ];
-    const statLarg = (larguraPagina - margem * 2 - 12) / 2;
-    const statPillH = 13;
-    const circR = 8.5;
+    const statLarg = (larguraPagina - margem * 2 - 10) / 2;
+    const statPillH = 11;
+    const circR = 7.5;
     for (let i = 0; i < 4; i++) {
       const col = i % 2;
       const row = Math.floor(i / 2);
-      const xStart = margem + col * (statLarg + 12);
-      const yStart = y + row * (statPillH + 8);
+      const xStart = margem + col * (statLarg + 10);
+      const yStart = y + row * (statPillH + 6);
 
       // Pill laranja
       doc.setFillColor(...laranja);
       doc.roundedRect(xStart, yStart, statLarg - circR - 2, statPillH, statPillH / 2, statPillH / 2, "F");
       // Label branco no pill
-      doc.setFont("Poppins", "semibold"); doc.setFontSize(10.5); doc.setTextColor(255, 255, 255);
-      doc.text(stats[i][0], xStart + 6, yStart + statPillH / 2 + 1.5, { maxWidth: statLarg - circR - 14 });
+      doc.setFont("Poppins", "semibold"); doc.setFontSize(10); doc.setTextColor(255, 255, 255);
+      doc.text(stats[i][0], xStart + 6, yStart + statPillH / 2 + 1.3, { maxWidth: statLarg - circR - 14 });
 
       // Círculo com número (sobrepõe o final do pill)
       const circX = xStart + statLarg - circR;
       const circY = yStart + statPillH / 2;
       doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(...laranja); doc.setLineWidth(1);
+      doc.setDrawColor(...laranja); doc.setLineWidth(0.9);
       doc.circle(circX, circY, circR, "FD");
       const numStr = String(stats[i][1]);
-      const numSize = numStr.length > 2 ? 11 : 15;
+      const numSize = numStr.length > 2 ? 10 : 13;
       doc.setFont("Poppins", "bold"); doc.setFontSize(numSize); doc.setTextColor(...roxo);
       doc.text(numStr, circX, circY + numSize / 3.5, { align: "center" });
     }
-    y += 2 * (statPillH + 8);
+    y += 2 * (statPillH + 6);
 
     // Divisor
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
     doc.line(margem, y, larguraPagina - margem, y);
-    y += 8;
+    y += 7;
 
     // ==================== LEARNING JOURNEY ====================
     // Pill roxo com título
