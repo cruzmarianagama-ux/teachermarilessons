@@ -2963,153 +2963,211 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     doc.addFileToVFS("Poppins-Bold.ttf", POPPINS_BOLD_B64);
     doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
 
-    const laranja = [255, 92, 35], roxo = [29, 16, 80], creme = [250, 234, 211], lavanda = [180, 161, 255], lime = [202, 231, 141], limeClaro = [232, 244, 200];
-    const larguraPagina = 210, alturaPagina = 297, margem = 18;
-    let y = 22;
+    const verdeEscuro = [4, 57, 47], laranja = [255, 92, 35], roxo = [29, 16, 80], lavanda = [180, 161, 255], creme = [250, 234, 211];
+    const larguraPagina = 210, alturaPagina = 297, margem = 22;
 
     const desenharMoldura = () => {
-      doc.setDrawColor(...lavanda); doc.setLineWidth(0.3);
-      doc.rect(6, 6, larguraPagina - 12, alturaPagina - 12, "S");
+      // Moldura externa verde escuro
+      doc.setDrawColor(...verdeEscuro); doc.setLineWidth(2.5);
+      doc.roundedRect(7, 7, larguraPagina - 14, alturaPagina - 14, 5, 5, "S");
+      // Moldura interna laranja
+      doc.setDrawColor(...laranja); doc.setLineWidth(0.8);
+      doc.roundedRect(12, 12, larguraPagina - 24, alturaPagina - 24, 3, 3, "S");
     };
-    const desenharRodape = () => {
-      doc.setDrawColor(...lime); doc.setLineWidth(0.6);
-      doc.line(margem, alturaPagina - 14, larguraPagina - margem, alturaPagina - 14);
-      doc.setFont("Poppins", "normal"); doc.setFontSize(8); doc.setTextColor(160, 150, 140);
-      doc.text("teachermarilessons.com.br", larguraPagina / 2, alturaPagina - 9, { align: "center" });
-    };
-    const barraSection = (yBar, altura) => {
-      doc.setFillColor(...lime);
-      doc.roundedRect(margem, yBar - altura + 2, 1.6, altura, 0.6, 0.6, "F");
-    };
+    const novaPagina = () => { doc.addPage(); desenharMoldura(); };
     desenharMoldura();
 
-    // HEADER — logo + mês/ano
-    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 8, 36, 36);
+    let y = 22;
 
-    doc.setFont("Poppins", "bold"); doc.setFontSize(10); doc.setTextColor(...laranja);
-    doc.text("MONTHLY REPORT", larguraPagina - margem, y, { align: "right" });
-    doc.setFontSize(26); doc.setTextColor(...roxo);
-    doc.text(relatorio.mesNome, larguraPagina - margem, y + 12, { align: "right" });
-    y += 32;
+    // ==================== HEADER ====================
+    // Logo top-left
+    doc.addImage(`data:image/png;base64,${LOGO_PDF_B64}`, "PNG", margem, y - 4, 28, 28);
+    // "Monthly Report"
+    doc.setFont("Poppins", "bold"); doc.setFontSize(26); doc.setTextColor(...verdeEscuro);
+    doc.text("Monthly Report", margem, y + 34);
+    // "JULY 2026"
+    doc.setFontSize(24); doc.setTextColor(...laranja);
+    doc.text(relatorio.mesNome.toUpperCase(), margem, y + 46);
 
-    // INFO CARD — student / class day / current level
-    doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
-    doc.roundedRect(margem, y, larguraPagina - margem * 2, 28, 4, 4, "FD");
-    const larguraCol = (larguraPagina - margem * 2) / 3;
-    const colX = [margem + 8, margem + 8 + larguraCol, margem + 8 + larguraCol * 2];
-    const labels = ["STUDENT", "CLASS DAY", "CURRENT LEVEL"];
-    const valores = [relatorio.studentName, relatorio.classDay, relatorio.currentLevel];
-    labels.forEach((l, i) => {
-      doc.setFont("Poppins", "normal"); doc.setFontSize(8.5); doc.setTextColor(140, 120, 95);
-      doc.text(l, colX[i], y + 10);
-      doc.setFont("Poppins", "bold"); doc.setFontSize(14); doc.setTextColor(...roxo);
-      doc.text(String(valores[i]), colX[i], y + 22, { maxWidth: larguraCol - 6 });
-    });
-    y += 34;
-
-    // MONTHLY SUMMARY
-    barraSection(y, 6);
-    doc.setFont("Poppins", "bold"); doc.setFontSize(14); doc.setTextColor(...laranja);
-    doc.text("MONTHLY SUMMARY", margem + 6, y);
-    y += 10;
-    const stats = [
-      ["SCHEDULED CLASSES", relatorio.scheduledClasses],
-      ["COMPLETED CLASSES", relatorio.completedClasses],
-      ["ATTENDANCE", `${relatorio.attendancePct}%`],
-      ["CLASSES TO RESCHEDULE", relatorio.toReschedule],
+    // Info chips à direita
+    const chipsX = 128, chipsW = larguraPagina - margem - chipsX;
+    let chipY = y + 4;
+    const infos = [
+      ["STUDENT", relatorio.studentName],
+      ["CLASS DAY", relatorio.classDay],
+      ["CURRENT LEVEL", relatorio.currentLevel],
     ];
-    const larguraCard = (larguraPagina - margem * 2 - 18) / 4;
-    stats.forEach((s, i) => {
-      const x = margem + i * (larguraCard + 6);
-      const accentCor = i % 2 === 0 ? laranja : lime;
-      doc.setDrawColor(220, 210, 195); doc.setLineWidth(0.4);
-      doc.roundedRect(x, y, larguraCard, 28, 3, 3, "S");
-      doc.setFillColor(...accentCor); doc.rect(x, y, 1.8, 28, "F");
-      doc.setFont("Poppins", "normal"); doc.setFontSize(8); doc.setTextColor(140, 130, 120);
-      doc.text(doc.splitTextToSize(s[0], larguraCard - 10), x + 6, y + 9);
-      doc.setFont("Poppins", "bold"); doc.setFontSize(22); doc.setTextColor(...roxo);
-      doc.text(String(s[1]), x + 6, y + 24);
+    infos.forEach((info) => {
+      doc.setDrawColor(...lavanda); doc.setLineWidth(0.3); doc.setFillColor(255, 255, 255);
+      doc.roundedRect(chipsX, chipY, chipsW, 11, 2.5, 2.5, "S");
+      doc.setFont("Poppins", "bold"); doc.setFontSize(10); doc.setTextColor(...roxo);
+      doc.text(`${info[0]}:`, chipsX + 4, chipY + 7.2);
+      const labelW = doc.getTextWidth(`${info[0]}:`);
+      doc.setFont("Poppins", "normal");
+      doc.text(String(info[1]), chipsX + 6 + labelW, chipY + 7.2, { maxWidth: chipsW - labelW - 10 });
+      chipY += 13;
     });
-    y += 38;
+    y = Math.max(y + 52, chipY + 2);
 
-    // THIS MONTH LEARNING JOURNEY
-    barraSection(y, 6);
-    doc.setFont("Poppins", "bold"); doc.setFontSize(14); doc.setTextColor(...laranja);
-    doc.text("THIS MONTH LEARNING JOURNEY", margem + 6, y);
-    y += 11;
-    if (relatorio.learningJourney.length === 0) {
-      doc.setFont("Poppins", "normal"); doc.setFontSize(11); doc.setTextColor(120, 120, 120);
-      doc.text("No units registered for this month.", margem, y); y += 9;
+    // Divisor
+    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
+    doc.line(margem, y, larguraPagina - margem, y);
+    y += 8;
+
+    // ==================== MONTHLY SUMMARY ====================
+    doc.setFont("Poppins", "bold"); doc.setFontSize(14); doc.setTextColor(...roxo);
+    doc.text("MONTHLY SUMMARY", larguraPagina / 2, y, { align: "center" });
+    y += 10;
+
+    const stats = [
+      ["Scheduled classes:", relatorio.scheduledClasses],
+      ["Completed classes:", relatorio.completedClasses],
+      ["Attendance:", `${relatorio.attendancePct}%`],
+      ["Classes to reschedule:", relatorio.toReschedule],
+    ];
+    const statLarg = (larguraPagina - margem * 2 - 12) / 2;
+    const statPillH = 13;
+    const circR = 8.5;
+    for (let i = 0; i < 4; i++) {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const xStart = margem + col * (statLarg + 12);
+      const yStart = y + row * (statPillH + 8);
+
+      // Pill laranja
+      doc.setFillColor(...laranja);
+      doc.roundedRect(xStart, yStart, statLarg - circR - 2, statPillH, statPillH / 2, statPillH / 2, "F");
+      // Label branco no pill
+      doc.setFont("Poppins", "semibold"); doc.setFontSize(10.5); doc.setTextColor(255, 255, 255);
+      doc.text(stats[i][0], xStart + 6, yStart + statPillH / 2 + 1.5, { maxWidth: statLarg - circR - 14 });
+
+      // Círculo com número (sobrepõe o final do pill)
+      const circX = xStart + statLarg - circR;
+      const circY = yStart + statPillH / 2;
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(...laranja); doc.setLineWidth(1);
+      doc.circle(circX, circY, circR, "FD");
+      const numStr = String(stats[i][1]);
+      const numSize = numStr.length > 2 ? 11 : 15;
+      doc.setFont("Poppins", "bold"); doc.setFontSize(numSize); doc.setTextColor(...roxo);
+      doc.text(numStr, circX, circY + numSize / 3.5, { align: "center" });
     }
-    relatorio.learningJourney.forEach((u) => {
-      if (y > 252) { doc.addPage(); desenharMoldura(); desenharRodape(); y = 24; }
-      // Chip lime translúcido no rótulo da unidade
-      const larguraTexto = doc.getStringUnitWidth(u.rotulo) * 13 / doc.internal.scaleFactor;
-      doc.setFillColor(...limeClaro);
-      doc.roundedRect(margem, y - 5, larguraTexto + 8, 8, 2, 2, "F");
-      doc.setFont("Poppins", "semibold"); doc.setFontSize(13); doc.setTextColor(...roxo);
-      doc.text(u.rotulo, margem + 4, y); y += 8;
-      doc.setFont("Poppins", "normal"); doc.setFontSize(11); doc.setTextColor(70, 70, 70);
-      u.assuntos.forEach((a) => {
-        if (!a) return;
-        const linhas = doc.splitTextToSize(a, larguraPagina - margem * 2 - 10);
-        doc.setTextColor(...laranja);
-        doc.text("\u2022", margem + 3, y);
-        doc.setTextColor(70, 70, 70);
-        doc.text(linhas, margem + 8, y); y += linhas.length * 5.8;
-      });
-      y += 6;
-    });
+    y += 2 * (statPillH + 8);
 
-    y += 4;
-    const alturaCaixas = 52;
-    if (y + alturaCaixas > alturaPagina - 20) { doc.addPage(); desenharMoldura(); desenharRodape(); y = 24; }
+    // Divisor
+    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
+    doc.line(margem, y, larguraPagina - margem, y);
+    y += 8;
+
+    // ==================== LEARNING JOURNEY ====================
+    // Pill roxo com título
+    doc.setFillColor(...roxo);
+    const jornadaTexto = "This month learning journey";
+    doc.setFont("Poppins", "semibold"); doc.setFontSize(11.5);
+    const jornadaLarg = doc.getTextWidth(jornadaTexto) + 14;
+    doc.roundedRect(margem, y - 5, jornadaLarg, 9, 2.5, 2.5, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.text(jornadaTexto, margem + 7, y + 1);
+    y += 10;
+
+    // 2 colunas alternando (idx par → esquerda, ímpar → direita)
+    const colLarg = (larguraPagina - margem * 2 - 8) / 2;
+    const colXCol = [margem, margem + colLarg + 8];
+    let colY = [y, y];
+
+    if (relatorio.learningJourney.length === 0) {
+      doc.setFont("Poppins", "normal"); doc.setFontSize(10.5); doc.setTextColor(120, 120, 120);
+      doc.text("No units registered for this month.", margem, y);
+      y += 8;
+    } else {
+      relatorio.learningJourney.forEach((u, idx) => {
+        const c = idx % 2;
+        // Page break se estourar
+        if (colY[c] > 235) {
+          novaPagina();
+          colY = [24, 24];
+        }
+        doc.setFont("Poppins", "bold"); doc.setFontSize(11); doc.setTextColor(...roxo);
+        const rotulo = `${idx + 1} · ${u.rotulo}`;
+        const rotuloLinhas = doc.splitTextToSize(rotulo, colLarg);
+        doc.text(rotuloLinhas, colXCol[c], colY[c]);
+        colY[c] += rotuloLinhas.length * 5.5;
+
+        doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(80, 80, 80);
+        u.assuntos.forEach((a) => {
+          if (!a) return;
+          const linhas = doc.splitTextToSize(`\u2713 ${a}`, colLarg - 3);
+          doc.text(linhas, colXCol[c] + 2, colY[c]);
+          colY[c] += linhas.length * 5;
+        });
+        colY[c] += 5;
+      });
+      y = Math.max(...colY) + 2;
+    }
+
+    // ==================== LEVEL PROGRESS + WHAT YOU WILL ACHIEVE ====================
+    const alturaCaixa = 44;
+    if (y + alturaCaixa > alturaPagina - 30) { novaPagina(); y = 24; }
+
+    const leftW = (larguraPagina - margem * 2 - 8) * 0.42;
+    const rightX = margem + leftW + 8;
+    const rightW = larguraPagina - margem - rightX;
 
     // LEVEL PROGRESS
-    doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
-    doc.roundedRect(margem, y, 86, alturaCaixas, 4, 4, "FD");
-    doc.setFont("Poppins", "bold"); doc.setFontSize(10); doc.setTextColor(...laranja);
-    doc.text("LEVEL PROGRESS", margem + 8, y + 10);
-    doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(90, 78, 65);
-    doc.text(`Start of ${meses[relatorioMesAno.mes]}: ${relatorio.pctInicio}% completed`, margem + 8, y + 22, { maxWidth: 74 });
-    doc.text(`End of ${meses[relatorioMesAno.mes]}: ${relatorio.pctFim}% completed`, margem + 8, y + 32, { maxWidth: 74 });
-    doc.setFont("Poppins", "bold"); doc.setFontSize(11); doc.setTextColor(...roxo);
-    doc.text(`You advanced ${Math.max(relatorio.pctFim - relatorio.pctInicio, 0)}% this month`, margem + 8, y + 45, { maxWidth: 74 });
+    // Header roxo (arredondado no topo, reto embaixo — truque: roundedRect + rect por cima)
+    doc.setFillColor(...roxo);
+    doc.roundedRect(margem, y, leftW, 9, 2.5, 2.5, "F");
+    doc.rect(margem, y + 5, leftW, 4, "F");
+    doc.setFont("Poppins", "semibold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text("Level progress", margem + 5, y + 6);
+    // Corpo
+    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3);
+    doc.rect(margem, y + 9, leftW, alturaCaixa - 9, "S");
+    doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(80, 80, 80);
+    doc.text(`\u2022 Start of ${meses[relatorioMesAno.mes]}: ${relatorio.pctInicio}% completed`, margem + 4, y + 16, { maxWidth: leftW - 8 });
+    doc.text(`\u2022 End of ${meses[relatorioMesAno.mes]}: ${relatorio.pctFim}% completed`, margem + 4, y + 24, { maxWidth: leftW - 8 });
+    doc.setFont("Poppins", "bold"); doc.setFontSize(10.5); doc.setTextColor(...roxo);
+    doc.text(`You advanced ${Math.max(relatorio.pctFim - relatorio.pctInicio, 0)}% this month.`, margem + 4, y + 36, { maxWidth: leftW - 8 });
 
     // WHAT YOU WILL ACHIEVE
-    const xDireita = margem + 94;
-    doc.setFillColor(...roxo); doc.setDrawColor(...laranja); doc.setLineWidth(0.4);
-    doc.roundedRect(xDireita, y, larguraPagina - margem - xDireita, alturaCaixas, 4, 4, "FD");
-    doc.setFont("Poppins", "bold"); doc.setFontSize(10); doc.setTextColor(...lime);
-    doc.text(`WHAT YOU WILL ACHIEVE IN ${meses[(relatorioMesAno.mes + 1) % 12].toUpperCase()}`, xDireita + 8, y + 9, { maxWidth: larguraPagina - margem - xDireita - 14 });
-    doc.setFont("Poppins", "normal"); doc.setFontSize(9); doc.setTextColor(210, 200, 245);
-    doc.text(`Scheduled Classes: ${relatorio.aulasProxMes}`, xDireita + 8, y + 17);
-    let yAch = y + 25;
-    doc.setFontSize(10); doc.setTextColor(255, 255, 255);
+    doc.setFillColor(...roxo);
+    doc.roundedRect(rightX, y, rightW, 9, 2.5, 2.5, "F");
+    doc.rect(rightX, y + 5, rightW, 4, "F");
+    doc.setFont("Poppins", "semibold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(`What you will achieve in ${meses[(relatorioMesAno.mes + 1) % 12]}`, rightX + 5, y + 6, { maxWidth: rightW - 10 });
+    // Corpo
+    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3);
+    doc.rect(rightX, y + 9, rightW, alturaCaixa - 9, "S");
+    doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(80, 80, 80);
+    doc.text(`\u2022 Scheduled classes: ${relatorio.aulasProxMes}`, rightX + 4, y + 16);
+    let yAch = y + 24;
     relatorio.achieve.forEach((a) => {
-      if (!a) return;
-      const linhas = doc.splitTextToSize(`\u2022 ${a}`, larguraPagina - margem - xDireita - 14);
-      doc.text(linhas, xDireita + 8, yAch); yAch += linhas.length * 5.5;
+      if (!a || yAch > y + alturaCaixa - 4) return;
+      const linhas = doc.splitTextToSize(`\u27a4 ${a}`, rightW - 8);
+      doc.text(linhas, rightX + 4, yAch);
+      yAch += linhas.length * 5;
     });
-    y += alturaCaixas + 10;
 
-    // TEACHER NOTES — fundo cream, mais legível
+    y += alturaCaixa + 8;
+
+    // ==================== TEACHER MARI'S NOTES ====================
     const notasValidas = relatorio.notas.filter(Boolean);
-    const alturaNotas = 18 + notasValidas.length * 7;
-    if (y + alturaNotas > alturaPagina - 20) { doc.addPage(); desenharMoldura(); desenharRodape(); y = 24; }
-    doc.setFillColor(...creme); doc.setDrawColor(...lavanda); doc.setLineWidth(0.4);
-    doc.roundedRect(margem, y, larguraPagina - margem * 2, alturaNotas, 4, 4, "FD");
-    doc.setFont("Poppins", "bold"); doc.setFontSize(11); doc.setTextColor(...laranja);
-    doc.text("TEACHER NOTES", margem + 8, y + 10);
-    doc.setFont("Poppins", "normal"); doc.setFontSize(11); doc.setTextColor(...roxo);
-    let yNotas = y + 20;
-    notasValidas.forEach((n) => {
-      const linhas = doc.splitTextToSize(`\u2022 ${n}`, larguraPagina - margem * 2 - 16);
-      doc.text(linhas, margem + 8, yNotas); yNotas += linhas.length * 6.5;
+    const alturaNotas = 16 + notasValidas.length * 6.5;
+    if (y + alturaNotas > alturaPagina - 20) { novaPagina(); y = 24; }
+    doc.setFillColor(...creme);
+    doc.roundedRect(margem, y, larguraPagina - margem * 2, alturaNotas, 3, 3, "F");
+    doc.setFont("Poppins", "bold"); doc.setFontSize(11.5); doc.setTextColor(...laranja);
+    doc.text("Teacher Mari's notes:", margem + 6, y + 9);
+    doc.setFont("Poppins", "normal"); doc.setFontSize(10); doc.setTextColor(...roxo);
+    let yNotas = y + 18;
+    notasValidas.forEach((n, idx) => {
+      const prefix = idx === 0 ? "\u2605 " : "\u27a4 ";
+      const linhas = doc.splitTextToSize(`${prefix}${n}`, larguraPagina - margem * 2 - 12);
+      doc.text(linhas, margem + 6, yNotas);
+      yNotas += linhas.length * 5.5;
     });
 
-    desenharRodape();
-    doc.save(`relatorio-${relatorio.studentName.replace(/\s+/g, "-").toLowerCase()}-${meses[relatorioMesAno.mes].toLowerCase()}-${relatorioMesAno.ano}.pdf`);
+    doc.save(`monthly-report-${relatorio.studentName.replace(/\s+/g, "-").toLowerCase()}-${meses[relatorioMesAno.mes].toLowerCase()}-${relatorioMesAno.ano}.pdf`);
   };
 
   const excluirAluno = async () => {
