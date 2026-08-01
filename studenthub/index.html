@@ -5736,6 +5736,31 @@ function FlashcardAdminPanel({ students }) {
     setCarregandoProgresso(false);
   };
 
+  // Parse robusto de JSON de cards — repara JSON truncado pela IA
+  const parseCardsJSON = (texto) => {
+    const clean = texto.replace(/```json|```/g, "").trim();
+    try { return JSON.parse(clean); } catch {}
+    // Tenta reparar: encontra o último card completo e fecha o array
+    let fixed = clean;
+    if (!fixed.endsWith("]}")) {
+      const lastComplete = fixed.lastIndexOf('"},');
+      if (lastComplete > 0) fixed = fixed.slice(0, lastComplete + 2) + "]}";
+      else {
+        const lastObj = fixed.lastIndexOf('"}');
+        if (lastObj > 0) fixed = fixed.slice(0, lastObj + 2) + "]}";
+      }
+    }
+    try { return JSON.parse(fixed); } catch {}
+    // Última tentativa: regex para extrair cards individuais
+    try {
+      const cardMatches = [...clean.matchAll(/"frente"\s*:\s*"([^"]*)"\s*,\s*"verso"\s*:\s*"([^"]*)"\s*,\s*"exemplo"\s*:\s*"([^"]*)"/g)];
+      if (cardMatches.length > 0) {
+        return { cards: cardMatches.map(m => ({ frente: m[1], verso: m[2], exemplo: m[3] })) };
+      }
+    } catch {}
+    return { cards: [] };
+  };
+
   // Salvar deck (novo ou edição)
   const salvarDeck = async () => {
     if (!formDeck.nome.trim()) { flash("Nome do deck é obrigatório.", "erro"); return; }
@@ -5774,7 +5799,7 @@ function FlashcardAdminPanel({ students }) {
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
-              max_tokens: 2000,
+              max_tokens: 3500,
               system: `You are an English teacher creating flashcards for ${nivel} level adult Brazilian students.
 Unit: ${tituloUnidade}
 Learning objectives: ${topicos}
@@ -5794,7 +5819,7 @@ Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
           const data = JSON.parse(respText);
           const texto = data.content?.[0]?.text || "";
           if (!texto) throw new Error("IA não retornou conteúdo.");
-          const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
+          const parsed = parseCardsJSON(texto);
           if (parsed.cards && parsed.cards.length > 0) {
             const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
             const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
@@ -5819,7 +5844,7 @@ Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
-              max_tokens: 2000,
+              max_tokens: 3500,
               system: `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating flashcards based on a teacher's description.
 ${formDeck.nivel ? `Student level: ${formDeck.nivel}. Keep all language appropriate for this level.` : "Adapt language to the level described by the teacher."}
 The teacher will describe: grammar topics, vocabulary, example phrases, and context.
@@ -5841,7 +5866,7 @@ Do NOT repeat cards.`,
           const data = JSON.parse(respText);
           const texto = data.content?.[0]?.text || "";
           if (!texto) throw new Error("IA não retornou conteúdo.");
-          const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
+          const parsed = parseCardsJSON(texto);
           if (parsed.cards && parsed.cards.length > 0) {
             const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
             const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
