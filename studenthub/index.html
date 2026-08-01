@@ -5845,20 +5845,26 @@ Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
               max_tokens: 3500,
-              system: `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating flashcards based on a teacher's description.
+              system: `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating flashcards based on a teacher's exact instructions.
 ${formDeck.nivel ? `Student level: ${formDeck.nivel}. Keep all language appropriate for this level.` : "Adapt language to the level described by the teacher."}
-The teacher will describe: grammar topics, vocabulary, example phrases, and context.
-Create exactly 20 flashcards covering the content described. Mix types thoughtfully:
+
+CRITICAL RULE — FOLLOW THE PROMPT EXACTLY:
+- Create cards ONLY with the content the teacher provided. Do NOT invent, add, or expand beyond what was described.
+- If the teacher listed specific words, phrases, questions or sentences, use EXACTLY those — do not paraphrase or substitute.
+- If the teacher provided Q&A pairs, keep them exactly as written (only fix clear errors if needed).
+- The number of cards should match the content provided. If the teacher gave 10 items, create 10 cards — NOT 20.
+- Only add extra cards if the teacher explicitly asks for more or says "complement with..." or "add similar...".
+
+Card format:
 - Vocabulary: frente = English word/phrase, verso = Portuguese translation
-- Communicative Q&A: frente = natural conversation question in English, verso = model answer in English
-- Grammar/chunk: frente = grammar structure or useful chunk, verso = meaning or pattern in English
-- Production: frente = situation prompt (e.g. "How do you say you're tired?"), verso = target language response
-For all: exemplo = one short natural English sentence showing the card in real use.
-IMPORTANT: Every sentence must be grammatically and pragmatically perfect. Use natural English (e.g. "Can I have..." not "I want..." for ordering).
+- Q&A: frente = question in English, verso = answer in English (exactly as teacher provided)
+- Grammar/chunk: frente = structure, verso = explanation or example
+For all cards: exemplo = one short example sentence using the content.
+
+Every sentence must be grammatically and pragmatically perfect. Use natural English.
 Respond ONLY with valid JSON, no markdown, no backticks:
-{"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}
-Do NOT repeat cards.`,
-              messages: [{ role: "user", content: `Create 20 flashcards${formDeck.nivel ? ` for ${formDeck.nivel} level` : ""}. Teacher description:\n\n${formDeck.promptIA.trim()}` }],
+{"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}`,
+              messages: [{ role: "user", content: `Create flashcards following EXACTLY the content below. Do NOT add content I didn't ask for.${formDeck.nivel ? ` Level: ${formDeck.nivel}.` : ""}\n\n${formDeck.promptIA.trim()}` }],
             }),
           });
           const respText = await resp.text();
