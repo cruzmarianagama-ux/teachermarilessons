@@ -6259,6 +6259,7 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
   const [salvando, setSalvando] = useState(false);
   const [resultados, setResultados] = useState([]);
   const [erro, setErro] = useState("");
+  const [mostrarModoLivre, setMostrarModoLivre] = useState(false);
 
   const hoje = new Date().toISOString().slice(0, 10);
 
@@ -6307,13 +6308,19 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
         .or(`student_id.is.null,student_id.eq.${student.id}`)
         .order("criado_em", { ascending: true });
       if (error) throw error;
-      // Só mostra decks que têm cards
-      setDecks((data || []).filter(d => d.flashcards && d.flashcards.length > 0));
+      const nivelAluno = student.nivel || "Beginner";
+      const decksFiltrados = (data || []).filter(d => {
+        if (!d.flashcards || d.flashcards.length === 0) return false; // sem cards
+        if (d.student_id === student.id) return true; // deck personalizado do próprio aluno — sempre mostra
+        if (!d.nivel) return true; // deck base sem nível definido — mostra pra todos
+        return d.nivel === nivelAluno; // deck base com nível — só mostra se bater
+      });
+      setDecks(decksFiltrados);
     } catch (e) {
       setErro("Erro ao carregar decks: " + e.message);
     }
     setCarregando(false);
-  }, [student.id]);
+  }, [student.id, student.nivel]);
 
   useEffect(() => { carregarDecks(); }, [carregarDecks]);
 
@@ -6505,8 +6512,6 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
     const deckAtual = decks.filter(d => d.unidade === unidadeAtual && !d.student_id);
     const deckPersonalizado = decks.filter(d => d.student_id === student.id);
     const deckAnteriores = decks.filter(d => d.unidade !== unidadeAtual && !d.student_id).reverse(); // mais recente primeiro
-    const temAlgumDifficil = true; // simplificado — sempre mostra o botão
-    const [mostrarModoLivre, setMostrarModoLivre] = useState(false);
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
