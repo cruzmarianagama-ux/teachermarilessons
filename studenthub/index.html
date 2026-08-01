@@ -167,7 +167,7 @@ function PortalLogin({ onLogin }) {
 }
 
 // ---------- DASHBOARD ----------
-const ANTHROPIC_KEY = "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";
+const ANTHROPIC_PROXY = `${SUPABASE_URL}/functions/v1/anthropic-proxy`;
 
 const tabs = [
   { id: "home", label: "Home" },
@@ -4733,28 +4733,33 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   const { useState, useRef, useEffect } = React;
 
-  const [secao, setSecao] = useState("menu"); // menu | exercicios | escrita | chat | duvidas | exemplos
+  const [secao, setSecao] = useState("menu");
   const [carregandoIA, setCarregandoIA] = useState(false);
 
-  // Estados — Gerador de exercícios
+  // Exercícios
+  const [exConfig, setExConfig] = useState({ modo: "unidade_atual", unidade: "", prompt_livre: "" });
   const [exerciciosGerados, setExerciciosGerados] = useState(null);
   const [respostasEx, setRespostasEx] = useState({});
   const [gabarito, setGabarito] = useState(false);
 
-  // Estados — Correção de escrita
+  // Escrita
+  const [escritaConfig, setEscritaConfig] = useState({ modo: "unidade_atual", unidade: "", tema_livre: "" });
+  const [escritaTarefa, setEscritaTarefa] = useState(null);
   const [textoEscrita, setTextoEscrita] = useState("");
   const [correcaoEscrita, setCorrecaoEscrita] = useState(null);
 
-  // Estados — Chatbot
+  // Chat
+  const [chatConfig, setChatConfig] = useState({ modo: "unidade_atual", unidade: "", tema_livre: "" });
+  const [chatIniciado, setChatIniciado] = useState(false);
   const [mensagensChat, setMensagensChat] = useState([]);
   const [inputChat, setInputChat] = useState("");
   const chatFimRef = useRef(null);
 
-  // Estados — Dúvidas gramaticais
+  // Dúvidas
   const [perguntaDuvida, setPerguntaDuvida] = useState("");
   const [respostaDuvida, setRespostaDuvida] = useState(null);
 
-  // Estados — Exemplos
+  // Exemplos
   const [palavraExemplo, setPalavraExemplo] = useState("");
   const [exemploGerado, setExemploGerado] = useState(null);
 
@@ -4765,21 +4770,29 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   const nivelAluno = student.nivel || "Beginner";
   const unidadeAluno = student.unidade_atual || "1A";
 
-  // Chamada genérica à API Anthropic
-  const chamarIA = async (systemPrompt, userPrompt, maxTokens = 800) => {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+  // Unidades já estudadas (todas até a atual no SYLLABUS)
+  const unidadesEstudadas = (() => {
+    const nivel = SYLLABUS[nivelAluno] ? nivelAluno : "Beginner";
+    const todas = SYLLABUS[nivel].map(u => u.id);
+    const idx = todas.indexOf(unidadeAluno);
+    return idx >= 0 ? todas.slice(0, idx + 1) : [unidadeAluno];
+  })();
+
+  // Chamada ao proxy seguro
+  const chamarIA = async (systemPrompt, messages, maxTokens = 800) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const resp = await fetch(ANTHROPIC_PROXY, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: maxTokens,
         system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
+        messages,
       }),
     });
     if (!resp.ok) {
@@ -4791,15 +4804,23 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   };
 
   // ── GERADOR DE EXERCÍCIOS ──
+  const contextoExercicios = () => {
+    if (exConfig.modo === "unidade_atual") return `unit ${unidadeAluno} (${nivelAluno} level)`;
+    if (exConfig.modo === "unidade_especifica") return `unit ${exConfig.unidade} (${nivelAluno} level)`;
+    if (exConfig.modo === "mesclar") return `units ${unidadesEstudadas.join(", ")} mixed vocabulary (${nivelAluno} level)`;
+    return exConfig.prompt_livre;
+  };
+
   const gerarExercicios = async () => {
     setCarregandoIA(true);
     setExerciciosGerados(null);
     setRespostasEx({});
     setGabarito(false);
     try {
-      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult student currently studying unit ${unidadeAluno}. 
-Create simple, clear exercises appropriate for this level. Use vocabulary the student already knows.
-Respond ONLY with valid JSON, no markdown, no explanation. Format:
+      const ctx = contextoExercicios();
+      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult student.
+Context: ${ctx}
+Create simple, clear exercises appropriate for this level. Respond ONLY with valid JSON, no markdown:
 {
   "titulo": "Exercise title",
   "exercicios": [
@@ -4809,83 +4830,128 @@ Respond ONLY with valid JSON, no markdown, no explanation. Format:
     {"tipo": "traduzir", "pergunta": "Translate: 'Bom dia'", "resposta": "Good morning"}
   ]
 }
-Create exactly 6 exercises mixing the types above.`;
-      const resposta = await chamarIA(system, `Create exercises for unit ${unidadeAluno} (${nivelAluno} level).`);
-      const clean = resposta.replace(/```json|```/g, "").trim();
-      const dados = JSON.parse(clean);
+Create exactly 6 exercises mixing the types above. Base them on the context provided.`;
+      const prompt = exConfig.modo === "prompt_livre"
+        ? exConfig.prompt_livre
+        : `Create 6 exercises about: ${ctx}`;
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }]);
+      const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
-    } catch (e) {
-      alert("Erro ao gerar exercícios: " + e.message);
-    }
+    } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
     setCarregandoIA(false);
   };
 
-  // ── CORREÇÃO DE ESCRITA ──
+  // ── ESCRITA — gera tarefa ──
+  const contextoEscrita = () => {
+    if (escritaConfig.modo === "unidade_atual") return `unit ${unidadeAluno} (${nivelAluno} level)`;
+    if (escritaConfig.modo === "unidade_especifica") return `unit ${escritaConfig.unidade} (${nivelAluno} level)`;
+    return escritaConfig.tema_livre;
+  };
+
+  const gerarTarefaEscrita = async () => {
+    setCarregandoIA(true);
+    setEscritaTarefa(null);
+    setCorrecaoEscrita(null);
+    setTextoEscrita("");
+    try {
+      const ctx = contextoEscrita();
+      const system = `You are an English teacher creating a writing task for a ${nivelAluno} level adult student.
+Context: ${ctx}
+Respond ONLY with valid JSON, no markdown:
+{
+  "titulo": "Writing task title",
+  "tarefa": "Clear writing instruction for the student",
+  "modelo": "A short model paragraph showing the expected style and vocabulary",
+  "dicas": ["Tip 1", "Tip 2", "Tip 3"],
+  "palavras_chave": ["word1", "word2", "word3"]
+}
+Keep everything appropriate for ${nivelAluno} level. The task should be achievable in 3-5 sentences.`;
+      const resposta = await chamarIA(system, [{ role: "user", content: `Create a writing task about: ${ctx}` }], 600);
+      const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
+      setEscritaTarefa(dados);
+    } catch (e) { alert("Erro ao gerar tarefa: " + e.message); }
+    setCarregandoIA(false);
+  };
+
   const corrigirEscrita = async () => {
     if (!textoEscrita.trim()) return;
     setCarregandoIA(true);
     setCorrecaoEscrita(null);
     try {
       const system = `You are a friendly English teacher correcting a ${nivelAluno} level adult student's writing.
-Be encouraging and clear. Respond ONLY with valid JSON:
+The writing task was: "${escritaTarefa?.tarefa || "Free writing"}"
+Be encouraging and clear. Respond ONLY with valid JSON, no markdown:
 {
   "avaliacao": "Great job! / Good effort! / Keep practicing!",
+  "nota": "A / B / C (based on effort and accuracy)",
   "erros": [{"original": "...", "correto": "...", "explicacao": "..."}],
-  "versao_corrigida": "The full corrected text here",
-  "elogio": "One specific thing they did well"
+  "versao_corrigida": "The full corrected text",
+  "elogio": "One specific thing they did well",
+  "proximos_passos": "One suggestion to improve"
 }
-If there are no errors, return an empty array for erros. Keep explanations simple for ${nivelAluno} level.`;
-      const resposta = await chamarIA(system, `Please correct this text written by my student: "${textoEscrita}"`);
-      const clean = resposta.replace(/```json|```/g, "").trim();
-      setCorrecaoEscrita(JSON.parse(clean));
-    } catch (e) {
-      alert("Erro ao corrigir: " + e.message);
-    }
+If no errors, return empty array. Keep explanations simple for ${nivelAluno} level.`;
+      const resposta = await chamarIA(system, [{ role: "user", content: `Student wrote: "${textoEscrita}"` }]);
+      setCorrecaoEscrita(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
+    } catch (e) { alert("Erro ao corrigir: " + e.message); }
     setCarregandoIA(false);
   };
 
   // ── CHATBOT ──
+  const contextoChat = () => {
+    if (chatConfig.modo === "unidade_atual") return `unit ${unidadeAluno} vocabulary and grammar`;
+    if (chatConfig.modo === "unidade_especifica") return `unit ${chatConfig.unidade} vocabulary and grammar`;
+    return chatConfig.tema_livre;
+  };
+
+  const iniciarChat = async () => {
+    setChatIniciado(true);
+    setMensagensChat([]);
+    setCarregandoIA(true);
+    try {
+      const ctx = contextoChat();
+      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult student.
+Topic/Scope: ${ctx}
+Rules:
+- ALWAYS respond in English, appropriate for ${nivelAluno} level
+- Stay on the topic/scope defined above
+- If the student goes off-topic, gently redirect: "That's interesting! Let's focus on [topic] for now. Can you tell me..."
+- If the student makes a grammar mistake, correct it gently at the END in parentheses: (Tip: say "I am" not "I is" ✏️)
+- Keep responses short: 2-3 sentences max
+- Be warm and encouraging
+- If student writes in Portuguese, ask them to try in English and give a hint`;
+      const abertura = await chamarIA(system, [{ role: "user", content: "Start the conversation with a warm greeting and an open question related to the topic." }], 200);
+      setMensagensChat([{ role: "assistant", content: abertura, _system: system }]);
+    } catch (e) { alert("Erro ao iniciar chat: " + e.message); }
+    setCarregandoIA(false);
+  };
+
   const enviarMensagemChat = async () => {
     if (!inputChat.trim() || carregandoIA) return;
     const novaMensagem = { role: "user", content: inputChat.trim() };
-    const novoHistorico = [...mensagensChat, novaMensagem];
+    const historico = [...mensagensChat];
+    const system = historico[0]?._system || "";
+    const msgs = historico.map(m => ({ role: m.role, content: m.content }));
+    msgs.push(novaMensagem);
+    const novoHistorico = [...historico, novaMensagem];
     setMensagensChat(novoHistorico);
     setInputChat("");
     setCarregandoIA(true);
     try {
-      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult student studying unit ${unidadeAluno} of English File.
-Rules:
-- ALWAYS respond in English, but keep it simple and appropriate for ${nivelAluno} level
-- Use only vocabulary and grammar structures the student has already studied up to unit ${unidadeAluno}
-- If the student makes a grammar mistake, gently correct it at the END of your message in parentheses, like: (Tip: say "I am" not "I is" ✏️)
-- Keep responses short: 2-4 sentences max
-- Be encouraging and warm
-- If the student writes in Portuguese, kindly ask them to try in English and give a hint`;
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const resp = await fetch(ANTHROPIC_PROXY, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": ANTHROPIC_KEY,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 300,
-          system,
-          messages: novoHistorico,
-        }),
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 300, system, messages: msgs }),
       });
       const data = await resp.json();
       const respostaIA = data.content[0].text;
       setMensagensChat([...novoHistorico, { role: "assistant", content: respostaIA }]);
-    } catch (e) {
-      alert("Erro no chat: " + e.message);
-    }
+    } catch (e) { alert("Erro no chat: " + e.message); }
     setCarregandoIA(false);
   };
 
-  // ── DÚVIDAS GRAMATICAIS ──
+  // ── DÚVIDAS ──
   const responderDuvida = async () => {
     if (!perguntaDuvida.trim()) return;
     setCarregandoIA(true);
@@ -4893,14 +4959,12 @@ Rules:
     try {
       const system = `You are a patient English teacher explaining grammar to a ${nivelAluno} level adult student from Brazil.
 - Explain in simple English with Portuguese when helpful
-- Use very simple examples with vocabulary they already know
-- Keep it short and clear: max 3 paragraphs
+- Use very simple examples
+- Keep it short: max 3 paragraphs
 - End with one practice example for them to try`;
-      const resposta = await chamarIA(system, perguntaDuvida, 500);
+      const resposta = await chamarIA(system, [{ role: "user", content: perguntaDuvida }], 500);
       setRespostaDuvida(resposta);
-    } catch (e) {
-      alert("Erro ao responder: " + e.message);
-    }
+    } catch (e) { alert("Erro: " + e.message); }
     setCarregandoIA(false);
   };
 
@@ -4910,51 +4974,69 @@ Rules:
     setCarregandoIA(true);
     setExemploGerado(null);
     try {
-      const system = `You are an English teacher creating example sentences for a ${nivelAluno} level adult student.
-Respond ONLY with valid JSON:
+      const system = `You are an English teacher for a ${nivelAluno} level adult student.
+Respond ONLY with valid JSON, no markdown:
 {
   "palavra": "the word/phrase",
   "significado": "meaning in Portuguese",
   "exemplos": [
-    {"en": "Example sentence in English.", "pt": "Tradução em português."},
+    {"en": "Example sentence.", "pt": "Tradução."},
     {"en": "Another example.", "pt": "Outra tradução."},
-    {"en": "One more example.", "pt": "Mais uma tradução."}
+    {"en": "One more.", "pt": "Mais uma."}
   ],
-  "dica": "A short helpful tip about using this word"
+  "dica": "A short helpful tip"
 }
-Keep sentences simple and appropriate for ${nivelAluno} level.`;
-      const resposta = await chamarIA(system, `Create 3 example sentences for: "${palavraExemplo}"`);
-      const clean = resposta.replace(/```json|```/g, "").trim();
-      setExemploGerado(JSON.parse(clean));
-    } catch (e) {
-      alert("Erro ao gerar exemplos: " + e.message);
-    }
+Keep sentences simple for ${nivelAluno} level.`;
+      const resposta = await chamarIA(system, [{ role: "user", content: `Create 3 example sentences for: "${palavraExemplo}"` }]);
+      setExemploGerado(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
+    } catch (e) { alert("Erro: " + e.message); }
     setCarregandoIA(false);
   };
 
   // ── ESTILOS ──
-  const bg = dark ? "#3A2B7A" : "#FFF";
-  const inputStyle = {
-    width: "100%", padding: "10px 12px", borderRadius: "10px",
-    border: `1.5px solid ${palette.lavender}55`, fontSize: "13px",
-    fontFamily: "'Poppins', sans-serif", color: palette.purple,
-    background: dark ? "#2A1D66" : "#FFF", outline: "none",
-  };
-  const btnOrange = {
-    padding: "10px 18px", borderRadius: "10px", border: "none",
-    cursor: "pointer", fontSize: "13px", fontWeight: 600,
-    background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif",
-  };
-  const btnGhost = {
-    padding: "10px 18px", borderRadius: "10px",
-    border: `1.5px solid ${palette.lavender}55`, cursor: "pointer",
-    fontSize: "13px", fontWeight: 600, background: "transparent",
-    color: dark ? "#FFF" : palette.purple, fontFamily: "'Poppins', sans-serif",
-  };
-  const cardIA = {
-    background: dark ? "#2A1D66" : palette.cream,
-    borderRadius: "14px", padding: "16px", marginBottom: "14px",
-  };
+  const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: "10px", border: `1.5px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", color: palette.purple, background: dark ? "#2A1D66" : "#FFF", outline: "none" };
+  const btnOrange = { padding: "10px 18px", borderRadius: "10px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif" };
+  const btnGhost = { padding: "10px 18px", borderRadius: "10px", border: `1.5px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "transparent", color: dark ? "#FFF" : palette.purple, fontFamily: "'Poppins', sans-serif" };
+  const cardIA = { background: dark ? "#2A1D66" : palette.cream, borderRadius: "14px", padding: "16px", marginBottom: "14px" };
+
+  const headerSecao = (titulo, emoji) => (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+      <button onClick={() => { setSecao("menu"); setChatIniciado(false); setMensagensChat([]); setEscritaTarefa(null); setCorrecaoEscrita(null); setExerciciosGerados(null); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Voltar</button>
+      <h2 style={{ fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{emoji} {titulo}</h2>
+    </div>
+  );
+
+  // Seletor de escopo reutilizável
+  const SeletorEscopo = ({ config, setConfig, label = "Sobre qual conteúdo?" }) => (
+    <div style={{ ...cardIA, marginBottom: "16px" }}>
+      <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{label}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {[
+          { v: "unidade_atual", l: `📍 Minha unidade atual (Unit ${unidadeAluno})` },
+          { v: "unidade_especifica", l: "📚 Escolher uma unidade" },
+          { v: "mesclar", l: `🔀 Mesclar unidades já estudadas (${unidadesEstudadas.length} unidades)` },
+          { v: "prompt_livre", l: "✏️ Escrever meu próprio tema" },
+        ].map(op => (
+          <label key={op.v} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
+            <input type="radio" name="escopo" checked={config.modo === op.v} onChange={() => setConfig(c => ({ ...c, modo: op.v }))} style={{ accentColor: palette.orange }} />
+            {op.l}
+          </label>
+        ))}
+      </div>
+      {config.modo === "unidade_especifica" && (
+        <select value={config.unidade} onChange={e => setConfig(c => ({ ...c, unidade: e.target.value }))}
+          style={{ ...inputStyle, marginTop: "10px" }}>
+          <option value="">— Escolha uma unidade —</option>
+          {unidadesEstudadas.map(u => <option key={u} value={u}>Unit {u}</option>)}
+        </select>
+      )}
+      {config.modo === "prompt_livre" && (
+        <input value={config.prompt_livre} onChange={e => setConfig(c => ({ ...c, prompt_livre: e.target.value }))}
+          placeholder="Ex: verb to be no present, numbers, daily routines..."
+          style={{ ...inputStyle, marginTop: "10px" }} />
+      )}
+    </div>
+  );
 
   // ── MENU PRINCIPAL ──
   if (secao === "menu") return (
@@ -4963,12 +5045,11 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
         <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>✨ Praticar com IA</h2>
         <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>Exercícios, correção e conversação gerados especialmente pra você.</p>
       </div>
-
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
         {[
-          { id: "exercicios", emoji: "📝", titulo: "Exercícios", desc: "Exercícios gerados com base na sua unidade atual" },
-          { id: "escrita", emoji: "✍️", titulo: "Correção de escrita", desc: "Escreva uma frase ou texto e receba feedback" },
-          { id: "chat", emoji: "💬", titulo: "Conversar em inglês", desc: "Pratique conversação com vocabulário da sua aula" },
+          { id: "exercicios", emoji: "📝", titulo: "Exercícios", desc: "Exercícios gerados com base na sua unidade ou tema" },
+          { id: "escrita", emoji: "✍️", titulo: "Correção de escrita", desc: "Receba uma tarefa, escreva e ganhe feedback detalhado" },
+          { id: "chat", emoji: "💬", titulo: "Conversar em inglês", desc: "Pratique conversação com tema e vocabulário controlados" },
           { id: "duvidas", emoji: "🤔", titulo: "Tirar dúvidas", desc: "Pergunte sobre gramática ou vocabulário" },
           { id: "exemplos", emoji: "💡", titulo: "Ver exemplos", desc: "Digite uma palavra e veja frases de exemplo" },
         ].map(item => (
@@ -4983,55 +5064,39 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
     </div>
   );
 
-  const headerSecao = (titulo, emoji) => (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-      <button onClick={() => setSecao("menu")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Voltar</button>
-      <h2 style={{ fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{emoji} {titulo}</h2>
-    </div>
-  );
-
   // ── GERADOR DE EXERCÍCIOS ──
   if (secao === "exercicios") return (
     <div>
       {headerSecao("Exercícios", "📝")}
-      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "16px" }}>
-        Exercícios gerados com base na sua unidade atual: <strong style={{ color: dark ? "#FFF" : palette.purple }}>Unit {unidadeAluno} — {nivelAluno}</strong>
-      </p>
-
       {!exerciciosGerados && (
-        <button onClick={gerarExercicios} disabled={carregandoIA} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
-          {carregandoIA ? "Gerando exercícios..." : "🎲 Gerar exercícios"}
-        </button>
+        <>
+          <SeletorEscopo config={exConfig} setConfig={setExConfig} label="Sobre qual conteúdo?" />
+          <button onClick={gerarExercicios} disabled={carregandoIA || (exConfig.modo === "unidade_especifica" && !exConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+            {carregandoIA ? "Gerando..." : "🎲 Gerar exercícios"}
+          </button>
+        </>
       )}
-
       {exerciciosGerados && (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
             <p style={{ fontSize: "14px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exerciciosGerados.titulo}</p>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setGabarito(!gabarito)} style={btnGhost}>
-                {gabarito ? "Ocultar gabarito" : "Ver gabarito"}
-              </button>
-              <button onClick={gerarExercicios} disabled={carregandoIA} style={btnOrange}>
-                {carregandoIA ? "..." : "Novo"}
-              </button>
+              <button onClick={() => setGabarito(!gabarito)} style={btnGhost}>{gabarito ? "Ocultar gabarito" : "Ver gabarito"}</button>
+              <button onClick={() => setExerciciosGerados(null)} style={btnGhost}>Mudar tema</button>
+              <button onClick={gerarExercicios} disabled={carregandoIA} style={btnOrange}>{carregandoIA ? "..." : "Novo"}</button>
             </div>
           </div>
-
           {exerciciosGerados.exercicios.map((ex, i) => (
             <div key={i} style={{ ...cardIA }}>
               <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {ex.tipo === "multipla_escolha" ? "Múltipla escolha" : ex.tipo === "completar" ? "Complete a frase" : ex.tipo === "verdadeiro_falso" ? "Verdadeiro ou Falso" : "Tradução"}
               </p>
               <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
-
               {ex.tipo === "multipla_escolha" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {ex.opcoes.map((op, j) => {
-                    const letra = op[0];
-                    const selecionada = respostasEx[i] === letra;
-                    const correta = gabarito && letra === ex.resposta;
-                    const errada = gabarito && selecionada && letra !== ex.resposta;
+                    const letra = op[0]; const selecionada = respostasEx[i] === letra;
+                    const correta = gabarito && letra === ex.resposta; const errada = gabarito && selecionada && letra !== ex.resposta;
                     return (
                       <button key={j} onClick={() => setRespostasEx(r => ({ ...r, [i]: letra }))}
                         style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: selecionada ? 600 : 400 }}>
@@ -5041,18 +5106,14 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
                   })}
                 </div>
               )}
-
-              {ex.tipo === "completar" && (
+              {(ex.tipo === "completar" || ex.tipo === "traduzir") && (
                 <input value={respostasEx[i] || ""} onChange={e => setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
-                  placeholder="Sua resposta..." style={{ ...inputStyle, maxWidth: "300px" }} />
+                  placeholder={ex.tipo === "traduzir" ? "Your translation..." : "Your answer..."} style={{ ...inputStyle, maxWidth: "300px" }} />
               )}
-
               {ex.tipo === "verdadeiro_falso" && (
                 <div style={{ display: "flex", gap: "10px" }}>
                   {["true", "false"].map(op => {
-                    const selecionada = respostasEx[i] === op;
-                    const correta = gabarito && op === ex.resposta;
-                    const errada = gabarito && selecionada && op !== ex.resposta;
+                    const selecionada = respostasEx[i] === op; const correta = gabarito && op === ex.resposta; const errada = gabarito && selecionada && op !== ex.resposta;
                     return (
                       <button key={op} onClick={() => setRespostasEx(r => ({ ...r, [i]: op }))}
                         style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
@@ -5062,17 +5123,7 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
                   })}
                 </div>
               )}
-
-              {ex.tipo === "traduzir" && (
-                <input value={respostasEx[i] || ""} onChange={e => setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
-                  placeholder="Your translation..." style={{ ...inputStyle, maxWidth: "300px" }} />
-              )}
-
-              {gabarito && (
-                <p style={{ fontSize: "12px", fontWeight: 600, color: palette.green, margin: "10px 0 0" }}>
-                  ✓ Answer: {ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}
-                </p>
-              )}
+              {gabarito && <p style={{ fontSize: "12px", fontWeight: 600, color: palette.green, margin: "10px 0 0" }}>✓ Answer: {ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}</p>}
             </div>
           ))}
         </div>
@@ -5084,30 +5135,60 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
   if (secao === "escrita") return (
     <div>
       {headerSecao("Correção de escrita", "✍️")}
-      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
-        Escreva uma frase, parágrafo ou texto em inglês e a IA vai corrigir e explicar os erros.
-      </p>
-
-      <textarea value={textoEscrita} onChange={e => setTextoEscrita(e.target.value)}
-        placeholder="Write something in English here... (Ex: I am go to school yesterday)"
-        rows={4} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
-
-      <button onClick={corrigirEscrita} disabled={carregandoIA || !textoEscrita.trim()}
-        style={{ ...btnOrange, opacity: (carregandoIA || !textoEscrita.trim()) ? 0.7 : 1, marginBottom: "20px" }}>
-        {carregandoIA ? "Corrigindo..." : "✓ Corrigir meu texto"}
-      </button>
-
+      {!escritaTarefa && (
+        <>
+          <SeletorEscopo config={escritaConfig} setConfig={setEscritaConfig} label="Sobre qual tema você quer escrever?" />
+          <button onClick={gerarTarefaEscrita} disabled={carregandoIA || (escritaConfig.modo === "unidade_especifica" && !escritaConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+            {carregandoIA ? "Gerando tarefa..." : "📋 Gerar minha tarefa de escrita"}
+          </button>
+        </>
+      )}
+      {escritaTarefa && !correcaoEscrita && (
+        <div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Sua tarefa</p>
+            <p style={{ fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{escritaTarefa.titulo}</p>
+            <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.6 }}>{escritaTarefa.tarefa}</p>
+          </div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}` }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? palette.lavender : palette.purple, margin: "0 0 8px" }}>📖 Modelo de resposta</p>
+            <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, lineHeight: 1.6 }}>{escritaTarefa.modelo}</p>
+          </div>
+          <div style={{ ...cardIA }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 8px" }}>💡 Dicas</p>
+            {escritaTarefa.dicas.map((d, i) => <p key={i} style={{ fontSize: "12px", color: textSecondary, margin: "0 0 4px" }}>• {d}</p>)}
+            {escritaTarefa.palavras_chave?.length > 0 && (
+              <div style={{ marginTop: "8px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                <p style={{ fontSize: "11px", color: textSecondary, margin: 0, alignSelf: "center" }}>Use:</p>
+                {escritaTarefa.palavras_chave.map((p, i) => (
+                  <span key={i} style={{ fontSize: "12px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>{p}</span>
+                ))}
+              </div>
+            )}
+          </div>
+          <textarea value={textoEscrita} onChange={e => setTextoEscrita(e.target.value)}
+            placeholder="Write your answer here in English..."
+            rows={5} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={corrigirEscrita} disabled={carregandoIA || !textoEscrita.trim()} style={{ ...btnOrange, opacity: (carregandoIA || !textoEscrita.trim()) ? 0.7 : 1 }}>
+              {carregandoIA ? "Corrigindo..." : "✓ Enviar para correção"}
+            </button>
+            <button onClick={() => { setEscritaTarefa(null); setTextoEscrita(""); }} style={btnGhost}>Outra tarefa</button>
+          </div>
+        </div>
+      )}
       {correcaoEscrita && (
         <div>
           <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lightGreen}` }}>
-            <p style={{ fontSize: "13px", fontWeight: 700, color: dark ? "#FFF" : palette.green, margin: "0 0 4px" }}>🌟 {correcaoEscrita.avaliacao}</p>
-            <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>👏 {correcaoEscrita.elogio}</p>
-          </div>
-
-          {correcaoEscrita.erros.length === 0 ? (
-            <div style={{ ...cardIA }}>
-              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>✅ Perfect! No errors found.</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 700, color: dark ? "#FFF" : palette.green, margin: 0 }}>🌟 {correcaoEscrita.avaliacao}</p>
+              {correcaoEscrita.nota && <span style={{ fontSize: "20px", fontWeight: 700, color: palette.orange }}>{correcaoEscrita.nota}</span>}
             </div>
+            <p style={{ fontSize: "13px", color: textSecondary, margin: "0 0 4px" }}>👏 {correcaoEscrita.elogio}</p>
+            {correcaoEscrita.proximos_passos && <p style={{ fontSize: "12px", color: textSecondary, margin: 0, fontStyle: "italic" }}>📌 {correcaoEscrita.proximos_passos}</p>}
+          </div>
+          {correcaoEscrita.erros.length === 0 ? (
+            <div style={{ ...cardIA }}><p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>✅ Perfect! No errors found.</p></div>
           ) : (
             <div>
               <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "10px" }}>Corrections:</p>
@@ -5123,13 +5204,14 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
               ))}
             </div>
           )}
-
           <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Corrected version</p>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase" }}>Corrected version</p>
             <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.6 }}>{correcaoEscrita.versao_corrigida}</p>
           </div>
-
-          <button onClick={() => { setCorrecaoEscrita(null); setTextoEscrita(""); }} style={btnGhost}>Tentar de novo</button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => { setCorrecaoEscrita(null); setTextoEscrita(""); }} style={btnGhost}>Tentar de novo</button>
+            <button onClick={() => { setEscritaTarefa(null); setCorrecaoEscrita(null); setTextoEscrita(""); }} style={btnGhost}>Nova tarefa</button>
+          </div>
         </div>
       )}
     </div>
@@ -5137,81 +5219,67 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
 
   // ── CHATBOT ──
   if (secao === "chat") return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {headerSecao("Conversar em inglês", "💬")}
-      <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "14px", lineHeight: 1.5 }}>
-        Pratique conversação em inglês! A IA vai conversar com você usando o vocabulário da Unit <strong>{unidadeAluno}</strong> e corrigir erros sutilmente.
-      </p>
-
-      {mensagensChat.length === 0 && (
-        <div style={{ ...cardIA, textAlign: "center", marginBottom: "14px" }}>
-          <p style={{ fontSize: "20px", margin: "0 0 8px" }}>👋</p>
-          <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>Hello! I'm here to practice with you.</p>
-          <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>Start the conversation! Try: "Hello, my name is..." or "Tell me about yourself"</p>
-        </div>
+      {!chatIniciado && (
+        <>
+          <SeletorEscopo config={chatConfig} setConfig={setChatConfig} label="Sobre o que você quer conversar?" />
+          <button onClick={iniciarChat} disabled={carregandoIA || (chatConfig.modo === "unidade_especifica" && !chatConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+            {carregandoIA ? "Iniciando..." : "💬 Iniciar conversa"}
+          </button>
+        </>
       )}
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px", maxHeight: "320px", overflowY: "auto", padding: "4px" }}>
-        {mensagensChat.map((msg, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
-            <div style={{ maxWidth: "80%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: msg.role === "user" ? palette.orange : (dark ? "#2A1D66" : palette.cream), color: msg.role === "user" ? "#FFF" : (dark ? "#FFF" : palette.purple), fontSize: "13px", lineHeight: 1.5 }}>
-              {msg.content}
-            </div>
+      {chatIniciado && (
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px", maxHeight: "340px", overflowY: "auto", padding: "4px" }}>
+            {mensagensChat.map((msg, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                <div style={{ maxWidth: "80%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: msg.role === "user" ? palette.orange : (dark ? "#2A1D66" : palette.cream), color: msg.role === "user" ? "#FFF" : (dark ? "#FFF" : palette.purple), fontSize: "13px", lineHeight: 1.5 }}>
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {carregandoIA && (
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <div style={{ padding: "10px 14px", borderRadius: "14px 14px 14px 4px", background: dark ? "#2A1D66" : palette.cream, color: textSecondary, fontSize: "13px" }}>...</div>
+              </div>
+            )}
+            <div ref={chatFimRef} />
           </div>
-        ))}
-        {carregandoIA && (
-          <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <div style={{ padding: "10px 14px", borderRadius: "14px 14px 14px 4px", background: dark ? "#2A1D66" : palette.cream, color: textSecondary, fontSize: "13px" }}>
-              ...
-            </div>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+            <input value={inputChat} onChange={e => setInputChat(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && enviarMensagemChat()}
+              placeholder="Type in English..." style={{ ...inputStyle, flex: 1 }} disabled={carregandoIA} />
+            <button onClick={enviarMensagemChat} disabled={carregandoIA || !inputChat.trim()}
+              style={{ ...btnOrange, opacity: (carregandoIA || !inputChat.trim()) ? 0.7 : 1, padding: "10px 16px" }}>→</button>
           </div>
-        )}
-        <div ref={chatFimRef} />
-      </div>
-
-      <div style={{ display: "flex", gap: "8px" }}>
-        <input value={inputChat} onChange={e => setInputChat(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && !e.shiftKey && enviarMensagemChat()}
-          placeholder="Type in English..." style={{ ...inputStyle, flex: 1 }} disabled={carregandoIA} />
-        <button onClick={enviarMensagemChat} disabled={carregandoIA || !inputChat.trim()}
-          style={{ ...btnOrange, opacity: (carregandoIA || !inputChat.trim()) ? 0.7 : 1, padding: "10px 16px" }}>
-          →
-        </button>
-      </div>
-      {mensagensChat.length > 0 && (
-        <button onClick={() => setMensagensChat([])} style={{ ...btnGhost, marginTop: "8px", fontSize: "12px", padding: "7px 12px" }}>
-          Reiniciar conversa
-        </button>
+          <button onClick={() => { setChatIniciado(false); setMensagensChat([]); }} style={{ ...btnGhost, fontSize: "12px", padding: "7px 12px" }}>
+            Mudar tema / Reiniciar
+          </button>
+        </>
       )}
     </div>
   );
 
-  // ── DÚVIDAS GRAMATICAIS ──
+  // ── DÚVIDAS ──
   if (secao === "duvidas") return (
     <div>
       {headerSecao("Tirar dúvidas", "🤔")}
-      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
-        Tem uma dúvida de inglês? Pergunte em português ou inglês!
-      </p>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-        {["Why do we say 'I am' and not 'I is'?", "What's the difference between 'a' and 'an'?", "When do I use 'this' and 'that'?"].map(sugestao => (
-          <button key={sugestao} onClick={() => setPerguntaDuvida(sugestao)}
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>Tem uma dúvida de inglês? Pergunte em português ou inglês!</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "12px" }}>
+        {["Why do we say 'I am' and not 'I is'?", "What's the difference between 'a' and 'an'?", "When do I use 'this' and 'that'?"].map(s => (
+          <button key={s} onClick={() => setPerguntaDuvida(s)}
             style={{ padding: "8px 12px", borderRadius: "8px", border: `1px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: "transparent", color: textSecondary, fontSize: "12px", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            💬 {sugestao}
+            💬 {s}
           </button>
         ))}
       </div>
-
       <textarea value={perguntaDuvida} onChange={e => setPerguntaDuvida(e.target.value)}
-        placeholder="Ex: Por que usamos 'do' em perguntas? / What is the difference between 'can' and 'could'?"
-        rows={3} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
-
+        placeholder="Ex: Por que usamos 'do' em perguntas?" rows={3} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
       <button onClick={responderDuvida} disabled={carregandoIA || !perguntaDuvida.trim()}
         style={{ ...btnOrange, opacity: (carregandoIA || !perguntaDuvida.trim()) ? 0.7 : 1, marginBottom: "16px" }}>
         {carregandoIA ? "Pensando..." : "🤔 Responder minha dúvida"}
       </button>
-
       {respostaDuvida && (
         <div>
           <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}` }}>
@@ -5223,44 +5291,36 @@ Keep sentences simple and appropriate for ${nivelAluno} level.`;
     </div>
   );
 
-  // ── EXEMPLOS DE PALAVRA ──
+  // ── EXEMPLOS ──
   if (secao === "exemplos") return (
     <div>
       {headerSecao("Ver exemplos", "💡")}
-      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
-        Digite uma palavra ou expressão em inglês e veja 3 exemplos de uso.
-      </p>
-
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>Digite uma palavra ou expressão em inglês e veja 3 exemplos de uso.</p>
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         <input value={palavraExemplo} onChange={e => setPalavraExemplo(e.target.value)}
           onKeyDown={e => e.key === "Enter" && gerarExemplos()}
-          placeholder="Ex: go to work, have lunch, on the table..."
-          style={{ ...inputStyle, flex: 1 }} />
+          placeholder="Ex: go to work, have lunch, on the table..." style={{ ...inputStyle, flex: 1 }} />
         <button onClick={gerarExemplos} disabled={carregandoIA || !palavraExemplo.trim()}
           style={{ ...btnOrange, opacity: (carregandoIA || !palavraExemplo.trim()) ? 0.7 : 1 }}>
           {carregandoIA ? "..." : "Ver"}
         </button>
       </div>
-
       {exemploGerado && (
         <div>
           <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
             <p style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{exemploGerado.palavra}</p>
             <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>{exemploGerado.significado}</p>
           </div>
-
           {exemploGerado.exemplos.map((ex, i) => (
             <div key={i} style={{ ...cardIA }}>
               <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{ex.en}</p>
               <p style={{ fontSize: "12px", color: textSecondary, margin: 0, fontStyle: "italic" }}>{ex.pt}</p>
             </div>
           ))}
-
-          <div style={{ ...cardIA, background: dark ? "#1D1050" : palette.lavender + "22", borderLeft: `4px solid ${palette.lavender}` }}>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}` }}>
             <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? palette.lavender : palette.purple, margin: "0 0 4px" }}>💡 Tip</p>
             <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exemploGerado.dica}</p>
           </div>
-
           <button onClick={() => { setExemploGerado(null); setPalavraExemplo(""); }} style={btnGhost}>Buscar outra palavra</button>
         </div>
       )}
