@@ -172,11 +172,11 @@ const ANTHROPIC_PROXY = `${SUPABASE_URL}/functions/v1/anthropic-proxy`;
 const tabs = [
   { id: "home", label: "Home" },
   { id: "homework", label: "Aulas + Homework" },
+  { id: "flashcards", label: "🃏 Flashcards" },
+  { id: "ia", label: "✨ Praticar com IA" },
   { id: "calendario", label: "Calendar" },
   { id: "materiais", label: "Materiais" },
   { id: "cobranca", label: "Financeiro" },
-  { id: "flashcards", label: "🃏 Flashcards" },
-  { id: "ia", label: "✨ Praticar com IA" },
 ];
 
 const meses = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -5655,6 +5655,7 @@ function FlashcardAdminPanel({ students }) {
           const tituloUnidade = unidadeInfo ? unidadeInfo.t : unidade;
           const { data: sessionData } = await supabase.auth.getSession();
           const token = sessionData?.session?.access_token;
+          if (!token) throw new Error("Sessão expirada — faça login novamente.");
           const resp = await fetch(ANTHROPIC_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
@@ -5665,41 +5666,43 @@ function FlashcardAdminPanel({ students }) {
 Unit: ${tituloUnidade}
 Learning objectives: ${topicos}
 Create 20 flashcards with the key vocabulary and expressions for this unit.
-Respond ONLY with valid JSON, no markdown:
-{
-  "cards": [
-    {"frente": "English word or phrase", "verso": "Portuguese translation", "exemplo": "Short example sentence using this word"}
-  ]
-}
+Respond ONLY with valid JSON and nothing else — no markdown, no explanation, no backticks:
+{"cards":[{"frente":"English word or phrase","verso":"Portuguese translation","exemplo":"Short example sentence"}]}
 Rules:
-- "frente" is always English (word, phrase, or chunk)
-- "verso" is always Portuguese translation
-- "exemplo" is a short, simple sentence in English appropriate for ${nivel} level
-- Focus on vocabulary, expressions and grammar patterns from the unit objectives
-- Include articles (a/an/the) when relevant
-- Do NOT repeat cards`,
-              messages: [{ role: "user", content: `Create 20 flashcards for ${nivel} unit ${unidade}: ${tituloUnidade}` }],
+- "frente" is English only (include article: "a phone", "an umbrella")
+- "verso" is Portuguese translation only
+- "exemplo" is a simple English sentence using the word, appropriate for ${nivel} level
+- Cover vocabulary, expressions and grammar patterns from the unit objectives
+- Do NOT repeat words`,
+              messages: [{ role: "user", content: `Create exactly 20 flashcards for ${nivel} level, unit ${unidade}: "${tituloUnidade}". Learning goals: ${topicos}` }],
             }),
           });
-          if (resp.ok) {
-            const data = await resp.json();
-            const texto = data.content?.[0]?.text || "";
-            const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
-            if (parsed.cards && parsed.cards.length > 0) {
-              const cardsIA = parsed.cards.map((c, i) => ({
+          const respText = await resp.text();
+          if (!resp.ok) {
+            console.error("Proxy error:", respText);
+            throw new Error(`Erro ${resp.status} no proxy`);
+          }
+          const data = JSON.parse(respText);
+          const texto = data.content?.[0]?.text || "";
+          if (!texto) throw new Error("IA não retornou conteúdo.");
+          const clean = texto.replace(/```json|```/g, "").trim();
+          const parsed = JSON.parse(clean);
+          if (parsed.cards && parsed.cards.length > 0) {
+            const cardsIA = parsed.cards
+              .filter(c => c.frente && c.verso)
+              .map((c, i) => ({
                 deck_id: novoDeckId, frente: c.frente, verso: c.verso,
                 exemplo: c.exemplo || null, ordem: i + 1,
               }));
-              await supabase.from("flashcards").insert(cardsIA);
-              flash(`Deck criado com ${cardsIA.length} cards gerados pela IA! ✨`);
-            } else {
-              flash("Deck criado! Nenhum card gerado — adicione manualmente.");
-            }
+            const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
+            if (errCards) throw new Error("Erro ao salvar cards: " + errCards.message);
+            flash(`✨ Deck criado com ${cardsIA.length} cards gerados pela IA!`);
           } else {
-            flash("Deck criado! Erro ao gerar cards via IA — adicione manualmente.");
+            flash("Deck criado! A IA não retornou cards — adicione manualmente.");
           }
         } catch (e) {
-          flash("Deck criado! Erro ao gerar cards: " + e.message);
+          console.error("Erro na geração de cards:", e);
+          flash(`Deck criado, mas erro ao gerar cards: ${e.message}. Adicione os cards manualmente.`, "erro");
         }
       // Modo lista de palavras
       } else if (formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim()) {
