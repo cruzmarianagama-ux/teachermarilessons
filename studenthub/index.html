@@ -4732,19 +4732,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 }
 
 // ---------- SELETOR DE ESCOPO (componente global pra evitar bug de foco) ----------
-function SeletorEscopo({ config, setConfig, label, unidadeAluno, unidadesEstudadas, dark, palette, inputStyle, cardIA, nome }) {
+function SeletorEscopo({ config, setConfig, label, unidadeAluno, unidadesEstudadas, unidadesAnteriores, dark, palette, inputStyle, cardIA, nome }) {
+  const temUnidade = !!unidadeAluno;
+  const temAnteriores = unidadesAnteriores && unidadesAnteriores.length > 0;
   return (
     <div style={{ ...cardIA, marginBottom: "16px" }}>
       <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{label || "Sobre qual conteúdo?"}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {[
-          { v: "unidade_atual", l: `📍 Minha unidade atual (Unit ${unidadeAluno})` },
-          { v: "unidade_especifica", l: "📚 Escolher uma unidade" },
-          { v: "mesclar", l: `🔀 Mesclar unidades já estudadas (${unidadesEstudadas.length} unidades)` },
-          { v: "prompt_livre", l: "✏️ Escrever meu próprio tema" },
+          { v: "unidade_atual", l: temUnidade ? `📍 Minha unidade atual (Unit ${unidadeAluno})` : "📍 Minha unidade atual (não definida)", disabled: !temUnidade },
+          { v: "unidade_especifica", l: "📚 Escolher uma unidade", disabled: false },
+          { v: "mesclar", l: temAnteriores ? `🔀 Revisar unidades anteriores (${unidadesAnteriores.length} unidades)` : "🔀 Revisar unidades anteriores (nenhuma ainda)", disabled: !temAnteriores },
+          { v: "prompt_livre", l: "✏️ Escrever meu próprio tema", disabled: false },
         ].map(op => (
-          <label key={op.v} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
-            <input type="radio" name={nome || "escopo"} checked={config.modo === op.v} onChange={() => setConfig(c => ({ ...c, modo: op.v }))} style={{ accentColor: palette.orange }} />
+          <label key={op.v} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: op.disabled ? "default" : "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple, opacity: op.disabled ? 0.45 : 1 }}>
+            <input type="radio" name={nome || "escopo"} checked={config.modo === op.v} disabled={op.disabled}
+              onChange={() => !op.disabled && setConfig(c => ({ ...c, modo: op.v }))} style={{ accentColor: palette.orange }} />
             {op.l}
           </label>
         ))}
@@ -4758,8 +4761,8 @@ function SeletorEscopo({ config, setConfig, label, unidadeAluno, unidadesEstudad
       )}
       {config.modo === "prompt_livre" && (
         <input
-          value={config.prompt_livre}
-          onChange={e => setConfig(c => ({ ...c, prompt_livre: e.target.value }))}
+          value={config.prompt_livre || config.tema_livre || ""}
+          onChange={e => setConfig(c => ({ ...c, prompt_livre: e.target.value, tema_livre: e.target.value }))}
           placeholder="Ex: verb to be no present, numbers, daily routines..."
           style={{ ...inputStyle, marginTop: "10px" }}
         />
@@ -4816,15 +4819,36 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
     if (label.startsWith("Unit ")) return label.slice(5).trim();
     return label; // já é código
   };
-  const unidadeAluno = labelParaCodigo(turma && turma.unidade_atual) || labelParaCodigo(student.unidade_atual) || (SYLLABUS[nivelAluno] ? SYLLABUS[nivelAluno][0]?.id : "1A");
+  const unidadeAluno = labelParaCodigo(turma && turma.unidade_atual) || labelParaCodigo(student.unidade_atual) || null;
+  const temUnidadeDefinida = !!unidadeAluno;
 
-  // Unidades já estudadas (todas até a atual no SYLLABUS)
-  const unidadesEstudadas = (() => {
+  // Unidades ANTERIORES à atual (não inclui a atual)
+  const unidadesAnteriores = (() => {
     const nivel = SYLLABUS[nivelAluno] ? nivelAluno : "Beginner";
     const todas = SYLLABUS[nivel].map(u => u.id);
+    if (!unidadeAluno) return [];
     const idx = todas.indexOf(unidadeAluno);
-    return idx >= 0 ? todas.slice(0, idx + 1) : [unidadeAluno];
+    return idx > 0 ? todas.slice(0, idx) : [];
   })();
+
+  // Unidades estudadas = anteriores + atual
+  const unidadesEstudadas = unidadeAluno ? [...unidadesAnteriores, unidadeAluno] : [];
+
+  // Helper — extrai conteúdo gramatical e vocabulário do SYLLABUS
+  const getSyllabusInfo = (u) => {
+    const info = (SYLLABUS[nivelAluno] || []).find(x => x.id === u);
+    if (!info) return `Unit ${u}`;
+    return `Unit ${u} — Student can-do objectives (derive the grammar structures and vocabulary from these):\n${info.items.map(item => `- ${item}`).join("\n")}`;
+  };
+
+  // Helper — múltiplas unidades
+  const getSyllabusInfoMulti = (unidades) => {
+    return unidades.map(u => {
+      const info = (SYLLABUS[nivelAluno] || []).find(x => x.id === u);
+      if (!info) return `Unit ${u}`;
+      return `Unit ${u}:\n${info.items.map(item => `- ${item}`).join("\n")}`;
+    }).join("\n\n");
+  };
 
   // Chamada ao proxy seguro
   const chamarIA = async (systemPrompt, messages, maxTokens = 800) => {
@@ -4857,14 +4881,9 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
 
   // ── GERADOR DE EXERCÍCIOS ──
   const contextoExercicios = () => {
-    const nivel = nivelAluno;
-    const getSyllabusInfo = (u) => {
-      const info = (SYLLABUS[nivel] || []).find(x => x.id === u);
-      return info ? `${info.t}: ${info.items.join("; ")}` : u;
-    };
-    if (exConfig.modo === "unidade_atual") return `Unit ${unidadeAluno} — ${getSyllabusInfo(unidadeAluno)}`;
-    if (exConfig.modo === "unidade_especifica") return `Unit ${exConfig.unidade} — ${getSyllabusInfo(exConfig.unidade)}`;
-    if (exConfig.modo === "mesclar") return `Mixed units (${unidadesEstudadas.join(", ")}) — focus on vocabulary and grammar already studied`;
+    if (exConfig.modo === "unidade_atual" && unidadeAluno) return `Current unit: ${getSyllabusInfo(unidadeAluno)}`;
+    if (exConfig.modo === "unidade_especifica") return `Specific unit: ${getSyllabusInfo(exConfig.unidade)}`;
+    if (exConfig.modo === "mesclar") return `Review of previous units:\n${getSyllabusInfoMulti(unidadesAnteriores)}`;
     return exConfig.prompt_livre;
   };
 
@@ -4875,30 +4894,47 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
     setGabarito(false);
     try {
       const ctx = contextoExercicios();
-      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult Brazilian student.
-Context: ${ctx}
-IMPORTANT: Only use vocabulary and grammar structures appropriate for ${nivelAluno} level that the student has already studied.
-Create exactly 6 exercises using ONLY these 4 types:
-1. multiple_choice: 3 options (a/b/c), exactly one correct
-2. fill_blank: sentence with ONE blank marked as ___
-3. error_correction: sentence WITH a mistake, student must identify and fix it
-4. true_false: a statement that is either true or false
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating exercises for a ${nivelAluno} level adult Brazilian student.
 
-Respond ONLY with valid JSON, no markdown, no extra text:
-{
-  "titulo": "Short exercise title in English",
-  "exercicios": [
-    {"tipo": "multiple_choice", "pergunta": "Choose the correct option: ___ name is Maria.", "opcoes": ["a) My", "b) Me", "c) I"], "resposta": "a", "explicacao": "We use 'my' to show possession."},
-    {"tipo": "fill_blank", "pergunta": "Complete: She ___ a teacher.", "resposta": "is", "explicacao": "'She' uses 'is' in the verb to be."},
-    {"tipo": "error_correction", "pergunta": "Find and correct the mistake: He are a student.", "resposta": "He is a student.", "explicacao": "'He' uses 'is', not 'are'."},
-    {"tipo": "true_false", "pergunta": "'I am' is the correct form for first person singular.", "resposta": "true", "explicacao": "Yes! 'I am' is always correct for first person singular."}
-  ]
-}
-Mix all 4 types across the 6 exercises. Keep language very simple for ${nivelAluno} level.`;
+STUDENT CONTEXT:
+Level: ${nivelAluno}
+${ctx}
+
+IMPORTANT — HOW TO READ THE OBJECTIVES:
+The objectives above are in Portuguese. You must derive the English grammar, vocabulary and sentence patterns from them.
+Examples of how to interpret:
+- "Apresentar-se e cumprimentar pessoas" → greetings (Hello, Hi), introductions (My name is...), verb to be (I am, you are)
+- "Falar sobre profissões" → jobs vocabulary (teacher, doctor, engineer), He/She is a...
+- "Descrever a rotina" → present simple (I wake up, I go to work), daily routine vocabulary
+- "Fazer perguntas" → question words (What, Where, Who), word order in questions
+
+RULES:
+- Create exercises about the GRAMMAR STRUCTURES and VOCABULARY implied by the objectives — not about the title
+- For ${nivelAluno}: very simple, short sentences (max 8 words)
+- Every sentence must be grammatically perfect — re-read each sentence before including it
+- Double-check subject-verb agreement (I am, he is, they are), articles (a/an/the), and word order
+- If you are not 100% sure a sentence is correct, do NOT include it
+- Make exercises practical and communicative, never mechanical or repetitive
+- Follow Oxford/Cambridge ESL exam style: contextualized, meaningful, testing real communication ability
+- Each exercise should feel like a real-life situation, not a grammar drill
+- Multiple choice distractors must be plausible mistakes a real student would make
+- Fill-in-the-blank sentences must have natural, conversational context
+- Error correction sentences must contain mistakes that real students commonly make
+- True/false statements should test understanding, not just memorization
+
+Create exactly 6 exercises using these 4 types:
+1. multiple_choice: 3 options (a/b/c), one correct
+2. fill_blank: sentence with ONE blank ___
+3. error_correction: sentence with ONE clear mistake
+4. true_false: a grammatical or vocabulary statement
+
+JSON only, no markdown:
+{"titulo":"...","exercicios":[{"tipo":"multiple_choice","pergunta":"...","opcoes":["a) ...","b) ...","c) ..."],"resposta":"a","explicacao":"..."},{"tipo":"fill_blank","pergunta":"...","resposta":"...","explicacao":"..."},{"tipo":"error_correction","pergunta":"...","resposta":"...","explicacao":"..."},{"tipo":"true_false","pergunta":"...","resposta":"true","explicacao":"..."}]}
+Mix all 4 types. Each must have a correct answer and brief explanation.`;
       const prompt = exConfig.modo === "prompt_livre"
-        ? `Create 6 exercises about: ${exConfig.prompt_livre}`
-        : `Create 6 exercises for: ${ctx}`;
-      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 900);
+        ? `Create 6 exercises about: ${exConfig.prompt_livre}. Keep them appropriate for ${nivelAluno} level.`
+        : `Create 6 varied exercises based on: ${ctx}`;
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 1000);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
     } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
@@ -4907,8 +4943,9 @@ Mix all 4 types across the 6 exercises. Keep language very simple for ${nivelAlu
 
   // ── ESCRITA — gera tarefa ──
   const contextoEscrita = () => {
-    if (escritaConfig.modo === "unidade_atual") return `unit ${unidadeAluno} (${nivelAluno} level)`;
-    if (escritaConfig.modo === "unidade_especifica") return `unit ${escritaConfig.unidade} (${nivelAluno} level)`;
+    if (escritaConfig.modo === "unidade_atual" && unidadeAluno) return `Current unit: ${getSyllabusInfo(unidadeAluno)}`;
+    if (escritaConfig.modo === "unidade_especifica") return `Specific unit: ${getSyllabusInfo(escritaConfig.unidade)}`;
+    if (escritaConfig.modo === "mesclar") return `Review of previous units:\n${getSyllabusInfoMulti(unidadesAnteriores)}`;
     return escritaConfig.tema_livre;
   };
 
@@ -4919,18 +4956,31 @@ Mix all 4 types across the 6 exercises. Keep language very simple for ${nivelAlu
     setTextoEscrita("");
     try {
       const ctx = contextoEscrita();
-      const system = `You are an English teacher creating a writing task for a ${nivelAluno} level adult student.
-Context: ${ctx}
-Respond ONLY with valid JSON, no markdown:
-{
-  "titulo": "Writing task title",
-  "tarefa": "Clear writing instruction for the student",
-  "modelo": "A short model paragraph showing the expected style and vocabulary",
-  "dicas": ["Tip 1", "Tip 2", "Tip 3"],
-  "palavras_chave": ["word1", "word2", "word3"]
-}
-Keep everything appropriate for ${nivelAluno} level. The task should be achievable in 3-5 sentences.`;
-      const resposta = await chamarIA(system, [{ role: "user", content: `Create a writing task about: ${ctx}` }], 600);
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating a writing task for a ${nivelAluno} level adult Brazilian student.
+
+STUDENT CONTEXT:
+Level: ${nivelAluno}
+${ctx}
+
+HOW TO READ THE OBJECTIVES:
+The objectives above are in Portuguese. Derive the grammar structures, vocabulary and sentence patterns from them.
+Examples: "Falar sobre família" → family vocabulary (mother, father, sister), possessives (my, his, her), simple sentences about family.
+
+RULES:
+- Create a writing task that practices the GRAMMAR and VOCABULARY implied by the objectives
+- For ${nivelAluno}: task must be achievable in 3-5 very simple sentences
+- The model paragraph must use only grammar/vocabulary the student knows
+- Every sentence in the model and in the tips must be grammatically perfect — double-check subject-verb agreement, articles, and word order before including
+- The correction feedback must also be grammatically flawless
+- Make the task communicative and real-life (describe people, write about daily life, etc.)
+- Follow Oxford/Cambridge writing task style: give a clear, meaningful context and purpose for writing
+- The task should feel like something the student would actually need to write in real life
+- Avoid mechanical exercises — focus on meaningful communication
+- Each generation must produce a DIFFERENT task — vary the scenario
+
+JSON only, no markdown:
+{"titulo":"Task title","tarefa":"Clear instruction about what to write","modelo":"Model paragraph (3-5 simple sentences) using only known grammar/vocabulary","dicas":["Use [grammar structure]","Include [vocabulary]","Remember [grammar rule]"],"palavras_chave":["word1","word2","word3","word4","word5"]}`;
+      const resposta = await chamarIA(system, [{ role: "user", content: `Create a unique, practical writing task. Context: ${ctx}. Focus on grammar and vocabulary, not on the unit title.` }], 700);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setEscritaTarefa(dados);
     } catch (e) { alert("Erro ao gerar tarefa: " + e.message); }
@@ -4942,7 +4992,7 @@ Keep everything appropriate for ${nivelAluno} level. The task should be achievab
     setCarregandoIA(true);
     setCorrecaoEscrita(null);
     try {
-      const system = `You are a friendly English teacher correcting a ${nivelAluno} level adult student's writing.
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, correcting a ${nivelAluno} level adult student's writing.
 The writing task was: "${escritaTarefa?.tarefa || "Free writing"}"
 Be encouraging and clear. Respond ONLY with valid JSON, no markdown:
 {
@@ -4953,7 +5003,8 @@ Be encouraging and clear. Respond ONLY with valid JSON, no markdown:
   "elogio": "One specific thing they did well",
   "proximos_passos": "One suggestion to improve"
 }
-If no errors, return empty array. Keep explanations simple for ${nivelAluno} level.`;
+If no errors, return empty array. Keep explanations simple for ${nivelAluno} level.
+IMPORTANT: Your corrected version and explanations must be grammatically perfect. Double-check every correction.`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Student wrote: "${textoEscrita}"` }]);
       setCorrecaoEscrita(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao corrigir: " + e.message); }
@@ -4962,12 +5013,9 @@ If no errors, return empty array. Keep explanations simple for ${nivelAluno} lev
 
   // ── CHATBOT ──
   const contextoChat = () => {
-    const getSyllabusInfo = (u) => {
-      const info = (SYLLABUS[nivelAluno] || []).find(x => x.id === u);
-      return info ? `${info.t} (can-do: ${info.items.slice(0,2).join("; ")})` : u;
-    };
-    if (chatConfig.modo === "unidade_atual") return `Unit ${unidadeAluno} — ${getSyllabusInfo(unidadeAluno)}`;
-    if (chatConfig.modo === "unidade_especifica") return `Unit ${chatConfig.unidade} — ${getSyllabusInfo(chatConfig.unidade)}`;
+    if (chatConfig.modo === "unidade_atual" && unidadeAluno) return `Current unit: ${getSyllabusInfo(unidadeAluno)}`;
+    if (chatConfig.modo === "unidade_especifica") return `Specific unit: ${getSyllabusInfo(chatConfig.unidade)}`;
+    if (chatConfig.modo === "mesclar") return `Review of previous units:\n${getSyllabusInfoMulti(unidadesAnteriores)}`;
     return chatConfig.tema_livre;
   };
 
@@ -4978,17 +5026,26 @@ If no errors, return empty array. Keep explanations simple for ${nivelAluno} lev
     setCarregandoIA(true);
     try {
       const ctx = contextoChat();
-      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult Brazilian student.
-Topic/Scope: ${ctx}
-Rules:
-- ALWAYS respond in English, simple and appropriate for ${nivelAluno} level
-- Stay on topic. If student goes off-topic, gently redirect: "That's interesting! Let's focus on [topic]. Can you tell me..."
-- DO NOT correct grammar mistakes unless they completely block understanding. Let minor errors pass naturally.
-- Keep responses short: 2-3 sentences max
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge communicative approach, acting as a conversation partner for a ${nivelAluno} level adult Brazilian student.
+
+STUDENT CONTEXT:
+Level: ${nivelAluno}
+${ctx}
+
+HOW TO READ: The objectives are in Portuguese. Derive the grammar and vocabulary from them.
+Example: "Apresentar-se" → use greetings, introductions, verb to be. "Falar sobre família" → use family words, possessives.
+
+RULES:
+- Respond in English using ONLY grammar and vocabulary implied by the objectives above
+- For ${nivelAluno}: very short sentences (max 6-8 words)
+- DO NOT correct grammar mistakes during conversation — let them pass naturally
+- Keep responses to 2 sentences max
 - Be warm, patient and encouraging
-- If student writes in Portuguese, kindly encourage them to try in English and give a small hint
-- Use only vocabulary and structures appropriate for ${nivelAluno} level`;
-      const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm, short greeting and one simple open question about the topic." }], 150);
+- YOUR OWN responses must be grammatically perfect — double-check before sending
+- If student writes in Portuguese: "Try in English! You can say: [hint]"
+- Ask simple follow-up questions to keep the conversation going
+- Focus on the GRAMMAR STRUCTURES and VOCABULARY, not the unit title`;
+      const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm 1-sentence greeting and one simple question related to the unit topic." }], 120);
       setMensagensChat([{ role: "assistant", content: abertura, _system: system }]);
     } catch (e) { alert("Erro ao iniciar chat: " + e.message); }
     setCarregandoIA(false);
@@ -5002,7 +5059,7 @@ Rules:
         .filter(m => m.role === "user")
         .map((m, i) => `${i+1}. "${m.content}"`)
         .join("\n");
-      const system = `You are a kind English teacher giving feedback on a student's conversation practice.
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, giving feedback on a student's conversation practice.
 Student level: ${nivelAluno}
 Be encouraging, clear, and gentle. Use simple language. Respond ONLY with valid JSON, no markdown:
 {
@@ -5013,7 +5070,8 @@ Be encouraging, clear, and gentle. Use simple language. Respond ONLY with valid 
   "vocabulario_bom": ["word or phrase they used well"],
   "sugestao": "One short, encouraging tip for next time"
 }
-Only include real errors that were actually made. Maximum 3 errors. If no errors, return empty array.`;
+Only include real errors that were actually made. Maximum 3 errors. If no errors, return empty array.
+IMPORTANT: Your own corrections and explanations must be grammatically perfect. Double-check each correction before including.`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Student messages during conversation:\n${transcricao}` }], 600);
       setFeedbackChat(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao gerar feedback: " + e.message); }
@@ -5055,11 +5113,12 @@ Only include real errors that were actually made. Maximum 3 errors. If no errors
     setCarregandoIA(true);
     setRespostaDuvida(null);
     try {
-      const system = `You are a patient English teacher explaining grammar to a ${nivelAluno} level adult student from Brazil.
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, explaining grammar to a ${nivelAluno} level adult student from Brazil.
 - Explain in simple English with Portuguese when helpful
 - Use very simple examples
 - Keep it short: max 3 paragraphs
-- End with one practice example for them to try`;
+- End with one practice example for them to try
+- YOUR explanations and examples must be grammatically perfect — double-check before responding`;
       const resposta = await chamarIA(system, [{ role: "user", content: perguntaDuvida }], 500);
       setRespostaDuvida(resposta);
     } catch (e) { alert("Erro: " + e.message); }
@@ -5072,7 +5131,7 @@ Only include real errors that were actually made. Maximum 3 errors. If no errors
     setCarregandoIA(true);
     setExemploGerado(null);
     try {
-      const system = `You are an English teacher for a ${nivelAluno} level adult student.
+      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, helping a ${nivelAluno} level adult student.
 Respond ONLY with valid JSON, no markdown:
 {
   "palavra": "the word/phrase",
@@ -5084,7 +5143,8 @@ Respond ONLY with valid JSON, no markdown:
   ],
   "dica": "A short helpful tip"
 }
-Keep sentences simple for ${nivelAluno} level.`;
+Keep sentences simple for ${nivelAluno} level.
+Every example sentence must be grammatically perfect — double-check before including.`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Create 3 example sentences for: "${palavraExemplo}"` }]);
       setExemploGerado(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro: " + e.message); }
@@ -5148,8 +5208,8 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Exercícios", "📝")}
       {!exerciciosGerados && (
         <>
-          <SeletorEscopo config={exConfig} setConfig={setExConfig} label="Sobre qual conteúdo?" nome="escopo_ex" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
-          <button onClick={gerarExercicios} disabled={carregandoIA || (exConfig.modo === "unidade_especifica" && !exConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+          <SeletorEscopo config={exConfig} setConfig={setExConfig} label="Sobre qual conteúdo?" nome="escopo_ex" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} unidadesAnteriores={unidadesAnteriores} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
+          <button onClick={gerarExercicios} disabled={carregandoIA || (exConfig.modo === "unidade_especifica" && !exConfig.unidade) || (exConfig.modo === "unidade_atual" && !temUnidadeDefinida) || (exConfig.modo === "mesclar" && unidadesAnteriores.length === 0)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Gerando..." : "🎲 Gerar exercícios"}
           </button>
         </>
@@ -5257,8 +5317,8 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Correção de escrita", "✍️")}
       {!escritaTarefa && (
         <>
-          <SeletorEscopo config={escritaConfig} setConfig={setEscritaConfig} label="Sobre qual tema você quer escrever?" nome="escopo_escrita" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
-          <button onClick={gerarTarefaEscrita} disabled={carregandoIA || (escritaConfig.modo === "unidade_especifica" && !escritaConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+          <SeletorEscopo config={escritaConfig} setConfig={setEscritaConfig} label="Sobre qual tema você quer escrever?" nome="escopo_escrita" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} unidadesAnteriores={unidadesAnteriores} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
+          <button onClick={gerarTarefaEscrita} disabled={carregandoIA || (escritaConfig.modo === "unidade_especifica" && !escritaConfig.unidade) || (escritaConfig.modo === "unidade_atual" && !temUnidadeDefinida) || (escritaConfig.modo === "mesclar" && unidadesAnteriores.length === 0)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Gerando tarefa..." : "📋 Gerar minha tarefa de escrita"}
           </button>
         </>
@@ -5343,8 +5403,8 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Conversar em inglês", "💬")}
       {!chatIniciado && (
         <>
-          <SeletorEscopo config={chatConfig} setConfig={setChatConfig} label="Sobre o que você quer conversar?" nome="escopo_chat" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
-          <button onClick={iniciarChat} disabled={carregandoIA || (chatConfig.modo === "unidade_especifica" && !chatConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+          <SeletorEscopo config={chatConfig} setConfig={setChatConfig} label="Sobre o que você quer conversar?" nome="escopo_chat" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} unidadesAnteriores={unidadesAnteriores} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
+          <button onClick={iniciarChat} disabled={carregandoIA || (chatConfig.modo === "unidade_especifica" && !chatConfig.unidade) || (chatConfig.modo === "unidade_atual" && !temUnidadeDefinida) || (chatConfig.modo === "mesclar" && unidadesAnteriores.length === 0)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Iniciando..." : "💬 Iniciar conversa"}
           </button>
         </>
