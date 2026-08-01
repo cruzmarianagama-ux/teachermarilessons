@@ -4707,6 +4707,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           {active === "flashcards" && (
             <FlashcardTab
               student={student}
+              turma={turma}
               dark={dark}
               palette={palette}
               textSecondary={textSecondary}
@@ -4717,6 +4718,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           {active === "ia" && (
             <PraticarComIA
               student={student}
+              turma={turma}
               dark={dark}
               palette={palette}
               textSecondary={textSecondary}
@@ -4767,7 +4769,7 @@ function SeletorEscopo({ config, setConfig, label, unidadeAluno, unidadesEstudad
 }
 
 // ---------- PRATICAR COM IA ----------
-function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
+function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg }) {
   const { useState, useRef, useEffect } = React;
 
   const [secao, setSecao] = useState("menu");
@@ -4806,7 +4808,15 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   }, [mensagensChat]);
 
   const nivelAluno = student.nivel || "Beginner";
-  const unidadeAluno = student.unidade_atual || "1A";
+
+  // Converte "Unit 5A" → "5A" ou "Practical English 2" → "PE2"
+  const labelParaCodigo = (label) => {
+    if (!label) return null;
+    if (label.startsWith("Practical English ")) return "PE" + label.slice(18).trim();
+    if (label.startsWith("Unit ")) return label.slice(5).trim();
+    return label; // já é código
+  };
+  const unidadeAluno = labelParaCodigo(turma && turma.unidade_atual) || labelParaCodigo(student.unidade_atual) || (SYLLABUS[nivelAluno] ? SYLLABUS[nivelAluno][0]?.id : "1A");
 
   // Unidades já estudadas (todas até a atual no SYLLABUS)
   const unidadesEstudadas = (() => {
@@ -6243,7 +6253,7 @@ Do NOT repeat cards.`,
 }
 
 // ---------- FLASHCARD TAB ----------
-function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
+function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) {
   const { useState, useEffect, useCallback } = React;
 
   // Estados principais
@@ -6507,7 +6517,14 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
 
   // TELA: lista de decks
   if (tela === "inicio") {
-    const unidadeAtual = student.unidade_atual || null;
+    // Converte "Unit 5A" → "5A" ou "Practical English 2" → "PE2"
+    const labelParaCodigo = (label) => {
+      if (!label) return null;
+      if (label.startsWith("Practical English ")) return "PE" + label.slice(18).trim();
+      if (label.startsWith("Unit ")) return label.slice(5).trim();
+      return label;
+    };
+    const unidadeAtual = labelParaCodigo(turma && turma.unidade_atual) || labelParaCodigo(student.unidade_atual) || null;
     // Separa deck da unidade atual dos anteriores
     const deckAtual = decks.filter(d => d.unidade === unidadeAtual && !d.student_id);
     const deckPersonalizado = decks.filter(d => d.student_id === student.id);
