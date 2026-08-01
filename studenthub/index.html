@@ -5539,7 +5539,7 @@ function FlashcardAdminPanel({ students }) {
   const [assignando, setAssignando] = useState(false);
 
   // Form novo deck
-  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "manual", listaPalavras: "" });
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "" });
   const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
   const [editandoDeck, setEditandoDeck] = useState(null);
 
@@ -5646,7 +5646,7 @@ function FlashcardAdminPanel({ students }) {
 
     if (!editandoDeck && novoDeckId) {
       // Modo IA: nível + unidade selecionados — gera cards automaticamente via SYLLABUS
-      if (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade) {
+      if (formDeck.modoCreacao === "ia_syllabus" && formDeck.nivel && formDeck.unidade) {
         try {
           const nivel = formDeck.nivel;
           const unidade = formDeck.unidade;
@@ -5661,7 +5661,7 @@ function FlashcardAdminPanel({ students }) {
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
-              max_tokens: 1000,
+              max_tokens: 2000,
               system: `You are an English teacher creating flashcards for ${nivel} level students.
 Unit: ${tituloUnidade}
 Learning objectives: ${topicos}
@@ -5725,7 +5725,7 @@ Rules:
     }
 
     setSalvando(false);
-    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "manual", listaPalavras: "" });
+    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "" });
     setMostrarFormDeck(false);
     setEditandoDeck(null);
     carregarDecks();
@@ -5733,7 +5733,7 @@ Rules:
 
   const abrirEdicaoDeck = (deck) => {
     setEditandoDeck(deck);
-    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "manual", listaPalavras: "" });
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_syllabus", listaPalavras: "" });
     setMostrarFormDeck(true);
   };
 
@@ -5869,14 +5869,21 @@ Rules:
 
           {/* Modo de criação — só no novo deck */}
           {!editandoDeck && (
-            <div style={{ marginBottom: "14px" }}>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Como criar?</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                {[{ v: "manual", l: "✍️ Manual" }, { v: "lista", l: "📋 Por lista de palavras" }].map(op => (
-                  <button key={op.v} onClick={() => setFormDeck(f => ({ ...f, modoCreacao: op.v }))}
-                    style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif", background: (formDeck.modoCreacao || "manual") === op.v ? palette.purple : "#FFF", color: (formDeck.modoCreacao || "manual") === op.v ? "#FFF" : palette.purple }}>
-                    {op.l}
-                  </button>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "8px" }}>Como criar os cards?</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {[
+                  { v: "ia_syllabus", l: "✨ Gerar com IA a partir do Syllabus", desc: "Escolha nível e unidade — a IA cria ~20 cards automaticamente" },
+                  { v: "lista", l: "📋 Colar lista de palavras", desc: "Cole sua lista no formato: inglês = português" },
+                  { v: "manual", l: "✍️ Adicionar manualmente depois", desc: "Cria o deck vazio e você adiciona card por card" },
+                ].map(op => (
+                  <label key={op.v} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 12px", borderRadius: "8px", border: `1.5px solid ${formDeck.modoCreacao === op.v ? palette.orange : palette.lavender + "55"}`, background: formDeck.modoCreacao === op.v ? palette.orange + "11" : "#FFF", cursor: "pointer" }}>
+                    <input type="radio" name="modoCreacao" checked={formDeck.modoCreacao === op.v} onChange={() => setFormDeck(f => ({ ...f, modoCreacao: op.v, nivel: "", unidade: "", listaPalavras: "" }))} style={{ accentColor: palette.orange, marginTop: "2px", flexShrink: 0 }} />
+                    <div>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{op.l}</p>
+                      <p style={{ fontSize: "11px", color: `${palette.purple}88`, margin: "2px 0 0" }}>{op.desc}</p>
+                    </div>
+                  </label>
                 ))}
               </div>
             </div>
@@ -5884,73 +5891,71 @@ Rules:
 
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nome do deck *</label>
           <input value={formDeck.nome} onChange={e => setFormDeck(f => ({ ...f, nome: e.target.value }))}
-            placeholder="Ex: Unit 3A – Everyday Objects" style={inputStyle} />
+            placeholder="Ex: Unit 2B – Wh-questions" style={inputStyle} />
 
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Descrição (opcional)</label>
           <input value={formDeck.descricao} onChange={e => setFormDeck(f => ({ ...f, descricao: e.target.value }))}
-            placeholder="Ex: Objetos do dia a dia, singular e plural" style={inputStyle} />
+            placeholder="Ex: Números 11-100, perguntas com Wh-" style={inputStyle} />
 
-          {/* Nível */}
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível</label>
-          <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))}
-            style={{ ...inputStyle }}>
-            <option value="">— Sem nível específico —</option>
-            {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-
-          {/* Unidade — aparece só quando nível selecionado */}
-          {formDeck.nivel && (
-            <>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade</label>
-              <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))}
-                style={{ ...inputStyle }}>
-                <option value="">— Sem unidade específica —</option>
-                {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
+          {/* Modo IA com Syllabus */}
+          {formDeck.modoCreacao === "ia_syllabus" && !editandoDeck && (
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível *</label>
+              <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))} style={{ ...inputStyle }}>
+                <option value="">— Escolha o nível —</option>
+                {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
               </select>
-            </>
+              {formDeck.nivel && (
+                <>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade *</label>
+                  <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))} style={{ ...inputStyle }}>
+                    <option value="">— Escolha a unidade —</option>
+                    {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
+                  </select>
+                </>
+              )}
+              {formDeck.nivel && formDeck.unidade && (
+                <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", gap: "8px", alignItems: "center" }}>
+                  <span>✨</span>
+                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai gerar ~20 cards ao criar o deck.</p>
+                </div>
+              )}
+            </div>
           )}
 
-          {/* Hint de geração automática */}
-          {(formDeck.modoCreacao || "manual") === "manual" && formDeck.nivel && formDeck.unidade && (
-            <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "16px" }}>✨</span>
-              <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>
-                A IA vai gerar automaticamente ~20 cards com o vocabulário desta unidade!
+          {/* Modo lista de palavras */}
+          {formDeck.modoCreacao === "lista" && !editandoDeck && (
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Lista de palavras *</label>
+              <p style={{ fontSize: "11px", color: `${palette.purple}88`, marginBottom: "6px", lineHeight: 1.5 }}>
+                Uma palavra por linha: <code style={{ background: "#FFF", padding: "1px 6px", borderRadius: "4px" }}>inglês = português</code><br/>
+                Exemplo com frase: <code style={{ background: "#FFF", padding: "1px 6px", borderRadius: "4px" }}>a phone = um telefone | Where's my phone?</code>
               </p>
+              <textarea value={formDeck.listaPalavras || ""} onChange={e => setFormDeck(f => ({ ...f, listaPalavras: e.target.value }))}
+                placeholder={"a phone = um telefone\na key = uma chave | My key is in my bag.\na book = um livro\nwhat = o quê / qual"}
+                rows={10} style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: "12px", lineHeight: 1.7 }} />
+              {formDeck.listaPalavras && (
+                <p style={{ fontSize: "11px", color: palette.green, margin: "4px 0 0", fontWeight: 600 }}>
+                  {formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("=")).length} palavras detectadas
+                </p>
+              )}
             </div>
           )}
 
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Aluno específico (deixe em branco para deck base)</label>
-          <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))}
-            style={{ ...inputStyle }}>
+          <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))} style={{ ...inputStyle }}>
             <option value="">— Base (visível para todos os alunos) —</option>
             {students.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.nivel || "—"})</option>)}
           </select>
 
-          {/* Lista de palavras */}
-          {(formDeck.modoCreacao || "manual") === "lista" && !editandoDeck && (
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>
-                Lista de palavras *
-              </label>
-              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "6px" }}>
-                Uma por linha no formato: <strong>inglês = português</strong> (ex: a phone = um telefone). A frase de exemplo é opcional: <strong>inglês = português | frase de exemplo</strong>
-              </p>
-              <textarea value={formDeck.listaPalavras || ""} onChange={e => setFormDeck(f => ({ ...f, listaPalavras: e.target.value }))}
-                placeholder={"a phone = um telefone\na key = uma chave | My key is in my bag.\na book = um livro"}
-                rows={8} style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: "12px" }} />
-            </div>
-          )}
-
           {msgFeedback}
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-            <button onClick={salvarDeck} disabled={salvando} style={{ ...btnOrange, opacity: salvando ? 0.7 : 1 }}>
-              {salvando
-                ? (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade ? "Gerando cards com IA..." : "Salvando...")
-                : editandoDeck ? "Salvar alterações"
-                : (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade) ? "✨ Criar deck com IA"
-                : (formDeck.modoCreacao || "manual") === "lista" ? "Criar deck com lista"
-                : "Criar deck"}
+            <button onClick={salvarDeck} disabled={salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))}
+              style={{ ...btnOrange, opacity: (salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))) ? 0.7 : 1 }}>
+              {salvando ? (formDeck.modoCreacao === "ia_syllabus" ? "Gerando com IA..." : "Salvando...") :
+               editandoDeck ? "Salvar alterações" :
+               formDeck.modoCreacao === "ia_syllabus" ? "✨ Criar com IA" :
+               formDeck.modoCreacao === "lista" ? "📋 Criar com lista" : "Criar deck"}
             </button>
             <button onClick={() => { setMostrarFormDeck(false); setEditandoDeck(null); }} style={btnGhost}>Cancelar</button>
           </div>
