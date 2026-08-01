@@ -6080,41 +6080,33 @@ Respond ONLY with valid JSON, no markdown, no backticks:
           <input value={formDeck.descricao} onChange={e => setFormDeck(f => ({ ...f, descricao: e.target.value }))}
             placeholder="Ex: Números 11-100, perguntas com Wh-" style={inputStyle} />
 
-          {/* Modo IA com Syllabus */}
-          {formDeck.modoCreacao === "ia_syllabus" && !editandoDeck && (
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível *</label>
-              <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))} style={{ ...inputStyle }}>
-                <option value="">— Escolha o nível —</option>
-                {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
+          {/* Nível e Unidade — obrigatórios para decks base, opcionais para personalizados */}
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível {formDeck.student_id ? "(opcional)" : "*"}</label>
+          <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))} style={{ ...inputStyle }}>
+            <option value="">{formDeck.student_id ? "— Sem nível específico —" : "— Escolha o nível —"}</option>
+            {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          {formDeck.nivel && (
+            <>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade {formDeck.student_id ? "(opcional)" : "*"}</label>
+              <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))} style={{ ...inputStyle }}>
+                <option value="">— Escolha a unidade —</option>
+                {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
               </select>
-              {formDeck.nivel && (
-                <>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade *</label>
-                  <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))} style={{ ...inputStyle }}>
-                    <option value="">— Escolha a unidade —</option>
-                    {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
-                  </select>
-                </>
-              )}
-              {formDeck.nivel && formDeck.unidade && (
-                <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", gap: "8px", alignItems: "center" }}>
-                  <span>✨</span>
-                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai gerar ~20 cards ao criar o deck.</p>
-                </div>
-              )}
+            </>
+          )}
+
+          {/* Modo IA com Syllabus — hint de geração */}
+          {formDeck.modoCreacao === "ia_syllabus" && !editandoDeck && formDeck.nivel && formDeck.unidade && (
+            <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", gap: "8px", alignItems: "center" }}>
+              <span>✨</span>
+              <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai gerar ~20 cards a partir do Syllabus desta unidade.</p>
             </div>
           )}
 
           {/* Modo IA com prompt livre */}
           {formDeck.modoCreacao === "ia_prompt" && !editandoDeck && (
             <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível (opcional)</label>
-              <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value }))} style={{ ...inputStyle }}>
-                <option value="">— Geral (sem nível específico) —</option>
-                {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-
               <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Descreva o conteúdo do deck *</label>
               <p style={{ fontSize: "11px", color: `${palette.purple}88`, marginBottom: "6px", lineHeight: 1.5 }}>
                 Descreva o tema gramatical, vocabulário, frases de exemplo e contexto de uso.
@@ -6160,10 +6152,10 @@ Respond ONLY with valid JSON, no markdown, no backticks:
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
             <button onClick={salvarDeck}
               disabled={salvando
-                || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))
+                || (!formDeck.student_id && (!formDeck.nivel || !formDeck.unidade))
                 || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())
               }
-              style={{ ...btnOrange, opacity: (salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
+              style={{ ...btnOrange, opacity: (salvando || (!formDeck.student_id && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
               {salvando
                 ? (["ia_syllabus","ia_prompt"].includes(formDeck.modoCreacao) ? "Gerando com IA..." : "Salvando...")
                 : editandoDeck ? "Salvar alterações"
