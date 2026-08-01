@@ -5539,7 +5539,7 @@ function FlashcardAdminPanel({ students }) {
   const [assignando, setAssignando] = useState(false);
 
   // Form novo deck
-  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "" });
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
   const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
   const [editandoDeck, setEditandoDeck] = useState(null);
 
@@ -5632,6 +5632,7 @@ function FlashcardAdminPanel({ students }) {
       nome: formDeck.nome.trim(),
       descricao: formDeck.descricao.trim() || null,
       unidade: formDeck.unidade || null,
+      nivel: formDeck.nivel || null,
       student_id: formDeck.student_id || null,
     };
     let error, novoDeckId;
@@ -5662,41 +5663,31 @@ function FlashcardAdminPanel({ students }) {
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
               max_tokens: 2000,
-              system: `You are an English teacher creating flashcards for ${nivel} level students.
+              system: `You are an English teacher creating flashcards for ${nivel} level adult Brazilian students.
 Unit: ${tituloUnidade}
 Learning objectives: ${topicos}
-Create 20 flashcards with the key vocabulary and expressions for this unit.
-Respond ONLY with valid JSON and nothing else — no markdown, no explanation, no backticks:
-{"cards":[{"frente":"English word or phrase","verso":"Portuguese translation","exemplo":"Short example sentence"}]}
-Rules:
-- "frente" is English only (include article: "a phone", "an umbrella")
-- "verso" is Portuguese translation only
-- "exemplo" is a simple English sentence using the word, appropriate for ${nivel} level
-- Cover vocabulary, expressions and grammar patterns from the unit objectives
-- Do NOT repeat words`,
-              messages: [{ role: "user", content: `Create exactly 20 flashcards for ${nivel} level, unit ${unidade}: "${tituloUnidade}". Learning goals: ${topicos}` }],
+Create exactly 20 flashcards. Mix these types:
+- 12 vocabulary cards: frente = English word/phrase (with article when needed), verso = Portuguese translation
+- 5 communicative Q&A cards: frente = a real conversation question in English, verso = a model answer in English (not Portuguese)
+- 3 grammar pattern cards: frente = a grammar structure or useful chunk, verso = brief explanation or example(s) in English
+For all cards: exemplo = one short natural English sentence using the word/pattern, appropriate for ${nivel} level.
+Respond ONLY with valid JSON, no markdown, no backticks, no explanation:
+{"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}
+Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
+              messages: [{ role: "user", content: `Create 20 flashcards for ${nivel} level, unit ${unidade}: "${tituloUnidade}". Objectives: ${topicos}` }],
             }),
           });
           const respText = await resp.text();
-          if (!resp.ok) {
-            console.error("Proxy error:", respText);
-            throw new Error(`Erro ${resp.status} no proxy`);
-          }
+          if (!resp.ok) { console.error("Proxy error:", respText); throw new Error(`Erro ${resp.status} no proxy`); }
           const data = JSON.parse(respText);
           const texto = data.content?.[0]?.text || "";
           if (!texto) throw new Error("IA não retornou conteúdo.");
-          const clean = texto.replace(/```json|```/g, "").trim();
-          const parsed = JSON.parse(clean);
+          const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
           if (parsed.cards && parsed.cards.length > 0) {
-            const cardsIA = parsed.cards
-              .filter(c => c.frente && c.verso)
-              .map((c, i) => ({
-                deck_id: novoDeckId, frente: c.frente, verso: c.verso,
-                exemplo: c.exemplo || null, ordem: i + 1,
-              }));
+            const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
             const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
             if (errCards) throw new Error("Erro ao salvar cards: " + errCards.message);
-            flash(`✨ Deck criado com ${cardsIA.length} cards gerados pela IA!`);
+            flash(`✨ Deck criado com ${cardsIA.length} cards (vocabulário + conversação + gramática)!`);
           } else {
             flash("Deck criado! A IA não retornou cards — adicione manualmente.");
           }
@@ -5704,6 +5695,52 @@ Rules:
           console.error("Erro na geração de cards:", e);
           flash(`Deck criado, mas erro ao gerar cards: ${e.message}. Adicione os cards manualmente.`, "erro");
         }
+
+      // Modo IA com prompt livre
+      } else if (formDeck.modoCreacao === "ia_prompt" && formDeck.promptIA?.trim()) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token) throw new Error("Sessão expirada — faça login novamente.");
+          const resp = await fetch(ANTHROPIC_PROXY, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({
+              model: "claude-haiku-4-5-20251001",
+              max_tokens: 2000,
+              system: `You are an English teacher creating flashcards based on a teacher's description.
+The teacher will describe: student level, grammar topics, vocabulary, example phrases, and context.
+Create exactly 20 flashcards covering the content described. Mix types thoughtfully:
+- Vocabulary: frente = English word/phrase, verso = Portuguese translation
+- Communicative Q&A: frente = natural conversation question in English, verso = model answer in English
+- Grammar/chunk: frente = grammar structure or useful chunk, verso = meaning or pattern in English
+- Production: frente = situation prompt (e.g. "How do you say you're tired?"), verso = target language response
+For all: exemplo = one short natural English sentence showing the card in real use.
+Respond ONLY with valid JSON, no markdown, no backticks:
+{"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}
+Do NOT repeat cards.`,
+              messages: [{ role: "user", content: `Create 20 flashcards based on this description:\n\n${formDeck.promptIA.trim()}` }],
+            }),
+          });
+          const respText = await resp.text();
+          if (!resp.ok) { console.error("Proxy error:", respText); throw new Error(`Erro ${resp.status} no proxy`); }
+          const data = JSON.parse(respText);
+          const texto = data.content?.[0]?.text || "";
+          if (!texto) throw new Error("IA não retornou conteúdo.");
+          const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
+          if (parsed.cards && parsed.cards.length > 0) {
+            const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
+            const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
+            if (errCards) throw new Error("Erro ao salvar cards: " + errCards.message);
+            flash(`🎯 Deck criado com ${cardsIA.length} cards gerados a partir do seu prompt!`);
+          } else {
+            flash("Deck criado! A IA não retornou cards — adicione manualmente.");
+          }
+        } catch (e) {
+          console.error("Erro na geração ia_prompt:", e);
+          flash(`Deck criado, mas erro ao gerar cards: ${e.message}.`, "erro");
+        }
+
       // Modo lista de palavras
       } else if (formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim()) {
         const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
@@ -5725,7 +5762,7 @@ Rules:
     }
 
     setSalvando(false);
-    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "" });
+    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(false);
     setEditandoDeck(null);
     carregarDecks();
@@ -5733,7 +5770,7 @@ Rules:
 
   const abrirEdicaoDeck = (deck) => {
     setEditandoDeck(deck);
-    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_syllabus", listaPalavras: "" });
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(true);
   };
 
@@ -5874,11 +5911,12 @@ Rules:
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {[
                   { v: "ia_syllabus", l: "✨ Gerar com IA a partir do Syllabus", desc: "Escolha nível e unidade — a IA cria ~20 cards automaticamente" },
+                  { v: "ia_prompt", l: "🎯 Gerar com IA a partir de prompt", desc: "Descreva o tema, vocabulário e frases — a IA cria os cards" },
                   { v: "lista", l: "📋 Colar lista de palavras", desc: "Cole sua lista no formato: inglês = português" },
                   { v: "manual", l: "✍️ Adicionar manualmente depois", desc: "Cria o deck vazio e você adiciona card por card" },
                 ].map(op => (
                   <label key={op.v} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "10px 12px", borderRadius: "8px", border: `1.5px solid ${formDeck.modoCreacao === op.v ? palette.orange : palette.lavender + "55"}`, background: formDeck.modoCreacao === op.v ? palette.orange + "11" : "#FFF", cursor: "pointer" }}>
-                    <input type="radio" name="modoCreacao" checked={formDeck.modoCreacao === op.v} onChange={() => setFormDeck(f => ({ ...f, modoCreacao: op.v, nivel: "", unidade: "", listaPalavras: "" }))} style={{ accentColor: palette.orange, marginTop: "2px", flexShrink: 0 }} />
+                    <input type="radio" name="modoCreacao" checked={formDeck.modoCreacao === op.v} onChange={() => setFormDeck(f => ({ ...f, modoCreacao: op.v, nivel: "", unidade: "", listaPalavras: "", promptIA: "" }))} style={{ accentColor: palette.orange, marginTop: "2px", flexShrink: 0 }} />
                     <div>
                       <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{op.l}</p>
                       <p style={{ fontSize: "11px", color: `${palette.purple}88`, margin: "2px 0 0" }}>{op.desc}</p>
@@ -5923,6 +5961,25 @@ Rules:
             </div>
           )}
 
+          {/* Modo IA com prompt livre */}
+          {formDeck.modoCreacao === "ia_prompt" && !editandoDeck && (
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Descreva o conteúdo do deck *</label>
+              <p style={{ fontSize: "11px", color: `${palette.purple}88`, marginBottom: "6px", lineHeight: 1.5 }}>
+                Quanto mais detalhe, melhor. Inclua: nível do aluno, tema gramatical, vocabulário específico, frases de exemplo, contexto de uso.
+              </p>
+              <textarea value={formDeck.promptIA || ""} onChange={e => setFormDeck(f => ({ ...f, promptIA: e.target.value }))}
+                placeholder={"Exemplos:\n\n• Beginner. Verbo to be: I am, you are, he/she/is. Perguntas: Are you a student? Is she from Brazil? Adjetivos: happy, tired, hungry, tall, young.\n\n• Elementary. Job interview vocabulary: experience, skills, responsibilities. Frases: I have 5 years of experience in... My main responsibility is... I'm good at..."}
+                rows={8} style={{ ...inputStyle, resize: "vertical", fontSize: "12px", lineHeight: 1.6 }} />
+              {formDeck.promptIA && formDeck.promptIA.trim().length > 20 && (
+                <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginTop: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
+                  <span>✨</span>
+                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai criar ~20 cards com base na sua descrição.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Modo lista de palavras */}
           {formDeck.modoCreacao === "lista" && !editandoDeck && (
             <div>
@@ -5950,12 +6007,19 @@ Rules:
 
           {msgFeedback}
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-            <button onClick={salvarDeck} disabled={salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))}
-              style={{ ...btnOrange, opacity: (salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))) ? 0.7 : 1 }}>
-              {salvando ? (formDeck.modoCreacao === "ia_syllabus" ? "Gerando com IA..." : "Salvando...") :
-               editandoDeck ? "Salvar alterações" :
-               formDeck.modoCreacao === "ia_syllabus" ? "✨ Criar com IA" :
-               formDeck.modoCreacao === "lista" ? "📋 Criar com lista" : "Criar deck"}
+            <button onClick={salvarDeck}
+              disabled={salvando
+                || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade))
+                || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())
+              }
+              style={{ ...btnOrange, opacity: (salvando || (formDeck.modoCreacao === "ia_syllabus" && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
+              {salvando
+                ? (["ia_syllabus","ia_prompt"].includes(formDeck.modoCreacao) ? "Gerando com IA..." : "Salvando...")
+                : editandoDeck ? "Salvar alterações"
+                : formDeck.modoCreacao === "ia_syllabus" ? "✨ Criar com IA (Syllabus)"
+                : formDeck.modoCreacao === "ia_prompt" ? "🎯 Criar com IA (Prompt)"
+                : formDeck.modoCreacao === "lista" ? "📋 Criar com lista"
+                : "Criar deck"}
             </button>
             <button onClick={() => { setMostrarFormDeck(false); setEditandoDeck(null); }} style={btnGhost}>Cancelar</button>
           </div>
@@ -6001,30 +6065,61 @@ Rules:
         <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum deck criado ainda.</p>
       ) : decksFiltrados.length === 0 ? (
         <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum deck encontrado para "{busca}".</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {decksFiltrados.map(deck => (
-            <div key={deck.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "12px", padding: "14px 16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
-                <div>
-                  <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple, margin: 0 }}>{deck.nome}</p>
-                  <p style={{ fontSize: "11px", color: `${palette.purple}99`, margin: "3px 0 0" }}>{nomeDeckStudent(deck.student_id)}</p>
-                  {deck.unidade && <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>{deck.unidade}</span>}
-                  {deck.descricao && <p style={{ fontSize: "12px", color: `${palette.purple}88`, margin: "6px 0 0" }}>{deck.descricao}</p>}
-                  <p style={{ fontSize: "11px", color: `${palette.purple}77`, margin: "4px 0 0" }}>{(deck.flashcards || []).length} cards</p>
+      ) : (() => {
+        // Agrupa por nível (pasta), em ordem cronológica dentro de cada grupo
+        const niveis = ["Beginner", "Elementary", "Pre-Intermediate", "Intermediate", "Upper-Intermediate", "Advanced", "Geral"];
+        const grupos = {};
+        decksFiltrados.forEach(deck => {
+          // Tenta inferir nível pelo campo nivel do deck ou pelo student
+          const grupoKey = deck.nivel || (deck.student_id ? "Personalizados" : "Geral");
+          if (!grupos[grupoKey]) grupos[grupoKey] = [];
+          grupos[grupoKey].push(deck);
+        });
+        // Ordena os grupos: níveis conhecidos primeiro, depois o resto
+        const ordemGrupos = [...niveis, "Personalizados", ...Object.keys(grupos).filter(k => !niveis.includes(k) && k !== "Personalizados")];
+        const gruposOrdenados = ordemGrupos.filter(k => grupos[k]);
+
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {gruposOrdenados.map(nivel => (
+              <div key={nivel}>
+                {/* Header da pasta */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", paddingBottom: "8px", borderBottom: `2px solid ${palette.lavender}44` }}>
+                  <span style={{ fontSize: "16px" }}>📁</span>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, margin: 0 }}>{nivel}</p>
+                  <span style={{ fontSize: "11px", color: `${palette.purple}66`, fontWeight: 400 }}>{grupos[nivel].length} deck{grupos[nivel].length !== 1 ? "s" : ""}</span>
                 </div>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flexShrink: 0 }}>
-                  <button onClick={() => abrirDeck(deck)} style={btnOrange}>Ver cards</button>
-                  <button onClick={() => { setAssignDeck(deck); setAssignStudentId(""); setMostrarFormDeck(false); }} style={{ ...btnGhost, background: palette.lavender + "44", borderColor: palette.lavender }}>👤 Assign</button>
-                  <button onClick={() => abrirProgresso(deck)} style={btnGhost}>📊 Progresso</button>
-                  <button onClick={() => abrirEdicaoDeck(deck)} style={btnGhost}>Editar</button>
-                  <button onClick={() => excluirDeck(deck)} style={btnRed}>Excluir</button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {grupos[nivel]
+                    .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em))
+                    .map(deck => (
+                    <div key={deck.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "12px", padding: "12px 14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px", flexWrap: "wrap" }}>
+                        <div style={{ flex: 1, minWidth: "140px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{deck.nome}</p>
+                            {deck.unidade && <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 7px", borderRadius: "8px", background: palette.lavender, color: palette.purple }}>{deck.unidade}</span>}
+                            {deck.student_id && <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 7px", borderRadius: "8px", background: palette.orange + "22", color: palette.orange }}>personalizado</span>}
+                          </div>
+                          {deck.descricao && <p style={{ fontSize: "11px", color: `${palette.purple}88`, margin: "3px 0 0" }}>{deck.descricao}</p>}
+                          <p style={{ fontSize: "10px", color: `${palette.purple}66`, margin: "3px 0 0" }}>{(deck.flashcards || []).length} cards · criado em {new Date(deck.criado_em).toLocaleDateString("pt-BR")}</p>
+                        </div>
+                        <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", flexShrink: 0 }}>
+                          <button onClick={() => abrirDeck(deck)} style={{ ...btnOrange, padding: "6px 12px", fontSize: "12px" }}>Ver cards</button>
+                          <button onClick={() => { setAssignDeck(deck); setAssignStudentId(""); setMostrarFormDeck(false); }} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px", background: palette.lavender + "33", borderColor: palette.lavender }}>👤</button>
+                          <button onClick={() => abrirProgresso(deck)} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px" }}>📊</button>
+                          <button onClick={() => abrirEdicaoDeck(deck)} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px" }}>✏️</button>
+                          <button onClick={() => excluirDeck(deck)} style={{ ...btnRed, padding: "6px 10px", fontSize: "12px" }}>🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 
@@ -6152,15 +6247,17 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
   const { useState, useEffect, useCallback } = React;
 
   // Estados principais
-  const [tela, setTela] = useState("inicio"); // inicio | sessao | resultado
+  const [tela, setTela] = useState("inicio"); // inicio | sessao | resultado | semCards
   const [decks, setDecks] = useState([]);
   const [deckSelecionado, setDeckSelecionado] = useState(null);
+  const [modoSelecionado, setModoSelecionado] = useState(null); // "deck" | "revisao_geral" | "revisao_dificeis" | "modo_livre"
+  const [decksLivreSelecionados, setDecksLivreSelecionados] = useState([]);
   const [cardsHoje, setCardsHoje] = useState([]);
   const [indiceAtual, setIndiceAtual] = useState(0);
   const [virado, setVirado] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
-  const [resultados, setResultados] = useState([]); // {card, avaliacao}
+  const [resultados, setResultados] = useState([]);
   const [erro, setErro] = useState("");
 
   const hoje = new Date().toISOString().slice(0, 10);
@@ -6317,7 +6414,73 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
   };
 
   const reiniciarDeck = () => iniciarSessao(deckSelecionado);
-  const voltarInicio = () => { setTela("inicio"); setDeckSelecionado(null); setCardsHoje([]); setResultados([]); };
+  const voltarInicio = () => { setTela("inicio"); setDeckSelecionado(null); setCardsHoje([]); setResultados([]); setModoSelecionado(null); setDecksLivreSelecionados([]); };
+
+  // Revisão geral — todos os cards vencendo hoje de todos os decks
+  const iniciarRevisaoGeral = async () => {
+    setCarregando(true);
+    setErro("");
+    try {
+      const todosCardIds = decks.flatMap(d => (d.flashcards || []).map(c => c.id));
+      if (todosCardIds.length === 0) { setCardsHoje([]); setModoSelecionado("revisao_geral"); setTela("semCards"); setCarregando(false); return; }
+      const { data: cards } = await supabase.from("flashcards").select("*").in("id", todosCardIds);
+      const { data: progressos } = await supabase.from("flashcard_progress").select("*").eq("student_id", student.id).in("flashcard_id", todosCardIds);
+      const mapaProgresso = {};
+      (progressos || []).forEach(p => { mapaProgresso[p.flashcard_id] = p; });
+      const cardsParaHoje = (cards || []).filter(c => { const p = mapaProgresso[c.id]; return !p || p.proxima_revisao <= hoje; });
+      if (cardsParaHoje.length === 0) { setModoSelecionado("revisao_geral"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
+      const embaralhados = [...cardsParaHoje].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
+      setCardsHoje(embaralhados);
+      setDeckSelecionado({ nome: "Revisão Geral 🌟" });
+      setModoSelecionado("revisao_geral");
+      setIndiceAtual(0); setVirado(false); setResultados([]);
+      setTela("sessao");
+    } catch (e) { setErro("Erro: " + e.message); }
+    setCarregando(false);
+  };
+
+  // Revisão rápida — só cards marcados como Difícil
+  const iniciarRevisaoDificeis = async () => {
+    setCarregando(true);
+    setErro("");
+    try {
+      const todosCardIds = decks.flatMap(d => (d.flashcards || []).map(c => c.id));
+      if (todosCardIds.length === 0) { setModoSelecionado("revisao_dificeis"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
+      const { data: progressosDificeis } = await supabase.from("flashcard_progress").select("*").eq("student_id", student.id).eq("ultima_avaliacao", "dificil").in("flashcard_id", todosCardIds);
+      if (!progressosDificeis || progressosDificeis.length === 0) { setModoSelecionado("revisao_dificeis"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
+      const idsParaRevisar = progressosDificeis.map(p => p.flashcard_id);
+      const { data: cards } = await supabase.from("flashcards").select("*").in("id", idsParaRevisar);
+      const mapaProgresso = {};
+      progressosDificeis.forEach(p => { mapaProgresso[p.flashcard_id] = p; });
+      const embaralhados = [...(cards || [])].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
+      setCardsHoje(embaralhados);
+      setDeckSelecionado({ nome: "Revisão Rápida 💪" });
+      setModoSelecionado("revisao_dificeis");
+      setIndiceAtual(0); setVirado(false); setResultados([]);
+      setTela("sessao");
+    } catch (e) { setErro("Erro: " + e.message); }
+    setCarregando(false);
+  };
+
+  // Modo livre — combina decks selecionados
+  const iniciarModoLivre = async () => {
+    if (decksLivreSelecionados.length === 0) return;
+    setCarregando(true);
+    try {
+      const cardIds = decks.filter(d => decksLivreSelecionados.includes(d.id)).flatMap(d => (d.flashcards || []).map(c => c.id));
+      const { data: cards } = await supabase.from("flashcards").select("*").in("id", cardIds);
+      const { data: progressos } = await supabase.from("flashcard_progress").select("*").eq("student_id", student.id).in("flashcard_id", cardIds);
+      const mapaProgresso = {};
+      (progressos || []).forEach(p => { mapaProgresso[p.flashcard_id] = p; });
+      const embaralhados = [...(cards || [])].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
+      setCardsHoje(embaralhados);
+      setDeckSelecionado({ nome: `Modo Livre (${decksLivreSelecionados.length} decks)` });
+      setModoSelecionado("modo_livre");
+      setIndiceAtual(0); setVirado(false); setResultados([]);
+      setTela("sessao");
+    } catch (e) { setErro("Erro: " + e.message); }
+    setCarregando(false);
+  };
 
   const corAvaliacao = (av) => av === "facil" ? palette.lightGreen : av === "ok" ? palette.lavender : "#F7C1C1";
   const textoAvaliacao = (av) => av === "facil" ? "Fácil ✓" : av === "ok" ? "Ok" : "Difícil";
@@ -6336,38 +6499,134 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
   );
 
   // TELA: lista de decks
-  if (tela === "inicio") return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <div>
-        <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
-        <p style={{ fontSize: "13px", color: textSecondary }}>Revise o vocabulário das suas aulas. Quanto mais você praticar, mais o sistema adapta as revisões pra você!</p>
-      </div>
+  if (tela === "inicio") {
+    const unidadeAtual = student.unidade_atual || null;
+    // Separa deck da unidade atual dos anteriores
+    const deckAtual = decks.filter(d => d.unidade === unidadeAtual && !d.student_id);
+    const deckPersonalizado = decks.filter(d => d.student_id === student.id);
+    const deckAnteriores = decks.filter(d => d.unidade !== unidadeAtual && !d.student_id).reverse(); // mais recente primeiro
+    const temAlgumDifficil = true; // simplificado — sempre mostra o botão
+    const [mostrarModoLivre, setMostrarModoLivre] = useState(false);
 
-      {decks.length === 0 ? (
-        <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "24px", textAlign: "center" }}>
-          <p style={{ fontSize: "20px", marginBottom: "8px" }}>📭</p>
-          <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck disponível ainda. A Teacher Mari vai adicionar em breve!</p>
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div>
+          <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
+          <p style={{ fontSize: "13px", color: textSecondary }}>Revise o vocabulário das suas aulas. O sistema adapta as revisões pro seu ritmo!</p>
         </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {decks.map(deck => (
-            <button key={deck.id} onClick={() => iniciarSessao(deck)}
-              style={{ width: "100%", padding: "16px 18px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender}55`, cursor: "pointer", background: dark ? "#3A2B7A" : "#FFF", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+
+        {decks.length === 0 ? (
+          <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+            <p style={{ fontSize: "20px", marginBottom: "8px" }}>📭</p>
+            <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck disponível ainda. A Teacher Mari vai adicionar em breve!</p>
+          </div>
+        ) : (
+          <>
+            {/* Modos especiais */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>Modos especiais</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                <button onClick={iniciarRevisaoGeral} disabled={carregando}
+                  style={{ padding: "12px 14px", borderRadius: "12px", border: `1.5px solid ${palette.orange}44`, cursor: "pointer", background: dark ? "#2A1D66" : palette.orange + "11", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+                  <p style={{ fontSize: "16px", margin: "0 0 4px" }}>🌟</p>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.orange, margin: 0 }}>Revisão Geral</p>
+                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Todos os cards de hoje</p>
+                </button>
+                <button onClick={iniciarRevisaoDificeis} disabled={carregando}
+                  style={{ padding: "12px 14px", borderRadius: "12px", border: `1.5px solid ${palette.lavender}55`, cursor: "pointer", background: dark ? "#2A1D66" : palette.lavender + "22", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+                  <p style={{ fontSize: "16px", margin: "0 0 4px" }}>💪</p>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Revisão Rápida</p>
+                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Só os difíceis</p>
+                </button>
+              </div>
+              <button onClick={() => setMostrarModoLivre(!mostrarModoLivre)}
+                style={{ padding: "10px 14px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: "transparent", textAlign: "left", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "14px" }}>🎯</span>
+                <div>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Modo Livre — escolher decks</p>
+                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Combine qualquer deck numa sessão</p>
+                </div>
+                <span style={{ marginLeft: "auto", color: textSecondary, fontSize: "12px" }}>{mostrarModoLivre ? "▲" : "▼"}</span>
+              </button>
+              {mostrarModoLivre && (
+                <div style={{ background: dark ? "#2A1D66" : palette.cream, borderRadius: "10px", padding: "12px" }}>
+                  <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "8px" }}>Selecione os decks para combinar:</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px" }}>
+                    {decks.map(d => (
+                      <label key={d.id} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
+                        <input type="checkbox" checked={decksLivreSelecionados.includes(d.id)}
+                          onChange={e => setDecksLivreSelecionados(prev => e.target.checked ? [...prev, d.id] : prev.filter(id => id !== d.id))}
+                          style={{ accentColor: palette.orange, width: "15px", height: "15px" }} />
+                        <span>{d.nome}</span>
+                        {d.unidade && <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "6px", background: palette.lavender, color: palette.purple, fontWeight: 600 }}>{d.unidade}</span>}
+                        <span style={{ fontSize: "11px", color: textSecondary, marginLeft: "auto" }}>{(d.flashcards || []).length} cards</span>
+                      </label>
+                    ))}
+                  </div>
+                  <button onClick={iniciarModoLivre} disabled={decksLivreSelecionados.length === 0 || carregando}
+                    style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: decksLivreSelecionados.length === 0 ? "default" : "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif", opacity: decksLivreSelecionados.length === 0 ? 0.5 : 1 }}>
+                    Iniciar com {decksLivreSelecionados.length} deck{decksLivreSelecionados.length !== 1 ? "s" : ""}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Deck da unidade atual — destaque */}
+            {(deckAtual.length > 0 || deckPersonalizado.length > 0) && (
               <div>
-                <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
-                {deck.unidade && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>{deck.unidade}</p>}
-                {deck.descricao && <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>{deck.descricao}</p>}
+                <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                  📍 Sua unidade atual {unidadeAtual ? `— Unit ${unidadeAtual}` : ""}
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {[...deckAtual, ...deckPersonalizado].map(deck => (
+                    <button key={deck.id} onClick={() => iniciarSessao(deck)}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: `2px solid ${palette.orange}`, cursor: "pointer", background: dark ? "#3A2B7A" : palette.orange + "0D", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
+                      <div>
+                        <p style={{ fontSize: "14px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
+                        {deck.descricao && <p style={{ fontSize: "12px", color: textSecondary, margin: "3px 0 0" }}>{deck.descricao}</p>}
+                        {deck.student_id && <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "6px", background: palette.orange + "33", color: palette.orange }}>personalizado</span>}
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>{(deck.flashcards || []).length} cards</p>
+                        <span style={{ fontSize: "18px", color: palette.orange }}>→</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>{deck.flashcards.length} cards</p>
-                <span style={{ fontSize: "18px" }}>→</span>
+            )}
+
+            {/* Decks anteriores */}
+            {deckAnteriores.length > 0 && (
+              <div>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                  📚 Unidades anteriores
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {deckAnteriores.map(deck => (
+                    <button key={deck.id} onClick={() => iniciarSessao(deck)}
+                      style={{ width: "100%", padding: "12px 16px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: dark ? "#3A2B7A" : "#FFF", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
+                      <div>
+                        <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
+                        {deck.unidade && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Unit {deck.unidade}</p>}
+                        {deck.descricao && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>{deck.descricao}</p>}
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontSize: "11px", color: textSecondary, margin: 0 }}>{(deck.flashcards || []).length} cards</p>
+                        <span style={{ fontSize: "16px", color: textSecondary }}>→</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            )}
+          </>
+        )}
+
+        {erro && <p style={{ fontSize: "12px", color: "#E24B4A" }}>{erro}</p>}
+      </div>
+    );
+  }
 
   // TELA: sem cards pra hoje
   if (tela === "semCards") return (
