@@ -3020,39 +3020,34 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     y += 8;
 
     const stats = [
-      ["Scheduled classes:", relatorio.scheduledClasses],
-      ["Completed classes:", relatorio.completedClasses],
-      ["Attendance:", `${relatorio.attendancePct}%`],
-      ["Classes to reschedule:", relatorio.toReschedule],
+      ["Scheduled", relatorio.scheduledClasses],
+      ["Completed", relatorio.completedClasses],
+      ["Attendance", `${relatorio.attendancePct}%`],
+      ["To reschedule", relatorio.toReschedule],
     ];
-    const statLarg = (larguraPagina - margem * 2 - 10) / 2;
-    const statPillH = 11;
-    const circR = 7.5;
-    for (let i = 0; i < 4; i++) {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const xStart = margem + col * (statLarg + 10);
-      const yStart = y + row * (statPillH + 6);
-
-      // Pill laranja
+    const statAltura = 10;
+    const statGap = 6;
+    const statLarg = (larguraPagina - margem * 2 - statGap * 3) / 4;
+    const badgeR = 4;
+    stats.forEach((s, i) => {
+      const xStart = margem + i * (statLarg + statGap);
+      // Pill cream de fundo
+      doc.setFillColor(...creme);
+      doc.roundedRect(xStart, y, statLarg, statAltura, statAltura / 2, statAltura / 2, "F");
+      // Label à esquerda em verde escuro
+      doc.setFont("Poppins", "semibold"); doc.setFontSize(9); doc.setTextColor(...verdeEscuro);
+      doc.text(s[0], xStart + 5, y + statAltura / 2 + 1, { maxWidth: statLarg - badgeR * 2 - 10 });
+      // Badge circular laranja à direita com o número
+      const badgeX = xStart + statLarg - badgeR - 2.5;
+      const badgeY = y + statAltura / 2;
       doc.setFillColor(...laranja);
-      doc.roundedRect(xStart, yStart, statLarg - circR - 2, statPillH, statPillH / 2, statPillH / 2, "F");
-      // Label branco no pill
-      doc.setFont("Poppins", "semibold"); doc.setFontSize(10); doc.setTextColor(255, 255, 255);
-      doc.text(stats[i][0], xStart + 6, yStart + statPillH / 2 + 1.3, { maxWidth: statLarg - circR - 14 });
-
-      // Círculo com número (sobrepõe o final do pill)
-      const circX = xStart + statLarg - circR;
-      const circY = yStart + statPillH / 2;
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(...laranja); doc.setLineWidth(0.9);
-      doc.circle(circX, circY, circR, "FD");
-      const numStr = String(stats[i][1]);
-      const numSize = numStr.length > 2 ? 10 : 13;
-      doc.setFont("Poppins", "bold"); doc.setFontSize(numSize); doc.setTextColor(...roxo);
-      doc.text(numStr, circX, circY + numSize / 3.5, { align: "center" });
-    }
-    y += 2 * (statPillH + 6);
+      doc.circle(badgeX, badgeY, badgeR, "F");
+      const numStr = String(s[1]);
+      const numSize = numStr.length > 2 ? 7 : 10;
+      doc.setFont("Poppins", "bold"); doc.setFontSize(numSize); doc.setTextColor(255, 255, 255);
+      doc.text(numStr, badgeX, badgeY + numSize / 3.5, { align: "center" });
+    });
+    y += statAltura + 4;
 
     // Divisor
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
