@@ -167,12 +167,16 @@ function PortalLogin({ onLogin }) {
 }
 
 // ---------- DASHBOARD ----------
+const ANTHROPIC_KEY = "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";
+
 const tabs = [
   { id: "home", label: "Home" },
   { id: "homework", label: "Aulas + Homework" },
   { id: "calendario", label: "Calendar" },
   { id: "materiais", label: "Materiais" },
   { id: "cobranca", label: "Financeiro" },
+  { id: "flashcards", label: "🃏 Flashcards" },
+  { id: "ia", label: "✨ Praticar com IA" },
 ];
 
 const meses = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -1396,6 +1400,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "certificados" ? palette.orange : "#FFF", color: abaAdmin === "certificados" ? "#FFF" : palette.purple }}>
             🎓 Certificados
           </button>
+          <button onClick={() => setAbaAdmin("flashcards")}
+            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "flashcards" ? palette.orange : "#FFF", color: abaAdmin === "flashcards" ? "#FFF" : palette.purple }}>
+            🃏 Flashcards
+          </button>
         </div>
 
         {abaAdmin === "planejador" && (
@@ -1490,6 +1498,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
         {abaAdmin === "certificados" && (
           <CertificadoAdmin students={students} />
+        )}
+
+        {abaAdmin === "flashcards" && (
+          <FlashcardAdminPanel students={students} />
         )}
 
         {abaAdmin === "calendario" && (
@@ -4691,10 +4703,1331 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               </div>
             </div>
           )}
+
+          {active === "flashcards" && (
+            <FlashcardTab
+              student={student}
+              dark={dark}
+              palette={palette}
+              textSecondary={textSecondary}
+              cardBg={cardBg}
+            />
+          )}
+
+          {active === "ia" && (
+            <PraticarComIA
+              student={student}
+              dark={dark}
+              palette={palette}
+              textSecondary={textSecondary}
+              cardBg={cardBg}
+            />
+          )}
         </div>
       </div>
     </div>
   );
+}
+
+// ---------- PRATICAR COM IA ----------
+function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
+  const { useState, useRef, useEffect } = React;
+
+  const [secao, setSecao] = useState("menu"); // menu | exercicios | escrita | chat | duvidas | exemplos
+  const [carregandoIA, setCarregandoIA] = useState(false);
+
+  // Estados — Gerador de exercícios
+  const [exerciciosGerados, setExerciciosGerados] = useState(null);
+  const [respostasEx, setRespostasEx] = useState({});
+  const [gabarito, setGabarito] = useState(false);
+
+  // Estados — Correção de escrita
+  const [textoEscrita, setTextoEscrita] = useState("");
+  const [correcaoEscrita, setCorrecaoEscrita] = useState(null);
+
+  // Estados — Chatbot
+  const [mensagensChat, setMensagensChat] = useState([]);
+  const [inputChat, setInputChat] = useState("");
+  const chatFimRef = useRef(null);
+
+  // Estados — Dúvidas gramaticais
+  const [perguntaDuvida, setPerguntaDuvida] = useState("");
+  const [respostaDuvida, setRespostaDuvida] = useState(null);
+
+  // Estados — Exemplos
+  const [palavraExemplo, setPalavraExemplo] = useState("");
+  const [exemploGerado, setExemploGerado] = useState(null);
+
+  useEffect(() => {
+    if (chatFimRef.current) chatFimRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [mensagensChat]);
+
+  const nivelAluno = student.nivel || "Beginner";
+  const unidadeAluno = student.unidade_atual || "1A";
+
+  // Chamada genérica à API Anthropic
+  const chamarIA = async (systemPrompt, userPrompt, maxTokens = 800) => {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || "Erro na API");
+    }
+    const data = await resp.json();
+    return data.content[0].text;
+  };
+
+  // ── GERADOR DE EXERCÍCIOS ──
+  const gerarExercicios = async () => {
+    setCarregandoIA(true);
+    setExerciciosGerados(null);
+    setRespostasEx({});
+    setGabarito(false);
+    try {
+      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult student currently studying unit ${unidadeAluno}. 
+Create simple, clear exercises appropriate for this level. Use vocabulary the student already knows.
+Respond ONLY with valid JSON, no markdown, no explanation. Format:
+{
+  "titulo": "Exercise title",
+  "exercicios": [
+    {"tipo": "multipla_escolha", "pergunta": "...", "opcoes": ["a) ...", "b) ...", "c) ..."], "resposta": "a"},
+    {"tipo": "completar", "pergunta": "Complete: I ___ a student.", "resposta": "am"},
+    {"tipo": "verdadeiro_falso", "pergunta": "Statement here", "resposta": "true"},
+    {"tipo": "traduzir", "pergunta": "Translate: 'Bom dia'", "resposta": "Good morning"}
+  ]
+}
+Create exactly 6 exercises mixing the types above.`;
+      const resposta = await chamarIA(system, `Create exercises for unit ${unidadeAluno} (${nivelAluno} level).`);
+      const clean = resposta.replace(/```json|```/g, "").trim();
+      const dados = JSON.parse(clean);
+      setExerciciosGerados(dados);
+    } catch (e) {
+      alert("Erro ao gerar exercícios: " + e.message);
+    }
+    setCarregandoIA(false);
+  };
+
+  // ── CORREÇÃO DE ESCRITA ──
+  const corrigirEscrita = async () => {
+    if (!textoEscrita.trim()) return;
+    setCarregandoIA(true);
+    setCorrecaoEscrita(null);
+    try {
+      const system = `You are a friendly English teacher correcting a ${nivelAluno} level adult student's writing.
+Be encouraging and clear. Respond ONLY with valid JSON:
+{
+  "avaliacao": "Great job! / Good effort! / Keep practicing!",
+  "erros": [{"original": "...", "correto": "...", "explicacao": "..."}],
+  "versao_corrigida": "The full corrected text here",
+  "elogio": "One specific thing they did well"
+}
+If there are no errors, return an empty array for erros. Keep explanations simple for ${nivelAluno} level.`;
+      const resposta = await chamarIA(system, `Please correct this text written by my student: "${textoEscrita}"`);
+      const clean = resposta.replace(/```json|```/g, "").trim();
+      setCorrecaoEscrita(JSON.parse(clean));
+    } catch (e) {
+      alert("Erro ao corrigir: " + e.message);
+    }
+    setCarregandoIA(false);
+  };
+
+  // ── CHATBOT ──
+  const enviarMensagemChat = async () => {
+    if (!inputChat.trim() || carregandoIA) return;
+    const novaMensagem = { role: "user", content: inputChat.trim() };
+    const novoHistorico = [...mensagensChat, novaMensagem];
+    setMensagensChat(novoHistorico);
+    setInputChat("");
+    setCarregandoIA(true);
+    try {
+      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult student studying unit ${unidadeAluno} of English File.
+Rules:
+- ALWAYS respond in English, but keep it simple and appropriate for ${nivelAluno} level
+- Use only vocabulary and grammar structures the student has already studied up to unit ${unidadeAluno}
+- If the student makes a grammar mistake, gently correct it at the END of your message in parentheses, like: (Tip: say "I am" not "I is" ✏️)
+- Keep responses short: 2-4 sentences max
+- Be encouraging and warm
+- If the student writes in Portuguese, kindly ask them to try in English and give a hint`;
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 300,
+          system,
+          messages: novoHistorico,
+        }),
+      });
+      const data = await resp.json();
+      const respostaIA = data.content[0].text;
+      setMensagensChat([...novoHistorico, { role: "assistant", content: respostaIA }]);
+    } catch (e) {
+      alert("Erro no chat: " + e.message);
+    }
+    setCarregandoIA(false);
+  };
+
+  // ── DÚVIDAS GRAMATICAIS ──
+  const responderDuvida = async () => {
+    if (!perguntaDuvida.trim()) return;
+    setCarregandoIA(true);
+    setRespostaDuvida(null);
+    try {
+      const system = `You are a patient English teacher explaining grammar to a ${nivelAluno} level adult student from Brazil.
+- Explain in simple English with Portuguese when helpful
+- Use very simple examples with vocabulary they already know
+- Keep it short and clear: max 3 paragraphs
+- End with one practice example for them to try`;
+      const resposta = await chamarIA(system, perguntaDuvida, 500);
+      setRespostaDuvida(resposta);
+    } catch (e) {
+      alert("Erro ao responder: " + e.message);
+    }
+    setCarregandoIA(false);
+  };
+
+  // ── EXEMPLOS ──
+  const gerarExemplos = async () => {
+    if (!palavraExemplo.trim()) return;
+    setCarregandoIA(true);
+    setExemploGerado(null);
+    try {
+      const system = `You are an English teacher creating example sentences for a ${nivelAluno} level adult student.
+Respond ONLY with valid JSON:
+{
+  "palavra": "the word/phrase",
+  "significado": "meaning in Portuguese",
+  "exemplos": [
+    {"en": "Example sentence in English.", "pt": "Tradução em português."},
+    {"en": "Another example.", "pt": "Outra tradução."},
+    {"en": "One more example.", "pt": "Mais uma tradução."}
+  ],
+  "dica": "A short helpful tip about using this word"
+}
+Keep sentences simple and appropriate for ${nivelAluno} level.`;
+      const resposta = await chamarIA(system, `Create 3 example sentences for: "${palavraExemplo}"`);
+      const clean = resposta.replace(/```json|```/g, "").trim();
+      setExemploGerado(JSON.parse(clean));
+    } catch (e) {
+      alert("Erro ao gerar exemplos: " + e.message);
+    }
+    setCarregandoIA(false);
+  };
+
+  // ── ESTILOS ──
+  const bg = dark ? "#3A2B7A" : "#FFF";
+  const inputStyle = {
+    width: "100%", padding: "10px 12px", borderRadius: "10px",
+    border: `1.5px solid ${palette.lavender}55`, fontSize: "13px",
+    fontFamily: "'Poppins', sans-serif", color: palette.purple,
+    background: dark ? "#2A1D66" : "#FFF", outline: "none",
+  };
+  const btnOrange = {
+    padding: "10px 18px", borderRadius: "10px", border: "none",
+    cursor: "pointer", fontSize: "13px", fontWeight: 600,
+    background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif",
+  };
+  const btnGhost = {
+    padding: "10px 18px", borderRadius: "10px",
+    border: `1.5px solid ${palette.lavender}55`, cursor: "pointer",
+    fontSize: "13px", fontWeight: 600, background: "transparent",
+    color: dark ? "#FFF" : palette.purple, fontFamily: "'Poppins', sans-serif",
+  };
+  const cardIA = {
+    background: dark ? "#2A1D66" : palette.cream,
+    borderRadius: "14px", padding: "16px", marginBottom: "14px",
+  };
+
+  // ── MENU PRINCIPAL ──
+  if (secao === "menu") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>✨ Praticar com IA</h2>
+        <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>Exercícios, correção e conversação gerados especialmente pra você.</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+        {[
+          { id: "exercicios", emoji: "📝", titulo: "Exercícios", desc: "Exercícios gerados com base na sua unidade atual" },
+          { id: "escrita", emoji: "✍️", titulo: "Correção de escrita", desc: "Escreva uma frase ou texto e receba feedback" },
+          { id: "chat", emoji: "💬", titulo: "Conversar em inglês", desc: "Pratique conversação com vocabulário da sua aula" },
+          { id: "duvidas", emoji: "🤔", titulo: "Tirar dúvidas", desc: "Pergunte sobre gramática ou vocabulário" },
+          { id: "exemplos", emoji: "💡", titulo: "Ver exemplos", desc: "Digite uma palavra e veja frases de exemplo" },
+        ].map(item => (
+          <button key={item.id} onClick={() => setSecao(item.id)}
+            style={{ padding: "16px 14px", borderRadius: "14px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: dark ? "#2A1D66" : "#FFF", textAlign: "left", display: "flex", flexDirection: "column", gap: "6px", fontFamily: "'Poppins', sans-serif" }}>
+            <span style={{ fontSize: "22px" }}>{item.emoji}</span>
+            <p style={{ fontSize: "13px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{item.titulo}</p>
+            <p style={{ fontSize: "11px", color: textSecondary, margin: 0, lineHeight: 1.4 }}>{item.desc}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const headerSecao = (titulo, emoji) => (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+      <button onClick={() => setSecao("menu")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Voltar</button>
+      <h2 style={{ fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{emoji} {titulo}</h2>
+    </div>
+  );
+
+  // ── GERADOR DE EXERCÍCIOS ──
+  if (secao === "exercicios") return (
+    <div>
+      {headerSecao("Exercícios", "📝")}
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "16px" }}>
+        Exercícios gerados com base na sua unidade atual: <strong style={{ color: dark ? "#FFF" : palette.purple }}>Unit {unidadeAluno} — {nivelAluno}</strong>
+      </p>
+
+      {!exerciciosGerados && (
+        <button onClick={gerarExercicios} disabled={carregandoIA} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
+          {carregandoIA ? "Gerando exercícios..." : "🎲 Gerar exercícios"}
+        </button>
+      )}
+
+      {exerciciosGerados && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exerciciosGerados.titulo}</p>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setGabarito(!gabarito)} style={btnGhost}>
+                {gabarito ? "Ocultar gabarito" : "Ver gabarito"}
+              </button>
+              <button onClick={gerarExercicios} disabled={carregandoIA} style={btnOrange}>
+                {carregandoIA ? "..." : "Novo"}
+              </button>
+            </div>
+          </div>
+
+          {exerciciosGerados.exercicios.map((ex, i) => (
+            <div key={i} style={{ ...cardIA }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {ex.tipo === "multipla_escolha" ? "Múltipla escolha" : ex.tipo === "completar" ? "Complete a frase" : ex.tipo === "verdadeiro_falso" ? "Verdadeiro ou Falso" : "Tradução"}
+              </p>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
+
+              {ex.tipo === "multipla_escolha" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {ex.opcoes.map((op, j) => {
+                    const letra = op[0];
+                    const selecionada = respostasEx[i] === letra;
+                    const correta = gabarito && letra === ex.resposta;
+                    const errada = gabarito && selecionada && letra !== ex.resposta;
+                    return (
+                      <button key={j} onClick={() => setRespostasEx(r => ({ ...r, [i]: letra }))}
+                        style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: selecionada ? 600 : 400 }}>
+                        {op}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {ex.tipo === "completar" && (
+                <input value={respostasEx[i] || ""} onChange={e => setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
+                  placeholder="Sua resposta..." style={{ ...inputStyle, maxWidth: "300px" }} />
+              )}
+
+              {ex.tipo === "verdadeiro_falso" && (
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {["true", "false"].map(op => {
+                    const selecionada = respostasEx[i] === op;
+                    const correta = gabarito && op === ex.resposta;
+                    const errada = gabarito && selecionada && op !== ex.resposta;
+                    return (
+                      <button key={op} onClick={() => setRespostasEx(r => ({ ...r, [i]: op }))}
+                        style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                        {op === "true" ? "✓ True" : "✗ False"}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {ex.tipo === "traduzir" && (
+                <input value={respostasEx[i] || ""} onChange={e => setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
+                  placeholder="Your translation..." style={{ ...inputStyle, maxWidth: "300px" }} />
+              )}
+
+              {gabarito && (
+                <p style={{ fontSize: "12px", fontWeight: 600, color: palette.green, margin: "10px 0 0" }}>
+                  ✓ Answer: {ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ── CORREÇÃO DE ESCRITA ──
+  if (secao === "escrita") return (
+    <div>
+      {headerSecao("Correção de escrita", "✍️")}
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
+        Escreva uma frase, parágrafo ou texto em inglês e a IA vai corrigir e explicar os erros.
+      </p>
+
+      <textarea value={textoEscrita} onChange={e => setTextoEscrita(e.target.value)}
+        placeholder="Write something in English here... (Ex: I am go to school yesterday)"
+        rows={4} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
+
+      <button onClick={corrigirEscrita} disabled={carregandoIA || !textoEscrita.trim()}
+        style={{ ...btnOrange, opacity: (carregandoIA || !textoEscrita.trim()) ? 0.7 : 1, marginBottom: "20px" }}>
+        {carregandoIA ? "Corrigindo..." : "✓ Corrigir meu texto"}
+      </button>
+
+      {correcaoEscrita && (
+        <div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lightGreen}` }}>
+            <p style={{ fontSize: "13px", fontWeight: 700, color: dark ? "#FFF" : palette.green, margin: "0 0 4px" }}>🌟 {correcaoEscrita.avaliacao}</p>
+            <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>👏 {correcaoEscrita.elogio}</p>
+          </div>
+
+          {correcaoEscrita.erros.length === 0 ? (
+            <div style={{ ...cardIA }}>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>✅ Perfect! No errors found.</p>
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "10px" }}>Corrections:</p>
+              {correcaoEscrita.erros.map((erro, i) => (
+                <div key={i} style={{ ...cardIA, display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <p style={{ fontSize: "13px", margin: 0 }}>
+                    <span style={{ textDecoration: "line-through", color: "#E24B4A" }}>{erro.original}</span>
+                    {" → "}
+                    <span style={{ fontWeight: 700, color: dark ? palette.lightGreen : palette.green }}>{erro.correto}</span>
+                  </p>
+                  <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>💡 {erro.explicacao}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Corrected version</p>
+            <p style={{ fontSize: "14px", color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.6 }}>{correcaoEscrita.versao_corrigida}</p>
+          </div>
+
+          <button onClick={() => { setCorrecaoEscrita(null); setTextoEscrita(""); }} style={btnGhost}>Tentar de novo</button>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── CHATBOT ──
+  if (secao === "chat") return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {headerSecao("Conversar em inglês", "💬")}
+      <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "14px", lineHeight: 1.5 }}>
+        Pratique conversação em inglês! A IA vai conversar com você usando o vocabulário da Unit <strong>{unidadeAluno}</strong> e corrigir erros sutilmente.
+      </p>
+
+      {mensagensChat.length === 0 && (
+        <div style={{ ...cardIA, textAlign: "center", marginBottom: "14px" }}>
+          <p style={{ fontSize: "20px", margin: "0 0 8px" }}>👋</p>
+          <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>Hello! I'm here to practice with you.</p>
+          <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>Start the conversation! Try: "Hello, my name is..." or "Tell me about yourself"</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px", maxHeight: "320px", overflowY: "auto", padding: "4px" }}>
+        {mensagensChat.map((msg, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{ maxWidth: "80%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: msg.role === "user" ? palette.orange : (dark ? "#2A1D66" : palette.cream), color: msg.role === "user" ? "#FFF" : (dark ? "#FFF" : palette.purple), fontSize: "13px", lineHeight: 1.5 }}>
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {carregandoIA && (
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{ padding: "10px 14px", borderRadius: "14px 14px 14px 4px", background: dark ? "#2A1D66" : palette.cream, color: textSecondary, fontSize: "13px" }}>
+              ...
+            </div>
+          </div>
+        )}
+        <div ref={chatFimRef} />
+      </div>
+
+      <div style={{ display: "flex", gap: "8px" }}>
+        <input value={inputChat} onChange={e => setInputChat(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && enviarMensagemChat()}
+          placeholder="Type in English..." style={{ ...inputStyle, flex: 1 }} disabled={carregandoIA} />
+        <button onClick={enviarMensagemChat} disabled={carregandoIA || !inputChat.trim()}
+          style={{ ...btnOrange, opacity: (carregandoIA || !inputChat.trim()) ? 0.7 : 1, padding: "10px 16px" }}>
+          →
+        </button>
+      </div>
+      {mensagensChat.length > 0 && (
+        <button onClick={() => setMensagensChat([])} style={{ ...btnGhost, marginTop: "8px", fontSize: "12px", padding: "7px 12px" }}>
+          Reiniciar conversa
+        </button>
+      )}
+    </div>
+  );
+
+  // ── DÚVIDAS GRAMATICAIS ──
+  if (secao === "duvidas") return (
+    <div>
+      {headerSecao("Tirar dúvidas", "🤔")}
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
+        Tem uma dúvida de inglês? Pergunte em português ou inglês!
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+        {["Why do we say 'I am' and not 'I is'?", "What's the difference between 'a' and 'an'?", "When do I use 'this' and 'that'?"].map(sugestao => (
+          <button key={sugestao} onClick={() => setPerguntaDuvida(sugestao)}
+            style={{ padding: "8px 12px", borderRadius: "8px", border: `1px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: "transparent", color: textSecondary, fontSize: "12px", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            💬 {sugestao}
+          </button>
+        ))}
+      </div>
+
+      <textarea value={perguntaDuvida} onChange={e => setPerguntaDuvida(e.target.value)}
+        placeholder="Ex: Por que usamos 'do' em perguntas? / What is the difference between 'can' and 'could'?"
+        rows={3} style={{ ...inputStyle, resize: "vertical", marginBottom: "10px" }} />
+
+      <button onClick={responderDuvida} disabled={carregandoIA || !perguntaDuvida.trim()}
+        style={{ ...btnOrange, opacity: (carregandoIA || !perguntaDuvida.trim()) ? 0.7 : 1, marginBottom: "16px" }}>
+        {carregandoIA ? "Pensando..." : "🤔 Responder minha dúvida"}
+      </button>
+
+      {respostaDuvida && (
+        <div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}` }}>
+            <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap" }}>{respostaDuvida}</p>
+          </div>
+          <button onClick={() => { setRespostaDuvida(null); setPerguntaDuvida(""); }} style={btnGhost}>Nova dúvida</button>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── EXEMPLOS DE PALAVRA ──
+  if (secao === "exemplos") return (
+    <div>
+      {headerSecao("Ver exemplos", "💡")}
+      <p style={{ fontSize: "13px", color: textSecondary, marginBottom: "14px" }}>
+        Digite uma palavra ou expressão em inglês e veja 3 exemplos de uso.
+      </p>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input value={palavraExemplo} onChange={e => setPalavraExemplo(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && gerarExemplos()}
+          placeholder="Ex: go to work, have lunch, on the table..."
+          style={{ ...inputStyle, flex: 1 }} />
+        <button onClick={gerarExemplos} disabled={carregandoIA || !palavraExemplo.trim()}
+          style={{ ...btnOrange, opacity: (carregandoIA || !palavraExemplo.trim()) ? 0.7 : 1 }}>
+          {carregandoIA ? "..." : "Ver"}
+        </button>
+      </div>
+
+      {exemploGerado && (
+        <div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
+            <p style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{exemploGerado.palavra}</p>
+            <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>{exemploGerado.significado}</p>
+          </div>
+
+          {exemploGerado.exemplos.map((ex, i) => (
+            <div key={i} style={{ ...cardIA }}>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{ex.en}</p>
+              <p style={{ fontSize: "12px", color: textSecondary, margin: 0, fontStyle: "italic" }}>{ex.pt}</p>
+            </div>
+          ))}
+
+          <div style={{ ...cardIA, background: dark ? "#1D1050" : palette.lavender + "22", borderLeft: `4px solid ${palette.lavender}` }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? palette.lavender : palette.purple, margin: "0 0 4px" }}>💡 Tip</p>
+            <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exemploGerado.dica}</p>
+          </div>
+
+          <button onClick={() => { setExemploGerado(null); setPalavraExemplo(""); }} style={btnGhost}>Buscar outra palavra</button>
+        </div>
+      )}
+    </div>
+  );
+
+  return null;
+}
+
+// ---------- FLASHCARD ADMIN PANEL ----------
+function FlashcardAdminPanel({ students }) {
+  const { useState, useEffect, useCallback } = React;
+
+  // Telas: "decks" | "cards" | "progresso"
+  const [tela, setTela] = useState("decks");
+  const [decks, setDecks] = useState([]);
+  const [deckAtivo, setDeckAtivo] = useState(null);
+  const [cards, setCards] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
+  // Form novo deck
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", unidade: "", student_id: "" });
+  const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
+  const [editandoDeck, setEditandoDeck] = useState(null);
+
+  // Form novo card
+  const [formCard, setFormCard] = useState({ frente: "", verso: "", exemplo: "" });
+  const [mostrarFormCard, setMostrarFormCard] = useState(false);
+  const [editandoCard, setEditandoCard] = useState(null);
+
+  // Progresso por aluno
+  const [progressoAlunos, setProgressoAlunos] = useState([]);
+  const [carregandoProgresso, setCarregandoProgresso] = useState(false);
+
+  const flash = (msg, tipo = "sucesso") => {
+    if (tipo === "sucesso") { setSucesso(msg); setTimeout(() => setSucesso(""), 3000); }
+    else { setErro(msg); setTimeout(() => setErro(""), 4000); }
+  };
+
+  // Carrega decks
+  const carregarDecks = useCallback(async () => {
+    setCarregando(true);
+    const { data, error } = await supabase
+      .from("flashcard_decks")
+      .select("*, flashcards(id)")
+      .order("criado_em", { ascending: true });
+    if (error) { flash("Erro ao carregar decks: " + error.message, "erro"); }
+    else setDecks(data || []);
+    setCarregando(false);
+  }, []);
+
+  useEffect(() => { carregarDecks(); }, [carregarDecks]);
+
+  // Carrega cards de um deck
+  const abrirDeck = async (deck) => {
+    setDeckAtivo(deck);
+    setTela("cards");
+    setCarregando(true);
+    const { data, error } = await supabase
+      .from("flashcards")
+      .select("*")
+      .eq("deck_id", deck.id)
+      .order("ordem", { ascending: true });
+    if (error) flash("Erro ao carregar cards: " + error.message, "erro");
+    else setCards(data || []);
+    setCarregando(false);
+  };
+
+  // Carrega progresso dos alunos num deck
+  const abrirProgresso = async (deck) => {
+    setDeckAtivo(deck);
+    setTela("progresso");
+    setCarregandoProgresso(true);
+    const { data: cardsDoDeck } = await supabase.from("flashcards").select("id").eq("deck_id", deck.id);
+    const cardIds = (cardsDoDeck || []).map(c => c.id);
+    const totalCards = cardIds.length;
+    if (totalCards === 0) { setProgressoAlunos([]); setCarregandoProgresso(false); return; }
+    const { data: progressos } = await supabase
+      .from("flashcard_progress")
+      .select("student_id, flashcard_id, proxima_revisao, ultima_avaliacao, repeticoes")
+      .in("flashcard_id", cardIds);
+    // Agrupa por aluno
+    const mapaAlunos = {};
+    (progressos || []).forEach(p => {
+      if (!mapaAlunos[p.student_id]) mapaAlunos[p.student_id] = { vistos: 0, dominados: 0, ultima: null };
+      mapaAlunos[p.student_id].vistos++;
+      if (p.repeticoes >= 2) mapaAlunos[p.student_id].dominados++;
+      if (!mapaAlunos[p.student_id].ultima || p.proxima_revisao > mapaAlunos[p.student_id].ultima) {
+        mapaAlunos[p.student_id].ultima = p.proxima_revisao;
+      }
+    });
+    const resultado = Object.entries(mapaAlunos).map(([sid, dados]) => {
+      const aluno = students.find(s => s.id === sid);
+      return {
+        nome: aluno ? aluno.nome : "Aluno removido",
+        vistos: dados.vistos,
+        dominados: dados.dominados,
+        pct: Math.round((dados.dominados / totalCards) * 100),
+        totalCards,
+        ultimaAtividade: dados.ultima,
+      };
+    }).sort((a, b) => b.pct - a.pct);
+    setProgressoAlunos(resultado);
+    setCarregandoProgresso(false);
+  };
+
+  // Salvar deck (novo ou edição)
+  const salvarDeck = async () => {
+    if (!formDeck.nome.trim()) { flash("Nome do deck é obrigatório.", "erro"); return; }
+    setSalvando(true);
+    const payload = {
+      nome: formDeck.nome.trim(),
+      descricao: formDeck.descricao.trim() || null,
+      unidade: formDeck.unidade.trim() || null,
+      student_id: formDeck.student_id || null,
+    };
+    let error;
+    if (editandoDeck) {
+      ({ error } = await supabase.from("flashcard_decks").update(payload).eq("id", editandoDeck.id));
+    } else {
+      ({ error } = await supabase.from("flashcard_decks").insert(payload));
+    }
+    setSalvando(false);
+    if (error) { flash("Erro ao salvar: " + error.message, "erro"); return; }
+    flash(editandoDeck ? "Deck atualizado!" : "Deck criado!");
+    setFormDeck({ nome: "", descricao: "", unidade: "", student_id: "" });
+    setMostrarFormDeck(false);
+    setEditandoDeck(null);
+    carregarDecks();
+  };
+
+  const abrirEdicaoDeck = (deck) => {
+    setEditandoDeck(deck);
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", unidade: deck.unidade || "", student_id: deck.student_id || "" });
+    setMostrarFormDeck(true);
+  };
+
+  const excluirDeck = async (deck) => {
+    if (!window.confirm(`Excluir o deck "${deck.nome}" e todos os seus cards? Essa ação não pode ser desfeita.`)) return;
+    const { error } = await supabase.from("flashcard_decks").delete().eq("id", deck.id);
+    if (error) { flash("Erro ao excluir: " + error.message, "erro"); return; }
+    flash("Deck excluído.");
+    carregarDecks();
+  };
+
+  // Salvar card (novo ou edição)
+  const salvarCard = async () => {
+    if (!formCard.frente.trim() || !formCard.verso.trim()) { flash("Frente e verso são obrigatórios.", "erro"); return; }
+    setSalvando(true);
+    const payload = {
+      frente: formCard.frente.trim(),
+      verso: formCard.verso.trim(),
+      exemplo: formCard.exemplo.trim() || null,
+      deck_id: deckAtivo.id,
+      ordem: editandoCard ? editandoCard.ordem : (cards.length + 1),
+    };
+    let error;
+    if (editandoCard) {
+      ({ error } = await supabase.from("flashcards").update(payload).eq("id", editandoCard.id));
+    } else {
+      ({ error } = await supabase.from("flashcards").insert(payload));
+    }
+    setSalvando(false);
+    if (error) { flash("Erro ao salvar card: " + error.message, "erro"); return; }
+    flash(editandoCard ? "Card atualizado!" : "Card adicionado!");
+    setFormCard({ frente: "", verso: "", exemplo: "" });
+    setMostrarFormCard(false);
+    setEditandoCard(null);
+    abrirDeck(deckAtivo);
+  };
+
+  const abrirEdicaoCard = (card) => {
+    setEditandoCard(card);
+    setFormCard({ frente: card.frente, verso: card.verso, exemplo: card.exemplo || "" });
+    setMostrarFormCard(true);
+  };
+
+  const excluirCard = async (card) => {
+    if (!window.confirm(`Excluir o card "${card.frente}"?`)) return;
+    const { error } = await supabase.from("flashcards").delete().eq("id", card.id);
+    if (error) { flash("Erro ao excluir: " + error.message, "erro"); return; }
+    flash("Card excluído.");
+    abrirDeck(deckAtivo);
+  };
+
+  const nomeDeckStudent = (student_id) => {
+    if (!student_id) return "Base (todos os alunos)";
+    const aluno = students.find(s => s.id === student_id);
+    return aluno ? `Personalizado — ${aluno.nome}` : "Aluno específico";
+  };
+
+  // ── RENDER ──
+
+  const msgFeedback = (
+    <>
+      {sucesso && <p style={{ fontSize: "12px", color: palette.green, fontWeight: 600, margin: "0 0 10px" }}>✓ {sucesso}</p>}
+      {erro && <p style={{ fontSize: "12px", color: "#E24B4A", fontWeight: 600, margin: "0 0 10px" }}>⚠ {erro}</p>}
+    </>
+  );
+
+  const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", color: palette.purple, marginBottom: "10px" };
+  const btnOrange = { padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif" };
+  const btnGhost = { padding: "9px 16px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "#FFF", color: palette.purple, fontFamily: "'Poppins', sans-serif" };
+  const btnRed = { padding: "7px 12px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#F7C1C1", color: "#791F1F", fontFamily: "'Poppins', sans-serif" };
+
+  // TELA: lista de decks
+  if (tela === "decks") return (
+    <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+        <div>
+          <h2 style={{ fontSize: "15px", fontWeight: 700, color: palette.purple, margin: 0 }}>🃏 Gerenciar Flashcards</h2>
+          <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: "4px 0 0" }}>Crie decks base (para todos) ou personalizados por aluno</p>
+        </div>
+        <button onClick={() => { setEditandoDeck(null); setFormDeck({ nome: "", descricao: "", unidade: "", student_id: "" }); setMostrarFormDeck(true); }} style={btnOrange}>
+          + Novo deck
+        </button>
+      </div>
+
+      {msgFeedback}
+
+      {mostrarFormDeck && (
+        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "20px", maxWidth: "500px" }}>
+          <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, marginBottom: "12px" }}>
+            {editandoDeck ? "Editar deck" : "Novo deck"}
+          </p>
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nome do deck *</label>
+          <input value={formDeck.nome} onChange={e => setFormDeck(f => ({ ...f, nome: e.target.value }))}
+            placeholder="Ex: Unit 3A – Everyday Objects" style={inputStyle} />
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Descrição (opcional)</label>
+          <input value={formDeck.descricao} onChange={e => setFormDeck(f => ({ ...f, descricao: e.target.value }))}
+            placeholder="Ex: Objetos do dia a dia, singular e plural" style={inputStyle} />
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade (opcional)</label>
+          <input value={formDeck.unidade} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))}
+            placeholder="Ex: 3A, 4B, PE1" style={inputStyle} />
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Aluno específico (deixe em branco para deck base)</label>
+          <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))}
+            style={{ ...inputStyle }}>
+            <option value="">— Base (visível para todos os alunos) —</option>
+            {students.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
+          </select>
+
+          {msgFeedback}
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+            <button onClick={salvarDeck} disabled={salvando} style={{ ...btnOrange, opacity: salvando ? 0.7 : 1 }}>
+              {salvando ? "Salvando..." : editandoDeck ? "Salvar alterações" : "Criar deck"}
+            </button>
+            <button onClick={() => { setMostrarFormDeck(false); setEditandoDeck(null); }} style={btnGhost}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {carregando ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando decks...</p>
+      ) : decks.length === 0 ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum deck criado ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {decks.map(deck => (
+            <div key={deck.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "12px", padding: "14px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple, margin: 0 }}>{deck.nome}</p>
+                  <p style={{ fontSize: "11px", color: `${palette.purple}99`, margin: "3px 0 0" }}>{nomeDeckStudent(deck.student_id)}</p>
+                  {deck.unidade && <span style={{ display: "inline-block", marginTop: "4px", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "10px", background: palette.lavender, color: palette.purple }}>{deck.unidade}</span>}
+                  {deck.descricao && <p style={{ fontSize: "12px", color: `${palette.purple}88`, margin: "6px 0 0" }}>{deck.descricao}</p>}
+                  <p style={{ fontSize: "11px", color: `${palette.purple}77`, margin: "4px 0 0" }}>{(deck.flashcards || []).length} cards</p>
+                </div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flexShrink: 0 }}>
+                  <button onClick={() => abrirDeck(deck)} style={btnOrange}>Ver cards</button>
+                  <button onClick={() => abrirProgresso(deck)} style={btnGhost}>📊 Progresso</button>
+                  <button onClick={() => abrirEdicaoDeck(deck)} style={btnGhost}>Editar</button>
+                  <button onClick={() => excluirDeck(deck)} style={btnRed}>Excluir</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // TELA: cards de um deck
+  if (tela === "cards") return (
+    <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap" }}>
+        <button onClick={() => { setTela("decks"); setDeckAtivo(null); setMostrarFormCard(false); setEditandoCard(null); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: `${palette.purple}99`, padding: 0, fontFamily: "'Poppins', sans-serif" }}>
+          ← Voltar
+        </button>
+        <h2 style={{ fontSize: "15px", fontWeight: 700, color: palette.purple, margin: 0 }}>{deckAtivo?.nome}</h2>
+      </div>
+      <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginBottom: "16px" }}>{nomeDeckStudent(deckAtivo?.student_id)}</p>
+
+      {msgFeedback}
+
+      <button onClick={() => { setEditandoCard(null); setFormCard({ frente: "", verso: "", exemplo: "" }); setMostrarFormCard(true); }} style={{ ...btnOrange, marginBottom: "16px" }}>
+        + Adicionar card
+      </button>
+
+      {mostrarFormCard && (
+        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "20px", maxWidth: "500px" }}>
+          <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, marginBottom: "12px" }}>
+            {editandoCard ? "Editar card" : "Novo card"}
+          </p>
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frente (palavra / pergunta) *</label>
+          <input value={formCard.frente} onChange={e => setFormCard(f => ({ ...f, frente: e.target.value }))}
+            placeholder="Ex: a phone" style={inputStyle} />
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Verso (tradução / resposta) *</label>
+          <input value={formCard.verso} onChange={e => setFormCard(f => ({ ...f, verso: e.target.value }))}
+            placeholder="Ex: um telefone" style={inputStyle} />
+
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frase de exemplo (opcional)</label>
+          <input value={formCard.exemplo} onChange={e => setFormCard(f => ({ ...f, exemplo: e.target.value }))}
+            placeholder="Ex: Where's my phone?" style={inputStyle} />
+
+          {msgFeedback}
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+            <button onClick={salvarCard} disabled={salvando} style={{ ...btnOrange, opacity: salvando ? 0.7 : 1 }}>
+              {salvando ? "Salvando..." : editandoCard ? "Salvar alterações" : "Adicionar card"}
+            </button>
+            <button onClick={() => { setMostrarFormCard(false); setEditandoCard(null); }} style={btnGhost}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {carregando ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando cards...</p>
+      ) : cards.length === 0 ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum card neste deck ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {cards.map((card, i) => (
+            <div key={card.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "10px", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "180px" }}>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{card.frente}</p>
+                <p style={{ fontSize: "12px", color: `${palette.purple}88`, margin: "2px 0 0" }}>{card.verso}</p>
+                {card.exemplo && <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "3px 0 0", fontStyle: "italic" }}>"{card.exemplo}"</p>}
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                <button onClick={() => abrirEdicaoCard(card)} style={btnGhost}>Editar</button>
+                <button onClick={() => excluirCard(card)} style={btnRed}>Excluir</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // TELA: progresso dos alunos
+  if (tela === "progresso") return (
+    <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
+        <button onClick={() => setTela("decks")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: `${palette.purple}99`, padding: 0, fontFamily: "'Poppins', sans-serif" }}>
+          ← Voltar
+        </button>
+        <div>
+          <h2 style={{ fontSize: "15px", fontWeight: 700, color: palette.purple, margin: 0 }}>📊 Progresso — {deckAtivo?.nome}</h2>
+          <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: "2px 0 0" }}>{deckAtivo?.flashcards?.length || "?"} cards no deck</p>
+        </div>
+      </div>
+
+      {carregandoProgresso ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando progresso...</p>
+      ) : progressoAlunos.length === 0 ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum aluno fez sessão neste deck ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {progressoAlunos.map((aluno, i) => (
+            <div key={i} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "12px", padding: "14px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap", marginBottom: "10px" }}>
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple, margin: 0 }}>{aluno.nome}</p>
+                  <p style={{ fontSize: "11px", color: `${palette.purple}99`, margin: "3px 0 0" }}>
+                    {aluno.vistos} de {aluno.totalCards} cards vistos · {aluno.dominados} dominados
+                  </p>
+                  {aluno.ultimaAtividade && (
+                    <p style={{ fontSize: "11px", color: `${palette.purple}77`, margin: "2px 0 0" }}>
+                      Próxima revisão agendada: {new Date(aluno.ultimaAtividade + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </p>
+                  )}
+                </div>
+                <span style={{ fontSize: "18px", fontWeight: 700, color: aluno.pct >= 70 ? palette.green : aluno.pct >= 40 ? palette.orange : "#E24B4A" }}>
+                  {aluno.pct}%
+                </span>
+              </div>
+              <div style={{ height: "8px", borderRadius: "4px", background: palette.cream, overflow: "hidden" }}>
+                <div style={{ width: `${aluno.pct}%`, height: "100%", background: aluno.pct >= 70 ? palette.lightGreen : aluno.pct >= 40 ? palette.orange : "#F7C1C1", borderRadius: "4px", transition: "width 0.3s" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return null;
+}
+
+// ---------- FLASHCARD TAB ----------
+function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
+  const { useState, useEffect, useCallback } = React;
+
+  // Estados principais
+  const [tela, setTela] = useState("inicio"); // inicio | sessao | resultado
+  const [decks, setDecks] = useState([]);
+  const [deckSelecionado, setDeckSelecionado] = useState(null);
+  const [cardsHoje, setCardsHoje] = useState([]);
+  const [indiceAtual, setIndiceAtual] = useState(0);
+  const [virado, setVirado] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [resultados, setResultados] = useState([]); // {card, avaliacao}
+  const [erro, setErro] = useState("");
+
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  // SM-2: calcula próximo intervalo
+  const calcularSM2 = (avaliacao, intervaloAtual, facilidadeAtual, repeticoesAtuais) => {
+    let q; // qualidade: 0=difícil, 3=ok, 5=fácil
+    if (avaliacao === "dificil") q = 0;
+    else if (avaliacao === "ok") q = 3;
+    else q = 5;
+
+    let novoIntervalo, novaFacilidade, novasRepeticoes;
+
+    if (q < 3) {
+      // Errou — reinicia
+      novoIntervalo = 1;
+      novasRepeticoes = 0;
+      novaFacilidade = Math.max(1.3, facilidadeAtual - 0.2);
+    } else {
+      novasRepeticoes = repeticoesAtuais + 1;
+      novaFacilidade = Math.max(1.3, facilidadeAtual + 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+      if (novasRepeticoes === 1) novoIntervalo = 1;
+      else if (novasRepeticoes === 2) novoIntervalo = 6;
+      else novoIntervalo = Math.round(intervaloAtual * novaFacilidade);
+    }
+
+    const proxData = new Date();
+    proxData.setDate(proxData.getDate() + novoIntervalo);
+    return {
+      intervalo_dias: novoIntervalo,
+      facilidade: novaFacilidade,
+      repeticoes: novasRepeticoes,
+      proxima_revisao: proxData.toISOString().slice(0, 10),
+    };
+  };
+
+  // Carrega decks disponíveis pro aluno
+  const carregarDecks = useCallback(async () => {
+    setCarregando(true);
+    setErro("");
+    try {
+      const { data, error } = await supabase
+        .from("flashcard_decks")
+        .select("*, flashcards(id)")
+        .or(`student_id.is.null,student_id.eq.${student.id}`)
+        .order("criado_em", { ascending: true });
+      if (error) throw error;
+      // Só mostra decks que têm cards
+      setDecks((data || []).filter(d => d.flashcards && d.flashcards.length > 0));
+    } catch (e) {
+      setErro("Erro ao carregar decks: " + e.message);
+    }
+    setCarregando(false);
+  }, [student.id]);
+
+  useEffect(() => { carregarDecks(); }, [carregarDecks]);
+
+  // Carrega os cards de hoje para um deck específico
+  const iniciarSessao = async (deck) => {
+    setCarregando(true);
+    setErro("");
+    try {
+      // Busca todos os cards do deck
+      const { data: cards, error: erroCards } = await supabase
+        .from("flashcards")
+        .select("*")
+        .eq("deck_id", deck.id)
+        .order("ordem", { ascending: true });
+      if (erroCards) throw erroCards;
+
+      // Busca progresso do aluno pra esses cards
+      const cardIds = cards.map(c => c.id);
+      const { data: progressos } = await supabase
+        .from("flashcard_progress")
+        .select("*")
+        .eq("student_id", student.id)
+        .in("flashcard_id", cardIds);
+
+      const mapaProgresso = {};
+      (progressos || []).forEach(p => { mapaProgresso[p.flashcard_id] = p; });
+
+      // Cards de hoje: novos (sem progresso) OU com proxima_revisao <= hoje
+      const cardsParaHoje = cards.filter(c => {
+        const prog = mapaProgresso[c.id];
+        if (!prog) return true; // nunca visto
+        return prog.proxima_revisao <= hoje;
+      });
+
+      if (cardsParaHoje.length === 0) {
+        setCardsHoje([]);
+        setDeckSelecionado(deck);
+        setTela("semCards");
+        setCarregando(false);
+        return;
+      }
+
+      // Embaralha
+      const embaralhados = [...cardsParaHoje].sort(() => Math.random() - 0.5);
+      setCardsHoje(embaralhados.map(c => ({ ...c, progresso: mapaProgresso[c.id] || null })));
+      setDeckSelecionado(deck);
+      setIndiceAtual(0);
+      setVirado(false);
+      setResultados([]);
+      setTela("sessao");
+    } catch (e) {
+      setErro("Erro ao iniciar sessão: " + e.message);
+    }
+    setCarregando(false);
+  };
+
+  // Avalia um card e salva no Supabase
+  const avaliarCard = async (avaliacao) => {
+    setSalvando(true);
+    const card = cardsHoje[indiceAtual];
+    const progAtual = card.progresso;
+
+    const sm2 = calcularSM2(
+      avaliacao,
+      progAtual ? progAtual.intervalo_dias : 1,
+      progAtual ? progAtual.facilidade : 2.5,
+      progAtual ? progAtual.repeticoes : 0
+    );
+
+    try {
+      if (progAtual) {
+        await supabase.from("flashcard_progress").update({
+          ...sm2,
+          ultima_avaliacao: avaliacao,
+          atualizado_em: new Date().toISOString(),
+        }).eq("id", progAtual.id);
+      } else {
+        await supabase.from("flashcard_progress").insert({
+          student_id: student.id,
+          flashcard_id: card.id,
+          ...sm2,
+          ultima_avaliacao: avaliacao,
+        });
+      }
+    } catch (e) {
+      console.warn("Erro ao salvar progresso:", e.message);
+    }
+
+    setResultados(prev => [...prev, { card, avaliacao }]);
+
+    if (indiceAtual + 1 < cardsHoje.length) {
+      setIndiceAtual(i => i + 1);
+      setVirado(false);
+    } else {
+      setTela("resultado");
+    }
+    setSalvando(false);
+  };
+
+  const reiniciarDeck = () => iniciarSessao(deckSelecionado);
+  const voltarInicio = () => { setTela("inicio"); setDeckSelecionado(null); setCardsHoje([]); setResultados([]); };
+
+  const corAvaliacao = (av) => av === "facil" ? palette.lightGreen : av === "ok" ? palette.lavender : "#F7C1C1";
+  const textoAvaliacao = (av) => av === "facil" ? "Fácil ✓" : av === "ok" ? "Ok" : "Difícil";
+
+  if (carregando) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
+      <p style={{ color: textSecondary, fontSize: "14px" }}>Carregando flashcards...</p>
+    </div>
+  );
+
+  if (erro) return (
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      <p style={{ color: "#E24B4A", fontSize: "13px" }}>{erro}</p>
+      <button onClick={carregarDecks} style={{ marginTop: "12px", padding: "8px 16px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600 }}>Tentar de novo</button>
+    </div>
+  );
+
+  // TELA: lista de decks
+  if (tela === "inicio") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
+        <p style={{ fontSize: "13px", color: textSecondary }}>Revise o vocabulário das suas aulas. Quanto mais você praticar, mais o sistema adapta as revisões pra você!</p>
+      </div>
+
+      {decks.length === 0 ? (
+        <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+          <p style={{ fontSize: "20px", marginBottom: "8px" }}>📭</p>
+          <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck disponível ainda. A Teacher Mari vai adicionar em breve!</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {decks.map(deck => (
+            <button key={deck.id} onClick={() => iniciarSessao(deck)}
+              style={{ width: "100%", padding: "16px 18px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender}55`, cursor: "pointer", background: dark ? "#3A2B7A" : "#FFF", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <div>
+                <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
+                {deck.unidade && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>{deck.unidade}</p>}
+                {deck.descricao && <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>{deck.descricao}</p>}
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>{deck.flashcards.length} cards</p>
+                <span style={{ fontSize: "18px" }}>→</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // TELA: sem cards pra hoje
+  if (tela === "semCards") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center", textAlign: "center", paddingTop: "20px" }}>
+      <span style={{ fontSize: "48px" }}>🎉</span>
+      <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple }}>Tudo em dia!</h2>
+      <p style={{ fontSize: "13px", color: textSecondary, maxWidth: "300px" }}>
+        Você não tem cards pra revisar hoje em <strong>{deckSelecionado?.nome}</strong>. O sistema vai te trazer de volta quando for a hora certa.
+      </p>
+      <button onClick={voltarInicio} style={{ padding: "10px 20px", borderRadius: "10px", border: "none", cursor: "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600 }}>
+        ← Voltar aos decks
+      </button>
+    </div>
+  );
+
+  // TELA: sessão de estudo
+  if (tela === "sessao") {
+    const card = cardsHoje[indiceAtual];
+    const total = cardsHoje.length;
+    const pct = Math.round((indiceAtual / total) * 100);
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={voltarInicio} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Sair</button>
+          <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{indiceAtual + 1} / {total}</p>
+          <p style={{ fontSize: "12px", color: textSecondary }}>{deckSelecionado?.nome}</p>
+        </div>
+
+        {/* Barra de progresso */}
+        <div style={{ height: "6px", borderRadius: "3px", background: dark ? "#3A2B7A" : palette.cream, overflow: "hidden" }}>
+          <div style={{ width: `${pct}%`, height: "100%", background: palette.orange, borderRadius: "3px", transition: "width 0.3s ease" }} />
+        </div>
+
+        {/* Card */}
+        <div onClick={() => !virado && setVirado(true)}
+          style={{ minHeight: "200px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "16px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "12px", transition: "border-color 0.2s" }}>
+          <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>
+            {virado ? "Resposta" : "Palavra / Pergunta"}
+          </p>
+          <p style={{ fontSize: "22px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.3 }}>
+            {virado ? card.verso : card.frente}
+          </p>
+          {virado && card.exemplo && (
+            <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, maxWidth: "320px", lineHeight: 1.5 }}>
+              "{card.exemplo}"
+            </p>
+          )}
+          {!virado && (
+            <p style={{ fontSize: "12px", color: textSecondary, margin: "8px 0 0" }}>Toque pra revelar →</p>
+          )}
+        </div>
+
+        {/* Botões de avaliação */}
+        {virado && (
+          <div style={{ display: "flex", gap: "10px" }}>
+            {[
+              { av: "dificil", label: "😓 Difícil", bg: "#F7C1C1", cor: "#791F1F" },
+              { av: "ok", label: "🙂 Ok", bg: palette.lavender + "44", cor: palette.purple },
+              { av: "facil", label: "😄 Fácil", bg: palette.lightGreen + "66", cor: palette.green },
+            ].map(({ av, label, bg, cor }) => (
+              <button key={av} onClick={() => !salvando && avaliarCard(av)} disabled={salvando}
+                style={{ flex: 1, padding: "12px 8px", borderRadius: "12px", border: "none", cursor: salvando ? "default" : "pointer", fontWeight: 600, fontSize: "13px", background: bg, color: cor, opacity: salvando ? 0.7 : 1, fontFamily: "'Poppins', sans-serif" }}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <p style={{ fontSize: "11px", color: textSecondary, textAlign: "center", margin: 0 }}>
+          {virado ? "Como foi lembrar essa palavra?" : "Pense na resposta antes de revelar."}
+        </p>
+      </div>
+    );
+  }
+
+  // TELA: resultado final
+  if (tela === "resultado") {
+    const faceis = resultados.filter(r => r.avaliacao === "facil").length;
+    const oks = resultados.filter(r => r.avaliacao === "ok").length;
+    const dificeis = resultados.filter(r => r.avaliacao === "dificil").length;
+    const total = resultados.length;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ textAlign: "center", padding: "8px 0" }}>
+          <span style={{ fontSize: "44px" }}>{faceis === total ? "🏆" : dificeis > total / 2 ? "💪" : "⭐"}</span>
+          <h2 style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginTop: "8px" }}>Sessão completa!</h2>
+          <p style={{ fontSize: "13px", color: textSecondary }}>{total} cards revisados</p>
+        </div>
+
+        {/* Resumo */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          {[
+            { label: "Fácil", count: faceis, bg: palette.lightGreen + "55", cor: palette.green },
+            { label: "Ok", count: oks, bg: palette.lavender + "44", cor: palette.purple },
+            { label: "Difícil", count: dificeis, bg: "#F7C1C1", cor: "#791F1F" },
+          ].map(({ label, count, bg, cor }) => (
+            <div key={label} style={{ flex: 1, background: bg, borderRadius: "10px", padding: "12px 8px", textAlign: "center" }}>
+              <p style={{ fontSize: "22px", fontWeight: 700, color: cor, margin: 0 }}>{count}</p>
+              <p style={{ fontSize: "11px", color: cor, margin: 0, fontWeight: 600 }}>{label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Lista de difíceis */}
+        {dificeis > 0 && (
+          <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "14px" }}>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>
+              😓 Palavras para reforçar:
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {resultados.filter(r => r.avaliacao === "dificil").map((r, i) => (
+                <p key={i} style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0 }}>
+                  • <strong>{r.card.frente}</strong> → {r.card.verso}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p style={{ fontSize: "12px", color: textSecondary, textAlign: "center" }}>
+          O sistema já agendou sua próxima revisão. Continue praticando! 🚀
+        </p>
+
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button onClick={voltarInicio} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", cursor: "pointer", background: dark ? "#5A4AA0" : palette.cream, color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+            ← Outros decks
+          </button>
+          {dificeis > 0 && (
+            <button onClick={reiniciarDeck} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", cursor: "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+              Revisar de novo
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // ---------- APP (controla navegação entre login e dashboard) ----------
