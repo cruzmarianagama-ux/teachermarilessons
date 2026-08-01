@@ -5290,14 +5290,14 @@ Every example sentence must be grammatically and pragmatically perfect — use n
                       {ex.tipo === "multiple_choice" && (
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {(ex.opcoes || []).map((op, j) => {
-                            const letra = op[0]; const s = sel === letra;
-                            const c = gabarito && letra === ex.resposta; const e = gabarito && s && letra !== ex.resposta;
+                            const letra = op[0]; const isSel = sel === letra;
+                            const isCorreta = gabarito && letra === ex.resposta; const isErrada = gabarito && isSel && letra !== ex.resposta;
                             return (
                               <button key={j} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: letra }))}
-                                style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${c ? palette.lightGreen : e ? "#F7C1C1" : s ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: c ? palette.lightGreen + "44" : e ? "#F7C1C144" : s ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: s ? 600 : 400, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${isCorreta ? palette.lightGreen : isErrada ? "#F7C1C1" : isSel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: isCorreta ? palette.lightGreen + "44" : isErrada ? "#F7C1C144" : isSel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: isSel ? 600 : 400, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <span>{op}</span>
-                                {c && <span style={{ color: palette.green }}>✓</span>}
-                                {e && <span style={{ color: "#791F1F" }}>✗</span>}
+                                {isCorreta && <span style={{ color: palette.green }}>✓</span>}
+                                {isErrada && <span style={{ color: "#791F1F" }}>✗</span>}
                               </button>
                             );
                           })}
@@ -5314,10 +5314,10 @@ Every example sentence must be grammatically and pragmatically perfect — use n
                       {ex.tipo === "true_false" && (
                         <div style={{ display: "flex", gap: "10px" }}>
                           {["true", "false"].map(op => {
-                            const s = sel === op; const c = gabarito && op === ex.resposta; const e = gabarito && s && op !== ex.resposta;
+                            const isSel = sel === op; const isCorreta = gabarito && op === ex.resposta; const isErrada = gabarito && isSel && op !== ex.resposta;
                             return (
                               <button key={op} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: op }))}
-                                style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${c ? palette.lightGreen : e ? "#F7C1C1" : s ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: c ? palette.lightGreen + "44" : e ? "#F7C1C144" : s ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                                style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${isCorreta ? palette.lightGreen : isErrada ? "#F7C1C1" : isSel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: isCorreta ? palette.lightGreen + "44" : isErrada ? "#F7C1C144" : isSel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
                                 {op === "true" ? "✓ True" : "✗ False"}
                               </button>
                             );
