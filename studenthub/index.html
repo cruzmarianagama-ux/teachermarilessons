@@ -4729,6 +4729,43 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   );
 }
 
+// ---------- SELETOR DE ESCOPO (componente global pra evitar bug de foco) ----------
+function SeletorEscopo({ config, setConfig, label, unidadeAluno, unidadesEstudadas, dark, palette, inputStyle, cardIA, nome }) {
+  return (
+    <div style={{ ...cardIA, marginBottom: "16px" }}>
+      <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{label || "Sobre qual conteúdo?"}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {[
+          { v: "unidade_atual", l: `📍 Minha unidade atual (Unit ${unidadeAluno})` },
+          { v: "unidade_especifica", l: "📚 Escolher uma unidade" },
+          { v: "mesclar", l: `🔀 Mesclar unidades já estudadas (${unidadesEstudadas.length} unidades)` },
+          { v: "prompt_livre", l: "✏️ Escrever meu próprio tema" },
+        ].map(op => (
+          <label key={op.v} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
+            <input type="radio" name={nome || "escopo"} checked={config.modo === op.v} onChange={() => setConfig(c => ({ ...c, modo: op.v }))} style={{ accentColor: palette.orange }} />
+            {op.l}
+          </label>
+        ))}
+      </div>
+      {config.modo === "unidade_especifica" && (
+        <select value={config.unidade} onChange={e => setConfig(c => ({ ...c, unidade: e.target.value }))}
+          style={{ ...inputStyle, marginTop: "10px" }}>
+          <option value="">— Escolha uma unidade —</option>
+          {unidadesEstudadas.map(u => <option key={u} value={u}>Unit {u}</option>)}
+        </select>
+      )}
+      {config.modo === "prompt_livre" && (
+        <input
+          value={config.prompt_livre}
+          onChange={e => setConfig(c => ({ ...c, prompt_livre: e.target.value }))}
+          placeholder="Ex: verb to be no present, numbers, daily routines..."
+          style={{ ...inputStyle, marginTop: "10px" }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ---------- PRATICAR COM IA ----------
 function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   const { useState, useRef, useEffect } = React;
@@ -4782,6 +4819,7 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   const chamarIA = async (systemPrompt, messages, maxTokens = 800) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
+    if (!token) throw new Error("Sessão expirada. Faça login novamente.");
     const resp = await fetch(ANTHROPIC_PROXY, {
       method: "POST",
       headers: {
@@ -4796,10 +4834,13 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
       }),
     });
     if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error?.message || "Erro na API");
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Erro ${resp.status} na API`);
     }
     const data = await resp.json();
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error("Resposta inesperada da IA. Tente novamente.");
+    }
     return data.content[0].text;
   };
 
@@ -4939,12 +4980,15 @@ Rules:
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Sessão expirada.");
       const resp = await fetch(ANTHROPIC_PROXY, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 300, system, messages: msgs }),
       });
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `Erro ${resp.status}`); }
       const data = await resp.json();
+      if (!data.content?.[0]?.text) throw new Error("Resposta inesperada da IA.");
       const respostaIA = data.content[0].text;
       setMensagensChat([...novoHistorico, { role: "assistant", content: respostaIA }]);
     } catch (e) { alert("Erro no chat: " + e.message); }
@@ -5007,37 +5051,6 @@ Keep sentences simple for ${nivelAluno} level.`;
   );
 
   // Seletor de escopo reutilizável
-  const SeletorEscopo = ({ config, setConfig, label = "Sobre qual conteúdo?" }) => (
-    <div style={{ ...cardIA, marginBottom: "16px" }}>
-      <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{label}</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-        {[
-          { v: "unidade_atual", l: `📍 Minha unidade atual (Unit ${unidadeAluno})` },
-          { v: "unidade_especifica", l: "📚 Escolher uma unidade" },
-          { v: "mesclar", l: `🔀 Mesclar unidades já estudadas (${unidadesEstudadas.length} unidades)` },
-          { v: "prompt_livre", l: "✏️ Escrever meu próprio tema" },
-        ].map(op => (
-          <label key={op.v} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
-            <input type="radio" name="escopo" checked={config.modo === op.v} onChange={() => setConfig(c => ({ ...c, modo: op.v }))} style={{ accentColor: palette.orange }} />
-            {op.l}
-          </label>
-        ))}
-      </div>
-      {config.modo === "unidade_especifica" && (
-        <select value={config.unidade} onChange={e => setConfig(c => ({ ...c, unidade: e.target.value }))}
-          style={{ ...inputStyle, marginTop: "10px" }}>
-          <option value="">— Escolha uma unidade —</option>
-          {unidadesEstudadas.map(u => <option key={u} value={u}>Unit {u}</option>)}
-        </select>
-      )}
-      {config.modo === "prompt_livre" && (
-        <input value={config.prompt_livre} onChange={e => setConfig(c => ({ ...c, prompt_livre: e.target.value }))}
-          placeholder="Ex: verb to be no present, numbers, daily routines..."
-          style={{ ...inputStyle, marginTop: "10px" }} />
-      )}
-    </div>
-  );
-
   // ── MENU PRINCIPAL ──
   if (secao === "menu") return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -5070,7 +5083,7 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Exercícios", "📝")}
       {!exerciciosGerados && (
         <>
-          <SeletorEscopo config={exConfig} setConfig={setExConfig} label="Sobre qual conteúdo?" />
+          <SeletorEscopo config={exConfig} setConfig={setExConfig} label="Sobre qual conteúdo?" nome="escopo_ex" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
           <button onClick={gerarExercicios} disabled={carregandoIA || (exConfig.modo === "unidade_especifica" && !exConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Gerando..." : "🎲 Gerar exercícios"}
           </button>
@@ -5137,7 +5150,7 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Correção de escrita", "✍️")}
       {!escritaTarefa && (
         <>
-          <SeletorEscopo config={escritaConfig} setConfig={setEscritaConfig} label="Sobre qual tema você quer escrever?" />
+          <SeletorEscopo config={escritaConfig} setConfig={setEscritaConfig} label="Sobre qual tema você quer escrever?" nome="escopo_escrita" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
           <button onClick={gerarTarefaEscrita} disabled={carregandoIA || (escritaConfig.modo === "unidade_especifica" && !escritaConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Gerando tarefa..." : "📋 Gerar minha tarefa de escrita"}
           </button>
@@ -5223,7 +5236,7 @@ Keep sentences simple for ${nivelAluno} level.`;
       {headerSecao("Conversar em inglês", "💬")}
       {!chatIniciado && (
         <>
-          <SeletorEscopo config={chatConfig} setConfig={setChatConfig} label="Sobre o que você quer conversar?" />
+          <SeletorEscopo config={chatConfig} setConfig={setChatConfig} label="Sobre o que você quer conversar?" nome="escopo_chat" unidadeAluno={unidadeAluno} unidadesEstudadas={unidadesEstudadas} dark={dark} palette={palette} inputStyle={inputStyle} cardIA={cardIA} />
           <button onClick={iniciarChat} disabled={carregandoIA || (chatConfig.modo === "unidade_especifica" && !chatConfig.unidade)} style={{ ...btnOrange, opacity: carregandoIA ? 0.7 : 1 }}>
             {carregandoIA ? "Iniciando..." : "💬 Iniciar conversa"}
           </button>
@@ -5334,7 +5347,7 @@ Keep sentences simple for ${nivelAluno} level.`;
 function FlashcardAdminPanel({ students }) {
   const { useState, useEffect, useCallback } = React;
 
-  // Telas: "decks" | "cards" | "progresso"
+  // Telas: "decks" | "cards" | "progresso" | "assign"
   const [tela, setTela] = useState("decks");
   const [decks, setDecks] = useState([]);
   const [deckAtivo, setDeckAtivo] = useState(null);
@@ -5344,8 +5357,16 @@ function FlashcardAdminPanel({ students }) {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
+  // Busca
+  const [busca, setBusca] = useState("");
+
+  // Assign to student
+  const [assignDeck, setAssignDeck] = useState(null);
+  const [assignStudentId, setAssignStudentId] = useState("");
+  const [assignando, setAssignando] = useState(false);
+
   // Form novo deck
-  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", unidade: "", student_id: "" });
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "manual", listaPalavras: "" });
   const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
   const [editandoDeck, setEditandoDeck] = useState(null);
 
@@ -5437,19 +5458,38 @@ function FlashcardAdminPanel({ students }) {
     const payload = {
       nome: formDeck.nome.trim(),
       descricao: formDeck.descricao.trim() || null,
-      unidade: formDeck.unidade.trim() || null,
+      unidade: formDeck.unidade || null,
       student_id: formDeck.student_id || null,
     };
-    let error;
+    let error, novoDeckId;
     if (editandoDeck) {
       ({ error } = await supabase.from("flashcard_decks").update(payload).eq("id", editandoDeck.id));
     } else {
-      ({ error } = await supabase.from("flashcard_decks").insert(payload));
+      const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks").insert(payload).select().single();
+      error = errDeck;
+      novoDeckId = novoDeck?.id;
     }
+    if (error) { setSalvando(false); flash("Erro ao salvar: " + error.message, "erro"); return; }
+
+    // Se modo lista, processa e insere os cards
+    if (!editandoDeck && formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim() && novoDeckId) {
+      const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
+      const cards = linhas.map((linha, i) => {
+        const [parteEsquerda, exemplo] = linha.split("|").map(s => s.trim());
+        const [frente, verso] = parteEsquerda.split("=").map(s => s.trim());
+        return { deck_id: novoDeckId, frente, verso: verso || "", exemplo: exemplo || null, ordem: i + 1 };
+      }).filter(c => c.frente && c.verso);
+      if (cards.length > 0) {
+        const { error: errCards } = await supabase.from("flashcards").insert(cards);
+        if (errCards) { setSalvando(false); flash(`Deck criado mas erro nos cards: ${errCards.message}`, "erro"); carregarDecks(); return; }
+      }
+      flash(`Deck criado com ${cards.length} cards!`);
+    } else {
+      flash(editandoDeck ? "Deck atualizado!" : "Deck criado!");
+    }
+
     setSalvando(false);
-    if (error) { flash("Erro ao salvar: " + error.message, "erro"); return; }
-    flash(editandoDeck ? "Deck atualizado!" : "Deck criado!");
-    setFormDeck({ nome: "", descricao: "", unidade: "", student_id: "" });
+    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "manual", listaPalavras: "" });
     setMostrarFormDeck(false);
     setEditandoDeck(null);
     carregarDecks();
@@ -5457,7 +5497,7 @@ function FlashcardAdminPanel({ students }) {
 
   const abrirEdicaoDeck = (deck) => {
     setEditandoDeck(deck);
-    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", unidade: deck.unidade || "", student_id: deck.student_id || "" });
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "manual", listaPalavras: "" });
     setMostrarFormDeck(true);
   };
 
@@ -5509,6 +5549,47 @@ function FlashcardAdminPanel({ students }) {
     abrirDeck(deckAtivo);
   };
 
+  // Assign deck base a aluno específico (cria cópia personalizada)
+  const assignToStudent = async () => {
+    if (!assignDeck || !assignStudentId) return;
+    setAssignando(true);
+    // Verifica se já existe deck personalizado desse base pra esse aluno
+    const { data: existente } = await supabase.from("flashcard_decks")
+      .select("id").eq("student_id", assignStudentId).eq("nome", assignDeck.nome + " (personalizado)").single();
+    if (existente) {
+      flash("Esse aluno já tem uma cópia personalizada desse deck.", "erro");
+      setAssignando(false);
+      return;
+    }
+    // Busca os cards do deck base
+    const { data: cardsBase } = await supabase.from("flashcards").select("*").eq("deck_id", assignDeck.id);
+    // Cria o novo deck personalizado
+    const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks").insert({
+      nome: assignDeck.nome + " (personalizado)",
+      descricao: assignDeck.descricao,
+      unidade: assignDeck.unidade,
+      student_id: assignStudentId,
+    }).select().single();
+    if (errDeck) { flash("Erro ao criar deck: " + errDeck.message, "erro"); setAssignando(false); return; }
+    // Copia os cards
+    if (cardsBase && cardsBase.length > 0) {
+      const novosCards = cardsBase.map(c => ({ frente: c.frente, verso: c.verso, exemplo: c.exemplo, deck_id: novoDeck.id, ordem: c.ordem }));
+      await supabase.from("flashcards").insert(novosCards);
+    }
+    flash(`Deck atribuído a ${students.find(s => s.id === assignStudentId)?.nome || "aluno"} com ${cardsBase?.length || 0} cards!`);
+    setAssignDeck(null);
+    setAssignStudentId("");
+    setAssignando(false);
+    carregarDecks();
+  };
+
+  const decksFiltrados = decks.filter(d =>
+    !busca.trim() ||
+    d.nome.toLowerCase().includes(busca.toLowerCase()) ||
+    (d.unidade || "").toLowerCase().includes(busca.toLowerCase()) ||
+    (d.descricao || "").toLowerCase().includes(busca.toLowerCase())
+  );
+
   const nomeDeckStudent = (student_id) => {
     if (!student_id) return "Base (todos os alunos)";
     const aluno = students.find(s => s.id === student_id);
@@ -5545,10 +5626,25 @@ function FlashcardAdminPanel({ students }) {
       {msgFeedback}
 
       {mostrarFormDeck && (
-        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "20px", maxWidth: "500px" }}>
+        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "20px", maxWidth: "540px" }}>
           <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, marginBottom: "12px" }}>
             {editandoDeck ? "Editar deck" : "Novo deck"}
           </p>
+
+          {/* Modo de criação — só no novo deck */}
+          {!editandoDeck && (
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Como criar?</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {[{ v: "manual", l: "✍️ Manual" }, { v: "lista", l: "📋 Por lista de palavras" }].map(op => (
+                  <button key={op.v} onClick={() => setFormDeck(f => ({ ...f, modoCreacao: op.v }))}
+                    style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif", background: (formDeck.modoCreacao || "manual") === op.v ? palette.purple : "#FFF", color: (formDeck.modoCreacao || "manual") === op.v ? "#FFF" : palette.purple }}>
+                    {op.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nome do deck *</label>
           <input value={formDeck.nome} onChange={e => setFormDeck(f => ({ ...f, nome: e.target.value }))}
@@ -5558,23 +5654,87 @@ function FlashcardAdminPanel({ students }) {
           <input value={formDeck.descricao} onChange={e => setFormDeck(f => ({ ...f, descricao: e.target.value }))}
             placeholder="Ex: Objetos do dia a dia, singular e plural" style={inputStyle} />
 
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade (opcional)</label>
-          <input value={formDeck.unidade} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))}
-            placeholder="Ex: 3A, 4B, PE1" style={inputStyle} />
+          {/* Nível */}
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível</label>
+          <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))}
+            style={{ ...inputStyle }}>
+            <option value="">— Sem nível específico —</option>
+            {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+
+          {/* Unidade — aparece só quando nível selecionado */}
+          {formDeck.nivel && (
+            <>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade</label>
+              <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))}
+                style={{ ...inputStyle }}>
+                <option value="">— Sem unidade específica —</option>
+                {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
+              </select>
+            </>
+          )}
 
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Aluno específico (deixe em branco para deck base)</label>
           <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))}
             style={{ ...inputStyle }}>
             <option value="">— Base (visível para todos os alunos) —</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
+            {students.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.nivel || "—"})</option>)}
           </select>
 
+          {/* Lista de palavras */}
+          {(formDeck.modoCreacao || "manual") === "lista" && !editandoDeck && (
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>
+                Lista de palavras *
+              </label>
+              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "6px" }}>
+                Uma por linha no formato: <strong>inglês = português</strong> (ex: a phone = um telefone). A frase de exemplo é opcional: <strong>inglês = português | frase de exemplo</strong>
+              </p>
+              <textarea value={formDeck.listaPalavras || ""} onChange={e => setFormDeck(f => ({ ...f, listaPalavras: e.target.value }))}
+                placeholder={"a phone = um telefone\na key = uma chave | My key is in my bag.\na book = um livro"}
+                rows={8} style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace", fontSize: "12px" }} />
+            </div>
+          )}
+
           {msgFeedback}
-          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
             <button onClick={salvarDeck} disabled={salvando} style={{ ...btnOrange, opacity: salvando ? 0.7 : 1 }}>
-              {salvando ? "Salvando..." : editandoDeck ? "Salvar alterações" : "Criar deck"}
+              {salvando ? "Salvando..." : editandoDeck ? "Salvar alterações" : (formDeck.modoCreacao || "manual") === "lista" ? "Criar deck com lista" : "Criar deck"}
             </button>
             <button onClick={() => { setMostrarFormDeck(false); setEditandoDeck(null); }} style={btnGhost}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Busca */}
+      {!mostrarFormDeck && decks.length > 0 && (
+        <div style={{ position: "relative", marginBottom: "16px", maxWidth: "400px" }}>
+          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "14px", pointerEvents: "none" }}>🔍</span>
+          <input value={busca} onChange={e => setBusca(e.target.value)}
+            placeholder="Buscar deck por nome, unidade ou descrição..."
+            style={{ ...inputStyle, paddingLeft: "34px", marginBottom: 0 }} />
+        </div>
+      )}
+
+      {/* Modal Assign to Student */}
+      {assignDeck && (
+        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "16px", maxWidth: "420px", border: `2px solid ${palette.orange}` }}>
+          <p style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>
+            👤 Atribuir deck a aluno
+          </p>
+          <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginBottom: "12px" }}>
+            Uma cópia editável de <strong>{assignDeck.nome}</strong> será criada para o aluno escolhido.
+          </p>
+          <select value={assignStudentId} onChange={e => setAssignStudentId(e.target.value)} style={{ ...inputStyle }}>
+            <option value="">— Escolha um aluno —</option>
+            {students.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.nivel || "—"})</option>)}
+          </select>
+          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+            <button onClick={assignToStudent} disabled={assignando || !assignStudentId}
+              style={{ ...btnOrange, opacity: (assignando || !assignStudentId) ? 0.7 : 1 }}>
+              {assignando ? "Atribuindo..." : "✓ Atribuir"}
+            </button>
+            <button onClick={() => { setAssignDeck(null); setAssignStudentId(""); }} style={btnGhost}>Cancelar</button>
           </div>
         </div>
       )}
@@ -5583,9 +5743,11 @@ function FlashcardAdminPanel({ students }) {
         <p style={{ fontSize: "13px", color: `${palette.purple}99` }}>Carregando decks...</p>
       ) : decks.length === 0 ? (
         <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum deck criado ainda.</p>
+      ) : decksFiltrados.length === 0 ? (
+        <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic" }}>Nenhum deck encontrado para "{busca}".</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {decks.map(deck => (
+          {decksFiltrados.map(deck => (
             <div key={deck.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "12px", padding: "14px 16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
                 <div>
@@ -5597,6 +5759,7 @@ function FlashcardAdminPanel({ students }) {
                 </div>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flexShrink: 0 }}>
                   <button onClick={() => abrirDeck(deck)} style={btnOrange}>Ver cards</button>
+                  <button onClick={() => { setAssignDeck(deck); setAssignStudentId(""); setMostrarFormDeck(false); }} style={{ ...btnGhost, background: palette.lavender + "44", borderColor: palette.lavender }}>👤 Assign</button>
                   <button onClick={() => abrirProgresso(deck)} style={btnGhost}>📊 Progresso</button>
                   <button onClick={() => abrirEdicaoDeck(deck)} style={btnGhost}>Editar</button>
                   <button onClick={() => excluirDeck(deck)} style={btnRed}>Excluir</button>
@@ -5765,7 +5928,9 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
       novaFacilidade = Math.max(1.3, facilidadeAtual + 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
       if (novasRepeticoes === 1) novoIntervalo = 1;
       else if (novasRepeticoes === 2) novoIntervalo = 6;
-      else novoIntervalo = Math.round(intervaloAtual * novaFacilidade);
+      else novoIntervalo = Math.max(1, Math.round(intervaloAtual * novaFacilidade));
+      // Proteção contra NaN
+      if (isNaN(novoIntervalo) || novoIntervalo < 1) novoIntervalo = 1;
     }
 
     const proxData = new Date();
