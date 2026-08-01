@@ -4790,6 +4790,7 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
   const [chatIniciado, setChatIniciado] = useState(false);
   const [mensagensChat, setMensagensChat] = useState([]);
   const [inputChat, setInputChat] = useState("");
+  const [feedbackChat, setFeedbackChat] = useState(null);
   const chatFimRef = useRef(null);
 
   // Dúvidas
@@ -4846,9 +4847,14 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
 
   // ── GERADOR DE EXERCÍCIOS ──
   const contextoExercicios = () => {
-    if (exConfig.modo === "unidade_atual") return `unit ${unidadeAluno} (${nivelAluno} level)`;
-    if (exConfig.modo === "unidade_especifica") return `unit ${exConfig.unidade} (${nivelAluno} level)`;
-    if (exConfig.modo === "mesclar") return `units ${unidadesEstudadas.join(", ")} mixed vocabulary (${nivelAluno} level)`;
+    const nivel = nivelAluno;
+    const getSyllabusInfo = (u) => {
+      const info = (SYLLABUS[nivel] || []).find(x => x.id === u);
+      return info ? `${info.t}: ${info.items.join("; ")}` : u;
+    };
+    if (exConfig.modo === "unidade_atual") return `Unit ${unidadeAluno} — ${getSyllabusInfo(unidadeAluno)}`;
+    if (exConfig.modo === "unidade_especifica") return `Unit ${exConfig.unidade} — ${getSyllabusInfo(exConfig.unidade)}`;
+    if (exConfig.modo === "mesclar") return `Mixed units (${unidadesEstudadas.join(", ")}) — focus on vocabulary and grammar already studied`;
     return exConfig.prompt_livre;
   };
 
@@ -4859,23 +4865,30 @@ function PraticarComIA({ student, dark, palette, textSecondary, cardBg }) {
     setGabarito(false);
     try {
       const ctx = contextoExercicios();
-      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult student.
+      const system = `You are an English teacher creating exercises for a ${nivelAluno} level adult Brazilian student.
 Context: ${ctx}
-Create simple, clear exercises appropriate for this level. Respond ONLY with valid JSON, no markdown:
+IMPORTANT: Only use vocabulary and grammar structures appropriate for ${nivelAluno} level that the student has already studied.
+Create exactly 6 exercises using ONLY these 4 types:
+1. multiple_choice: 3 options (a/b/c), exactly one correct
+2. fill_blank: sentence with ONE blank marked as ___
+3. error_correction: sentence WITH a mistake, student must identify and fix it
+4. true_false: a statement that is either true or false
+
+Respond ONLY with valid JSON, no markdown, no extra text:
 {
-  "titulo": "Exercise title",
+  "titulo": "Short exercise title in English",
   "exercicios": [
-    {"tipo": "multipla_escolha", "pergunta": "...", "opcoes": ["a) ...", "b) ...", "c) ..."], "resposta": "a"},
-    {"tipo": "completar", "pergunta": "Complete: I ___ a student.", "resposta": "am"},
-    {"tipo": "verdadeiro_falso", "pergunta": "Statement here", "resposta": "true"},
-    {"tipo": "traduzir", "pergunta": "Translate: 'Bom dia'", "resposta": "Good morning"}
+    {"tipo": "multiple_choice", "pergunta": "Choose the correct option: ___ name is Maria.", "opcoes": ["a) My", "b) Me", "c) I"], "resposta": "a", "explicacao": "We use 'my' to show possession."},
+    {"tipo": "fill_blank", "pergunta": "Complete: She ___ a teacher.", "resposta": "is", "explicacao": "'She' uses 'is' in the verb to be."},
+    {"tipo": "error_correction", "pergunta": "Find and correct the mistake: He are a student.", "resposta": "He is a student.", "explicacao": "'He' uses 'is', not 'are'."},
+    {"tipo": "true_false", "pergunta": "'I am' is the correct form for first person singular.", "resposta": "true", "explicacao": "Yes! 'I am' is always correct for first person singular."}
   ]
 }
-Create exactly 6 exercises mixing the types above. Base them on the context provided.`;
+Mix all 4 types across the 6 exercises. Keep language very simple for ${nivelAluno} level.`;
       const prompt = exConfig.modo === "prompt_livre"
-        ? exConfig.prompt_livre
-        : `Create 6 exercises about: ${ctx}`;
-      const resposta = await chamarIA(system, [{ role: "user", content: prompt }]);
+        ? `Create 6 exercises about: ${exConfig.prompt_livre}`
+        : `Create 6 exercises for: ${ctx}`;
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 900);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
     } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
@@ -4939,30 +4952,61 @@ If no errors, return empty array. Keep explanations simple for ${nivelAluno} lev
 
   // ── CHATBOT ──
   const contextoChat = () => {
-    if (chatConfig.modo === "unidade_atual") return `unit ${unidadeAluno} vocabulary and grammar`;
-    if (chatConfig.modo === "unidade_especifica") return `unit ${chatConfig.unidade} vocabulary and grammar`;
+    const getSyllabusInfo = (u) => {
+      const info = (SYLLABUS[nivelAluno] || []).find(x => x.id === u);
+      return info ? `${info.t} (can-do: ${info.items.slice(0,2).join("; ")})` : u;
+    };
+    if (chatConfig.modo === "unidade_atual") return `Unit ${unidadeAluno} — ${getSyllabusInfo(unidadeAluno)}`;
+    if (chatConfig.modo === "unidade_especifica") return `Unit ${chatConfig.unidade} — ${getSyllabusInfo(chatConfig.unidade)}`;
     return chatConfig.tema_livre;
   };
 
   const iniciarChat = async () => {
     setChatIniciado(true);
     setMensagensChat([]);
+    setFeedbackChat(null);
     setCarregandoIA(true);
     try {
       const ctx = contextoChat();
-      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult student.
+      const system = `You are a friendly English conversation partner for a ${nivelAluno} level adult Brazilian student.
 Topic/Scope: ${ctx}
 Rules:
-- ALWAYS respond in English, appropriate for ${nivelAluno} level
-- Stay on the topic/scope defined above
-- If the student goes off-topic, gently redirect: "That's interesting! Let's focus on [topic] for now. Can you tell me..."
-- If the student makes a grammar mistake, correct it gently at the END in parentheses: (Tip: say "I am" not "I is" ✏️)
+- ALWAYS respond in English, simple and appropriate for ${nivelAluno} level
+- Stay on topic. If student goes off-topic, gently redirect: "That's interesting! Let's focus on [topic]. Can you tell me..."
+- DO NOT correct grammar mistakes unless they completely block understanding. Let minor errors pass naturally.
 - Keep responses short: 2-3 sentences max
-- Be warm and encouraging
-- If student writes in Portuguese, ask them to try in English and give a hint`;
-      const abertura = await chamarIA(system, [{ role: "user", content: "Start the conversation with a warm greeting and an open question related to the topic." }], 200);
+- Be warm, patient and encouraging
+- If student writes in Portuguese, kindly encourage them to try in English and give a small hint
+- Use only vocabulary and structures appropriate for ${nivelAluno} level`;
+      const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm, short greeting and one simple open question about the topic." }], 150);
       setMensagensChat([{ role: "assistant", content: abertura, _system: system }]);
     } catch (e) { alert("Erro ao iniciar chat: " + e.message); }
+    setCarregandoIA(false);
+  };
+
+  const gerarFeedbackChat = async () => {
+    if (mensagensChat.length < 2) return;
+    setCarregandoIA(true);
+    try {
+      const transcricao = mensagensChat
+        .filter(m => m.role === "user")
+        .map((m, i) => `${i+1}. "${m.content}"`)
+        .join("\n");
+      const system = `You are a kind English teacher giving feedback on a student's conversation practice.
+Student level: ${nivelAluno}
+Be encouraging, clear, and gentle. Use simple language. Respond ONLY with valid JSON, no markdown:
+{
+  "elogio": "One sincere, specific compliment about something they did well",
+  "erros": [
+    {"original": "what student wrote", "correto": "correct version", "explicacao": "Simple, clear explanation in 1 sentence"}
+  ],
+  "vocabulario_bom": ["word or phrase they used well"],
+  "sugestao": "One short, encouraging tip for next time"
+}
+Only include real errors that were actually made. Maximum 3 errors. If no errors, return empty array.`;
+      const resposta = await chamarIA(system, [{ role: "user", content: `Student messages during conversation:\n${transcricao}` }], 600);
+      setFeedbackChat(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
+    } catch (e) { alert("Erro ao gerar feedback: " + e.message); }
     setCarregandoIA(false);
   };
 
@@ -5037,6 +5081,17 @@ Keep sentences simple for ${nivelAluno} level.`;
     setCarregandoIA(false);
   };
 
+  // ── TTS — pronunciar texto ──
+  const falarTexto = (texto) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = "en-US";
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+  };
+
   // ── ESTILOS ──
   const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: "10px", border: `1.5px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", color: palette.purple, background: dark ? "#2A1D66" : "#FFF", outline: "none" };
   const btnOrange = { padding: "10px 18px", borderRadius: "10px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif" };
@@ -5045,7 +5100,7 @@ Keep sentences simple for ${nivelAluno} level.`;
 
   const headerSecao = (titulo, emoji) => (
     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-      <button onClick={() => { setSecao("menu"); setChatIniciado(false); setMensagensChat([]); setEscritaTarefa(null); setCorrecaoEscrita(null); setExerciciosGerados(null); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Voltar</button>
+      <button onClick={() => { setSecao("menu"); setChatIniciado(false); setMensagensChat([]); setFeedbackChat(null); setEscritaTarefa(null); setCorrecaoEscrita(null); setExerciciosGerados(null); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: textSecondary, padding: 0, fontFamily: "'Poppins', sans-serif" }}>← Voltar</button>
       <h2 style={{ fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{emoji} {titulo}</h2>
     </div>
   );
@@ -5094,51 +5149,93 @@ Keep sentences simple for ${nivelAluno} level.`;
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
             <p style={{ fontSize: "14px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exerciciosGerados.titulo}</p>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setGabarito(!gabarito)} style={btnGhost}>{gabarito ? "Ocultar gabarito" : "Ver gabarito"}</button>
               <button onClick={() => setExerciciosGerados(null)} style={btnGhost}>Mudar tema</button>
               <button onClick={gerarExercicios} disabled={carregandoIA} style={btnOrange}>{carregandoIA ? "..." : "Novo"}</button>
             </div>
           </div>
-          {exerciciosGerados.exercicios.map((ex, i) => (
-            <div key={i} style={{ ...cardIA }}>
-              <p style={{ fontSize: "12px", fontWeight: 600, color: palette.orange, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {ex.tipo === "multipla_escolha" ? "Múltipla escolha" : ex.tipo === "completar" ? "Complete a frase" : ex.tipo === "verdadeiro_falso" ? "Verdadeiro ou Falso" : "Tradução"}
-              </p>
-              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
-              {ex.tipo === "multipla_escolha" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {ex.opcoes.map((op, j) => {
-                    const letra = op[0]; const selecionada = respostasEx[i] === letra;
-                    const correta = gabarito && letra === ex.resposta; const errada = gabarito && selecionada && letra !== ex.resposta;
-                    return (
-                      <button key={j} onClick={() => setRespostasEx(r => ({ ...r, [i]: letra }))}
-                        style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: selecionada ? 600 : 400 }}>
-                        {op}
-                      </button>
-                    );
-                  })}
+          {(exerciciosGerados.exercicios || []).map((ex, i) => {
+            const tipoLabel = ex.tipo === "multiple_choice" ? "Multiple Choice" : ex.tipo === "fill_blank" ? "Fill in the Blank" : ex.tipo === "error_correction" ? "Error Correction" : "True or False";
+            const selecionada = respostasEx[i];
+            const respondeu = selecionada !== undefined && selecionada !== "";
+            const acertou = gabarito && respondeu && (
+              (ex.tipo === "true_false" || ex.tipo === "multiple_choice")
+                ? selecionada === ex.resposta
+                : selecionada?.toLowerCase().trim() === ex.resposta?.toLowerCase().trim()
+            );
+            const errouMostrar = gabarito && respondeu && !acertou;
+            return (
+              <div key={i} style={{ ...cardIA, borderLeft: gabarito && respondeu ? `4px solid ${acertou ? palette.lightGreen : "#F7C1C1"}` : "none" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>{tipoLabel}</p>
+                  <button onClick={() => falarTexto(ex.pergunta)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: "2px 6px" }}>🔊</button>
                 </div>
-              )}
-              {(ex.tipo === "completar" || ex.tipo === "traduzir") && (
-                <input value={respostasEx[i] || ""} onChange={e => setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
-                  placeholder={ex.tipo === "traduzir" ? "Your translation..." : "Your answer..."} style={{ ...inputStyle, maxWidth: "300px" }} />
-              )}
-              {ex.tipo === "verdadeiro_falso" && (
-                <div style={{ display: "flex", gap: "10px" }}>
-                  {["true", "false"].map(op => {
-                    const selecionada = respostasEx[i] === op; const correta = gabarito && op === ex.resposta; const errada = gabarito && selecionada && op !== ex.resposta;
-                    return (
-                      <button key={op} onClick={() => setRespostasEx(r => ({ ...r, [i]: op }))}
-                        style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : selecionada ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : selecionada ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-                        {op === "true" ? "✓ True" : "✗ False"}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {gabarito && <p style={{ fontSize: "12px", fontWeight: 600, color: palette.green, margin: "10px 0 0" }}>✓ Answer: {ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}</p>}
-            </div>
-          ))}
+                <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
+
+                {ex.tipo === "multiple_choice" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {(ex.opcoes || []).map((op, j) => {
+                      const letra = op[0];
+                      const sel = selecionada === letra;
+                      const correta = gabarito && letra === ex.resposta;
+                      const errada = gabarito && sel && letra !== ex.resposta;
+                      return (
+                        <button key={j} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: letra }))}
+                          style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : sel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : sel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: sel ? 600 : 400, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span>{op}</span>
+                          {correta && <span style={{ color: palette.green }}>✓</span>}
+                          {errada && <span style={{ color: "#791F1F" }}>✗</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {(ex.tipo === "fill_blank" || ex.tipo === "error_correction") && (
+                  <input value={selecionada || ""} onChange={e => !gabarito && setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
+                    placeholder={ex.tipo === "fill_blank" ? "Type the missing word..." : "Write the corrected sentence..."}
+                    readOnly={gabarito}
+                    style={{ ...inputStyle, maxWidth: "100%", background: gabarito ? (acertou ? palette.lightGreen + "22" : errouMostrar ? "#F7C1C122" : (dark ? "#2A1D66" : "#FFF")) : (dark ? "#2A1D66" : "#FFF") }} />
+                )}
+
+                {ex.tipo === "true_false" && (
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    {["true", "false"].map(op => {
+                      const sel = selecionada === op;
+                      const correta = gabarito && op === ex.resposta;
+                      const errada = gabarito && sel && op !== ex.resposta;
+                      return (
+                        <button key={op} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: op }))}
+                          style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : sel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : sel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                          {op === "true" ? "✓ True" : "✗ False"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {gabarito && (
+                  <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <button onClick={() => falarTexto(String(ex.resposta))} title="Ouvir resposta" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0 }}>🔊</button>
+                      <p style={{ fontSize: "12px", fontWeight: 700, color: acertou ? palette.green : "#791F1F", margin: 0 }}>
+                        {acertou ? "✓ Correct! Well done!" : `✗ Correct answer: ${ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}`}
+                      </p>
+                    </div>
+                    {ex.explicacao && !acertou && (
+                      <p style={{ fontSize: "12px", color: textSecondary, margin: 0, lineHeight: 1.5 }}>
+                        💡 {ex.explicacao}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!gabarito && (
+            <button onClick={() => setGabarito(true)} style={{ ...btnOrange, marginTop: "4px" }}>
+              ✓ Ver respostas e explicações
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -5242,11 +5339,14 @@ Keep sentences simple for ${nivelAluno} level.`;
           </button>
         </>
       )}
-      {chatIniciado && (
+      {chatIniciado && !feedbackChat && (
         <>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px", maxHeight: "340px", overflowY: "auto", padding: "4px" }}>
             {mensagensChat.map((msg, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+              <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", gap: "6px", alignItems: "flex-end" }}>
+                {msg.role === "assistant" && (
+                  <button onClick={() => falarTexto(msg.content)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "2px", flexShrink: 0, alignSelf: "flex-start", marginTop: "6px" }}>🔊</button>
+                )}
                 <div style={{ maxWidth: "80%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: msg.role === "user" ? palette.orange : (dark ? "#2A1D66" : palette.cream), color: msg.role === "user" ? "#FFF" : (dark ? "#FFF" : palette.purple), fontSize: "13px", lineHeight: 1.5 }}>
                   {msg.content}
                 </div>
@@ -5266,10 +5366,77 @@ Keep sentences simple for ${nivelAluno} level.`;
             <button onClick={enviarMensagemChat} disabled={carregandoIA || !inputChat.trim()}
               style={{ ...btnOrange, opacity: (carregandoIA || !inputChat.trim()) ? 0.7 : 1, padding: "10px 16px" }}>→</button>
           </div>
-          <button onClick={() => { setChatIniciado(false); setMensagensChat([]); }} style={{ ...btnGhost, fontSize: "12px", padding: "7px 12px" }}>
-            Mudar tema / Reiniciar
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {mensagensChat.filter(m => m.role === "user").length >= 2 && (
+              <button onClick={gerarFeedbackChat} disabled={carregandoIA}
+                style={{ ...btnGhost, fontSize: "12px", padding: "7px 14px", background: palette.lavender + "33", borderColor: palette.lavender }}>
+                {carregandoIA ? "Gerando..." : "📋 Ver feedback da conversa"}
+              </button>
+            )}
+            <button onClick={() => { setChatIniciado(false); setMensagensChat([]); setFeedbackChat(null); }} style={{ ...btnGhost, fontSize: "12px", padding: "7px 12px" }}>
+              Mudar tema
+            </button>
+          </div>
         </>
+      )}
+
+      {feedbackChat && (
+        <div>
+          <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lightGreen}` }}>
+            <p style={{ fontSize: "13px", fontWeight: 700, color: dark ? "#FFF" : palette.green, margin: "0 0 4px" }}>🌟 {feedbackChat.elogio}</p>
+          </div>
+
+          {feedbackChat.vocabulario_bom?.length > 0 && (
+            <div style={{ ...cardIA }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 8px" }}>👍 You used these well:</p>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {feedbackChat.vocabulario_bom.map((v, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 600, padding: "3px 10px", borderRadius: "10px", background: palette.lightGreen + "66", color: palette.green }}>{v}</span>
+                    <button onClick={() => falarTexto(v)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", padding: 0 }}>🔊</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {feedbackChat.erros?.length > 0 && (
+            <div>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>✏️ A few things to improve:</p>
+              {feedbackChat.erros.map((erro, i) => (
+                <div key={i} style={{ ...cardIA, display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <p style={{ fontSize: "13px", margin: 0 }}>
+                      <span style={{ textDecoration: "line-through", color: "#E24B4A" }}>{erro.original}</span>
+                      {" → "}
+                      <span style={{ fontWeight: 700, color: dark ? palette.lightGreen : palette.green }}>{erro.correto}</span>
+                    </p>
+                    <button onClick={() => falarTexto(erro.correto)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", padding: 0, flexShrink: 0 }}>🔊</button>
+                  </div>
+                  <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>💡 {erro.explicacao}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {feedbackChat.erros?.length === 0 && (
+            <div style={{ ...cardIA }}>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>✅ No mistakes found! Excellent work!</p>
+            </div>
+          )}
+
+          {feedbackChat.sugestao && (
+            <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}` }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? palette.lavender : palette.purple, margin: "0 0 4px" }}>📌 Tip for next time</p>
+              <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0 }}>{feedbackChat.sugestao}</p>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => { setFeedbackChat(null); }} style={btnGhost}>← Voltar à conversa</button>
+            <button onClick={() => { setChatIniciado(false); setMensagensChat([]); setFeedbackChat(null); }} style={btnGhost}>Nova conversa</button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -5321,12 +5488,18 @@ Keep sentences simple for ${nivelAluno} level.`;
       {exemploGerado && (
         <div>
           <div style={{ ...cardIA, borderLeft: `4px solid ${palette.orange}` }}>
-            <p style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{exemploGerado.palavra}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+              <p style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{exemploGerado.palavra}</p>
+              <button onClick={() => falarTexto(exemploGerado.palavra)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: 0 }}>🔊</button>
+            </div>
             <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>{exemploGerado.significado}</p>
           </div>
           {exemploGerado.exemplos.map((ex, i) => (
             <div key={i} style={{ ...cardIA }}>
-              <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 4px" }}>{ex.en}</p>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "4px" }}>
+                <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0, flex: 1 }}>{ex.en}</p>
+                <button onClick={() => falarTexto(ex.en)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0, flexShrink: 0 }}>🔊</button>
+              </div>
               <p style={{ fontSize: "12px", color: textSecondary, margin: 0, fontStyle: "italic" }}>{ex.pt}</p>
             </div>
           ))}
@@ -5471,21 +5644,81 @@ function FlashcardAdminPanel({ students }) {
     }
     if (error) { setSalvando(false); flash("Erro ao salvar: " + error.message, "erro"); return; }
 
-    // Se modo lista, processa e insere os cards
-    if (!editandoDeck && formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim() && novoDeckId) {
-      const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
-      const cards = linhas.map((linha, i) => {
-        const [parteEsquerda, exemplo] = linha.split("|").map(s => s.trim());
-        const [frente, verso] = parteEsquerda.split("=").map(s => s.trim());
-        return { deck_id: novoDeckId, frente, verso: verso || "", exemplo: exemplo || null, ordem: i + 1 };
-      }).filter(c => c.frente && c.verso);
-      if (cards.length > 0) {
-        const { error: errCards } = await supabase.from("flashcards").insert(cards);
-        if (errCards) { setSalvando(false); flash(`Deck criado mas erro nos cards: ${errCards.message}`, "erro"); carregarDecks(); return; }
+    if (!editandoDeck && novoDeckId) {
+      // Modo IA: nível + unidade selecionados — gera cards automaticamente via SYLLABUS
+      if (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade) {
+        try {
+          const nivel = formDeck.nivel;
+          const unidade = formDeck.unidade;
+          const unidadeInfo = (SYLLABUS[nivel] || []).find(u => u.id === unidade);
+          const topicos = unidadeInfo ? unidadeInfo.items.join("; ") : "";
+          const tituloUnidade = unidadeInfo ? unidadeInfo.t : unidade;
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          const resp = await fetch(ANTHROPIC_PROXY, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            body: JSON.stringify({
+              model: "claude-haiku-4-5-20251001",
+              max_tokens: 1000,
+              system: `You are an English teacher creating flashcards for ${nivel} level students.
+Unit: ${tituloUnidade}
+Learning objectives: ${topicos}
+Create 20 flashcards with the key vocabulary and expressions for this unit.
+Respond ONLY with valid JSON, no markdown:
+{
+  "cards": [
+    {"frente": "English word or phrase", "verso": "Portuguese translation", "exemplo": "Short example sentence using this word"}
+  ]
+}
+Rules:
+- "frente" is always English (word, phrase, or chunk)
+- "verso" is always Portuguese translation
+- "exemplo" is a short, simple sentence in English appropriate for ${nivel} level
+- Focus on vocabulary, expressions and grammar patterns from the unit objectives
+- Include articles (a/an/the) when relevant
+- Do NOT repeat cards`,
+              messages: [{ role: "user", content: `Create 20 flashcards for ${nivel} unit ${unidade}: ${tituloUnidade}` }],
+            }),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const texto = data.content?.[0]?.text || "";
+            const parsed = JSON.parse(texto.replace(/```json|```/g, "").trim());
+            if (parsed.cards && parsed.cards.length > 0) {
+              const cardsIA = parsed.cards.map((c, i) => ({
+                deck_id: novoDeckId, frente: c.frente, verso: c.verso,
+                exemplo: c.exemplo || null, ordem: i + 1,
+              }));
+              await supabase.from("flashcards").insert(cardsIA);
+              flash(`Deck criado com ${cardsIA.length} cards gerados pela IA! ✨`);
+            } else {
+              flash("Deck criado! Nenhum card gerado — adicione manualmente.");
+            }
+          } else {
+            flash("Deck criado! Erro ao gerar cards via IA — adicione manualmente.");
+          }
+        } catch (e) {
+          flash("Deck criado! Erro ao gerar cards: " + e.message);
+        }
+      // Modo lista de palavras
+      } else if (formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim()) {
+        const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
+        const cardsLista = linhas.map((linha, i) => {
+          const [parteEsquerda, exemplo] = linha.split("|").map(s => s.trim());
+          const [frente, verso] = parteEsquerda.split("=").map(s => s.trim());
+          return { deck_id: novoDeckId, frente, verso: verso || "", exemplo: exemplo || null, ordem: i + 1 };
+        }).filter(c => c.frente && c.verso);
+        if (cardsLista.length > 0) {
+          const { error: errCards } = await supabase.from("flashcards").insert(cardsLista);
+          if (errCards) { setSalvando(false); flash(`Deck criado mas erro nos cards: ${errCards.message}`, "erro"); carregarDecks(); return; }
+        }
+        flash(`Deck criado com ${cardsLista.length} cards!`);
+      } else {
+        flash("Deck criado! Adicione cards manualmente.");
       }
-      flash(`Deck criado com ${cards.length} cards!`);
-    } else {
-      flash(editandoDeck ? "Deck atualizado!" : "Deck criado!");
+    } else if (editandoDeck) {
+      flash("Deck atualizado!");
     }
 
     setSalvando(false);
@@ -5674,6 +5907,16 @@ function FlashcardAdminPanel({ students }) {
             </>
           )}
 
+          {/* Hint de geração automática */}
+          {(formDeck.modoCreacao || "manual") === "manual" && formDeck.nivel && formDeck.unidade && (
+            <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "16px" }}>✨</span>
+              <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>
+                A IA vai gerar automaticamente ~20 cards com o vocabulário desta unidade!
+              </p>
+            </div>
+          )}
+
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Aluno específico (deixe em branco para deck base)</label>
           <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))}
             style={{ ...inputStyle }}>
@@ -5699,7 +5942,12 @@ function FlashcardAdminPanel({ students }) {
           {msgFeedback}
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
             <button onClick={salvarDeck} disabled={salvando} style={{ ...btnOrange, opacity: salvando ? 0.7 : 1 }}>
-              {salvando ? "Salvando..." : editandoDeck ? "Salvar alterações" : (formDeck.modoCreacao || "manual") === "lista" ? "Criar deck com lista" : "Criar deck"}
+              {salvando
+                ? (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade ? "Gerando cards com IA..." : "Salvando...")
+                : editandoDeck ? "Salvar alterações"
+                : (formDeck.modoCreacao === "manual" && formDeck.nivel && formDeck.unidade) ? "✨ Criar deck com IA"
+                : (formDeck.modoCreacao || "manual") === "lista" ? "Criar deck com lista"
+                : "Criar deck"}
             </button>
             <button onClick={() => { setMostrarFormDeck(false); setEditandoDeck(null); }} style={btnGhost}>Cancelar</button>
           </div>
@@ -6149,20 +6397,30 @@ function FlashcardTab({ student, dark, palette, textSecondary, cardBg }) {
 
         {/* Card */}
         <div onClick={() => !virado && setVirado(true)}
-          style={{ minHeight: "200px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "16px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "12px", transition: "border-color 0.2s" }}>
+          style={{ minHeight: "200px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "16px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "12px", transition: "border-color 0.2s", position: "relative" }}>
           <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>
             {virado ? "Resposta" : "Palavra / Pergunta"}
           </p>
           <p style={{ fontSize: "22px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.3 }}>
             {virado ? card.verso : card.frente}
           </p>
+          {/* TTS — só mostra frente em inglês; verso é português, mas exemplo é inglês */}
+          <button onClick={e => { e.stopPropagation(); window.speechSynthesis?.cancel(); const u = new SpeechSynthesisUtterance(virado ? card.frente : card.frente); u.lang = "en-US"; u.rate = 0.85; window.speechSynthesis?.speak(u); }}
+            title="Ouvir pronúncia em inglês"
+            style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "20px", cursor: "pointer", fontSize: "13px", padding: "4px 12px", color: dark ? "#FFF" : palette.purple, display: "flex", alignItems: "center", gap: "4px" }}>
+            🔊 <span style={{ fontSize: "11px", fontWeight: 600 }}>{card.frente}</span>
+          </button>
           {virado && card.exemplo && (
-            <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, maxWidth: "320px", lineHeight: 1.5 }}>
-              "{card.exemplo}"
-            </p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+              <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, maxWidth: "320px", lineHeight: 1.5 }}>
+                "{card.exemplo}"
+              </p>
+              <button onClick={e => { e.stopPropagation(); const u = new SpeechSynthesisUtterance(card.exemplo); u.lang = "en-US"; u.rate = 0.85; window.speechSynthesis?.speak(u); }}
+                title="Ouvir exemplo" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: textSecondary, padding: 0 }}>🔊 ouvir exemplo</button>
+            </div>
           )}
           {!virado && (
-            <p style={{ fontSize: "12px", color: textSecondary, margin: "8px 0 0" }}>Toque pra revelar →</p>
+            <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>Toque pra revelar →</p>
           )}
         </div>
 
