@@ -6460,18 +6460,45 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
         .order("criado_em", { ascending: true });
       if (error) throw error;
       const nivelAluno = student.nivel || "Beginner";
+
+      // Converte label da turma para código
+      const labelParaCodigoLocal = (label) => {
+        if (!label) return null;
+        if (label.startsWith("Practical English ")) return "PE" + label.slice(18).trim();
+        if (label.startsWith("Unit ")) return label.slice(5).trim();
+        return label;
+      };
+      const unidadeAtualCodigo = labelParaCodigoLocal(turma && turma.unidade_atual) || labelParaCodigoLocal(student.unidade_atual) || null;
+
+      // Lista de unidades permitidas: atual + todas as anteriores do SYLLABUS
+      const todasUnidades = (SYLLABUS[nivelAluno] || []).map(u => u.id);
+      let unidadesPermitidas = [];
+      if (unidadeAtualCodigo) {
+        const idx = todasUnidades.indexOf(unidadeAtualCodigo);
+        if (idx >= 0) {
+          unidadesPermitidas = todasUnidades.slice(0, idx + 1); // da primeira até a atual (inclusive)
+        } else {
+          unidadesPermitidas = [unidadeAtualCodigo]; // fallback: só a atual
+        }
+      }
+
       const decksFiltrados = (data || []).filter(d => {
-        if (!d.flashcards || d.flashcards.length === 0) return false; // sem cards
-        if (d.student_id === student.id) return true; // deck personalizado do próprio aluno — sempre mostra
-        if (!d.nivel) return true; // deck base sem nível definido — mostra pra todos
-        return d.nivel === nivelAluno; // deck base com nível — só mostra se bater
+        if (!d.flashcards || d.flashcards.length === 0) return false;
+        if (d.student_id === student.id) return true; // designado para este aluno — sempre mostra
+        if (d.student_id) return false; // designado para OUTRO aluno — nunca mostra
+        if (!d.nivel) return false; // sem nível — só aparece se designado (já tratado acima)
+        if (d.nivel !== nivelAluno) return false; // nível diferente — nunca mostra
+        // Mesmo nível: verificar se a unidade está permitida
+        if (!d.unidade) return false; // deck do nível sem unidade — só se designado
+        if (unidadesPermitidas.length === 0) return false; // aluno sem unidade definida — só vê designados
+        return unidadesPermitidas.includes(d.unidade); // só mostra se for atual ou anterior
       });
       setDecks(decksFiltrados);
     } catch (e) {
       setErro("Erro ao carregar decks: " + e.message);
     }
     setCarregando(false);
-  }, [student.id, student.nivel]);
+  }, [student.id, student.nivel, turma]);
 
   useEffect(() => { carregarDecks(); }, [carregarDecks]);
 
