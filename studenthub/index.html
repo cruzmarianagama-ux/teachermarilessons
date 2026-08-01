@@ -4907,33 +4907,52 @@ Examples of how to interpret:
 - "Descrever a rotina" → present simple (I wake up, I go to work), daily routine vocabulary
 - "Fazer perguntas" → question words (What, Where, Who), word order in questions
 
-RULES:
-- Create exercises about the GRAMMAR STRUCTURES and VOCABULARY implied by the objectives — not about the title
-- For ${nivelAluno}: very simple, short sentences (max 8 words)
-- Every sentence must be grammatically perfect — re-read each sentence before including it
-- Double-check subject-verb agreement (I am, he is, they are), articles (a/an/the), and word order
-- If you are not 100% sure a sentence is correct, do NOT include it
-- Make exercises practical and communicative, never mechanical or repetitive
-- Follow Oxford/Cambridge ESL exam style: contextualized, meaningful, testing real communication ability
-- Each exercise should feel like a real-life situation, not a grammar drill
-- Multiple choice distractors must be plausible mistakes a real student would make
-- Fill-in-the-blank sentences must have natural, conversational context
-- Error correction sentences must contain mistakes that real students commonly make
-- True/false statements should test understanding, not just memorization
+RULES — in order of priority:
 
-Create exactly 6 exercises using these 4 types:
-1. multiple_choice: 3 options (a/b/c), one correct
-2. fill_blank: sentence with ONE blank ___
-3. error_correction: sentence with ONE clear mistake
-4. true_false: a grammatical or vocabulary statement
+1. ZERO ERRORS: Every sentence you produce must be 100% correct — grammatically, pragmatically, and in meaning. If you have any doubt about a sentence, do NOT include it. Re-read every sentence before including.
 
-JSON only, no markdown:
-{"titulo":"...","exercicios":[{"tipo":"multiple_choice","pergunta":"...","opcoes":["a) ...","b) ...","c) ..."],"resposta":"a","explicacao":"..."},{"tipo":"fill_blank","pergunta":"...","resposta":"...","explicacao":"..."},{"tipo":"error_correction","pergunta":"...","resposta":"...","explicacao":"..."},{"tipo":"true_false","pergunta":"...","resposta":"true","explicacao":"..."}]}
-Mix all 4 types. Each must have a correct answer and brief explanation.`;
+2. UNIT CONTENT FIRST: All exercises must primarily use the grammar structures and vocabulary from the unit objectives above. The exercises should practice exactly what the student is learning in this unit. Do not introduce structures or vocabulary from other units.
+
+3. PRAGMATIC ACCURACY: Use natural English that a native speaker would actually say in real life.
+   NEVER use:
+   * "I want a coffee" for ordering → Use "Can I have a coffee?" / "I'd like a coffee, please"
+   * "What is your age?" → Use "How old are you?"
+   * "Say me" → Use "Tell me"
+   * "I have 25 years" → Use "I am 25 years old"
+
+4. STYLE: Oxford/Cambridge ESL exam style — contextual, communicative, testing real ability. Never mechanical or repetitive. Each exercise should feel like a real-life situation.
+
+For ${nivelAluno}: very simple, short sentences (max 8 words).
+
+Create exactly 16 exercises organized in 4 sections:
+
+SECTION 1 — MULTIPLE CHOICE (4 items):
+- Each has 4 options (a/b/c/d), exactly one correct
+- tipo: "multiple_choice"
+
+SECTION 2 — FILL IN THE BLANKS (4 items):
+- Each sentence has ONE blank marked as ___
+- Answer is one or two words maximum
+- tipo: "fill_blank"
+
+SECTION 3 — TRUE/FALSE BASED ON A TEXT (4 items):
+- First, create a short paragraph or dialogue (3-5 sentences) using unit vocabulary
+- Then create 4 true/false statements about that text
+- tipo: "true_false"
+- The text goes in a field called "texto_base" at the top level (not inside each exercise)
+
+SECTION 4 — CORRECT THE SENTENCE (4 items):
+- Each sentence has exactly ONE mistake
+- The student must rewrite the sentence correctly
+- tipo: "error_correction"
+
+JSON only, no markdown, no backticks:
+{"titulo":"...","texto_base":"Short paragraph or dialogue for the true/false section (3-5 sentences using unit vocabulary)","exercicios":[{"tipo":"multiple_choice","pergunta":"...","opcoes":["a) ...","b) ...","c) ...","d) ..."],"resposta":"a","explicacao":"..."},{"tipo":"fill_blank","pergunta":"Complete: ...","resposta":"...","explicacao":"..."},{"tipo":"true_false","pergunta":"Statement about the text above","resposta":"true","explicacao":"..."},{"tipo":"error_correction","pergunta":"Correct: ...","resposta":"corrected sentence","explicacao":"..."}]}
+Order: 4 multiple_choice, then 4 fill_blank, then 4 true_false, then 4 error_correction. Each must have a correct answer and brief explanation.`;
       const prompt = exConfig.modo === "prompt_livre"
-        ? `Create 6 exercises about: ${exConfig.prompt_livre}. Keep them appropriate for ${nivelAluno} level.`
-        : `Create 6 varied exercises based on: ${ctx}`;
-      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 1000);
+        ? `Create 16 exercises (4 multiple choice + 4 fill blank + 4 true/false with reading text + 4 error correction) about: ${exConfig.prompt_livre}. Keep them appropriate for ${nivelAluno} level.`
+        : `Create 16 exercises (4 multiple choice + 4 fill blank + 4 true/false with reading text + 4 error correction) based on: ${ctx}`;
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 2000);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
     } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
@@ -4965,17 +4984,18 @@ HOW TO READ THE OBJECTIVES:
 The objectives above are in Portuguese. Derive the grammar structures, vocabulary and sentence patterns from them.
 Examples: "Falar sobre família" → family vocabulary (mother, father, sister), possessives (my, his, her), simple sentences about family.
 
-RULES:
-- Create a writing task that practices the GRAMMAR and VOCABULARY implied by the objectives
-- For ${nivelAluno}: task must be achievable in 3-5 very simple sentences
-- The model paragraph must use only grammar/vocabulary the student knows
-- Every sentence in the model and in the tips must be grammatically perfect — double-check subject-verb agreement, articles, and word order before including
-- The correction feedback must also be grammatically flawless
-- Make the task communicative and real-life (describe people, write about daily life, etc.)
-- Follow Oxford/Cambridge writing task style: give a clear, meaningful context and purpose for writing
-- The task should feel like something the student would actually need to write in real life
-- Avoid mechanical exercises — focus on meaningful communication
-- Each generation must produce a DIFFERENT task — vary the scenario
+RULES — in order of priority:
+
+1. ZERO ERRORS: Every sentence in the task, model, tips and keywords must be 100% correct. No grammatical, pragmatic or vocabulary errors. If in doubt, rephrase.
+
+2. UNIT CONTENT FIRST: The writing task must practice exactly the grammar structures and vocabulary from the unit objectives above. The model paragraph must use ONLY structures the student has studied. Keywords must come from the unit content.
+
+3. PRAGMATIC ACCURACY: Use natural English a native speaker would write.
+   NEVER use "I want..." for requests (use "Can I have..." / "I'd like..."). NEVER use "I have X years" for age (use "I am X years old").
+
+4. STYLE: Oxford/Cambridge writing task style — clear context, real-life purpose, communicative. Each generation must be DIFFERENT.
+
+For ${nivelAluno}: task achievable in 3-5 very simple sentences.
 
 JSON only, no markdown:
 {"titulo":"Task title","tarefa":"Clear instruction about what to write","modelo":"Model paragraph (3-5 simple sentences) using only known grammar/vocabulary","dicas":["Use [grammar structure]","Include [vocabulary]","Remember [grammar rule]"],"palavras_chave":["word1","word2","word3","word4","word5"]}`;
@@ -5003,7 +5023,7 @@ Be encouraging and clear. Respond ONLY with valid JSON, no markdown:
   "proximos_passos": "One suggestion to improve"
 }
 If no errors, return empty array. Keep explanations simple for ${nivelAluno} level.
-IMPORTANT: Your corrected version and explanations must be grammatically perfect. Double-check every correction.`;
+IMPORTANT: Your corrected version must be both grammatically and pragmatically accurate. Fix not only grammar errors but also unnatural expressions — e.g., correct "I want a coffee" to "Can I have a coffee?" in ordering contexts, or "I have 25 years" to "I am 25 years old".`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Student wrote: "${textoEscrita}"` }]);
       setCorrecaoEscrita(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao corrigir: " + e.message); }
@@ -5034,16 +5054,20 @@ ${ctx}
 HOW TO READ: The objectives are in Portuguese. Derive the grammar and vocabulary from them.
 Example: "Apresentar-se" → use greetings, introductions, verb to be. "Falar sobre família" → use family words, possessives.
 
-RULES:
-- Respond in English using ONLY grammar and vocabulary implied by the objectives above
+RULES — in order of priority:
+
+1. ZERO ERRORS: YOUR responses must be 100% correct — grammatically and pragmatically. You are the model. Never produce a sentence with any error.
+
+2. UNIT CONTENT FIRST: Use ONLY grammar structures and vocabulary from the unit objectives above. Your questions and responses must practice exactly what the student is learning.
+
+3. PRAGMATIC ACCURACY: Use natural English. Never say "I want" for requests, "I have X years" for age, etc.
+
+4. CONVERSATION STYLE:
 - For ${nivelAluno}: very short sentences (max 6-8 words)
-- DO NOT correct grammar mistakes during conversation — let them pass naturally
-- Keep responses to 2 sentences max
-- Be warm, patient and encouraging
-- YOUR OWN responses must be grammatically perfect — double-check before sending
+- DO NOT correct student mistakes during conversation — let them pass
+- Keep responses to 2 sentences max. Be warm and encouraging.
 - If student writes in Portuguese: "Try in English! You can say: [hint]"
-- Ask simple follow-up questions to keep the conversation going
-- Focus on the GRAMMAR STRUCTURES and VOCABULARY, not the unit title`;
+- Ask follow-up questions using the unit vocabulary`;
       const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm 1-sentence greeting and one simple question related to the unit topic." }], 120);
       setMensagensChat([{ role: "assistant", content: abertura, _system: system }]);
     } catch (e) { alert("Erro ao iniciar chat: " + e.message); }
@@ -5070,7 +5094,7 @@ Be encouraging, clear, and gentle. Use simple language. Respond ONLY with valid 
   "sugestao": "One short, encouraging tip for next time"
 }
 Only include real errors that were actually made. Maximum 3 errors. If no errors, return empty array.
-IMPORTANT: Your own corrections and explanations must be grammatically perfect. Double-check each correction before including.`;
+IMPORTANT: Your corrections must be both grammatically and pragmatically accurate. Use natural English expressions — for example, correct "I want a coffee" to "Can I have a coffee, please?" when in an ordering context.`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Student messages during conversation:\n${transcricao}` }], 600);
       setFeedbackChat(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao gerar feedback: " + e.message); }
@@ -5117,7 +5141,7 @@ IMPORTANT: Your own corrections and explanations must be grammatically perfect. 
 - Use very simple examples
 - Keep it short: max 3 paragraphs
 - End with one practice example for them to try
-- YOUR explanations and examples must be grammatically perfect — double-check before responding`;
+- YOUR explanations and examples must be grammatically and pragmatically perfect — use natural English, not literal translations from Portuguese`;
       const resposta = await chamarIA(system, [{ role: "user", content: perguntaDuvida }], 500);
       setRespostaDuvida(resposta);
     } catch (e) { alert("Erro: " + e.message); }
@@ -5143,7 +5167,7 @@ Respond ONLY with valid JSON, no markdown:
   "dica": "A short helpful tip"
 }
 Keep sentences simple for ${nivelAluno} level.
-Every example sentence must be grammatically perfect — double-check before including.`;
+Every example sentence must be grammatically and pragmatically perfect — use natural English a native speaker would say, not literal translations from Portuguese.`;
       const resposta = await chamarIA(system, [{ role: "user", content: `Create 3 example sentences for: "${palavraExemplo}"` }]);
       setExemploGerado(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro: " + e.message); }
@@ -5222,84 +5246,103 @@ Every example sentence must be grammatically perfect — double-check before inc
               <button onClick={gerarExercicios} disabled={carregandoIA} style={btnOrange}>{carregandoIA ? "..." : "Novo"}</button>
             </div>
           </div>
-          {(exerciciosGerados.exercicios || []).map((ex, i) => {
-            const tipoLabel = ex.tipo === "multiple_choice" ? "Multiple Choice" : ex.tipo === "fill_blank" ? "Fill in the Blank" : ex.tipo === "error_correction" ? "Error Correction" : "True or False";
-            const selecionada = respostasEx[i];
-            const respondeu = selecionada !== undefined && selecionada !== "";
-            const acertou = gabarito && respondeu && (
-              (ex.tipo === "true_false" || ex.tipo === "multiple_choice")
-                ? selecionada === ex.resposta
-                : selecionada?.toLowerCase().trim() === ex.resposta?.toLowerCase().trim()
-            );
-            const errouMostrar = gabarito && respondeu && !acertou;
-            return (
-              <div key={i} style={{ ...cardIA, borderLeft: gabarito && respondeu ? `4px solid ${acertou ? palette.lightGreen : "#F7C1C1"}` : "none" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>{tipoLabel}</p>
-                  <button onClick={() => falarTexto(ex.pergunta)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: "2px 6px" }}>🔊</button>
+
+          {(() => {
+            const exercicios = exerciciosGerados.exercicios || [];
+            const secoes = [
+              { tipo: "multiple_choice", label: "Multiple Choice" },
+              { tipo: "fill_blank", label: "Fill in the Blanks" },
+              { tipo: "true_false", label: "True or False" },
+              { tipo: "error_correction", label: "Correct the Sentence" },
+            ].map(s => ({ ...s, items: exercicios.filter(e => e.tipo === s.tipo) })).filter(s => s.items.length > 0);
+
+            return secoes.map(sec => (
+              <div key={sec.tipo} style={{ marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", paddingBottom: "6px", borderBottom: `2px solid ${palette.orange}44` }}>
+                  <p style={{ fontSize: "12px", fontWeight: 700, color: palette.orange, margin: 0, textTransform: "uppercase", letterSpacing: "0.06em" }}>{sec.label}</p>
+                  <span style={{ fontSize: "11px", color: textSecondary }}>{sec.items.length} items</span>
                 </div>
-                <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
 
-                {ex.tipo === "multiple_choice" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    {(ex.opcoes || []).map((op, j) => {
-                      const letra = op[0];
-                      const sel = selecionada === letra;
-                      const correta = gabarito && letra === ex.resposta;
-                      const errada = gabarito && sel && letra !== ex.resposta;
-                      return (
-                        <button key={j} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: letra }))}
-                          style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : sel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : sel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: sel ? 600 : 400, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span>{op}</span>
-                          {correta && <span style={{ color: palette.green }}>✓</span>}
-                          {errada && <span style={{ color: "#791F1F" }}>✗</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {(ex.tipo === "fill_blank" || ex.tipo === "error_correction") && (
-                  <input value={selecionada || ""} onChange={e => !gabarito && setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
-                    placeholder={ex.tipo === "fill_blank" ? "Type the missing word..." : "Write the corrected sentence..."}
-                    readOnly={gabarito}
-                    style={{ ...inputStyle, maxWidth: "100%", background: gabarito ? (acertou ? palette.lightGreen + "22" : errouMostrar ? "#F7C1C122" : (dark ? "#2A1D66" : "#FFF")) : (dark ? "#2A1D66" : "#FFF") }} />
-                )}
-
-                {ex.tipo === "true_false" && (
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    {["true", "false"].map(op => {
-                      const sel = selecionada === op;
-                      const correta = gabarito && op === ex.resposta;
-                      const errada = gabarito && sel && op !== ex.resposta;
-                      return (
-                        <button key={op} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: op }))}
-                          style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${correta ? palette.lightGreen : errada ? "#F7C1C1" : sel ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: correta ? palette.lightGreen + "44" : errada ? "#F7C1C144" : sel ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-                          {op === "true" ? "✓ True" : "✗ False"}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {gabarito && (
-                  <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <button onClick={() => falarTexto(String(ex.resposta))} title="Ouvir resposta" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0 }}>🔊</button>
-                      <p style={{ fontSize: "12px", fontWeight: 700, color: acertou ? palette.green : "#791F1F", margin: 0 }}>
-                        {acertou ? "✓ Correct! Well done!" : `✗ Correct answer: ${ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}`}
-                      </p>
+                {sec.tipo === "true_false" && exerciciosGerados.texto_base && (
+                  <div style={{ ...cardIA, borderLeft: `4px solid ${palette.lavender}`, marginBottom: "12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <p style={{ fontSize: "11px", fontWeight: 600, color: dark ? palette.lavender : palette.purple, margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>📖 Read the text</p>
+                      <button onClick={() => falarTexto(exerciciosGerados.texto_base)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0 }}>🔊</button>
                     </div>
-                    {ex.explicacao && !acertou && (
-                      <p style={{ fontSize: "12px", color: textSecondary, margin: 0, lineHeight: 1.5 }}>
-                        💡 {ex.explicacao}
-                      </p>
-                    )}
+                    <p style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.7, fontStyle: "italic" }}>{exerciciosGerados.texto_base}</p>
                   </div>
                 )}
+
+                {sec.items.map(ex => {
+                  const i = exercicios.indexOf(ex);
+                  const sel = respostasEx[i];
+                  const respondeu = sel !== undefined && sel !== "";
+                  const acertou = gabarito && respondeu && ((ex.tipo === "true_false" || ex.tipo === "multiple_choice") ? sel === ex.resposta : sel?.toLowerCase().trim() === ex.resposta?.toLowerCase().trim());
+                  const errou = gabarito && respondeu && !acertou;
+                  return (
+                    <div key={i} style={{ ...cardIA, borderLeft: gabarito && respondeu ? `4px solid ${acertou ? palette.lightGreen : "#F7C1C1"}` : "none" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: textSecondary, margin: 0 }}>{i + 1}.</p>
+                        <button onClick={() => falarTexto(ex.pergunta)} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "2px 6px" }}>🔊</button>
+                      </div>
+                      <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: "0 0 10px" }}>{ex.pergunta}</p>
+
+                      {ex.tipo === "multiple_choice" && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {(ex.opcoes || []).map((op, j) => {
+                            const letra = op[0]; const s = sel === letra;
+                            const c = gabarito && letra === ex.resposta; const e = gabarito && s && letra !== ex.resposta;
+                            return (
+                              <button key={j} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: letra }))}
+                                style={{ padding: "9px 12px", borderRadius: "8px", border: `1.5px solid ${c ? palette.lightGreen : e ? "#F7C1C1" : s ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: c ? palette.lightGreen + "44" : e ? "#F7C1C144" : s ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", textAlign: "left", fontFamily: "'Poppins', sans-serif", fontWeight: s ? 600 : 400, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span>{op}</span>
+                                {c && <span style={{ color: palette.green }}>✓</span>}
+                                {e && <span style={{ color: "#791F1F" }}>✗</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {(ex.tipo === "fill_blank" || ex.tipo === "error_correction") && (
+                        <input value={sel || ""} onChange={e => !gabarito && setRespostasEx(r => ({ ...r, [i]: e.target.value }))}
+                          placeholder={ex.tipo === "fill_blank" ? "Type the missing word..." : "Write the corrected sentence..."}
+                          readOnly={gabarito}
+                          style={{ ...inputStyle, maxWidth: "100%", background: gabarito ? (acertou ? palette.lightGreen + "22" : errou ? "#F7C1C122" : (dark ? "#2A1D66" : "#FFF")) : (dark ? "#2A1D66" : "#FFF") }} />
+                      )}
+
+                      {ex.tipo === "true_false" && (
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          {["true", "false"].map(op => {
+                            const s = sel === op; const c = gabarito && op === ex.resposta; const e = gabarito && s && op !== ex.resposta;
+                            return (
+                              <button key={op} onClick={() => !gabarito && setRespostasEx(r => ({ ...r, [i]: op }))}
+                                style={{ padding: "9px 20px", borderRadius: "8px", border: `1.5px solid ${c ? palette.lightGreen : e ? "#F7C1C1" : s ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, cursor: gabarito ? "default" : "pointer", background: c ? palette.lightGreen + "44" : e ? "#F7C1C144" : s ? palette.orange + "22" : "transparent", color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                                {op === "true" ? "✓ True" : "✗ False"}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {gabarito && (
+                        <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <button onClick={() => falarTexto(String(ex.resposta))} title="Ouvir" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0 }}>🔊</button>
+                            <p style={{ fontSize: "12px", fontWeight: 700, color: acertou ? palette.green : "#791F1F", margin: 0 }}>
+                              {acertou ? "✓ Correct! Well done!" : `✗ Answer: ${ex.resposta === "true" ? "True" : ex.resposta === "false" ? "False" : ex.resposta}`}
+                            </p>
+                          </div>
+                          {ex.explicacao && !acertou && <p style={{ fontSize: "12px", color: textSecondary, margin: 0, lineHeight: 1.5 }}>💡 {ex.explicacao}</p>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            ));
+          })()}
+
           {!gabarito && (
             <button onClick={() => setGabarito(true)} style={{ ...btnOrange, marginTop: "4px" }}>
               ✓ Ver respostas e explicações
@@ -5307,8 +5350,6 @@ Every example sentence must be grammatically perfect — double-check before inc
           )}
         </div>
       )}
-    </div>
-  );
 
   // ── CORREÇÃO DE ESCRITA ──
   if (secao === "escrita") return (
@@ -5777,18 +5818,20 @@ Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
               max_tokens: 2000,
-              system: `You are an English teacher creating flashcards based on a teacher's description.
-The teacher will describe: student level, grammar topics, vocabulary, example phrases, and context.
+              system: `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating flashcards based on a teacher's description.
+${formDeck.nivel ? `Student level: ${formDeck.nivel}. Keep all language appropriate for this level.` : "Adapt language to the level described by the teacher."}
+The teacher will describe: grammar topics, vocabulary, example phrases, and context.
 Create exactly 20 flashcards covering the content described. Mix types thoughtfully:
 - Vocabulary: frente = English word/phrase, verso = Portuguese translation
 - Communicative Q&A: frente = natural conversation question in English, verso = model answer in English
 - Grammar/chunk: frente = grammar structure or useful chunk, verso = meaning or pattern in English
 - Production: frente = situation prompt (e.g. "How do you say you're tired?"), verso = target language response
 For all: exemplo = one short natural English sentence showing the card in real use.
+IMPORTANT: Every sentence must be grammatically and pragmatically perfect. Use natural English (e.g. "Can I have..." not "I want..." for ordering).
 Respond ONLY with valid JSON, no markdown, no backticks:
 {"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}
 Do NOT repeat cards.`,
-              messages: [{ role: "user", content: `Create 20 flashcards based on this description:\n\n${formDeck.promptIA.trim()}` }],
+              messages: [{ role: "user", content: `Create 20 flashcards${formDeck.nivel ? ` for ${formDeck.nivel} level` : ""}. Teacher description:\n\n${formDeck.promptIA.trim()}` }],
             }),
           });
           const respText = await resp.text();
@@ -6033,17 +6076,23 @@ Do NOT repeat cards.`,
           {/* Modo IA com prompt livre */}
           {formDeck.modoCreacao === "ia_prompt" && !editandoDeck && (
             <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível (opcional)</label>
+              <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value }))} style={{ ...inputStyle }}>
+                <option value="">— Geral (sem nível específico) —</option>
+                {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+
               <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Descreva o conteúdo do deck *</label>
               <p style={{ fontSize: "11px", color: `${palette.purple}88`, marginBottom: "6px", lineHeight: 1.5 }}>
-                Quanto mais detalhe, melhor. Inclua: nível do aluno, tema gramatical, vocabulário específico, frases de exemplo, contexto de uso.
+                Descreva o tema gramatical, vocabulário, frases de exemplo e contexto de uso.
               </p>
               <textarea value={formDeck.promptIA || ""} onChange={e => setFormDeck(f => ({ ...f, promptIA: e.target.value }))}
-                placeholder={"Exemplos:\n\n• Beginner. Verbo to be: I am, you are, he/she/is. Perguntas: Are you a student? Is she from Brazil? Adjetivos: happy, tired, hungry, tall, young.\n\n• Elementary. Job interview vocabulary: experience, skills, responsibilities. Frases: I have 5 years of experience in... My main responsibility is... I'm good at..."}
+                placeholder={"Exemplos:\n\n• Verbo to be: I am, you are, he/she/is. Perguntas: Are you a student? Is she from Brazil? Adjetivos: happy, tired, hungry, tall, young.\n\n• Job interview vocabulary: experience, skills, responsibilities. Frases: I have 5 years of experience in... My main responsibility is... I'm good at..."}
                 rows={8} style={{ ...inputStyle, resize: "vertical", fontSize: "12px", lineHeight: 1.6 }} />
               {formDeck.promptIA && formDeck.promptIA.trim().length > 20 && (
                 <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginTop: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
                   <span>✨</span>
-                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai criar ~20 cards com base na sua descrição.</p>
+                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai criar ~20 cards{formDeck.nivel ? ` para ${formDeck.nivel}` : ""} com base na sua descrição.</p>
                 </div>
               )}
             </div>
