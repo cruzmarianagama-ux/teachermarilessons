@@ -6688,7 +6688,14 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
     // Separa deck da unidade atual dos anteriores
     const deckAtual = decks.filter(d => d.unidade === unidadeAtual && !d.student_id);
     const deckPersonalizado = decks.filter(d => d.student_id === student.id);
-    const deckAnteriores = decks.filter(d => d.unidade !== unidadeAtual && !d.student_id).reverse(); // mais recente primeiro
+    const todasUnidadesSyllabus = (SYLLABUS[student.nivel || "Beginner"] || []).map(u => u.id);
+    const deckAnteriores = decks
+      .filter(d => d.unidade !== unidadeAtual && !d.student_id)
+      .sort((a, b) => {
+        const idxA = todasUnidadesSyllabus.indexOf(a.unidade);
+        const idxB = todasUnidadesSyllabus.indexOf(b.unidade);
+        return idxB - idxA; // decrescente: mais recente primeiro
+      });
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -6729,15 +6736,15 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <button onClick={iniciarRevisaoGeral} disabled={carregando}
                   style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: palette.orange + "18", color: palette.orange, fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-                  🌟 Revisão Geral
+                  🌟 Estudar tudo
                 </button>
                 <button onClick={iniciarRevisaoDificeis} disabled={carregando}
                   style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: "#B4A1FF22", color: "#6B52CC", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-                  💪 Rápida
+                  💪 Treinar os difíceis
                 </button>
                 <button onClick={() => setMostrarModoLivre(!mostrarModoLivre)}
                   style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: "#CAE78D44", color: "#4A6A00", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-                  🎯 Modo Livre {mostrarModoLivre ? "▲" : "▼"}
+                  🎯 Montar sessão {mostrarModoLivre ? "▲" : "▼"}
                 </button>
               </div>
 
