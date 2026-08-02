@@ -6691,115 +6691,95 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
     const deckAnteriores = decks.filter(d => d.unidade !== unidadeAtual && !d.student_id).reverse(); // mais recente primeiro
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+        {/* Header */}
         <div>
-          <h2 style={{ fontSize: "16px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
-          <p style={{ fontSize: "13px", color: textSecondary }}>Revise o vocabulário das suas aulas. O sistema adapta as revisões pro seu ritmo!</p>
+          <h2 style={{ fontSize: "17px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
+          <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>Continue de onde parou.</p>
         </div>
 
         {decks.length === 0 ? (
-          <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "24px", textAlign: "center" }}>
-            <p style={{ fontSize: "20px", marginBottom: "8px" }}>📭</p>
+          <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "14px", padding: "28px", textAlign: "center" }}>
+            <p style={{ fontSize: "24px", marginBottom: "8px" }}>📭</p>
             <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck disponível ainda. A Teacher Mari vai adicionar em breve!</p>
           </div>
         ) : (
           <>
-            {/* Modos especiais */}
+            {/* ── HERO: unidade atual ── */}
+            {(deckAtual.length > 0 || deckPersonalizado.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[...deckAtual, ...deckPersonalizado].map(deck => (
+                  <button key={deck.id} onClick={() => iniciarSessao(deck)}
+                    style={{ width: "100%", padding: "20px", borderRadius: "16px", border: "none", cursor: "pointer", background: palette.orange, textAlign: "left", fontFamily: "'Poppins', sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+                    <div>
+                      <p style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 6px" }}>Sua unidade atual</p>
+                      <p style={{ fontSize: "16px", fontWeight: 700, color: "#FFF", margin: "0 0 4px" }}>{deck.nome}</p>
+                      <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.8)", margin: 0 }}>{(deck.flashcards || []).length} cards{deck.student_id ? " · personalizado" : ""}</p>
+                    </div>
+                    <span style={{ fontSize: "28px", color: "rgba(255,255,255,0.6)", flexShrink: 0 }}>→</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ── OUTROS MODOS: pills ── */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>Modos especiais</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Outros modos</p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <button onClick={iniciarRevisaoGeral} disabled={carregando}
-                  style={{ padding: "12px 14px", borderRadius: "12px", border: `1.5px solid ${palette.orange}44`, cursor: "pointer", background: dark ? "#2A1D66" : palette.orange + "11", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-                  <p style={{ fontSize: "16px", margin: "0 0 4px" }}>🌟</p>
-                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.orange, margin: 0 }}>Revisão Geral</p>
-                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Todos os cards de hoje</p>
+                  style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: palette.orange + "18", color: palette.orange, fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                  🌟 Revisão Geral
                 </button>
                 <button onClick={iniciarRevisaoDificeis} disabled={carregando}
-                  style={{ padding: "12px 14px", borderRadius: "12px", border: `1.5px solid ${palette.lavender}55`, cursor: "pointer", background: dark ? "#2A1D66" : palette.lavender + "22", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-                  <p style={{ fontSize: "16px", margin: "0 0 4px" }}>💪</p>
-                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Revisão Rápida</p>
-                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Só os difíceis</p>
+                  style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: "#B4A1FF22", color: "#6B52CC", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                  💪 Rápida
+                </button>
+                <button onClick={() => setMostrarModoLivre(!mostrarModoLivre)}
+                  style={{ padding: "8px 14px", borderRadius: "20px", border: "none", cursor: "pointer", background: "#CAE78D44", color: "#4A6A00", fontSize: "12px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                  🎯 Modo Livre {mostrarModoLivre ? "▲" : "▼"}
                 </button>
               </div>
-              <button onClick={() => setMostrarModoLivre(!mostrarModoLivre)}
-                style={{ padding: "10px 14px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: "transparent", textAlign: "left", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px" }}>🎯</span>
-                <div>
-                  <p style={{ fontSize: "12px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Modo Livre — escolher decks</p>
-                  <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Combine qualquer deck numa sessão</p>
-                </div>
-                <span style={{ marginLeft: "auto", color: textSecondary, fontSize: "12px" }}>{mostrarModoLivre ? "▲" : "▼"}</span>
-              </button>
+
               {mostrarModoLivre && (
-                <div style={{ background: dark ? "#2A1D66" : palette.cream, borderRadius: "10px", padding: "12px" }}>
-                  <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "8px" }}>Selecione os decks para combinar:</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px" }}>
+                <div style={{ background: dark ? "#2A1D66" : "#F9F5E8", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Selecione os decks:</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {decks.map(d => (
-                      <label key={d.id} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: dark ? "#FFF" : palette.purple }}>
+                      <label key={d.id} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", padding: "10px 12px", borderRadius: "10px", background: dark ? "#3A2B7A" : "#FFF", border: `1.5px solid ${decksLivreSelecionados.includes(d.id) ? palette.orange : "transparent"}` }}>
                         <input type="checkbox" checked={decksLivreSelecionados.includes(d.id)}
                           onChange={e => setDecksLivreSelecionados(prev => e.target.checked ? [...prev, d.id] : prev.filter(id => id !== d.id))}
-                          style={{ accentColor: palette.orange, width: "15px", height: "15px" }} />
-                        <span>{d.nome}</span>
-                        {d.unidade && <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "6px", background: palette.lavender, color: palette.purple, fontWeight: 600 }}>{d.unidade}</span>}
-                        <span style={{ fontSize: "11px", color: textSecondary, marginLeft: "auto" }}>{(d.flashcards || []).length} cards</span>
+                          style={{ accentColor: palette.orange, width: "16px", height: "16px", flexShrink: 0 }} />
+                        <span style={{ fontSize: "13px", fontWeight: 500, color: dark ? "#FFF" : palette.purple, flex: 1 }}>{d.nome}</span>
+                        <span style={{ fontSize: "11px", color: textSecondary, whiteSpace: "nowrap" }}>{(d.flashcards || []).length} cards</span>
                       </label>
                     ))}
                   </div>
                   <button onClick={iniciarModoLivre} disabled={decksLivreSelecionados.length === 0 || carregando}
-                    style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: decksLivreSelecionados.length === 0 ? "default" : "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif", opacity: decksLivreSelecionados.length === 0 ? 0.5 : 1 }}>
-                    Iniciar com {decksLivreSelecionados.length} deck{decksLivreSelecionados.length !== 1 ? "s" : ""}
+                    style={{ padding: "12px", borderRadius: "10px", border: "none", cursor: decksLivreSelecionados.length === 0 ? "default" : "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 700, fontFamily: "'Poppins', sans-serif", opacity: decksLivreSelecionados.length === 0 ? 0.45 : 1 }}>
+                    Iniciar com {decksLivreSelecionados.length || ""} deck{decksLivreSelecionados.length !== 1 ? "s" : ""}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Deck da unidade atual — destaque */}
-            {(deckAtual.length > 0 || deckPersonalizado.length > 0) && (
-              <div>
-                <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
-                  📍 Sua unidade atual {unidadeAtual ? `— Unit ${unidadeAtual}` : ""}
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {[...deckAtual, ...deckPersonalizado].map(deck => (
-                    <button key={deck.id} onClick={() => iniciarSessao(deck)}
-                      style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: `2px solid ${palette.orange}`, cursor: "pointer", background: dark ? "#3A2B7A" : palette.orange + "0D", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
-                      <div>
-                        <p style={{ fontSize: "14px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
-                        {deck.descricao && <p style={{ fontSize: "12px", color: textSecondary, margin: "3px 0 0" }}>{deck.descricao}</p>}
-                        {deck.student_id && <span style={{ fontSize: "10px", fontWeight: 600, padding: "2px 6px", borderRadius: "6px", background: palette.orange + "33", color: palette.orange }}>personalizado</span>}
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <p style={{ fontSize: "12px", color: textSecondary, margin: 0 }}>{(deck.flashcards || []).length} cards</p>
-                        <span style={{ fontSize: "18px", color: palette.orange }}>→</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Decks anteriores */}
+            {/* ── UNIDADES ANTERIORES ── */}
             {deckAnteriores.length > 0 && (
-              <div>
-                <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
-                  📚 Unidades anteriores
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {deckAnteriores.map(deck => (
-                    <button key={deck.id} onClick={() => iniciarSessao(deck)}
-                      style={{ width: "100%", padding: "12px 16px", borderRadius: "12px", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`, cursor: "pointer", background: dark ? "#3A2B7A" : "#FFF", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
-                      <div>
-                        <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
-                        {deck.unidade && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>Unit {deck.unidade}</p>}
-                        {deck.descricao && <p style={{ fontSize: "11px", color: textSecondary, margin: "2px 0 0" }}>{deck.descricao}</p>}
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <p style={{ fontSize: "11px", color: textSecondary, margin: 0 }}>{(deck.flashcards || []).length} cards</p>
-                        <span style={{ fontSize: "16px", color: textSecondary }}>→</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Unidades anteriores</p>
+                {deckAnteriores.map(deck => (
+                  <button key={deck.id} onClick={() => iniciarSessao(deck)}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", border: `1px solid ${dark ? "#5A4AA0" : "#E8E0FF"}`, cursor: "pointer", background: dark ? "#3A2B7A" : "#FFF", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", fontFamily: "'Poppins', sans-serif" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>{deck.nome}</p>
+                      {deck.descricao && <p style={{ fontSize: "11px", color: textSecondary, margin: "3px 0 0" }}>{deck.descricao}</p>}
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <p style={{ fontSize: "11px", color: textSecondary, margin: "0 0 2px" }}>{(deck.flashcards || []).length} cards</p>
+                      <span style={{ fontSize: "14px", color: "#B4A1FF" }}>→</span>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
           </>
