@@ -2180,8 +2180,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [editandoAulaRegistrada, setEditandoAulaRegistrada] = useState(false);
   const [rascunhoAulaRegistrada, setRascunhoAulaRegistrada] = useState(null);
   const [aulasRegistradas, setAulasRegistradas] = useState([]);
-  const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
-  const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
+  const [mesHomework, setMesHomework] = useState(6); // julho (0-indexed)
+  const [anoHomework, setAnoHomework] = useState(2026);
   const [homeworkStatus, setHomeworkStatus] = useState({});
   const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
   const [novoMaterialAula, setNovoMaterialAula] = useState({ titulo: "", url: "" });
@@ -2416,33 +2416,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setDiasSemAula({});
 
     // Aulas registradas (3 aulas recentes)
-    const demoRecords = segundas.slice(-3).reverse().map((d, i) => {
-      const iso = d.toISOString().slice(0, 10);
-      const unidades = ["1A", "1A", "1B"];
-      const assuntos = [
-        "Verb 'to be' – Hello! Nice to meet you",
-        "Numbers & countries – Where are you from?",
-        "Jobs & the alphabet – What do you do?",
-      ];
-      const homeworks = [
-        "Workbook p. 4–5: exercises 1, 2 and 3",
-        "Workbook p. 6–7: numbers practice + listening",
-        "Workbook p. 8: jobs vocabulary + spelling",
-      ];
-      return {
-        data: iso,
-        assunto: assuntos[i],
-        unidade: unidades[i],
-        cronogramaUrl: "https://teachermarilessons.com.br/beginner/unit1a",
-        embeds: [],
-        presencas: { "demo-student-001": true },
-        homework: homeworks[i],
-        materiaisAula: [],
-        conteudoEnsinado: "",
-        paraProximaAula: i === 0 ? "Review Unit 1A vocabulary" : "",
-        rowId: `demo-record-${i}`,
-      };
-    });
+    const demoRecords = [
+      { data: "2026-07-21", assunto: "Verb 'to be' – Hello! Nice to meet you", unidade: "1A", cronogramaUrl: "https://teachermarilessons.com.br/beginner/unit1a", embeds: [], presencas: { "demo-student-001": true }, homework: "Workbook p. 4–5: exercises 1, 2 and 3", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "Review Unit 1A vocabulary", rowId: "demo-record-0" },
+      { data: "2026-07-14", assunto: "Numbers & countries – Where are you from?", unidade: "1A", cronogramaUrl: "https://teachermarilessons.com.br/beginner/unit1a", embeds: [], presencas: { "demo-student-001": true }, homework: "Workbook p. 6–7: numbers practice + listening", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "", rowId: "demo-record-1" },
+      { data: "2026-07-07", assunto: "Jobs & the alphabet – What do you do?", unidade: "1B", cronogramaUrl: "https://teachermarilessons.com.br/beginner/unit1a", embeds: [], presencas: { "demo-student-001": true }, homework: "Workbook p. 8: jobs vocabulary + spelling", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "", rowId: "demo-record-2" },
+    ];
     setAulasRegistradas(demoRecords);
 
     // Homework status (demo: 2 primeiras concluídas)
