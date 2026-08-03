@@ -2252,11 +2252,36 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       await supabase.from("lesson_records").delete().eq("turma_id", turmaId).gt("data", novaDataFim);
     }
 
-    // Cleanup: se mudou os dias/horários da turma, deleta canceladas futuras (que ficaram sem propósito)
+    // Cleanup: se mudou os dias/horários da turma, limpa lessons futuras que ficaram obsoletas
     const diasMudaram = JSON.stringify(turma.dias_horarios) !== JSON.stringify(rascunhoTurma.dias_horarios);
     if (diasMudaram) {
       const hojeISO = new Date().toISOString().slice(0, 10);
+      const DIAS_MAP = { "Domingo": 0, "Segunda": 1, "Terça": 2, "Quarta": 3, "Quinta": 4, "Sexta": 5, "Sábado": 6 };
+      const novosDias = new Set((rascunhoTurma.dias_horarios || []).map((dh) => DIAS_MAP[dh.dia]));
+
+      // 1. Deleta canceladas futuras (ficaram sem propósito com o novo dia)
       await supabase.from("lessons").delete().eq("turma_id", turmaId).eq("status", "cancelada").gte("data", hojeISO);
+
+      // 2. Busca lessons agendadas futuras e deleta as que caem em dias que saíram do novo dias_horarios
+      const { data: lessonsFuturas } = await supabase
+        .from("lessons")
+        .select("id, data, status")
+        .eq("turma_id", turmaId)
+        .gte("data", hojeISO)
+        .eq("status", "agendada");
+
+      if (lessonsFuturas && lessonsFuturas.length > 0) {
+        const idsParaDeletar = lessonsFuturas
+          .filter((l) => {
+            const [y, m, d] = l.data.split("-").map(Number);
+            const diaSemana = new Date(y, m - 1, d).getDay();
+            return !novosDias.has(diaSemana);
+          })
+          .map((l) => l.id);
+        if (idsParaDeletar.length > 0) {
+          await supabase.from("lessons").delete().in("id", idsParaDeletar);
+        }
+      }
     }
 
     setTurma((t) => ({ ...t, nivel: rascunhoTurma.nivel, dias_horarios: rascunhoTurma.dias_horarios, link_aula: rascunhoTurma.link_aula || null, data_fim: novaDataFim }));
