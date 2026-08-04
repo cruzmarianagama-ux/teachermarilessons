@@ -4918,66 +4918,27 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
     setGabarito(false);
     try {
       const ctx = contextoExercicios();
-      const system = `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating exercises for a ${nivelAluno} level adult Brazilian student.
+      const system = `You are an ESL teacher creating multiple choice exercises for a ${nivelAluno} level adult Brazilian student.
 
-STUDENT CONTEXT:
 Level: ${nivelAluno}
-${ctx}
+Content: ${ctx}
 
-IMPORTANT — HOW TO READ THE OBJECTIVES:
-The objectives above are in Portuguese. You must derive the English grammar, vocabulary and sentence patterns from them.
-Examples of how to interpret:
-- "Apresentar-se e cumprimentar pessoas" → greetings (Hello, Hi), introductions (My name is...), verb to be (I am, you are)
-- "Falar sobre profissões" → jobs vocabulary (teacher, doctor, engineer), He/She is a...
-- "Descrever a rotina" → present simple (I wake up, I go to work), daily routine vocabulary
-- "Fazer perguntas" → question words (What, Where, Who), word order in questions
+The objectives may be in Portuguese — derive the English grammar and vocabulary from them.
 
-RULES — in order of priority:
+RULES:
+1. Every sentence must be 100% grammatically and pragmatically correct. Use natural English a native speaker would say.
+2. Use ONLY vocabulary and grammar from the content above. Do not introduce new structures.
+3. Short, simple sentences appropriate for ${nivelAluno} level (max 8 words per sentence).
+4. Each question must have exactly one correct answer and three plausible but clearly wrong distractors.
+5. Explanation must be short (1 sentence), clear, in English.
 
-1. ZERO ERRORS: Every sentence you produce must be 100% correct — grammatically, pragmatically, and in meaning. If you have any doubt about a sentence, do NOT include it. Re-read every sentence before including.
-
-2. UNIT CONTENT FIRST: All exercises must primarily use the grammar structures and vocabulary from the unit objectives above. The exercises should practice exactly what the student is learning in this unit. Do not introduce structures or vocabulary from other units.
-
-3. PRAGMATIC ACCURACY: Use natural English that a native speaker would actually say in real life.
-   NEVER use:
-   * "I want a coffee" for ordering → Use "Can I have a coffee?" / "I'd like a coffee, please"
-   * "What is your age?" → Use "How old are you?"
-   * "Say me" → Use "Tell me"
-   * "I have 25 years" → Use "I am 25 years old"
-
-4. STYLE: Oxford/Cambridge ESL exam style — contextual, communicative, testing real ability. Never mechanical or repetitive. Each exercise should feel like a real-life situation.
-
-For ${nivelAluno}: very simple, short sentences (max 8 words).
-
-Create exactly 16 exercises organized in 4 sections:
-
-SECTION 1 — MULTIPLE CHOICE (4 items):
-- Each has 4 options (a/b/c/d), exactly one correct
-- tipo: "multiple_choice"
-
-SECTION 2 — FILL IN THE BLANKS (4 items):
-- Each sentence has ONE blank marked as ___
-- Answer is one or two words maximum
-- tipo: "fill_blank"
-
-SECTION 3 — TRUE/FALSE BASED ON A TEXT (4 items):
-- First, create a short paragraph or dialogue (3-5 sentences) using unit vocabulary
-- Then create 4 true/false statements about that text
-- tipo: "true_false"
-- The text goes in a field called "texto_base" at the top level (not inside each exercise)
-
-SECTION 4 — CORRECT THE SENTENCE (4 items):
-- Each sentence has exactly ONE mistake
-- The student must rewrite the sentence correctly
-- tipo: "error_correction"
-
+Create exactly 8 multiple choice questions.
 JSON only, no markdown, no backticks:
-{"titulo":"...","texto_base":"Short paragraph or dialogue for the true/false section (3-5 sentences using unit vocabulary)","exercicios":[{"tipo":"multiple_choice","pergunta":"...","opcoes":["a) ...","b) ...","c) ...","d) ..."],"resposta":"a","explicacao":"..."},{"tipo":"fill_blank","pergunta":"Complete: ...","resposta":"...","explicacao":"..."},{"tipo":"true_false","pergunta":"Statement about the text above","resposta":"true","explicacao":"..."},{"tipo":"error_correction","pergunta":"Correct: ...","resposta":"corrected sentence","explicacao":"..."}]}
-Order: 4 multiple_choice, then 4 fill_blank, then 4 true_false, then 4 error_correction. Each must have a correct answer and brief explanation.`;
+{"titulo":"...","exercicios":[{"tipo":"multiple_choice","pergunta":"...","opcoes":["a) ...","b) ...","c) ...","d) ..."],"resposta":"a","explicacao":"..."}]}`;
       const prompt = exConfig.modo === "prompt_livre"
-        ? `Create 16 exercises (4 multiple choice + 4 fill blank + 4 true/false with reading text + 4 error correction) about: ${exConfig.prompt_livre}. Keep them appropriate for ${nivelAluno} level.`
-        : `Create 16 exercises (4 multiple choice + 4 fill blank + 4 true/false with reading text + 4 error correction) based on: ${ctx}`;
-      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 2000);
+        ? `Create 8 multiple choice questions about: ${exConfig.prompt_livre}. Level: ${nivelAluno}.`
+        : `Create 8 multiple choice questions based on: ${ctx}. Level: ${nivelAluno}.`;
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 1200);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
     } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
@@ -5131,8 +5092,9 @@ IMPORTANT: Your corrections must be both grammatically and pragmatically accurat
     const novaMensagem = { role: "user", content: inputChat.trim() };
     const historico = [...mensagensChat];
     const system = historico[0]?._system || "";
-    const msgs = historico.map(m => ({ role: m.role, content: m.content }));
-    msgs.push(novaMensagem);
+    const todasMsgs = historico.map(m => ({ role: m.role, content: m.content }));
+    todasMsgs.push(novaMensagem);
+    const msgs = todasMsgs.slice(-8);
     const novoHistorico = [...historico, novaMensagem];
     setMensagensChat(novoHistorico);
     setInputChat("");
@@ -5676,7 +5638,7 @@ function FlashcardAdminPanel({ students }) {
   const [assignando, setAssignando] = useState(false);
 
   // Form novo deck
-  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
   const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
   const [editandoDeck, setEditandoDeck] = useState(null);
 
@@ -5808,58 +5770,8 @@ function FlashcardAdminPanel({ students }) {
     if (error) { setSalvando(false); flash("Erro ao salvar: " + error.message, "erro"); return; }
 
     if (!editandoDeck && novoDeckId) {
-      // Modo IA: nível + unidade selecionados — gera cards automaticamente via SYLLABUS
-      if (formDeck.modoCreacao === "ia_syllabus" && formDeck.nivel && formDeck.unidade) {
-        try {
-          const nivel = formDeck.nivel;
-          const unidade = formDeck.unidade;
-          const unidadeInfo = (SYLLABUS[nivel] || []).find(u => u.id === unidade);
-          const topicos = unidadeInfo ? unidadeInfo.items.join("; ") : "";
-          const tituloUnidade = unidadeInfo ? unidadeInfo.t : unidade;
-          const { data: sessionData } = await supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) throw new Error("Sessão expirada — faça login novamente.");
-          const resp = await fetch(ANTHROPIC_PROXY, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({
-              model: "claude-haiku-4-5-20251001",
-              max_tokens: 3500,
-              system: `You are an English teacher creating flashcards for ${nivel} level adult Brazilian students.
-Unit: ${tituloUnidade}
-Learning objectives: ${topicos}
-Create exactly 20 flashcards. Mix these types:
-- 12 vocabulary cards: frente = English word/phrase (with article when needed), verso = Portuguese translation
-- 5 communicative Q&A cards: frente = a real conversation question in English, verso = a model answer in English (not Portuguese)
-- 3 grammar pattern cards: frente = a grammar structure or useful chunk, verso = brief explanation or example(s) in English
-For all cards: exemplo = one short natural English sentence using the word/pattern, appropriate for ${nivel} level.
-Respond ONLY with valid JSON, no markdown, no backticks, no explanation:
-{"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}
-Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
-              messages: [{ role: "user", content: `Create 20 flashcards for ${nivel} level, unit ${unidade}: "${tituloUnidade}". Objectives: ${topicos}` }],
-            }),
-          });
-          const respText = await resp.text();
-          if (!resp.ok) { console.error("Proxy error:", respText); throw new Error(`Erro ${resp.status} no proxy`); }
-          const data = JSON.parse(respText);
-          const texto = data.content?.[0]?.text || "";
-          if (!texto) throw new Error("IA não retornou conteúdo.");
-          const parsed = parseCardsJSON(texto);
-          if (parsed.cards && parsed.cards.length > 0) {
-            const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
-            const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
-            if (errCards) throw new Error("Erro ao salvar cards: " + errCards.message);
-            flash(`✨ Deck criado com ${cardsIA.length} cards (vocabulário + conversação + gramática)!`);
-          } else {
-            flash("Deck criado! A IA não retornou cards — adicione manualmente.");
-          }
-        } catch (e) {
-          console.error("Erro na geração de cards:", e);
-          flash(`Deck criado, mas erro ao gerar cards: ${e.message}. Adicione os cards manualmente.`, "erro");
-        }
-
       // Modo IA com prompt livre
-      } else if (formDeck.modoCreacao === "ia_prompt" && formDeck.promptIA?.trim()) {
+      if (formDeck.modoCreacao === "ia_prompt" && formDeck.promptIA?.trim()) {
         try {
           const { data: sessionData } = await supabase.auth.getSession();
           const token = sessionData?.session?.access_token;
@@ -5869,25 +5781,23 @@ Keep everything very simple for ${nivel} level. Do NOT repeat cards.`,
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
               model: "claude-haiku-4-5-20251001",
-              max_tokens: 3500,
-              system: `You are an expert ESL teacher trained in Oxford/Cambridge methodology, creating flashcards based on a teacher's exact instructions.
-${formDeck.nivel ? `Student level: ${formDeck.nivel}. Keep all language appropriate for this level.` : "Adapt language to the level described by the teacher."}
+              max_tokens: 1200,
+              system: `You are an ESL teacher creating flashcards from a teacher's instructions.
+${formDeck.nivel ? `Student level: ${formDeck.nivel}.` : ""}
 
-CRITICAL RULE — FOLLOW THE PROMPT EXACTLY:
-- Create cards ONLY with the content the teacher provided. Do NOT invent, add, or expand beyond what was described.
-- If the teacher listed specific words, phrases, questions or sentences, use EXACTLY those — do not paraphrase or substitute.
-- If the teacher provided Q&A pairs, keep them exactly as written (only fix clear errors if needed).
-- The number of cards should match the content provided. If the teacher gave 10 items, create 10 cards — NOT 20.
-- Only add extra cards if the teacher explicitly asks for more or says "complement with..." or "add similar...".
+RULES:
+- Use EXACTLY the content the teacher provided. Do NOT add, invent or expand.
+- If the teacher listed specific words/phrases, use them exactly.
+- Number of cards = number of items provided. Do not add extras unless asked.
+- exemplo = one short, natural English sentence using the word/structure.
+- Every sentence must be grammatically and pragmatically correct.
 
-Card format:
+Card types:
 - Vocabulary: frente = English word/phrase, verso = Portuguese translation
-- Q&A: frente = question in English, verso = answer in English (exactly as teacher provided)
-- Grammar/chunk: frente = structure, verso = explanation or example
-For all cards: exemplo = one short example sentence using the content.
+- Q&A: frente = question in English, verso = answer in English
+- Grammar: frente = structure/chunk, verso = explanation or example
 
-Every sentence must be grammatically and pragmatically perfect. Use natural English.
-Respond ONLY with valid JSON, no markdown, no backticks:
+JSON only, no markdown, no backticks:
 {"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}`,
               messages: [{ role: "user", content: `Create flashcards following EXACTLY the content below. Do NOT add content I didn't ask for.${formDeck.nivel ? ` Level: ${formDeck.nivel}.` : ""}\n\n${formDeck.promptIA.trim()}` }],
             }),
@@ -5932,7 +5842,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
     }
 
     setSalvando(false);
-    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
+    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(false);
     setEditandoDeck(null);
     carregarDecks();
@@ -5940,7 +5850,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
 
   const abrirEdicaoDeck = (deck) => {
     setEditandoDeck(deck);
-    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_syllabus", listaPalavras: "", promptIA: "" });
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(true);
   };
 
@@ -6080,7 +5990,6 @@ Respond ONLY with valid JSON, no markdown, no backticks:
               <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "8px" }}>Como criar os cards?</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {[
-                  { v: "ia_syllabus", l: "✨ Gerar com IA a partir do Syllabus", desc: "Escolha nível e unidade — a IA cria ~20 cards automaticamente" },
                   { v: "ia_prompt", l: "🎯 Gerar com IA a partir de prompt", desc: "Descreva o tema, vocabulário e frases — a IA cria os cards" },
                   { v: "lista", l: "📋 Colar lista de palavras", desc: "Cole sua lista no formato: inglês = português" },
                   { v: "manual", l: "✍️ Adicionar manualmente depois", desc: "Cria o deck vazio e você adiciona card por card" },
@@ -6121,14 +6030,6 @@ Respond ONLY with valid JSON, no markdown, no backticks:
             </>
           )}
 
-          {/* Modo IA com Syllabus — hint de geração */}
-          {formDeck.modoCreacao === "ia_syllabus" && !editandoDeck && formDeck.nivel && formDeck.unidade && (
-            <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginBottom: "10px", display: "flex", gap: "8px", alignItems: "center" }}>
-              <span>✨</span>
-              <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai gerar ~20 cards a partir do Syllabus desta unidade.</p>
-            </div>
-          )}
-
           {/* Modo IA com prompt livre */}
           {formDeck.modoCreacao === "ia_prompt" && !editandoDeck && (
             <div>
@@ -6142,7 +6043,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
               {formDeck.promptIA && formDeck.promptIA.trim().length > 20 && (
                 <div style={{ background: palette.lightGreen + "44", borderRadius: "8px", padding: "10px 12px", marginTop: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
                   <span>✨</span>
-                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai criar ~20 cards{formDeck.nivel ? ` para ${formDeck.nivel}` : ""} com base na sua descrição.</p>
+                  <p style={{ fontSize: "12px", color: palette.green, margin: 0, fontWeight: 600 }}>Pronto! A IA vai criar os cards{formDeck.nivel ? ` para ${formDeck.nivel}` : ""} com base na sua descrição.</p>
                 </div>
               )}
             </div>
@@ -6182,9 +6083,8 @@ Respond ONLY with valid JSON, no markdown, no backticks:
               }
               style={{ ...btnOrange, opacity: (salvando || (!formDeck.student_id && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
               {salvando
-                ? (["ia_syllabus","ia_prompt"].includes(formDeck.modoCreacao) ? "Gerando com IA..." : "Salvando...")
+                ? (formDeck.modoCreacao === "ia_prompt" ? "Gerando com IA..." : "Salvando...")
                 : editandoDeck ? "Salvar alterações"
-                : formDeck.modoCreacao === "ia_syllabus" ? "✨ Criar com IA (Syllabus)"
                 : formDeck.modoCreacao === "ia_prompt" ? "🎯 Criar com IA (Prompt)"
                 : formDeck.modoCreacao === "lista" ? "📋 Criar com lista"
                 : "Criar deck"}
