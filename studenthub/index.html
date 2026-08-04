@@ -4843,6 +4843,7 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
   }, [mensagensChat]);
 
   const nivelAluno = student.nivel || "Beginner";
+  const studentId = student.id; // usado no log de IA
 
   // Converte "Unit 5A" → "5A" ou "Practical English 2" → "PE2"
   const labelParaCodigo = (label) => {
@@ -6098,7 +6099,7 @@ JSON only, no markdown, no backticks:
     setAssignando(true);
     // Verifica se já existe deck personalizado desse base pra esse aluno
     const { data: existente } = await supabase.from("flashcard_decks")
-      .select("id").eq("student_id", assignStudentId).eq("nome", assignDeck.nome + " (personalizado)").single();
+      .select("id").eq("student_id", assignStudentId).eq("nome", assignDeck.nome + " (personalizado)").maybeSingle();
     if (existente) {
       flash("Esse aluno já tem uma cópia personalizada desse deck.", "erro");
       setAssignando(false);
