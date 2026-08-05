@@ -1404,10 +1404,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "flashcards" ? palette.orange : "#FFF", color: abaAdmin === "flashcards" ? "#FFF" : palette.purple }}>
             🃏 Flashcards
           </button>
-          <button onClick={() => setAbaAdmin("uso_ia")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "uso_ia" ? palette.orange : "#FFF", color: abaAdmin === "uso_ia" ? "#FFF" : palette.purple }}>
-            📊 Uso de IA
-          </button>
+
         </div>
 
         {abaAdmin === "planejador" && (
@@ -1506,10 +1503,6 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
         {abaAdmin === "flashcards" && (
           <FlashcardAdminPanel students={students} />
-        )}
-
-        {abaAdmin === "uso_ia" && (
-          <UsoIAPanel students={students} />
         )}
 
         {abaAdmin === "calendario" && (
@@ -4883,22 +4876,8 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
     }).join("\n\n");
   };
 
-  // Log de uso de IA
-  const logUsoIA = async (studentId, feature, inputTokens, outputTokens) => {
-    try {
-      const custo = (inputTokens * 0.0000008) + (outputTokens * 0.000004); // Haiku pricing
-      await supabase.from("ai_usage_log").insert({
-        student_id: studentId || null,
-        feature,
-        input_tokens: inputTokens || 0,
-        output_tokens: outputTokens || 0,
-        custo_usd: Math.round(custo * 1000000) / 1000000,
-      });
-    } catch (e) { console.warn("Erro ao logar uso IA:", e); }
-  };
-
   // Chamada ao proxy seguro
-  const chamarIA = async (systemPrompt, messages, maxTokens = 800, feature = "exercicio", studentId = null) => {
+  const chamarIA = async (systemPrompt, messages, maxTokens = 800) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     if (!token) throw new Error("Sessão expirada. Faça login novamente.");
@@ -4923,7 +4902,6 @@ function PraticarComIA({ student, turma, dark, palette, textSecondary, cardBg })
     if (!data.content || !data.content[0] || !data.content[0].text) {
       throw new Error("Resposta inesperada da IA. Tente novamente.");
     }
-    logUsoIA(studentId, feature, data.usage?.input_tokens, data.usage?.output_tokens);
     return data.content[0].text;
   };
 
@@ -4962,7 +4940,7 @@ JSON only, no markdown, no backticks:
       const prompt = exConfig.modo === "prompt_livre"
         ? `Create 8 multiple choice questions about: ${exConfig.prompt_livre}. Level: ${nivelAluno}.`
         : `Create 8 multiple choice questions based on: ${ctx}. Level: ${nivelAluno}.`;
-      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 1200, "exercicio", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: prompt }], 1200);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setExerciciosGerados(dados);
     } catch (e) { alert("Erro ao gerar exercícios: " + e.message); }
@@ -5009,7 +4987,7 @@ For ${nivelAluno}: task achievable in 3-5 very simple sentences.
 
 JSON only, no markdown:
 {"titulo":"Task title","tarefa":"Clear instruction about what to write","modelo":"Model paragraph (3-5 simple sentences) using only known grammar/vocabulary","dicas":["Use [grammar structure]","Include [vocabulary]","Remember [grammar rule]"],"palavras_chave":["word1","word2","word3","word4","word5"]}`;
-      const resposta = await chamarIA(system, [{ role: "user", content: `Create a unique, practical writing task. Context: ${ctx}. Focus on grammar and vocabulary, not on the unit title.` }], 700, "escrita", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: `Create a unique, practical writing task. Context: ${ctx}. Focus on grammar and vocabulary, not on the unit title.` }], 700);
       const dados = JSON.parse(resposta.replace(/```json|```/g, "").trim());
       setEscritaTarefa(dados);
     } catch (e) { alert("Erro ao gerar tarefa: " + e.message); }
@@ -5034,7 +5012,7 @@ Be encouraging and clear. Respond ONLY with valid JSON, no markdown:
 }
 If no errors, return empty array. Keep explanations simple for ${nivelAluno} level.
 IMPORTANT: Your corrected version must be both grammatically and pragmatically accurate. Fix not only grammar errors but also unnatural expressions — e.g., correct "I want a coffee" to "Can I have a coffee?" in ordering contexts, or "I have 25 years" to "I am 25 years old".`;
-      const resposta = await chamarIA(system, [{ role: "user", content: `Student wrote: "${textoEscrita}"` }], 800, "escrita_correcao", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: `Student wrote: "${textoEscrita}"` }], 800);
       setCorrecaoEscrita(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao corrigir: " + e.message); }
     setCarregandoIA(false);
@@ -5078,7 +5056,7 @@ RULES — in order of priority:
 - Keep responses to 2 sentences max. Be warm and encouraging.
 - If student writes in Portuguese: "Try in English! You can say: [hint]"
 - Ask follow-up questions using the unit vocabulary`;
-      const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm 1-sentence greeting and one simple question related to the unit topic." }], 120, "chat", studentId);
+      const abertura = await chamarIA(system, [{ role: "user", content: "Start with a warm 1-sentence greeting and one simple question related to the unit topic." }], 120);
       setMensagensChat([{ role: "assistant", content: abertura, _system: system }]);
     } catch (e) { alert("Erro ao iniciar chat: " + e.message); }
     setCarregandoIA(false);
@@ -5105,7 +5083,7 @@ Be encouraging, clear, and gentle. Use simple language. Respond ONLY with valid 
 }
 Only include real errors that were actually made. Maximum 3 errors. If no errors, return empty array.
 IMPORTANT: Your corrections must be both grammatically and pragmatically accurate. Use natural English expressions — for example, correct "I want a coffee" to "Can I have a coffee, please?" when in an ordering context.`;
-      const resposta = await chamarIA(system, [{ role: "user", content: `Student messages during conversation:\n${transcricao}` }], 600, "chat_feedback", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: `Student messages during conversation:\n${transcricao}` }], 600);
       setFeedbackChat(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro ao gerar feedback: " + e.message); }
     setCarregandoIA(false);
@@ -5136,7 +5114,6 @@ IMPORTANT: Your corrections must be both grammatically and pragmatically accurat
       const data = await resp.json();
       if (!data.content?.[0]?.text) throw new Error("Resposta inesperada da IA.");
       const respostaIA = data.content[0].text;
-      logUsoIA(studentId, "chat_mensagem", data.usage?.input_tokens, data.usage?.output_tokens);
       setMensagensChat([...novoHistorico, { role: "assistant", content: respostaIA }]);
     } catch (e) { alert("Erro no chat: " + e.message); }
     setCarregandoIA(false);
@@ -5154,7 +5131,7 @@ IMPORTANT: Your corrections must be both grammatically and pragmatically accurat
 - Keep it short: max 3 paragraphs
 - End with one practice example for them to try
 - YOUR explanations and examples must be grammatically and pragmatically perfect — use natural English, not literal translations from Portuguese`;
-      const resposta = await chamarIA(system, [{ role: "user", content: perguntaDuvida }], 500, "duvida", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: perguntaDuvida }], 500);
       setRespostaDuvida(resposta);
     } catch (e) { alert("Erro: " + e.message); }
     setCarregandoIA(false);
@@ -5180,7 +5157,7 @@ Respond ONLY with valid JSON, no markdown:
 }
 Keep sentences simple for ${nivelAluno} level.
 Every example sentence must be grammatically and pragmatically perfect — use natural English a native speaker would say, not literal translations from Portuguese.`;
-      const resposta = await chamarIA(system, [{ role: "user", content: `Create 3 example sentences for: "${palavraExemplo}"` }], 800, "exemplo", studentId);
+      const resposta = await chamarIA(system, [{ role: "user", content: `Create 3 example sentences for: "${palavraExemplo}"` }], 800);
       setExemploGerado(JSON.parse(resposta.replace(/```json|```/g, "").trim()));
     } catch (e) { alert("Erro: " + e.message); }
     setCarregandoIA(false);
@@ -5641,170 +5618,6 @@ Every example sentence must be grammatically and pragmatically perfect — use n
 }
 
 // ---------- USO DE IA PANEL ----------
-function UsoIAPanel({ students }) {
-  const { useState, useEffect } = React;
-  const [logs, setLogs] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [periodo, setPeriodo] = useState("mes"); // mes | semana | tudo
-  const palette = { orange: "#FF5C23", green: "#04392F", purple: "#1D1050", lime: "#CAE78D", lavender: "#B4A1FF", cream: "#FAEAD3" };
-
-  const FEATURE_LABEL = {
-    exercicio: "Exercício",
-    escrita: "Escrita",
-    escrita_correcao: "Correção",
-    chat: "Chat",
-    chat_mensagem: "Chat msg",
-    chat_feedback: "Feedback chat",
-    duvida: "Dúvida",
-    exemplo: "Exemplo",
-    flashcard_admin: "Flashcard (admin)",
-  };
-
-  useEffect(() => {
-    carregarLogs();
-  }, [periodo]);
-
-  const carregarLogs = async () => {
-    setCarregando(true);
-    let query = supabase.from("ai_usage_log").select("*").order("created_at", { ascending: false });
-    if (periodo === "mes") {
-      const inicio = new Date(); inicio.setDate(1); inicio.setHours(0,0,0,0);
-      query = query.gte("created_at", inicio.toISOString());
-    } else if (periodo === "semana") {
-      const inicio = new Date(); inicio.setDate(inicio.getDate() - 7); inicio.setHours(0,0,0,0);
-      query = query.gte("created_at", inicio.toISOString());
-    }
-    const { data, error } = await query.limit(500);
-    if (!error) setLogs(data || []);
-    setCarregando(false);
-  };
-
-  const studentMap = {};
-  (students || []).forEach(s => { studentMap[s.id] = s.nome; });
-
-  // Agrupar por aluna
-  const porAluna = {};
-  logs.forEach(log => {
-    const key = log.student_id || "__admin__";
-    if (!porAluna[key]) porAluna[key] = { nome: log.student_id ? (studentMap[log.student_id] || "Aluna desconhecida") : "🔧 Admin (flashcards)", tokens_in: 0, tokens_out: 0, custo: 0, chamadas: 0 };
-    porAluna[key].tokens_in += log.input_tokens || 0;
-    porAluna[key].tokens_out += log.output_tokens || 0;
-    porAluna[key].custo += log.custo_usd || 0;
-    porAluna[key].chamadas += 1;
-  });
-
-  const totalCusto = logs.reduce((s, l) => s + (l.custo_usd || 0), 0);
-  const totalTokens = logs.reduce((s, l) => s + (l.input_tokens || 0) + (l.output_tokens || 0), 0);
-  const totalChamadas = logs.length;
-
-  const alunasSorted = Object.entries(porAluna).sort((a, b) => b[1].custo - a[1].custo);
-
-  const tdStyle = { padding: "10px 12px", borderBottom: "1px solid #f0e8d8", fontSize: "13px", color: palette.purple };
-  const thStyle = { padding: "10px 12px", background: palette.cream, fontSize: "12px", fontWeight: 700, color: palette.green, textAlign: "left", textTransform: "uppercase", letterSpacing: "0.05em" };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Header */}
-      <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
-          <h3 style={{ margin: 0, color: palette.purple, fontSize: "16px", fontWeight: 700 }}>📊 Uso de IA</h3>
-          <div style={{ display: "flex", gap: "8px" }}>
-            {["semana", "mes", "tudo"].map(p => (
-              <button key={p} onClick={() => setPeriodo(p)}
-                style={{ padding: "6px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600,
-                  background: periodo === p ? palette.orange : palette.cream, color: periodo === p ? "#FFF" : palette.purple }}>
-                {p === "semana" ? "7 dias" : p === "mes" ? "Este mês" : "Tudo"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Totais */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "4px" }}>
-          {[
-            { label: "Custo total", valor: `US$ ${totalCusto.toFixed(4)}`, cor: palette.orange },
-            { label: "Tokens usados", valor: totalTokens.toLocaleString("pt-BR"), cor: palette.green },
-            { label: "Chamadas à IA", valor: totalChamadas, cor: palette.purple },
-          ].map(c => (
-            <div key={c.label} style={{ background: palette.cream, borderRadius: "12px", padding: "14px 16px" }}>
-              <div style={{ fontSize: "11px", color: `${palette.purple}99`, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>{c.label}</div>
-              <div style={{ fontSize: "20px", fontWeight: 800, color: c.cor }}>{c.valor}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabela por aluna */}
-      <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
-        <h4 style={{ margin: "0 0 14px", color: palette.purple, fontSize: "14px", fontWeight: 700 }}>Por aluna</h4>
-        {carregando ? (
-          <p style={{ color: `${palette.purple}66`, fontSize: "13px" }}>Carregando...</p>
-        ) : alunasSorted.length === 0 ? (
-          <p style={{ color: `${palette.purple}66`, fontSize: "13px" }}>Nenhum uso registrado nesse período.</p>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Aluna</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Chamadas</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Tokens</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Custo (USD)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alunasSorted.map(([key, d]) => (
-                  <tr key={key}>
-                    <td style={tdStyle}>{d.nome}</td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>{d.chamadas}</td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>{(d.tokens_in + d.tokens_out).toLocaleString("pt-BR")}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 700, color: palette.orange }}>US$ {d.custo.toFixed(5)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Log recente */}
-      <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
-        <h4 style={{ margin: "0 0 14px", color: palette.purple, fontSize: "14px", fontWeight: 700 }}>Últimas chamadas</h4>
-        {carregando ? (
-          <p style={{ color: `${palette.purple}66`, fontSize: "13px" }}>Carregando...</p>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Data/Hora</th>
-                  <th style={thStyle}>Aluna</th>
-                  <th style={thStyle}>Feature</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Tokens in</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Tokens out</th>
-                  <th style={{ ...thStyle, textAlign: "right" }}>Custo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.slice(0, 50).map(log => (
-                  <tr key={log.id}>
-                    <td style={{ ...tdStyle, fontSize: "12px", color: `${palette.purple}88` }}>{new Date(log.created_at).toLocaleString("pt-BR")}</td>
-                    <td style={tdStyle}>{log.student_id ? (studentMap[log.student_id] || "—") : "Admin"}</td>
-                    <td style={tdStyle}><span style={{ background: palette.lavender + "44", color: palette.purple, borderRadius: "6px", padding: "2px 8px", fontSize: "12px", fontWeight: 600 }}>{FEATURE_LABEL[log.feature] || log.feature}</span></td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontSize: "12px" }}>{(log.input_tokens || 0).toLocaleString("pt-BR")}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontSize: "12px" }}>{(log.output_tokens || 0).toLocaleString("pt-BR")}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontSize: "12px", color: palette.orange }}>US$ {(log.custo_usd || 0).toFixed(5)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ---------- FLASHCARD ADMIN PANEL ----------
 function FlashcardAdminPanel({ students }) {
   const { useState, useEffect, useCallback } = React;
@@ -5997,7 +5810,6 @@ JSON only, no markdown, no backticks:
           const data = JSON.parse(respText);
           const texto = data.content?.[0]?.text || "";
           if (!texto) throw new Error("IA não retornou conteúdo.");
-          logUsoIA(null, "flashcard_admin", data.usage?.input_tokens, data.usage?.output_tokens);
           const parsed = parseCardsJSON(texto);
           if (parsed.cards && parsed.cards.length > 0) {
             const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
