@@ -417,6 +417,7 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
   const [lessonsDaSemana, setLessonsDaSemana] = useState([]);
   const [diasSemAula, setDiasSemAula] = useState({});
   const [ultimoPlanoPorTurma, setUltimoPlanoPorTurma] = useState({}); // { turma_id: "para_proxima_aula do último registro" }
+  const [ultimoConteudoPorTurma, setUltimoConteudoPorTurma] = useState({}); // { turma_id: "conteudo_ensinado do último registro" }
   const [carregando, setCarregando] = useState(true);
 
   // Calcula as datas da semana (Dom -> Sáb)
@@ -465,19 +466,22 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
         supabase.from("lessons").select("*").gte("data", inicio).lte("data", fim),
         supabase.from("dias_sem_aula").select("*").gte("data", inicio).lte("data", fim),
         turmaIds.length > 0
-          ? supabase.from("lesson_records").select("turma_id, data, para_proxima_aula").in("turma_id", turmaIds).order("data", { ascending: false })
+          ? supabase.from("lesson_records").select("turma_id, data, para_proxima_aula, conteudo_ensinado").in("turma_id", turmaIds).order("data", { ascending: false })
           : Promise.resolve({ data: [] }),
       ]);
       setLessonsDaSemana(lessonsRes.data || []);
       const diasObj = {};
       (diasRes.data || []).forEach((d) => { diasObj[d.data] = d.motivo || "Sem aula"; });
       setDiasSemAula(diasObj);
-      // Pega o mais recente "para_proxima_aula" por turma (records vem ordenado por data desc)
+      // Pega o mais recente "para_proxima_aula" e "conteudo_ensinado" por turma (records vem ordenado por data desc)
       const ultimoObj = {};
+      const ultimoConteudoObj = {};
       (recordsRes.data || []).forEach((r) => {
         if (!ultimoObj[r.turma_id] && r.para_proxima_aula) ultimoObj[r.turma_id] = r.para_proxima_aula;
+        if (!ultimoConteudoObj[r.turma_id] && r.conteudo_ensinado) ultimoConteudoObj[r.turma_id] = r.conteudo_ensinado;
       });
       setUltimoPlanoPorTurma(ultimoObj);
+      setUltimoConteudoPorTurma(ultimoConteudoObj);
       setCarregando(false);
     }
     carregar();
@@ -633,6 +637,14 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
                         </p>
                         {a.vindaDe && (
                           <p style={{ margin: "4px 0 0 0", fontSize: "10px", color: palette.orange, fontWeight: 500 }}>🔁 vinda de {a.vindaDe}</p>
+                        )}
+                        {ultimoConteudoPorTurma[a.turma_id] && a.status !== "realizada" && (
+                          <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: `1px dashed ${palette.lavender}88` }}>
+                            <p style={{ margin: 0, fontSize: "9px", fontWeight: 700, color: `${palette.purple}99`, letterSpacing: "0.05em", textTransform: "uppercase" }}>Última aula:</p>
+                            <p style={{ margin: "2px 0 0 0", fontSize: "10px", color: `${palette.purple}bb`, lineHeight: 1.3, wordBreak: "break-word", fontStyle: "italic" }}>
+                              {ultimoConteudoPorTurma[a.turma_id]}
+                            </p>
+                          </div>
                         )}
                         {ultimoPlanoPorTurma[a.turma_id] && a.status !== "realizada" && (
                           <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: `1px dashed ${palette.lavender}88` }}>
