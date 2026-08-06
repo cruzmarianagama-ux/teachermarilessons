@@ -801,11 +801,16 @@ async function deleteSetInDb(id){
 }
 
 async function refreshSetsFromDb(){
+  setsGrid.innerHTML = '<p style="color:#8a7e6d;">⏳ Loading your sets...</p>';
   try{
     sets = await fetchAllSets();
     renderSetsGrid();
+    document.getElementById('storageUsageNote').textContent = '🟢 Connected to Supabase — your sets are synced to the cloud, no longer tied to this one browser.';
+    document.getElementById('storageUsageNote').className = 'tiny-note';
   }catch(e){
-    setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again.</p>';
+    setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again. <button onclick="refreshSetsFromDb()" style="margin-left:8px;background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:6px 14px;font-family:Poppins,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Try again</button></p>';
+    document.getElementById('storageUsageNote').textContent = '🔴 Not connected — check your internet connection.';
+    document.getElementById('storageUsageNote').className = 'tiny-note warning';
   }
 }
 
@@ -1311,10 +1316,11 @@ document.addEventListener('fullscreenchange', ()=>{
 });
 
 async function renderPresentSetSelect(){
+  presentInner.innerHTML = '<p class="empty-msg">⏳ Loading sets...</p>';
   try{
     sets = await fetchAllSets();
   }catch(e){
-    presentInner.innerHTML = '<p class="empty-msg">⚠ Could not connect to Supabase. Check your internet connection and try again.</p>';
+    presentInner.innerHTML = '<p class="empty-msg">⚠ Could not connect to Supabase. Check your internet connection and try again.<br><br><button onclick="renderPresentSetSelect()" style="background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:10px 22px;font-family:Poppins,sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Try again</button></p>';
     return;
   }
   presentSetSelect.innerHTML = '';
@@ -1763,6 +1769,13 @@ document.addEventListener('keydown', (e)=>{
       e.preventDefault();
       openBox(idx);
     }
+  }
+});
+
+/* ---------------- AUTO-RETRY ON VISIBILITY CHANGE ---------------- */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible' && adminView.classList.contains('active')){
+    refreshSetsFromDb();
   }
 });
 
