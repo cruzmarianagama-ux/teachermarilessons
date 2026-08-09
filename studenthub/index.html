@@ -925,9 +925,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     frequencia: "1x",
     nivel: "Beginner",
     diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
-    alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
+    alunos: [{ nome: "", email: "", senha: "", telefone: "", aniversario: "" }],
     dataInicio: new Date().toISOString().slice(0, 10),
     dataFim: "",
+    linkAula: "",
   });
   const [statusForm, setStatusForm] = useState({ tipo: "", texto: "" });
   const [enviando, setEnviando] = useState(false);
@@ -938,7 +939,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const mudarModalidade = (modalidade) => {
     const min = modalidade === "grupo" ? 3 : vagasPorModalidade[modalidade];
     const alunosAtuais = novaTurma.alunos.slice(0, min);
-    while (alunosAtuais.length < min) alunosAtuais.push({ nome: "", email: "", senha: "", telefone: "" });
+    while (alunosAtuais.length < min) alunosAtuais.push({ nome: "", email: "", senha: "", telefone: "", aniversario: "" });
     setNovaTurma((t) => ({ ...t, modalidade, alunos: alunosAtuais }));
   };
 
@@ -952,7 +953,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
   const adicionarAlunoGrupo = () => {
     if (novaTurma.alunos.length >= 6) return;
-    setNovaTurma((t) => ({ ...t, alunos: [...t.alunos, { nome: "", email: "", senha: "", telefone: "" }] }));
+    setNovaTurma((t) => ({ ...t, alunos: [...t.alunos, { nome: "", email: "", senha: "", telefone: "", aniversario: "" }] }));
   };
 
   const removerAlunoGrupo = (index) => {
@@ -1347,9 +1348,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     setNovaTurma({
       modalidade: "individual", frequencia: "1x", nivel: "Beginner",
       diasHorarios: [{ dia: "Segunda", horario: "19:00" }],
-      alunos: [{ nome: "", email: "", senha: "", telefone: "" }],
+      alunos: [{ nome: "", email: "", senha: "", telefone: "", aniversario: "" }],
       dataInicio: new Date().toISOString().slice(0, 10),
       dataFim: "",
+      linkAula: "",
     });
     carregarAlunos();
   };
@@ -1893,6 +1895,9 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                     style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
                   <input type="tel" value={a.telefone} onChange={(e) => atualizarAluno(i, "telefone", e.target.value)}
                     placeholder="Telefone WhatsApp (opcional)"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: `${palette.purple}99`, marginBottom: "4px" }}>Aniversário (opcional)</label>
+                  <input type="date" value={a.aniversario || ""} onChange={(e) => atualizarAluno(i, "aniversario", e.target.value)}
                     style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
                 </div>
               ))}
@@ -1902,6 +1907,11 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                   + adicionar aluno
                 </button>
               )}
+
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Link da aula ao vivo — opcional</label>
+              <input type="url" value={novaTurma.linkAula} onChange={(e) => setNovaTurma((t) => ({ ...t, linkAula: e.target.value }))}
+                placeholder="https://meet.google.com/..."
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "16px" }} />
 
               {statusForm.texto && (
                 <div style={{ marginBottom: "12px" }}>
