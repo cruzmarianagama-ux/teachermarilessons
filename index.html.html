@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TMLBoard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --orange: #FF5C23;
+  --green:  #04392F;
+  --purple: #1D1050;
+  --lime:   #CAE78D;
+  --lav:    #B4A1FF;
+  --cream:  #FAEAD3;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: transparent;
+  overflow: hidden;
+  width: 100vw; height: 100vh;
+  user-select: none;
+}
+
+/* ── Canvas ── */
+#drawCanvas {
+  position: fixed; top:0; left:0;
+  width:100%; height:100%;
+  z-index:1; pointer-events:none;
+}
+
+/* ── Elementos ── */
+#elementos {
+  position: fixed; top:0; left:0;
+  width:100%; height:100%;
+  z-index:2; pointer-events:none;
+}
+
+/* ── FRASE ── */
+.el-frase {
+  position: absolute;
+  display: flex; align-items: flex-start; gap: 7px;
+  pointer-events: all; cursor: grab;
+}
+.el-frase:active { cursor: grabbing; }
+.frase-texto {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  white-space: pre-wrap; word-break: break-word;
+  max-width: 740px; line-height: 1.3;
+  outline: none;
+}
+.frase-texto[contenteditable="true"] {
+  border-bottom: 2px dashed rgba(255,255,255,0.5);
+  cursor: text;
+  min-width: 40px;
+}
+.el-frase .el-del { opacity:0; transition: opacity 0.2s; }
+.el-frase:hover .el-del { opacity:1; }
+
+/* ── STICKY ── */
+.el-sticky {
+  position: absolute; width: 200px; min-height: 120px;
+  border-radius: 4px 14px 14px 4px;
+  padding: 12px 14px 12px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  pointer-events: all; cursor: grab;
+  box-shadow: 3px 5px 18px rgba(0,0,0,0.35);
+}
+.el-sticky:active { cursor: grabbing; }
+.sticky-text {
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+  color: #1D1050; background: transparent; border: none; outline: none;
+  resize: none; width: 100%; min-height: 60px; cursor: text; pointer-events: all;
+}
+.el-sticky .el-del { opacity:0; transition:opacity 0.2s; }
+.el-sticky:hover .el-del { opacity:1; }
+
+/* ── BOX ── */
+.el-box {
+  position: absolute; border-radius: 8px;
+  pointer-events: all; cursor: grab;
+  min-width: 60px; min-height: 30px;
+  display: flex; align-items: flex-start; justify-content: flex-end; padding: 3px;
+}
+.el-box:active { cursor: grabbing; }
+.el-box .el-del { opacity:0; transition:opacity 0.2s; }
+.el-box:hover .el-del { opacity:1; }
+.box-resize {
+  position: absolute; bottom:3px; right:3px;
+  width:13px; height:13px; cursor:se-resize;
+  color:rgba(255,255,255,0.55); font-size:11px;
+  pointer-events:all; line-height:1;
+}
+
+/* ── IMAGEM ── */
+.el-img {
+  position: absolute; pointer-events: all; cursor: grab;
+}
+.el-img:active { cursor: grabbing; }
+.el-img img { display:block; max-width:100%; border-radius:6px; box-shadow:0 6px 24px rgba(0,0,0,0.4); }
+.el-img .el-del { opacity:0; transition:opacity 0.2s; position:absolute; top:6px; right:6px; }
+.el-img:hover .el-del { opacity:1; }
+.img-resize {
+  position:absolute; bottom:4px; right:4px;
+  width:13px; height:13px; cursor:se-resize;
+  color:rgba(255,255,255,0.8); font-size:11px; pointer-events:all;
+}
+
+/* ── DEL universal ── */
+.el-del {
+  background: rgba(255,60,60,0.85); border:none; border-radius:50%;
+  width:22px; height:22px; min-width:22px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:11px; color:#fff; z-index:10; pointer-events:all;
+}
+.el-del:hover { background:#ff1a1a; }
+
+/* ── SVG setas ── */
+#arrowSvg {
+  position:fixed; top:0; left:0;
+  width:100%; height:100%;
+  z-index:3; pointer-events:none;
+}
+
+/* ══════════════════════════════════════
+   TOOLBAR
+══════════════════════════════════════ */
+#toolbar {
+  position: fixed; bottom:0; left:0; right:0;
+  z-index:200;
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+}
+#toolbar.hidden { transform: translateY(calc(100% - 5px)); opacity: 0.2; }
+#toolbar:hover  { transform: translateY(0); opacity: 1; }
+
+/* Painel IA */
+#subBar {
+  display: none; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  background: rgba(29,16,80,0.95); backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(180,161,255,0.2); border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 16px; max-width: 100vw;
+}
+#subBar.visible { display: flex; }
+
+/* Barra principal */
+#toolbarMain {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;
+  background: rgba(4,57,47,0.95); backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(202,231,141,0.2); border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  padding: 8px 16px; max-width: 100vw;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.35);
+}
+
+.sep { width:1px; height:24px; background:rgba(255,255,255,0.13); margin:0 1px; flex-shrink:0; }
+
+/* ── Botões base ── */
+.btn {
+  font-family: 'Poppins', sans-serif; font-size:12px; font-weight:600;
+  border:1.5px solid transparent; border-radius:9px;
+  padding:5px 10px; cursor:pointer; transition:all 0.15s;
+  white-space:nowrap; display:flex; align-items:center; gap:4px; flex-shrink:0;
+}
+.btn-icon {
+  /* só ícone, sem texto — quadrado */
+  padding: 5px 7px;
+}
+.btn-tool { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.7); border-color:rgba(255,255,255,0.1); }
+.btn-tool:hover { background:rgba(255,255,255,0.14); color:#fff; }
+.btn-tool.active { background:var(--lime); color:var(--green); border-color:var(--lime); }
+.btn-add  { background:var(--orange); color:#fff; border-color:var(--orange); }
+.btn-add:hover { background:#e04d18; }
+.btn-danger { background:rgba(255,92,35,0.1); color:var(--orange); border-color:rgba(255,92,35,0.25); }
+.btn-danger:hover { background:rgba(255,92,35,0.22); }
+.btn-ai { background:rgba(180,161,255,0.13); color:var(--lav); border-color:rgba(180,161,255,0.3); }
+.btn-ai:hover { background:rgba(180,161,255,0.25); }
+.btn-ai.active { background:var(--lav); color:var(--purple); border-color:var(--lav); }
+
+/* ── Dropdown de ferramentas ── */
+.tool-wrap { position:relative; flex-shrink:0; }
+#toolDropBtn { min-width:110px; justify-content:space-between; }
+#toolDropMenu {
+  display:none; position:absolute; bottom:calc(100% + 6px); left:0;
+  background:rgba(4,57,47,0.97); backdrop-filter:blur(12px);
+  border:1.5px solid rgba(202,231,141,0.2); border-radius:12px;
+  padding:6px; min-width:150px; z-index:300;
+  flex-direction:column; gap:3px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+#toolDropMenu.open { display:flex; }
+.tool-opt {
+  font-family:'Poppins',sans-serif; font-size:12px; font-weight:600;
+  background:transparent; border:none; border-radius:8px;
+  color:rgba(255,255,255,0.75); padding:7px 12px;
+  cursor:pointer; text-align:left; transition:all 0.12s;
+  display:flex; align-items:center; gap:8px;
+}
+.tool-opt:hover { background:rgba(202,231,141,0.15); color:#fff; }
+.tool-opt.active { background:var(--lime); color:var(--green); }
+
+/* ── Input frase ── */
+#inputFrase {
+  font-family:'Poppins',sans-serif; font-size:13px; font-weight:600;
+  background:rgba(255,255,255,0.08); border:1.5px solid rgba(202,231,141,0.3);
+  border-radius:9px; color:#fff; padding:5px 12px; width:260px; outline:none;
+}
+#inputFrase::placeholder { color:rgba(255,255,255,0.3); font-weight:400; }
+#inputFrase:focus { border-color:var(--lime); }
+
+/* ── Font size ── */
+#fontSize {
+  font-family:'Poppins',sans-serif; font-size:12px; font-weight:600;
+  background:rgba(255,255,255,0.08); border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:8px; color:#fff; padding:4px 5px;
+  width:50px; outline:none; text-align:center;
+}
+
+/* ── Cores ── */
+.swatch {
+  width:20px; height:20px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:border-color 0.15s, transform 0.15s; flex-shrink:0;
+}
+.swatch.sel { border-color:#fff; transform:scale(1.3); }
+
+/* ── Slider espessura ── */
+#thickSlider {
+  -webkit-appearance:none; appearance:none;
+  width:70px; height:4px; border-radius:2px;
+  background:rgba(255,255,255,0.25); outline:none; cursor:pointer;
+}
+#thickSlider::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px;
+  border-radius:50%; background:var(--lime); cursor:pointer;
+}
+
+/* ── Emoji popover ── */
+.emoji-wrap { position:relative; flex-shrink:0; }
+#emojiPopover {
+  display:none; position:absolute; bottom:calc(100% + 8px); left:50%;
+  transform:translateX(-50%);
+  background:rgba(4,57,47,0.97); backdrop-filter:blur(12px);
+  border:1.5px solid rgba(202,231,141,0.2); border-radius:14px;
+  padding:8px 10px; z-index:300; gap:4px; flex-wrap:wrap; width:180px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+#emojiPopover.open { display:flex; }
+.emoji-btn {
+  font-size:20px; background:none; border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:8px; cursor:pointer; padding:4px 6px; transition:all 0.12s; line-height:1;
+}
+.emoji-btn:hover { background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.25); }
+
+/* ── Upload ── */
+#fileInput { display:none; }
+
+/* ── Abas IA ── */
+.ai-tab {
+  font-family:'Poppins',sans-serif; font-size:11px; font-weight:600;
+  background:rgba(255,255,255,0.07); border:1.5px solid rgba(180,161,255,0.15);
+  border-radius:8px; color:rgba(255,255,255,0.5); padding:4px 9px;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap;
+}
+.ai-tab:hover { background:rgba(180,161,255,0.15); color:#fff; }
+.ai-tab.active { background:var(--lav); color:var(--purple); border-color:var(--lav); }
+
+/* ── AI inputs ── */
+.ai-input {
+  font-family:'Poppins',sans-serif; font-size:12px;
+  background:rgba(255,255,255,0.08); border:1.5px solid rgba(180,161,255,0.3);
+  border-radius:9px; color:#fff; padding:5px 10px; width:210px; outline:none;
+}
+.ai-input::placeholder { color:rgba(255,255,255,0.28); }
+.ai-input:focus { border-color:var(--lav); }
+.ai-select {
+  font-family:'Poppins',sans-serif; font-size:11px;
+  background:rgba(255,255,255,0.08); border:1.5px solid rgba(180,161,255,0.25);
+  border-radius:8px; color:#fff; padding:4px 7px; outline:none;
+}
+.ai-panel { align-items:center; gap:7px; }
+
+/* ── Hint ── */
+#hint {
+  position:fixed; top:14px; left:50%; transform:translateX(-50%);
+  background:rgba(4,57,47,0.75); backdrop-filter:blur(8px);
+  color:rgba(255,255,255,0.45); font-size:11px;
+  padding:4px 14px; border-radius:20px; z-index:300;
+  pointer-events:none; transition:opacity 1s; white-space:nowrap;
+}
+#hint.gone { opacity:0; }
+
+/* ── Toast ── */
+#toast {
+  position:fixed; top:50px; left:50%; transform:translateX(-50%);
+  background:rgba(29,16,80,0.92); color:var(--lav); font-size:12px; font-weight:600;
+  padding:7px 18px; border-radius:20px; z-index:500;
+  pointer-events:none; opacity:0; transition:opacity 0.3s;
+  border:1px solid rgba(180,161,255,0.25);
+}
+#toast.show { opacity:1; }
+
+@keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+</style>
+</head>
+<body>
+
+<canvas id="drawCanvas"></canvas>
+<div id="elementos"></div>
+<svg id="arrowSvg"></svg>
+
+<div id="hint">H = ocultar barra · Ctrl+Z = desfazer · duplo clique = editar frase</div>
+<div id="toast"></div>
+<input type="file" id="fileInput" accept="image/*">
+
+<div id="toolbar">
+
+  <!-- Painel IA -->
+  <div id="subBar">
+    <div style="display:flex;gap:5px;align-items:center;border-right:1px solid rgba(255,255,255,0.1);padding-right:10px;margin-right:2px;flex-shrink:0;">
+      <button class="ai-tab active" data-tab="exemplos">✨ Exemplos</button>
+      <button class="ai-tab" data-tab="traduzir">🌐 Traduzir</button>
+      <button class="ai-tab" data-tab="pronuncia">🔊 Pronúncia</button>
+    </div>
+    <!-- Exemplos -->
+    <div class="ai-panel" id="panel-exemplos" style="display:flex;">
+      <input type="text" id="inputAI" placeholder="present perfect, going to…" class="ai-input">
+      <select id="qtdExemplos" class="ai-select">
+        <option value="2">2 ex.</option>
+        <option value="3" selected>3 ex.</option>
+        <option value="5">5 ex.</option>
+      </select>
+      <button class="btn btn-ai" id="btnGerarAI">Gerar</button>
+    </div>
+    <!-- Traduzir -->
+    <div class="ai-panel" id="panel-traduzir" style="display:none;">
+      <input type="text" id="inputTraduzir" placeholder="Digite em PT ou EN…" class="ai-input">
+      <select id="qtdTrad" class="ai-select">
+        <option value="2">2 ex.</option>
+        <option value="3" selected>3 ex.</option>
+      </select>
+      <button class="btn btn-ai" id="btnTraduzir">Traduzir</button>
+    </div>
+    <!-- Pronúncia -->
+    <div class="ai-panel" id="panel-pronuncia" style="display:none;">
+      <input type="text" id="inputPron" placeholder="beautiful, Wednesday…" class="ai-input" style="width:170px;">
+      <button class="btn btn-ai" id="btnPron">Buscar</button>
+      <div id="pronResult" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border-radius:9px;padding:5px 12px;">
+        <span id="pronWord" style="color:#fff;font-weight:700;font-size:14px;"></span>
+        <span id="pronIPA"  style="color:var(--lime);font-size:14px;font-weight:500;letter-spacing:1px;"></span>
+        <button id="btnPlay"    style="background:var(--lav);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700;color:#1D1050;">▶ Ouvir</button>
+        <button id="btnAddPron" style="background:var(--orange);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700;color:#fff;">+ Lousa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra principal -->
+  <div id="toolbarMain">
+
+    <!-- Cores -->
+    <div class="swatch sel" style="background:#fff;border-color:rgba(255,255,255,0.4)" data-color="#fff"></div>
+    <div class="swatch" style="background:#111"    data-color="#111"></div>
+    <div class="swatch" style="background:#6B3A2A" data-color="#6B3A2A"></div>
+    <div class="swatch" style="background:#3B0066" data-color="#3B0066"></div>
+    <div class="swatch" style="background:#FF5C23" data-color="#FF5C23"></div>
+    <div class="swatch" style="background:#CAE78D" data-color="#CAE78D"></div>
+    <div class="swatch" style="background:#B4A1FF" data-color="#B4A1FF"></div>
+    <div class="swatch" style="background:#FFD700" data-color="#FFD700"></div>
+    <div class="swatch" style="background:#00CFFF" data-color="#00CFFF"></div>
+
+    <div class="sep"></div>
+
+    <!-- Tamanho + espessura -->
+    <input type="number" id="fontSize" value="38" min="14" max="120" title="Tamanho da fonte">
+    <input type="range"  id="thickSlider" min="2" max="20" value="3" title="Espessura do traço">
+
+    <div class="sep"></div>
+
+    <!-- Input + Adicionar -->
+    <input type="text" id="inputFrase" placeholder="Digite uma frase… Enter para adicionar">
+    <button class="btn btn-add" id="btnAdd">＋</button>
+
+    <div class="sep"></div>
+
+    <!-- Dropdown ferramentas -->
+    <div class="tool-wrap">
+      <button class="btn btn-tool" id="toolDropBtn">✏️ Nenhuma <span style="opacity:0.5;font-size:10px;">▲</span></button>
+      <div id="toolDropMenu">
+        <button class="tool-opt" data-tool="draw">✏️ Desenhar</button>
+        <button class="tool-opt" data-tool="highlight">🖊️ Marca-texto</button>
+        <button class="tool-opt" data-tool="arrow">➡️ Seta</button>
+        <button class="tool-opt" data-tool="box">🟨 Caixa destaque</button>
+        <button class="tool-opt" data-tool="eraser">🧹 Borracha</button>
+        <button class="tool-opt" data-tool="none" style="border-top:1px solid rgba(255,255,255,0.1);margin-top:3px;padding-top:9px;">✕ Desativar</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Sticky + Imagem -->
+    <button class="btn btn-tool btn-icon" id="btnSticky" title="Sticky note">🃏</button>
+    <button class="btn btn-tool btn-icon" id="btnImg"    title="Imagem (upload ou Ctrl+V)">🖼</button>
+
+    <!-- Emojis popover -->
+    <div class="emoji-wrap">
+      <button class="btn btn-tool btn-icon" id="btnEmoji" title="Emojis">😊</button>
+      <div id="emojiPopover">
+        <button class="emoji-btn" data-emoji="👍">👍</button>
+        <button class="emoji-btn" data-emoji="✅">✅</button>
+        <button class="emoji-btn" data-emoji="❌">❌</button>
+        <button class="emoji-btn" data-emoji="⭐">⭐</button>
+        <button class="emoji-btn" data-emoji="💡">💡</button>
+        <button class="emoji-btn" data-emoji="🔥">🔥</button>
+        <button class="emoji-btn" data-emoji="🎯">🎯</button>
+        <button class="emoji-btn" data-emoji="📌">📌</button>
+        <button class="emoji-btn" data-emoji="🤔">🤔</button>
+        <button class="emoji-btn" data-emoji="💬">💬</button>
+        <button class="emoji-btn" data-emoji="✏️">✏️</button>
+        <button class="emoji-btn" data-emoji="📚">📚</button>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- IA -->
+    <button class="btn btn-ai" id="btnAI">✨ IA</button>
+
+    <div class="sep"></div>
+
+    <!-- Desfazer / limpar -->
+    <button class="btn btn-tool btn-icon" id="btnUndo"      title="Desfazer (Ctrl+Z)">↩</button>
+    <button class="btn btn-danger btn-icon" id="btnClearDraw" title="Limpar desenhos">🗑✏️</button>
+    <button class="btn btn-danger btn-icon" id="btnClearAll"  title="Limpar tudo">🗑</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════
+let corAtual  = '#ffffff';
+let espessura = 3;
+let modoAtual = null;
+let desenhando = false;
+let lastX=0, lastY=0;
+let arrowStart=null, boxStart=null, boxPreview=null;
+let arrowPreviewLine=null;
+let history=[];
+
+// ═══════════════════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════════════════
+const canvas = document.getElementById('drawCanvas');
+const ctx    = canvas.getContext('2d');
+const svgEl  = document.getElementById('arrowSvg');
+const elDiv  = document.getElementById('elementos');
+
+function resizeCanvas(){
+  const snap = ctx.getImageData(0,0,canvas.width,canvas.height);
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  ctx.putImageData(snap,0,0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ═══════════════════════════════════════════════
+// CORES
+// ═══════════════════════════════════════════════
+document.querySelectorAll('.swatch').forEach(sw=>{
+  sw.addEventListener('click',()=>{
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+    sw.classList.add('sel');
+    corAtual=sw.dataset.color;
+  });
+});
+
+// ═══════════════════════════════════════════════
+// ESPESSURA — slider
+// ═══════════════════════════════════════════════
+document.getElementById('thickSlider').addEventListener('input',e=>{
+  espessura=parseInt(e.target.value);
+});
+
+// ═══════════════════════════════════════════════
+// DROPDOWN DE FERRAMENTAS
+// ═══════════════════════════════════════════════
+const toolDropBtn  = document.getElementById('toolDropBtn');
+const toolDropMenu = document.getElementById('toolDropMenu');
+
+toolDropBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  toolDropMenu.classList.toggle('open');
+  closeEmoji();
+});
+
+document.querySelectorAll('.tool-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    const t = opt.dataset.tool;
+    setModo(t === 'none' ? null : t);
+    toolDropMenu.classList.remove('open');
+  });
+});
+
+function setModo(modo){
+  modoAtual = modo;
+  document.querySelectorAll('.tool-opt').forEach(o=>{
+    o.classList.toggle('active', o.dataset.tool === (modo||'none'));
+  });
+  const label = {
+    draw:'✏️ Desenhar', highlight:'🖊️ Marca-texto',
+    arrow:'➡️ Seta', box:'🟨 Caixa', eraser:'🧹 Borracha'
+  };
+  toolDropBtn.innerHTML = (label[modo]||'✕ Nenhuma') + ' <span style="opacity:0.5;font-size:10px;">▲</span>';
+  const drawActive = ['draw','highlight','arrow','box'].includes(modo);
+  canvas.style.pointerEvents = drawActive ? 'all' : 'none';
+  document.body.style.cursor  = modo==='eraser' ? 'cell' : drawActive ? 'crosshair' : 'default';
+}
+
+// fecha dropdown ao clicar fora
+document.addEventListener('click',()=>{ toolDropMenu.classList.remove('open'); });
+
+// ═══════════════════════════════════════════════
+// EMOJI POPOVER
+// ═══════════════════════════════════════════════
+const emojiPopover = document.getElementById('emojiPopover');
+document.getElementById('btnEmoji').addEventListener('click',e=>{
+  e.stopPropagation();
+  emojiPopover.classList.toggle('open');
+  toolDropMenu.classList.remove('open');
+});
+function closeEmoji(){ emojiPopover.classList.remove('open'); }
+document.addEventListener('click',()=>closeEmoji());
+emojiPopover.addEventListener('click',e=>e.stopPropagation());
+
+document.querySelectorAll('.emoji-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    addFrase(btn.dataset.emoji, corAtual, parseInt(document.getElementById('fontSize').value)||38);
+    closeEmoji();
+  });
+});
+
+// ═══════════════════════════════════════════════
+// CANVAS — DESENHO
+// ═══════════════════════════════════════════════
+canvas.addEventListener('mousedown',e=>{
+  if(!['draw','highlight','arrow','box'].includes(modoAtual)) return;
+  desenhando=true; lastX=e.clientX; lastY=e.clientY;
+  if(modoAtual==='arrow'){ arrowStart={x:e.clientX,y:e.clientY}; return; }
+  if(modoAtual==='box')  { boxStart  ={x:e.clientX,y:e.clientY}; return; }
+  ctx.beginPath(); ctx.moveTo(lastX,lastY);
+  pushHistory('canvas', ctx.getImageData(0,0,canvas.width,canvas.height));
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(!desenhando) return;
+  if(modoAtual==='arrow' && arrowStart){ drawArrowPreview(arrowStart.x,arrowStart.y,e.clientX,e.clientY); return; }
+  if(modoAtual==='box'   && boxStart  ){ drawBoxPreview(boxStart.x,boxStart.y,e.clientX,e.clientY);     return; }
+  if(modoAtual==='draw'){
+    ctx.lineWidth=espessura; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.strokeStyle=corAtual; ctx.globalAlpha=1; ctx.shadowColor=corAtual; ctx.shadowBlur=espessura>7?4:1;
+    ctx.lineTo(e.clientX,e.clientY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(e.clientX,e.clientY);
+  }
+  if(modoAtual==='highlight'){
+    ctx.lineWidth=espessura*6; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.strokeStyle=corAtual; ctx.globalAlpha=0.28; ctx.shadowBlur=0;
+    ctx.lineTo(e.clientX,e.clientY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(e.clientX,e.clientY);
+  }
+  lastX=e.clientX; lastY=e.clientY;
+});
+
+canvas.addEventListener('mouseup',e=>{
+  if(!desenhando) return; desenhando=false;
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+  if(modoAtual==='arrow' && arrowStart){ commitArrow(arrowStart.x,arrowStart.y,e.clientX,e.clientY); arrowStart=null; clearArrowPreview(); return; }
+  if(modoAtual==='box'   && boxStart)  { commitBox(boxStart.x,boxStart.y,e.clientX,e.clientY);       boxStart=null;   clearBoxPreview();   return; }
+});
+canvas.addEventListener('mouseleave',()=>{ desenhando=false; ctx.globalAlpha=1; ctx.shadowBlur=0; });
+
+// ═══════════════════════════════════════════════
+// SETA
+// ═══════════════════════════════════════════════
+function drawArrowPreview(x1,y1,x2,y2){
+  clearArrowPreview();
+  const ns='http://www.w3.org/2000/svg';
+  const l=document.createElementNS(ns,'line');
+  l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+  l.setAttribute('stroke',corAtual);l.setAttribute('stroke-width',espessura+1);
+  l.setAttribute('marker-end',`url(#arr-${san(corAtual)})`);l.setAttribute('stroke-linecap','round');
+  l.style.opacity='0.65'; ensureMarker(corAtual); svgEl.appendChild(l); arrowPreviewLine=l;
+}
+function clearArrowPreview(){ if(arrowPreviewLine){ arrowPreviewLine.remove(); arrowPreviewLine=null; } }
+function commitArrow(x1,y1,x2,y2){
+  pushHistory('arrow',null);
+  const ns='http://www.w3.org/2000/svg';
+  const l=document.createElementNS(ns,'line');
+  l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+  l.setAttribute('stroke',corAtual);l.setAttribute('stroke-width',espessura+1);
+  l.setAttribute('marker-end',`url(#arr-${san(corAtual)})`);l.setAttribute('stroke-linecap','round');
+  l.classList.add('arrow-el'); ensureMarker(corAtual); svgEl.appendChild(l);
+  l.addEventListener('click',()=>{ if(modoAtual==='eraser') l.remove(); });
+}
+function ensureMarker(color){
+  const id='arr-'+san(color);
+  if(document.getElementById(id)) return;
+  const ns='http://www.w3.org/2000/svg';
+  let defs=svgEl.querySelector('defs');
+  if(!defs){ defs=document.createElementNS(ns,'defs'); svgEl.prepend(defs); }
+  const m=document.createElementNS(ns,'marker');
+  m.setAttribute('id',id);m.setAttribute('viewBox','0 0 10 10');
+  m.setAttribute('refX','8');m.setAttribute('refY','5');
+  m.setAttribute('markerWidth','6');m.setAttribute('markerHeight','6');
+  m.setAttribute('orient','auto-start-reverse');
+  const p=document.createElementNS(ns,'path');
+  p.setAttribute('d','M 0 0 L 10 5 L 0 10 z');p.setAttribute('fill',color);
+  m.appendChild(p); defs.appendChild(m);
+}
+function san(c){ return c.replace('#',''); }
+
+// ═══════════════════════════════════════════════
+// CAIXA
+// ═══════════════════════════════════════════════
+function drawBoxPreview(x1,y1,x2,y2){
+  if(boxPreview) boxPreview.remove();
+  boxPreview=makeBoxEl(x1,y1,x2,y2,true);
+  document.body.appendChild(boxPreview);
+}
+function clearBoxPreview(){ if(boxPreview){ boxPreview.remove(); boxPreview=null; } }
+function commitBox(x1,y1,x2,y2){
+  pushHistory('box',null);
+  const box=makeBoxEl(x1,y1,x2,y2,false);
+  box.classList.add('el-box','erasable');
+  elDiv.appendChild(box); makeDraggable(box); makeResizable(box);
+  box.addEventListener('click',e=>{ if(modoAtual==='eraser'){ e.stopPropagation(); removeEl(box); } });
+  const del=mkDel(); del.addEventListener('click',e=>{ e.stopPropagation(); removeEl(box); }); box.appendChild(del);
+  const rz=document.createElement('div'); rz.className='box-resize'; rz.innerHTML='⤡'; box.appendChild(rz);
+}
+function makeBoxEl(x1,y1,x2,y2,preview){
+  const left=Math.min(x1,x2), top=Math.min(y1,y2), w=Math.abs(x2-x1), h=Math.abs(y2-y1);
+  const el=document.createElement('div'); el.className='el-box';
+  el.style.left=left+'px'; el.style.top=top+'px';
+  el.style.width=Math.max(20,w)+'px'; el.style.height=Math.max(20,h)+'px';
+  const r=parseInt(corAtual.slice(1,3)||'ff',16);
+  const g=parseInt(corAtual.slice(3,5)||'ff',16);
+  const b=parseInt(corAtual.slice(5,7)||'ff',16);
+  el.style.background=`rgba(${r},${g},${b},0.17)`;
+  el.style.border=`2.5px solid rgba(${r},${g},${b},0.65)`;
+  if(preview) el.style.pointerEvents='none';
+  return el;
+}
+
+// ═══════════════════════════════════════════════
+// FRASES — adicionar + duplo clique para editar
+// ═══════════════════════════════════════════════
+let nextX=60, nextY=80;
+
+function addFrase(texto, cor, size, x, y){
+  if(!texto.trim()) return;
+  cor  = cor  || corAtual;
+  size = size || parseInt(document.getElementById('fontSize').value)||38;
+  pushHistory('el',null);
+
+  const item=document.createElement('div');
+  item.className='el-frase erasable';
+  item.style.left=(x!==undefined?x:nextX)+'px';
+  item.style.top =(y!==undefined?y:nextY)+'px';
+  if(x===undefined){
+    nextY+=size*1.55;
+    if(nextY>window.innerHeight-140){ nextY=80; nextX=(nextX+100)%(window.innerWidth-320); }
+  }
+
+  const del=mkDel();
+  del.addEventListener('click',e=>{ e.stopPropagation(); removeEl(item); });
+
+  const span=document.createElement('span');
+  span.className='frase-texto';
+  span.textContent=texto;
+  span.style.color=cor;
+  span.style.fontSize=size+'px';
+
+  // ── DUPLO CLIQUE PARA EDITAR ──
+  span.addEventListener('dblclick',e=>{
+    e.stopPropagation();
+    if(modoAtual==='eraser') return;
+    span.contentEditable='true';
+    span.focus();
+    // seleciona tudo
+    const range=document.createRange();
+    range.selectNodeContents(span);
+    const sel=window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+    item.style.cursor='text';
+  });
+
+  span.addEventListener('keydown',e=>{
+    if(e.key==='Escape' || (e.key==='Enter' && !e.shiftKey)){
+      e.preventDefault();
+      span.contentEditable='false';
+      item.style.cursor='grab';
+      window.getSelection().removeAllRanges();
+    }
+  });
+
+  span.addEventListener('blur',()=>{
+    span.contentEditable='false';
+    item.style.cursor='grab';
+  });
+
+  // impede arrastar enquanto edita
+  span.addEventListener('mousedown',e=>{
+    if(span.contentEditable==='true') e.stopPropagation();
+  });
+
+  item.appendChild(del);
+  item.appendChild(span);
+  elDiv.appendChild(item);
+  makeDraggable(item);
+  item.addEventListener('click',e=>{ if(modoAtual==='eraser'){ e.stopPropagation(); removeEl(item); } });
+}
+
+document.getElementById('inputFrase').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ addFrase(e.target.value); e.target.value=''; }
+});
+document.getElementById('btnAdd').addEventListener('click',()=>{
+  const inp=document.getElementById('inputFrase');
+  addFrase(inp.value); inp.value=''; inp.focus();
+});
+
+// ═══════════════════════════════════════════════
+// STICKY
+// ═══════════════════════════════════════════════
+const stickyColors=['#FAEAD3','#CAE78D','#B4A1FF','#FFD700','#FFB4A1'];
+let stickyIdx=0;
+document.getElementById('btnSticky').addEventListener('click',()=>{
+  pushHistory('el',null);
+  const color=stickyColors[stickyIdx++%stickyColors.length];
+  const el=document.createElement('div');
+  el.className='el-sticky erasable';
+  el.style.background=color;
+  el.style.backgroundImage='linear-gradient(135deg,transparent 85%,rgba(0,0,0,0.13) 100%)';
+  el.style.left=(60+Math.random()*200)+'px';
+  el.style.top =(80+Math.random()*150)+'px';
+  const del=mkDel(); del.addEventListener('click',e=>{ e.stopPropagation(); removeEl(el); });
+  const ta=document.createElement('textarea');
+  ta.className='sticky-text'; ta.placeholder='Escreva aqui…';
+  ta.addEventListener('mousedown',e=>e.stopPropagation());
+  el.appendChild(del); el.appendChild(ta);
+  elDiv.appendChild(el); makeDraggable(el); ta.focus();
+  el.addEventListener('click',e=>{ if(modoAtual==='eraser'){ e.stopPropagation(); removeEl(el); } });
+});
+
+// ═══════════════════════════════════════════════
+// IMAGEM
+// ═══════════════════════════════════════════════
+document.getElementById('btnImg').addEventListener('click',()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change',e=>{
+  if(e.target.files[0]) insertImageFile(e.target.files[0]);
+  e.target.value='';
+});
+document.addEventListener('paste',e=>{
+  const items=e.clipboardData?.items||[];
+  for(const it of items){ if(it.type.startsWith('image/')){ insertImageFile(it.getAsFile()); break; } }
+});
+function insertImageFile(file){
+  const r=new FileReader();
+  r.onload=ev=>insertImageSrc(ev.target.result);
+  r.readAsDataURL(file);
+}
+function insertImageSrc(src){
+  pushHistory('el',null);
+  const wrap=document.createElement('div');
+  wrap.className='el-img erasable';
+  wrap.style.left=(80+Math.random()*120)+'px';
+  wrap.style.top =(80+Math.random()*80)+'px';
+  wrap.style.width='280px';
+  const img=document.createElement('img');
+  img.src=src; img.style.width='100%'; img.draggable=false;
+  const del=mkDel(); del.addEventListener('click',e=>{ e.stopPropagation(); removeEl(wrap); });
+  const rz=document.createElement('div'); rz.className='img-resize'; rz.innerHTML='⤡';
+  wrap.appendChild(img); wrap.appendChild(del); wrap.appendChild(rz);
+  elDiv.appendChild(wrap); makeDraggable(wrap); makeResizableImg(wrap,rz);
+  wrap.addEventListener('click',e=>{ if(modoAtual==='eraser'){ e.stopPropagation(); removeEl(wrap); } });
+}
+
+// ═══════════════════════════════════════════════
+// PAINEL IA — abas
+// ═══════════════════════════════════════════════
+const btnAI=document.getElementById('btnAI');
+const subBar=document.getElementById('subBar');
+
+btnAI.addEventListener('click',()=>{
+  const v=subBar.classList.toggle('visible');
+  btnAI.classList.toggle('active',v);
+});
+
+document.querySelectorAll('.ai-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.ai-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.ai-panel').forEach(p=>p.style.display='none');
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).style.display='flex';
+  });
+});
+
+// ── ABA 1: Exemplos ─────────────────────────
+document.getElementById('btnGerarAI').addEventListener('click', gerarExemplos);
+document.getElementById('inputAI').addEventListener('keydown',e=>{ if(e.key==='Enter') gerarExemplos(); });
+
+async function gerarExemplos(){
+  const estrutura=document.getElementById('inputAI').value.trim(); if(!estrutura) return;
+  const qtd=document.getElementById('qtdExemplos').value;
+  const btn=document.getElementById('btnGerarAI');
+  btn.textContent='⏳'; btn.disabled=true;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000,
+        system:`You are an English teacher assistant. Generate exactly ${qtd} short, clear example sentences for English language learners (A1-B1 level) demonstrating the grammar structure or vocabulary the teacher provides. Return ONLY a JSON array of strings, no explanations, no markdown, no preamble.`,
+        messages:[{role:'user',content:`Generate ${qtd} example sentences for: ${estrutura}`}]
+      })
+    });
+    const data=await resp.json();
+    const frases=JSON.parse((data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim());
+    const size=Math.min(parseInt(document.getElementById('fontSize').value)||38,42);
+    const cores=['#CAE78D','#B4A1FF','#FF5C23','#FFD700','#00CFFF'];
+    const x=Math.round(window.innerWidth*0.08);
+    frases.forEach((f,i)=>setTimeout(()=>addFrase(f,cores[i%cores.length],size,x,80+i*(size*1.6)),i*180));
+    showToast(`✨ ${frases.length} exemplos!`);
+    document.getElementById('inputAI').value='';
+  }catch(err){ showToast('Erro ao gerar exemplos.'); console.error(err); }
+  finally{ btn.textContent='Gerar'; btn.disabled=false; }
+}
+
+// ── ABA 2: Traduzir ──────────────────────────
+document.getElementById('btnTraduzir').addEventListener('click', traduzir);
+document.getElementById('inputTraduzir').addEventListener('keydown',e=>{ if(e.key==='Enter') traduzir(); });
+
+async function traduzir(){
+  const texto=document.getElementById('inputTraduzir').value.trim(); if(!texto) return;
+  const qtd=document.getElementById('qtdTrad').value;
+  const btn=document.getElementById('btnTraduzir');
+  btn.textContent='⏳'; btn.disabled=true;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000,
+        system:`You are an English teacher assistant. The teacher gives you a word or phrase in PT or EN. Detect the language automatically. If PT→translate to EN. If EN→translate to PT. Then generate ${qtd} short example sentences IN ENGLISH (A1-B1 level). Return ONLY JSON, no markdown: {"original":"...","translation":"...","direction":"PT→EN or EN→PT","examples":["...","..."]}`,
+        messages:[{role:'user',content:texto}]
+      })
+    });
+    const data=await resp.json();
+    const result=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    const size=Math.min(parseInt(document.getElementById('fontSize').value)||38,36);
+    const cores=['#CAE78D','#B4A1FF','#FF5C23','#FFD700','#00CFFF'];
+    const x=Math.round(window.innerWidth*0.08);
+    addFrase(`${result.original}  →  ${result.translation}`, '#fff', size+4, x, 60);
+    result.examples.forEach((f,i)=>setTimeout(()=>addFrase(f,cores[i%cores.length],size,x,60+(size+4)*1.7+i*(size*1.6)),(i+1)*180));
+    showToast(`🌐 ${result.direction} · ${result.examples.length} exemplos!`);
+    document.getElementById('inputTraduzir').value='';
+  }catch(err){ showToast('Erro ao traduzir.'); console.error(err); }
+  finally{ btn.textContent='Traduzir'; btn.disabled=false; }
+}
+
+// ── ABA 3: Pronúncia ─────────────────────────
+document.getElementById('btnPron').addEventListener('click', buscarPron);
+document.getElementById('inputPron').addEventListener('keydown',e=>{ if(e.key==='Enter') buscarPron(); });
+
+let pronAtual={word:'',ipa:''};
+
+async function buscarPron(){
+  const word=document.getElementById('inputPron').value.trim(); if(!word) return;
+  const btn=document.getElementById('btnPron');
+  btn.textContent='⏳'; btn.disabled=true;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:200,
+        system:`You are a phonetics assistant. Given an English word, return its IPA transcription (General American). Return ONLY JSON: {"word":"beautiful","ipa":"/ˈbjuːtɪfəl/"} No markdown, no explanation.`,
+        messages:[{role:'user',content:word}]
+      })
+    });
+    const data=await resp.json();
+    const result=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    pronAtual=result;
+    document.getElementById('pronWord').textContent=result.word;
+    document.getElementById('pronIPA').textContent=result.ipa;
+    document.getElementById('pronResult').style.display='flex';
+  }catch(err){ showToast('Erro ao buscar pronúncia.'); console.error(err); }
+  finally{ btn.textContent='Buscar'; btn.disabled=false; }
+}
+
+document.getElementById('btnPlay').addEventListener('click',()=>{
+  if(!pronAtual.word) return;
+  const utt=new SpeechSynthesisUtterance(pronAtual.word);
+  utt.lang='en-US'; utt.rate=0.85;
+  const voices=speechSynthesis.getVoices();
+  const v=voices.find(v=>v.lang.startsWith('en-US')||v.lang.startsWith('en_US'));
+  if(v) utt.voice=v;
+  speechSynthesis.speak(utt);
+});
+speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+
+document.getElementById('btnAddPron').addEventListener('click',()=>{
+  if(!pronAtual.word) return;
+  const size=Math.min(parseInt(document.getElementById('fontSize').value)||38,42);
+  const x=Math.round(window.innerWidth*0.08);
+  addFrase(pronAtual.word,'#fff',size+4,x,60);
+  setTimeout(()=>addFrase(pronAtual.ipa,'#CAE78D',size,x,60+(size+4)*1.6),200);
+  showToast(`🔊 ${pronAtual.word} ${pronAtual.ipa} adicionado!`);
+});
+
+// ═══════════════════════════════════════════════
+// ARRASTAR
+// ═══════════════════════════════════════════════
+function makeDraggable(el){
+  let ox=0,oy=0,mx=0,my=0;
+  el.addEventListener('mousedown',e=>{
+    if(modoAtual==='eraser') return;
+    if(e.target.classList.contains('el-del'))    return;
+    if(e.target.classList.contains('sticky-text')) return;
+    if(e.target.classList.contains('box-resize')) return;
+    if(e.target.classList.contains('img-resize')) return;
+    if(e.target.contentEditable==='true')        return;
+    e.preventDefault();
+    mx=e.clientX; my=e.clientY; ox=el.offsetLeft; oy=el.offsetTop;
+    const mv=e2=>{ el.style.left=(ox+e2.clientX-mx)+'px'; el.style.top=(oy+e2.clientY-my)+'px'; };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// RESIZE — caixa
+// ═══════════════════════════════════════════════
+function makeResizable(el){
+  const h=el.querySelector('.box-resize'); if(!h) return;
+  h.addEventListener('mousedown',e=>{
+    e.stopPropagation(); e.preventDefault();
+    const sx=e.clientX,sy=e.clientY,sw=el.offsetWidth,sh=el.offsetHeight;
+    const mv=e2=>{ el.style.width=Math.max(40,sw+e2.clientX-sx)+'px'; el.style.height=Math.max(20,sh+e2.clientY-sy)+'px'; };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// RESIZE — imagem
+// ═══════════════════════════════════════════════
+function makeResizableImg(wrap,handle){
+  handle.addEventListener('mousedown',e=>{
+    e.stopPropagation(); e.preventDefault();
+    const sx=e.clientX,sw=wrap.offsetWidth;
+    const mv=e2=>{ wrap.style.width=Math.max(60,sw+e2.clientX-sx)+'px'; };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// REMOVER
+// ═══════════════════════════════════════════════
+function removeEl(el){
+  el.style.transition='opacity 0.18s,transform 0.18s';
+  el.style.opacity='0'; el.style.transform='scale(0.85)';
+  setTimeout(()=>el.remove(),200);
+}
+
+// ═══════════════════════════════════════════════
+// DEL button helper
+// ═══════════════════════════════════════════════
+function mkDel(){
+  const b=document.createElement('button');
+  b.className='el-del'; b.innerHTML='✕';
+  return b;
+}
+
+// ═══════════════════════════════════════════════
+// DESFAZER
+// ═══════════════════════════════════════════════
+function pushHistory(type,data){
+  history.push({type, canvasSnap:type==='canvas'?null:ctx.getImageData(0,0,canvas.width,canvas.height),
+    arrowCount:svgEl.querySelectorAll('.arrow-el').length});
+  if(history.length>40) history.shift();
+}
+function undo(){
+  if(!history.length) return;
+  const last=history.pop();
+  if(last.canvasSnap) ctx.putImageData(last.canvasSnap,0,0);
+  const els=elDiv.querySelectorAll('.el-frase,.el-sticky,.el-img,.el-box');
+  if(els.length) els[els.length-1].remove();
+  const arrows=svgEl.querySelectorAll('.arrow-el');
+  if(arrows.length>last.arrowCount) arrows[arrows.length-1].remove();
+  showToast('↩ Desfeito');
+}
+
+// ═══════════════════════════════════════════════
+// LIMPAR
+// ═══════════════════════════════════════════════
+document.getElementById('btnClearDraw').addEventListener('click',()=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  svgEl.querySelectorAll('.arrow-el').forEach(a=>a.remove());
+  showToast('Desenhos apagados');
+});
+document.getElementById('btnClearAll').addEventListener('click',()=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  elDiv.innerHTML=''; svgEl.querySelectorAll('.arrow-el').forEach(a=>a.remove());
+  history=[]; nextX=60; nextY=80; showToast('Lousa limpa!');
+});
+document.getElementById('btnUndo').addEventListener('click',undo);
+
+// ═══════════════════════════════════════════════
+// ATALHOS
+// ═══════════════════════════════════════════════
+const toolbar=document.getElementById('toolbar');
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); undo(); }
+  if(e.key==='h'||e.key==='H') toolbar.classList.toggle('hidden');
+  if(e.key==='Escape'){ setModo(null); toolDropMenu.classList.remove('open'); closeEmoji(); }
+});
+
+// ═══════════════════════════════════════════════
+// TOAST + HINT
+// ═══════════════════════════════════════════════
+let toastTimer;
+const toastEl=document.getElementById('toast');
+function showToast(msg){
+  toastEl.textContent=msg; toastEl.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2200);
+}
+setTimeout(()=>document.getElementById('hint').classList.add('gone'),7000);
+</script>
+</body>
+</html>
