@@ -2076,6 +2076,30 @@ function normalizarUrlEmbed(url) {
   return original;
 }
 
+function SemanasTabView({ semanas, dark, palette }) {
+  const [semanaAtiva, setSemanaAtiva] = React.useState(0);
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <p style={{ marginBottom: "10px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
+      <div style={{ display: "flex", gap: "6px", marginBottom: "12px", flexWrap: "wrap" }}>
+        {semanas.map((_, idx) => (
+          <button key={idx} onClick={() => setSemanaAtiva(idx)}
+            style={{
+              padding: "6px 14px", borderRadius: "20px", border: "none", cursor: "pointer",
+              fontSize: "12px", fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+              background: semanaAtiva === idx ? palette.orange : (dark ? "#3A2B7A" : palette.lavender + "44"),
+              color: semanaAtiva === idx ? "#FFF" : (dark ? "#FFF" : palette.purple),
+              transition: "all 0.15s"
+            }}>
+            Week {idx + 1}
+          </button>
+        ))}
+      </div>
+      <IframeAltoAutomatico src={semanas[semanaAtiva]} title={`Cronograma — Week ${semanaAtiva + 1}`} alturaPadrao={800} alturaMinima={600} alturaMaxima={1800} />
+    </div>
+  );
+}
+
 function IframeAltoAutomatico({ src, title, alturaMinima, alturaPadrao, alturaMaxima }) {
   const { useRef, useState: useStateLocal, useEffect } = React;
   const iframeRef = useRef(null);
@@ -2206,7 +2230,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [mesHomework, setMesHomework] = useState(() => new Date().getMonth());
   const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
-  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
+  const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", cronogramasUrl: [""], embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
   const [novoMaterialAula, setNovoMaterialAula] = useState({ titulo: "", url: "" });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
@@ -2454,7 +2478,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         .from("lesson_records").select("*").eq("turma_id", turmaId).order("data", { ascending: false });
       if (!ativo) return;
       setAulasRegistradas((recordsData || []).map((r) => ({
-        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url, embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", materiaisAula: r.materiais_aula || [], conteudoEnsinado: r.conteudo_ensinado || "", paraProximaAula: r.para_proxima_aula || "", rowId: r.id,
+        data: r.data, assunto: r.assunto, unidade: r.unidade, cronogramaUrl: r.cronograma_url,
+        cronogramasUrl: (r.cronogramas_url && r.cronogramas_url.length > 0) ? r.cronogramas_url : (r.cronograma_url ? [r.cronograma_url] : [""]),
+        embeds: r.embeds || [], presencas: r.presencas || {}, homework: r.homework || "", materiaisAula: r.materiais_aula || [], conteudoEnsinado: r.conteudo_ensinado || "", paraProximaAula: r.para_proxima_aula || "", rowId: r.id,
       })));
 
       const { data: homeworkStatusData } = await supabase.from("homework_status").select("*").eq("student_id", studentId);
@@ -2751,7 +2777,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     if (!novaAula.data || !novaAula.assunto) return;
     const { data, error } = await supabase
       .from("lesson_records")
-      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null, materiais_aula: novaAula.materiaisAula || [], conteudo_ensinado: novaAula.conteudoEnsinado || null, para_proxima_aula: novaAula.paraProximaAula || null })
+      .insert({ turma_id: turmaId, data: novaAula.data, assunto: novaAula.assunto, unidade: novaAula.unidade || null, cronograma_url: novaAula.cronogramaUrl, cronogramas_url: (novaAula.cronogramasUrl || []).filter(u => u.trim()), embeds: novaAula.embeds, presencas: novaAula.presencas || {}, homework: novaAula.homework || null, materiais_aula: novaAula.materiaisAula || [], conteudo_ensinado: novaAula.conteudoEnsinado || null, para_proxima_aula: novaAula.paraProximaAula || null })
       .select().single();
     if (error) {
       alert("Erro ao registrar a aula: " + error.message);
@@ -2778,13 +2804,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const dataNova = new Date(novaAula.data + "T00:00:00");
     setMesHomework(dataNova.getMonth());
     setAnoHomework(dataNova.getFullYear());
-    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
+    setNovaAula({ data: "", assunto: "", unidade: "", cronogramaUrl: "", cronogramasUrl: [""], embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
   };
 
   const salvarEdicaoAulaRegistrada = async () => {
     const { error } = await supabase
       .from("lesson_records")
-      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null, materiais_aula: rascunhoAulaRegistrada.materiaisAula || [], conteudo_ensinado: rascunhoAulaRegistrada.conteudoEnsinado || null, para_proxima_aula: rascunhoAulaRegistrada.paraProximaAula || null })
+      .update({ data: rascunhoAulaRegistrada.data, assunto: rascunhoAulaRegistrada.assunto, unidade: rascunhoAulaRegistrada.unidade || null, cronograma_url: rascunhoAulaRegistrada.cronogramaUrl, cronogramas_url: (rascunhoAulaRegistrada.cronogramasUrl || []).filter(u => u.trim()), embeds: rascunhoAulaRegistrada.embeds || [], presencas: rascunhoAulaRegistrada.presencas || {}, homework: rascunhoAulaRegistrada.homework || null, materiais_aula: rascunhoAulaRegistrada.materiaisAula || [], conteudo_ensinado: rascunhoAulaRegistrada.conteudoEnsinado || null, para_proxima_aula: rascunhoAulaRegistrada.paraProximaAula || null })
       .eq("id", rascunhoAulaRegistrada.rowId);
     if (error) {
       alert("Erro ao salvar as alterações: " + error.message);
@@ -4023,9 +4049,28 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       )}
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal (homework) — opcional</label>
-                      <input type="text" list="lista-cronogramas" value={novaAula.cronogramaUrl} onChange={(e) => setNovaAula((a) => ({ ...a, cronogramaUrl: e.target.value }))}
-                        placeholder="Cole o link do cronograma (ex: .../beginner/unit6a) ou deixe em branco"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+                      {(novaAula.cronogramasUrl || [""]).map((url, idx) => (
+                        <div key={idx} style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "8px" }}>
+                          {(novaAula.cronogramasUrl || [""]).length > 1 && (
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: palette.orange, minWidth: "52px" }}>Week {idx + 1}</span>
+                          )}
+                          <input type="text" list="lista-cronogramas" value={url}
+                            onChange={(e) => { const arr = [...(novaAula.cronogramasUrl || [""])]; arr[idx] = e.target.value; setNovaAula((a) => ({ ...a, cronogramasUrl: arr })); }}
+                            placeholder={`Link do cronograma${(novaAula.cronogramasUrl || [""]).length > 1 ? ` — semana ${idx + 1}` : " (ex: .../beginner/unit6a) ou deixe em branco"}`}
+                            style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                          {(novaAula.cronogramasUrl || [""]).length > 1 && (
+                            <button onClick={() => { const arr = (novaAula.cronogramasUrl || [""]).filter((_, i) => i !== idx); setNovaAula((a) => ({ ...a, cronogramasUrl: arr })); }}
+                              style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "16px", fontWeight: 700, padding: "2px 6px" }}>×</button>
+                          )}
+                        </div>
+                      ))}
+                      {(novaAula.cronogramasUrl || [""]).length < 4 && (
+                        <button onClick={() => setNovaAula((a) => ({ ...a, cronogramasUrl: [...(a.cronogramasUrl || [""]), ""] }))}
+                          style={{ background: "none", border: `1px dashed ${palette.lavender}`, color: palette.purple, cursor: "pointer", fontSize: "12px", fontWeight: 600, padding: "6px 12px", borderRadius: "8px", marginBottom: "14px", fontFamily: "'Poppins', sans-serif" }}>
+                          + Adicionar semana
+                        </button>
+                      )}
+                      {(novaAula.cronogramasUrl || [""]).length === 1 && <div style={{ marginBottom: "6px" }} />}
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Anotações de homework — opcional</label>
                       <textarea value={novaAula.homework} onChange={(e) => setNovaAula((a) => ({ ...a, homework: e.target.value }))}
@@ -4268,10 +4313,29 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         </div>
                       )}
 
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma — opcional</label>
-                      <input type="text" list="lista-cronogramas" value={rascunhoAulaRegistrada.cronogramaUrl || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramaUrl: e.target.value }))}
-                        placeholder="Cole o link do cronograma ou deixe em branco"
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Cronograma semanal — opcional</label>
+                      {(rascunhoAulaRegistrada.cronogramasUrl || [""]).map((url, idx) => (
+                        <div key={idx} style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "8px" }}>
+                          {(rascunhoAulaRegistrada.cronogramasUrl || [""]).length > 1 && (
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: palette.orange, minWidth: "52px" }}>Week {idx + 1}</span>
+                          )}
+                          <input type="text" list="lista-cronogramas" value={url}
+                            onChange={(e) => { const arr = [...(rascunhoAulaRegistrada.cronogramasUrl || [""])]; arr[idx] = e.target.value; setRascunhoAulaRegistrada((r) => ({ ...r, cronogramasUrl: arr })); }}
+                            placeholder={`Link do cronograma${(rascunhoAulaRegistrada.cronogramasUrl || [""]).length > 1 ? ` — semana ${idx + 1}` : " ou deixe em branco"}`}
+                            style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                          {(rascunhoAulaRegistrada.cronogramasUrl || [""]).length > 1 && (
+                            <button onClick={() => { const arr = (rascunhoAulaRegistrada.cronogramasUrl || [""]).filter((_, i) => i !== idx); setRascunhoAulaRegistrada((r) => ({ ...r, cronogramasUrl: arr })); }}
+                              style={{ background: "none", border: "none", color: "#E24B4A", cursor: "pointer", fontSize: "16px", fontWeight: 700, padding: "2px 6px" }}>×</button>
+                          )}
+                        </div>
+                      ))}
+                      {(rascunhoAulaRegistrada.cronogramasUrl || [""]).length < 4 && (
+                        <button onClick={() => setRascunhoAulaRegistrada((r) => ({ ...r, cronogramasUrl: [...(r.cronogramasUrl || [""]), ""] }))}
+                          style={{ background: "none", border: `1px dashed ${palette.lavender}`, color: palette.purple, cursor: "pointer", fontSize: "12px", fontWeight: 600, padding: "6px 12px", borderRadius: "8px", marginBottom: "14px", fontFamily: "'Poppins', sans-serif" }}>
+                          + Adicionar semana
+                        </button>
+                      )}
+                      {(rascunhoAulaRegistrada.cronogramasUrl || [""]).length === 1 && <div style={{ marginBottom: "6px" }} />}
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Anotações de homework — opcional</label>
                       <textarea value={rascunhoAulaRegistrada.homework || ""} onChange={(e) => setRascunhoAulaRegistrada((r) => ({ ...r, homework: e.target.value }))}
@@ -4393,14 +4457,33 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     </div>
                   )}
 
-                  {cronogramaAberto.cronogramaUrl ? (
-                    <React.Fragment>
-                      <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
-                      <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={800} alturaMinima={600} alturaMaxima={1800} />
-                    </React.Fragment>
-                  ) : (
-                    !cronogramaAberto.homework && <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum homework vinculado a essa aula.</p>
-                  )}
+                  {(() => {
+                    const semanas = (cronogramaAberto.cronogramasUrl || []).filter(u => u && u.trim());
+                    if (semanas.length === 0 && cronogramaAberto.cronogramaUrl) {
+                      // retrocompat: registro antigo com campo simples
+                      return (
+                        <React.Fragment>
+                          <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
+                          <IframeAltoAutomatico src={cronogramaAberto.cronogramaUrl} title="Cronograma semanal" alturaPadrao={800} alturaMinima={600} alturaMaxima={1800} />
+                        </React.Fragment>
+                      );
+                    }
+                    if (semanas.length === 0) {
+                      return !cronogramaAberto.homework && <p style={{ marginBottom: "16px", fontSize: "13px", color: textSecondary }}>Nenhum homework vinculado a essa aula.</p>;
+                    }
+                    if (semanas.length === 1) {
+                      return (
+                        <React.Fragment>
+                          <p style={{ marginBottom: "8px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Homework — cronograma semanal</p>
+                          <IframeAltoAutomatico src={semanas[0]} title="Cronograma semanal" alturaPadrao={800} alturaMinima={600} alturaMaxima={1800} />
+                        </React.Fragment>
+                      );
+                    }
+                    // Múltiplas semanas — abas
+                    return (
+                      <SemanasTabView semanas={semanas} dark={dark} palette={palette} />
+                    );
+                  })()}
 
                   {cronogramaAberto.embeds && cronogramaAberto.embeds.length > 0 && cronogramaAberto.embeds.map((em, i) => (
                     <div key={i} style={{ marginBottom: "20px" }}>
