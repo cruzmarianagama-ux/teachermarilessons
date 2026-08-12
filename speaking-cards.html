@@ -135,7 +135,7 @@
 
   .action-bar{
     position:sticky;
-    top:0;
+    top:83px; /* fallback; JS overrides this via updateStickyOffsets() */
     z-index:90;
     background:var(--cream);
     border-bottom:3px solid var(--lavender);
@@ -250,7 +250,6 @@
   .img-status.ok{color:#2f8a3e;}
   .img-status.error{color:#c0392b;}
   .img-status.checking{color:#8a7e6d;}
-  .stage-error{color:#c0392b;font-size:15px;text-align:center;padding:0 20px;}
   .audio-test-btn{
     background:var(--green-light);border:none;border-radius:8px;
     padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--purple);
@@ -655,7 +654,7 @@
     <button class="icon-btn" id="importJsonBtn" title="Import backup (JSON)">⬆</button>
   </div>
   <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
-  <p class="tiny-note" id="storageUsageNote">🟢 Connected to Supabase — your sets are synced to the cloud, no longer tied to this one browser.</p>
+  <p class="tiny-note" id="storageUsageNote"></p>
 </div>
 
 <!-- ========== ADMIN VIEW ========== -->
@@ -747,6 +746,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let sets = [];
 let editingSetId = null;
 let editorCards = [];
+let setsLastFetched = 0; // timestamp of last successful fetch
 
 function mapRowToSet(row){
   return { id: row.id, name: row.name, cards: row.cards || [] };
@@ -800,12 +800,18 @@ async function deleteSetInDb(id){
   if(error) throw error;
 }
 
-async function refreshSetsFromDb(){
+async function refreshSetsFromDb(force){
+  const CACHE_MS = 10000; // reuse in-memory cache if fetched less than 10s ago
+  if(!force && setsLastFetched && sets.length > 0 && (Date.now() - setsLastFetched) < CACHE_MS){
+    renderSetsGrid();
+    return;
+  }
   setsGrid.innerHTML = '<p style="color:#8a7e6d;">⏳ Loading your sets...</p>';
   try{
     sets = await fetchAllSets();
+    setsLastFetched = Date.now();
     renderSetsGrid();
-    document.getElementById('storageUsageNote').textContent = '🟢 Connected to Supabase — your sets are synced to the cloud, no longer tied to this one browser.';
+    document.getElementById('storageUsageNote').textContent = '';
     document.getElementById('storageUsageNote').className = 'tiny-note';
   }catch(e){
     setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again. <button onclick="refreshSetsFromDb()" style="margin-left:8px;background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:6px 14px;font-family:Poppins,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Try again</button></p>';
@@ -903,11 +909,16 @@ async function useSetInClass(id){
   document.body.classList.add('present-mode');
   const topbarH = document.querySelector('.topbar').offsetHeight;
   presentView.style.height = `calc(100vh - ${topbarH}px)`;
-  try{
-    sets = await fetchAllSets();
-  }catch(e){
-    alert('Could not reach Supabase. Check your internet connection and try again.');
-    return;
+  // reuse in-memory cache if fresh enough, otherwise fetch
+  const CACHE_MS = 10000;
+  if(!setsLastFetched || sets.length === 0 || (Date.now() - setsLastFetched) >= CACHE_MS){
+    try{
+      sets = await fetchAllSets();
+      setsLastFetched = Date.now();
+    }catch(e){
+      alert('Could not reach Supabase. Check your internet connection and try again.');
+      return;
+    }
   }
   presentSetSelect.innerHTML = '';
   sets.forEach(s=>{
@@ -928,7 +939,7 @@ async function duplicateSet(id){
   cardsCopy.forEach(c=> c.id = 'c'+Date.now()+Math.random().toString(36).slice(2,7));
   try{
     await insertSetInDb(set.name + ' (copy)', cardsCopy);
-    await refreshSetsFromDb();
+    await refreshSetsFromDb(true);
   }catch(e){
     alert('Could not duplicate the set — check your internet connection and try again.');
   }
@@ -1000,7 +1011,7 @@ async function deleteSet(id){
   if(!confirm('Delete this set? This action cannot be undone.')) return;
   try{
     await deleteSetInDb(id);
-    await refreshSetsFromDb();
+    await refreshSetsFromDb(true);
   }catch(e){
     alert('Could not delete the set — check your internet connection and try again.');
   }
@@ -1014,6 +1025,11 @@ function openEditor(id){
   editingSetId = id;
   if(id){
     const set = sets.find(s=>s.id===id);
+    if(!set){
+      alert('This set could not be found. It may have been deleted. Refreshing...');
+      refreshSetsFromDb(true);
+      return;
+    }
     setNameInput.value = set.name;
     editorCards = JSON.parse(JSON.stringify(set.cards));
     editorTitle.textContent = 'Editing: ' + set.name;
@@ -1045,8 +1061,13 @@ function speakText(text, lang){
 }
 
 document.getElementById('addCardBtn').onclick = ()=>{
-  editorCards.push({id: 'c'+Date.now()+Math.random().toString(36).slice(2,7), image:'', prompt:'', audioFile:'', audioText:'', audioLang:'en-US'});
+  editorCards.unshift({id: 'c'+Date.now()+Math.random().toString(36).slice(2,7), image:'', prompt:'', audioFile:'', audioText:'', audioLang:'en-US'});
   renderCardEditorList();
+  // wait for DOM paint before scrolling so the element is measurable
+  requestAnimationFrame(()=>{
+    const firstRow = cardEditorList.querySelector('.card-row');
+    if(firstRow) firstRow.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 };
 
 function renderCardEditorList(){
@@ -1212,14 +1233,17 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
     }else{
       await insertSetInDb(name, editorCards);
     }
-    await refreshSetsFromDb();
     editorPanel.style.display = 'none';
-  }catch(e){
-    alert('Could not save — check your internet connection and try again. If this keeps happening, your Supabase project may be paused (free projects pause after a week of inactivity — just open the Supabase dashboard to wake it up).');
-  }finally{
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
+  }catch(e){
+    alert('Could not save — check your internet connection and try again. If this keeps happening, your Supabase project may be paused (free projects pause after a week of inactivity — just open the Supabase dashboard to wake it up).');
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save set';
+    return;
   }
+  // refresh after closing the panel — errors here are silent (list just stays stale)
+  try{ await refreshSetsFromDb(true); }catch(_){}
 };
 
 /* ---------------- JSON BACKUP ---------------- */
@@ -1286,7 +1310,7 @@ document.getElementById('importJsonInput').onchange = (e)=>{
       for(const s of incomingSets){
         await insertSetInDb(s.name, s.cards || []);
       }
-      await refreshSetsFromDb();
+      await refreshSetsFromDb(true);
       alert('Backup imported successfully!');
     }catch(err){
       alert('Could not import the backup — check your internet connection and try again.');
@@ -1316,12 +1340,17 @@ document.addEventListener('fullscreenchange', ()=>{
 });
 
 async function renderPresentSetSelect(){
-  presentInner.innerHTML = '<p class="empty-msg">⏳ Loading sets...</p>';
-  try{
-    sets = await fetchAllSets();
-  }catch(e){
-    presentInner.innerHTML = '<p class="empty-msg">⚠ Could not connect to Supabase. Check your internet connection and try again.<br><br><button onclick="renderPresentSetSelect()" style="background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:10px 22px;font-family:Poppins,sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Try again</button></p>';
-    return;
+  const CACHE_MS = 10000;
+  const needsFetch = !setsLastFetched || sets.length === 0 || (Date.now() - setsLastFetched) >= CACHE_MS;
+  if(needsFetch){
+    presentInner.innerHTML = '<p class="empty-msg">⏳ Loading sets...</p>';
+    try{
+      sets = await fetchAllSets();
+      setsLastFetched = Date.now();
+    }catch(e){
+      presentInner.innerHTML = '<p class="empty-msg">⚠ Could not connect to Supabase. Check your internet connection and try again.<br><br><button onclick="renderPresentSetSelect()" style="background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:10px 22px;font-family:Poppins,sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Try again</button></p>';
+      return;
+    }
   }
   presentSetSelect.innerHTML = '';
   if(sets.length===0){
@@ -1685,7 +1714,7 @@ async function runPixabaySearch(page){
   imgSearchStatus.textContent = '🔎 Searching...';
 
   const perPage = 20;
-  const typeParam = imgSearchLastType !== 'all' ? `&image_type=${imgSearchLastType}` : '&image_type=photo';
+  const typeParam = imgSearchLastType !== 'all' ? `&image_type=${imgSearchLastType}` : '';
   const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(query)}&per_page=${perPage}&page=${page}&safesearch=true&orientation=horizontal${typeParam}`;
 
   try{
@@ -1775,7 +1804,9 @@ document.addEventListener('keydown', (e)=>{
 /* ---------------- AUTO-RETRY ON VISIBILITY CHANGE ---------------- */
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState === 'visible' && adminView.classList.contains('active')){
-    refreshSetsFromDb();
+    // Only re-fetch if data is more than 60s stale (avoids redundant requests on quick tab switches)
+    const stale = !setsLastFetched || (Date.now() - setsLastFetched) > 60000;
+    if(stale) refreshSetsFromDb(true);
   }
 });
 
