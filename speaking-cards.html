@@ -800,6 +800,37 @@ async function deleteSetInDb(id){
   if(error) throw error;
 }
 
+/* Upload a File object to Supabase Storage and return the public URL.
+   Requires a bucket named "card-images" with public read access. */
+async function uploadImageToStorage(file){
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = 'cards/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + ext;
+  const { error } = await supabaseClient.storage
+    .from('card-images')
+    .upload(path, file, { upsert: false, contentType: file.type });
+  if(error) throw error;
+  const { data } = supabaseClient.storage.from('card-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/* Convert any base64 data: URL cards to Storage URLs before saving.
+   Cards that already use a plain URL are left untouched. */
+async function resolveCardsForSave(cards){
+  const resolved = [];
+  for(const card of cards){
+    if(card.image && card.image.startsWith('data:')){
+      const res  = await fetch(card.image);
+      const blob = await res.blob();
+      const file = new File([blob], 'upload.jpg', { type: blob.type || 'image/jpeg' });
+      const url  = await uploadImageToStorage(file);
+      resolved.push(Object.assign({}, card, { image: url }));
+    } else {
+      resolved.push(Object.assign({}, card));
+    }
+  }
+  return resolved;
+}
+
 async function refreshSetsFromDb(force){
   const CACHE_MS = 10000; // reuse in-memory cache if fetched less than 10s ago
   if(!force && setsLastFetched && sets.length > 0 && (Date.now() - setsLastFetched) < CACHE_MS){
@@ -1226,24 +1257,41 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
 
   const saveBtn = document.getElementById('saveSetBtn');
   saveBtn.disabled = true;
+
+  // Check if any card has a base64 image that needs uploading first
+  const hasBase64 = editorCards.some(c => c.image && c.image.startsWith('data:'));
+  saveBtn.textContent = hasBase64 ? 'Uploading images...' : 'Saving...';
+
+  let cardsToSave;
+  try{
+    cardsToSave = await resolveCardsForSave(editorCards);
+  }catch(e){
+    console.error('Image upload error:', e);
+    alert('Could not upload one or more images to Supabase Storage.\n\nMake sure the bucket "card-images" exists and is set to public.\n\nError: ' + (e.message || JSON.stringify(e)));
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save set';
+    return;
+  }
+
   saveBtn.textContent = 'Saving...';
   try{
     if(editingSetId){
-      await updateSetInDb(editingSetId, name, editorCards);
+      await updateSetInDb(editingSetId, name, cardsToSave);
     }else{
-      await insertSetInDb(name, editorCards);
+      await insertSetInDb(name, cardsToSave);
     }
+    editorCards = cardsToSave;
     editorPanel.style.display = 'none';
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
   }catch(e){
     console.error('Save error:', e);
-    alert('Could not save.\n\nFull error:\n' + JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
+    alert('Could not save.\n\nError: ' + (e.message || JSON.stringify(e, Object.getOwnPropertyNames(e), 2)));
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
     return;
   }
-  // refresh after closing the panel — errors here are silent (list just stays stale)
+  // refresh after closing the panel
   try{ await refreshSetsFromDb(true); }catch(_){}
 };
 
