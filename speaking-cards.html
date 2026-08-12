@@ -1121,17 +1121,17 @@ function renderCardEditorList(){
         <input type="text" data-field="image-url" placeholder="https://..." value="${card.image && !card.image.startsWith('data:') ? escapeAttr(card.image) : ''}">
         <span class="img-status" data-field="img-status"></span>
         <button type="button" class="btn btn-secondary btn-sm" data-field="image-search" style="margin-top:4px;">🔍 Search image</button>
-        <small>OR UPLOAD</small>
+        <small style="margin-top:6px;">OR UPLOAD FILE</small>
         <input type="file" accept="image/*" data-field="image-upload">
+        <span class="img-status" data-field="upload-status"></span>
       </div>
       <div class="col">
         <small>QUESTION / PROMPT (optional)</small>
         <textarea data-field="prompt" placeholder="E.g.: What is this? / Describe it.">${escapeHtml(card.prompt||'')}</textarea>
       </div>
       <div class="col">
-        <small>AUDIO (optional)</small>
-        <input type="file" accept="audio/*" data-field="audio-upload">
-        <small>OR AUTO-GENERATE FROM TEXT</small>
+        <small>AUDIO (optional) — auto-generate from text</small>
+        <small style="display:none;">OR AUTO-GENERATE FROM TEXT</small>
         <input type="text" data-field="audio-text" placeholder="Text to be spoken" value="${escapeAttr(card.audioText||'')}">
         <select data-field="audio-lang" class="voice-select">
           <option value="en-US" ${card.audioLang==='en-US'||!card.audioLang?'selected':''}>English (US)</option>
@@ -1184,17 +1184,7 @@ function renderCardEditorList(){
     if(card.image && !card.image.startsWith('data:')){
       checkImageUrl(card.image);
     }
-    row.querySelector('[data-field="image-upload"]').onchange = (e)=>{
-      const file = e.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev)=>{
-        card.image = ev.target.result;
-        row.querySelector('.card-thumb').src = card.image;
-        row.querySelector('[data-field="image-url"]').value = '';
-      };
-      reader.readAsDataURL(file);
-    };
+
     row.querySelector('[data-field="image-search"]').onclick = ()=>{
       openImageSearch((url)=>{
         card.image = url;
@@ -1203,18 +1193,31 @@ function renderCardEditorList(){
         checkImageUrl(url);
       });
     };
+    row.querySelector('[data-field="image-upload"]').onchange = async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const uploadStatus = row.querySelector('[data-field="upload-status"]');
+      uploadStatus.textContent = '⏳ Uploading...';
+      uploadStatus.className = 'img-status';
+      try{
+        const url = await uploadImageToStorage(file);
+        card.image = url;
+        urlInput.value = url;
+        row.querySelector('.card-thumb').src = url;
+        row.querySelector('.card-thumb').style.opacity = '1';
+        uploadStatus.textContent = '✅ Uploaded!';
+        uploadStatus.className = 'img-status ok';
+        setTimeout(()=>{ uploadStatus.textContent=''; }, 3000);
+      }catch(err){
+        console.error('Upload error:', err);
+        uploadStatus.textContent = '❌ Upload failed: ' + (err.message || 'unknown error');
+        uploadStatus.className = 'img-status error';
+      }
+    };
     row.querySelector('[data-field="prompt"]').oninput = (e)=>{
       card.prompt = e.target.value;
     };
-    row.querySelector('[data-field="audio-upload"]').onchange = (e)=>{
-      const file = e.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev)=>{
-        card.audioFile = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    };
+
     row.querySelector('[data-field="audio-text"]').oninput = (e)=>{
       card.audioText = e.target.value;
     };
@@ -1257,30 +1260,20 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
 
   const saveBtn = document.getElementById('saveSetBtn');
   saveBtn.disabled = true;
-
-  // Check if any card has a base64 image that needs uploading first
-  const hasBase64 = editorCards.some(c => c.image && c.image.startsWith('data:'));
-  saveBtn.textContent = hasBase64 ? 'Uploading images...' : 'Saving...';
-
-  let cardsToSave;
-  try{
-    cardsToSave = await resolveCardsForSave(editorCards);
-  }catch(e){
-    console.error('Image upload error:', e);
-    alert('Could not upload one or more images to Supabase Storage.\n\nMake sure the bucket "card-images" exists and is set to public.\n\nError: ' + (e.message || JSON.stringify(e)));
+  // Check if any card still has a raw base64 (shouldn't happen — upload is now inline — but guard anyway)
+  const stillBase64 = editorCards.some(c => c.image && c.image.startsWith('data:'));
+  if(stillBase64){
+    alert('One or more images are still uploading. Please wait a moment and try again.');
     saveBtn.disabled = false;
-    saveBtn.textContent = 'Save set';
     return;
   }
-
   saveBtn.textContent = 'Saving...';
   try{
     if(editingSetId){
-      await updateSetInDb(editingSetId, name, cardsToSave);
+      await updateSetInDb(editingSetId, name, editorCards);
     }else{
-      await insertSetInDb(name, cardsToSave);
+      await insertSetInDb(name, editorCards);
     }
-    editorCards = cardsToSave;
     editorPanel.style.display = 'none';
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
@@ -1291,7 +1284,6 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
     saveBtn.textContent = 'Save set';
     return;
   }
-  // refresh after closing the panel
   try{ await refreshSetsFromDb(true); }catch(_){}
 };
 
