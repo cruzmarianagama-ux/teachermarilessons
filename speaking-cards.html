@@ -1237,7 +1237,13 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
   }catch(e){
-    alert('Could not save — check your internet connection and try again. If this keeps happening, your Supabase project may be paused (free projects pause after a week of inactivity — just open the Supabase dashboard to wake it up).');
+    console.error('Save error full object:', e);
+    console.error('Save error message:', e?.message);
+    console.error('Save error code:', e?.code);
+    console.error('Save error details:', e?.details);
+    console.error('Save error hint:', e?.hint);
+    const detail = e?.message || e?.details || e?.hint || JSON.stringify(e) || 'Unknown error';
+    alert('Could not save.\n\nError: ' + detail + '\n\nIf this keeps happening, your Supabase project may be paused — open the Supabase dashboard to wake it up.');
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save set';
     return;
