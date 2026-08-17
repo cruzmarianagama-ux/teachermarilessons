@@ -2238,6 +2238,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [rascunhoCobranca, setRascunhoCobranca] = useState({ mes: "", valor: "", vencimento: "" });
   const [mostrarNovaCobranca, setMostrarNovaCobranca] = useState(false);
   const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "" });
+  const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [rascunho, setRascunho] = useState({ status: "realizada" });
   const [carregandoDados, setCarregandoDados] = useState(true);
@@ -3294,6 +3295,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     .filter((c) => c.diasParaVencer < 0)
     .sort((a, b) => a.diasParaVencer - b.diasParaVencer)[0];
 
+  const cobrancaProxima = !cobrancaVencida && cobranca
+    .filter((c) => c.status !== "pago")
+    .map((c) => ({ ...c, diasParaVencer: Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000) }))
+    .filter((c) => c.diasParaVencer >= 0 && c.diasParaVencer <= 2)
+    .sort((a, b) => a.diasParaVencer - b.diasParaVencer)[0];
+
   const marcarComoPago = async (rowId) => {
     const { error } = await supabase.from("billing").update({ status: "pago" }).eq("id", rowId);
     if (error) { alert("Erro ao marcar como pago: " + error.message); return; }
@@ -3356,17 +3363,36 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       .insert({ turma_id: turmaId, mes: novaCobranca.mes, valor: valorNum, vencimento: novaCobranca.vencimento, status: "pendente" })
       .select().single();
     if (error) { alert("Erro ao criar cobrança: " + error.message); return; }
+
+    let boletoUrl = null;
+    let nomeArquivo = null;
+    if (novaCobrancaBoleto) {
+      const file = novaCobrancaBoleto;
+      const caminho = `${turmaId}/${data.id}_${file.name.replace(/\s+/g, "_")}`;
+      const { error: erroUpload } = await supabase.storage.from("boletos").upload(caminho, file, { upsert: true });
+      if (erroUpload) {
+        alert("Cobrança criada, mas erro ao subir boleto: " + erroUpload.message);
+      } else {
+        const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(caminho);
+        boletoUrl = urlData.publicUrl;
+        nomeArquivo = file.name;
+        await supabase.from("billing").update({ boleto_url: boletoUrl }).eq("id", data.id);
+      }
+    }
+
     const nova = {
       mes: data.mes,
       valor: `R$ ${Number(data.valor).toFixed(2).replace(".", ",")}`,
       status: data.status,
       vencimento: new Date(data.vencimento + "T00:00:00").toLocaleDateString("pt-BR"),
       vencimentoISO: data.vencimento,
-      boletoUrl: null,
+      boletoUrl,
+      nomeArquivo,
       rowId: data.id,
     };
     setCobranca((prev) => [...prev, nova].sort((a, b) => a.vencimentoISO.localeCompare(b.vencimentoISO)));
     setNovaCobranca({ mes: "", valor: "", vencimento: "" });
+    setNovaCobrancaBoleto(null);
     setMostrarNovaCobranca(false);
   };
   const reposicoesPendentes = Object.entries(aulas)
@@ -3822,6 +3848,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
             <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "flex-start", gap: "10px", background: "#F7C1C122", border: "1px solid #E24B4A", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
               <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, lineHeight: 1.5 }}>
                 ⚠️ Mensalidade em aberto há {diasTexto}. Por favor regularize o pagamento. Se o pagamento já foi realizado, desconsidere esta mensagem.
+              </span>
+            </div>
+          );
+        })()}
+
+        {cobrancaProxima && (!turma || turma.modalidade !== "grupo") && (() => {
+          const d = cobrancaProxima.diasParaVencer;
+          const texto = d === 0
+            ? `Sua mensalidade de ${cobrancaProxima.mes} vence HOJE (${cobrancaProxima.vencimento}). Fique em dia!`
+            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). Não esqueça!`;
+          const bg = d === 0 ? `${palette.orange}22` : `${palette.lavender}33`;
+          const border = d === 0 ? `1px solid ${palette.orange}` : `1px solid ${palette.lavender}`;
+          return (
+            <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "flex-start", gap: "10px", background: bg, border, borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
+              <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, lineHeight: 1.5 }}>
+                {d === 0 ? "🔔" : "📅"} {texto}
               </span>
             </div>
           );
@@ -4710,7 +4752,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Vencimento</label>
                       <input type="date" value={novaCobranca.vencimento} onChange={(e) => setNovaCobranca((n) => ({ ...n, vencimento: e.target.value }))}
-                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
+
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Boleto (opcional)</label>
+                      <label style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "8px", border: `1px dashed ${palette.lavender}99`, cursor: "pointer", marginBottom: "14px", background: dark ? "#2A1D66" : "#FFF" }}>
+                        <span style={{ fontSize: "13px", color: novaCobrancaBoleto ? palette.green : (dark ? "#FFF" : `${palette.purple}88`) }}>
+                          {novaCobrancaBoleto ? `📎 ${novaCobrancaBoleto.name}` : "Clique para anexar boleto (PDF ou imagem)"}
+                        </span>
+                        <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
+                          onChange={(e) => setNovaCobrancaBoleto(e.target.files[0] || null)} />
+                      </label>
 
                       <button onClick={criarCobranca}
                         style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>
@@ -4786,6 +4837,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
                           onChange={(e) => e.target.files[0] && anexarBoleto(i, e.target.files[0])} />
                       </label>
+                      {c.boletoUrl && (
+                        <a href={c.boletoUrl} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple, textDecoration: "none", border: `1px solid ${palette.lavender}55` }}>
+                          👁 Ver boleto
+                        </a>
+                      )}
                       {c.status !== "pago" ? (
                         <button onClick={() => marcarComoPago(c.rowId)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.lightGreen, color: palette.green }}>
