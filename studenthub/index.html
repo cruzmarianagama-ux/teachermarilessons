@@ -914,6 +914,9 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [editandoMaterialId, setEditandoMaterialId] = useState(null);
   const [avisos, setAvisos] = useState([]);
   const [exportando, setExportando] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [modalImportarAberto, setModalImportarAberto] = useState(false);
+  const [backupAutoStatus, setBackupAutoStatus] = useState(""); // "ok" | "erro" | ""
   const [students, setStudents] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -1169,6 +1172,56 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
   useEffect(() => { carregarAlunos(); carregarDiasSemAula(); carregarAvisos(); carregarMateriaisAdmin(); }, []);
 
+  // Backup automático semanal — roda silenciosamente ao abrir o painel
+  useEffect(() => {
+    const CHAVE = "studenthub_ultimo_backup_auto";
+    const ultimoBackup = localStorage.getItem(CHAVE);
+    const agora = Date.now();
+    const SETE_DIAS = 7 * 24 * 60 * 60 * 1000;
+    if (ultimoBackup && agora - Number(ultimoBackup) < SETE_DIAS) return;
+
+    const rodarBackupAuto = async () => {
+      try {
+        const [turmasRes, studentsRes, lessonsRes, recordsRes, billingRes, diasSemAulaRes] = await Promise.all([
+          supabase.from("turmas").select("*"),
+          supabase.from("students").select("*"),
+          supabase.from("lessons").select("*"),
+          supabase.from("lesson_records").select("*"),
+          supabase.from("billing").select("*"),
+          supabase.from("dias_sem_aula").select("*"),
+        ]);
+        const backup = {
+          geradoEm: new Date().toISOString(),
+          versao: "auto-semanal",
+          turmas: turmasRes.data || [],
+          alunos: studentsRes.data || [],
+          aulas: lessonsRes.data || [],
+          registrosHomework: recordsRes.data || [],
+          financeiro: billingRes.data || [],
+          diasSemAula: diasSemAulaRes.data || [],
+        };
+        const dataStr = new Date().toISOString().slice(0, 10);
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup-studenthub-${dataStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        localStorage.setItem(CHAVE, String(agora));
+        setBackupAutoStatus("ok");
+        setTimeout(() => setBackupAutoStatus(""), 6000);
+      } catch (e) {
+        setBackupAutoStatus("erro");
+        setTimeout(() => setBackupAutoStatus(""), 8000);
+      }
+    };
+
+    // Aguarda 3s após abrir o painel pra não interferir no carregamento inicial
+    const timer = setTimeout(rodarBackupAuto, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const carregarMateriaisAdmin = async () => {
     const { data } = await supabase.from("materiais").select("*").order("created_at", { ascending: false });
     setMateriaisAdmin(data || []);
@@ -1251,8 +1304,12 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       supabase.from("billing").select("*"),
       supabase.from("dias_sem_aula").select("*"),
     ]);
+    const agora = new Date();
+    const dataStr = agora.toISOString().slice(0, 10);
+    const horaStr = agora.toTimeString().slice(0, 5).replace(":", "h");
     const backup = {
-      geradoEm: new Date().toISOString(),
+      geradoEm: agora.toISOString(),
+      versao: "manual",
       turmas: turmasRes.data || [],
       alunos: studentsRes.data || [],
       aulas: lessonsRes.data || [],
@@ -1264,12 +1321,82 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `backup-portal-teacher-mari-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `backup-studenthub-${dataStr}-${horaStr}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setExportando(false);
   };
 
+
+  const importarBackup = async (file) => {
+    if (!file) return;
+    setImportando(true);
+    try {
+      const texto = await file.text();
+      const dados = JSON.parse(texto);
+
+      // Validação mínima — o JSON precisa ter pelo menos uma das tabelas esperadas
+      const tabelasEsperadas = ["turmas", "alunos", "aulas", "financeiro"];
+      const temEstrutura = tabelasEsperadas.some((t) => Array.isArray(dados[t]));
+      if (!temEstrutura) {
+        alert("Arquivo inválido. Certifique-se de que é um backup gerado pelo StudentHub.");
+        setImportando(false);
+        return;
+      }
+
+      const confirmar = window.confirm(
+        `⚠️ ATENÇÃO — Importação de backup\n\n` +
+        `Backup gerado em: ${dados.geradoEm ? new Date(dados.geradoEm).toLocaleString("pt-BR") : "data desconhecida"}\n` +
+        `Versão: ${dados.versao || "—"}\n\n` +
+        `Esta operação VAI SOBRESCREVER os dados existentes nas seguintes tabelas:\n` +
+        `• ${(dados.turmas || []).length} turmas\n` +
+        `• ${(dados.alunos || []).length} alunos\n` +
+        `• ${(dados.aulas || []).length} aulas\n` +
+        `• ${(dados.financeiro || []).length} registros financeiros\n\n` +
+        `Tem certeza que deseja continuar?`
+      );
+      if (!confirmar) { setImportando(false); return; }
+
+      const erros = [];
+
+      // Upsert em cada tabela (insere ou atualiza por ID)
+      if (dados.turmas && dados.turmas.length > 0) {
+        const { error } = await supabase.from("turmas").upsert(dados.turmas, { onConflict: "id" });
+        if (error) erros.push(`turmas: ${error.message}`);
+      }
+      if (dados.alunos && dados.alunos.length > 0) {
+        const { error } = await supabase.from("students").upsert(dados.alunos, { onConflict: "id" });
+        if (error) erros.push(`alunos: ${error.message}`);
+      }
+      if (dados.aulas && dados.aulas.length > 0) {
+        const { error } = await supabase.from("lessons").upsert(dados.aulas, { onConflict: "id" });
+        if (error) erros.push(`aulas: ${error.message}`);
+      }
+      if (dados.registrosHomework && dados.registrosHomework.length > 0) {
+        const { error } = await supabase.from("lesson_records").upsert(dados.registrosHomework, { onConflict: "id" });
+        if (error) erros.push(`homework: ${error.message}`);
+      }
+      if (dados.financeiro && dados.financeiro.length > 0) {
+        const { error } = await supabase.from("billing").upsert(dados.financeiro, { onConflict: "id" });
+        if (error) erros.push(`financeiro: ${error.message}`);
+      }
+      if (dados.diasSemAula && dados.diasSemAula.length > 0) {
+        const { error } = await supabase.from("dias_sem_aula").upsert(dados.diasSemAula, { onConflict: "id" });
+        if (error) erros.push(`dias sem aula: ${error.message}`);
+      }
+
+      if (erros.length > 0) {
+        alert(`Importação concluída com erros:\n\n${erros.join("\n")}\n\nOs demais dados foram importados normalmente.`);
+      } else {
+        alert("✅ Backup importado com sucesso! A página será recarregada.");
+        window.location.reload();
+      }
+    } catch (e) {
+      alert("Erro ao ler o arquivo. Verifique se é um JSON válido.\n\n" + e.message);
+    }
+    setImportando(false);
+    setModalImportarAberto(false);
+  };
 
   const cadastrarTurma = async () => {
     setStatusForm({ tipo: "", texto: "" });
@@ -1365,7 +1492,23 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Painel administrativo</p>
             <h1 style={{ color: "#FFF", fontSize: "22px", fontWeight: 600 }}>Olá, Teacher Mari!</h1>
           </div>
-          <button onClick={onLogout} style={{ fontSize: "12px", color: "#FFF", background: "rgba(255,255,255,0.12)", border: "none", borderRadius: "10px", padding: "8px 12px", cursor: "pointer", position: "relative", zIndex: 1 }}>Sair</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative", zIndex: 1, flex: "1 1 200px", maxWidth: "320px" }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="text" value={buscaTurma} onChange={(e) => { setBuscaTurma(e.target.value); setAbaAdmin("alunos"); }}
+                placeholder="Buscar turma..."
+                style={{ width: "100%", padding: "8px 12px 8px 34px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.12)", fontSize: "13px", fontFamily: "'Poppins', sans-serif", color: "#FFF", outline: "none", boxSizing: "border-box" }} />
+              {buscaTurma && (
+                <button onClick={() => setBuscaTurma("")}
+                  style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", fontSize: "16px", fontWeight: 600, padding: "4px 6px", lineHeight: 1 }}>×</button>
+              )}
+            </div>
+            <button onClick={onLogout} style={{ fontSize: "12px", color: "#FFF", background: "rgba(255,255,255,0.12)", border: "none", borderRadius: "10px", padding: "8px 12px", cursor: "pointer", whiteSpace: "nowrap" }}>Sair</button>
+          </div>
         </div>
 
         {avisos.length > 0 && (
@@ -1623,8 +1766,72 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             <p style={{ fontSize: "20px", margin: "0 0 4px 0" }}>💾</p>
             <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, margin: 0 }}>{exportando ? "Gerando..." : "Backup"}</p>
             <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "2px 0 0 0" }}>Exportar JSON</p>
+            {(() => {
+              const ultimo = localStorage.getItem("studenthub_ultimo_backup_auto");
+              if (!ultimo) return <p style={{ fontSize: "10px", color: "#E24B4A", margin: "6px 0 0 0", fontWeight: 600 }}>Nenhum backup automático ainda</p>;
+              const proximo = new Date(Number(ultimo) + 7 * 24 * 60 * 60 * 1000);
+              const hoje = new Date();
+              const diasRestantes = Math.ceil((proximo - hoje) / 86400000);
+              const label = diasRestantes <= 0 ? "Hoje" : diasRestantes === 1 ? "Amanhã" : `Em ${diasRestantes} dias`;
+              const cor = diasRestantes <= 1 ? palette.orange : `${palette.purple}66`;
+              return <p style={{ fontSize: "10px", color: cor, margin: "6px 0 0 0", fontWeight: diasRestantes <= 1 ? 700 : 400 }}>Próximo auto: {label}</p>;
+            })()}
+          </button>
+          <button onClick={() => setModalImportarAberto(true)}
+            style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "20px", margin: "0 0 4px 0" }}>📥</p>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, margin: 0 }}>Restaurar</p>
+            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "2px 0 0 0" }}>Importar JSON</p>
           </button>
         </div>
+
+        {/* Toast de backup automático */}
+        {backupAutoStatus === "ok" && (
+          <div style={{ background: palette.lightGreen, borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px" }}>✅</span>
+            <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: palette.green }}>Backup semanal automático gerado e salvo no seu dispositivo.</p>
+          </div>
+        )}
+        {backupAutoStatus === "erro" && (
+          <div style={{ background: "#F7C1C1", borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px" }}>⚠️</span>
+            <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "#791F1F" }}>Backup automático falhou. Faça um backup manual pelo card acima.</p>
+          </div>
+        )}
+
+        {/* Modal de importação */}
+        {modalImportarAberto && (
+          <div onClick={() => !importando && setModalImportarAberto(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(29,16,80,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", zIndex: 1000 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ background: "#FFF", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "480px", boxShadow: "0 24px 60px rgba(29,16,80,0.2)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: palette.purple }}>📥 Restaurar backup</p>
+                {!importando && (
+                  <button onClick={() => setModalImportarAberto(false)}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "22px", color: palette.purple, lineHeight: 1, padding: "2px 8px" }}>×</button>
+                )}
+              </div>
+              <div style={{ background: "#FFF6EA", border: `1px solid ${palette.orange}`, borderRadius: "10px", padding: "12px 14px", marginBottom: "20px" }}>
+                <p style={{ margin: 0, fontSize: "12px", color: palette.purple, lineHeight: 1.6 }}>
+                  ⚠️ <strong>Atenção:</strong> a importação <strong>sobrescreve</strong> os dados existentes. Use apenas arquivos de backup gerados pelo próprio StudentHub. Uma confirmação será pedida antes de prosseguir.
+                </p>
+              </div>
+              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "28px", borderRadius: "12px", border: `2px dashed ${palette.lavender}`, cursor: importando ? "default" : "pointer", background: palette.cream }}>
+                <span style={{ fontSize: "32px" }}>📂</span>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: palette.purple }}>
+                  {importando ? "Importando, aguarde..." : "Clique para selecionar o arquivo JSON"}
+                </span>
+                <span style={{ fontSize: "11px", color: `${palette.purple}99` }}>backup-studenthub-AAAA-MM-DD.json</span>
+                <input type="file" accept="application/json,.json" disabled={importando} style={{ display: "none" }}
+                  onChange={(e) => e.target.files[0] && importarBackup(e.target.files[0])} />
+              </label>
+              {importando && (
+                <p style={{ textAlign: "center", fontSize: "12px", color: `${palette.purple}99`, marginTop: "12px" }}>Restaurando dados no Supabase...</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Aulas de hoje ── */}
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
