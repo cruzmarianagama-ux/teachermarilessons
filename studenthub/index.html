@@ -1577,35 +1577,72 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         {abaAdmin === "alunos" && (
         <React.Fragment>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-          <button onClick={baixarBackupGeral} disabled={exportando}
-            style={{ padding: "8px 14px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: exportando ? "default" : "pointer", fontSize: "12px", fontWeight: 600, background: "#FFF", color: palette.purple, opacity: exportando ? 0.7 : 1 }}>
-            {exportando ? "Gerando backup..." : "Baixar backup completo (JSON)"}
-          </button>
-        </div>
+        {/* ── DASHBOARD — métricas no topo ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
 
-        {/* 🎂 Alerta de aniversariantes urgentes (HOJE ou AMANHÃ) */}
-        {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).length > 0 && (
-          <div style={{ background: "linear-gradient(135deg, #FFDDB5 0%, #FFE8CC 100%)", borderRadius: "16px", padding: "18px 20px", marginBottom: "16px", border: `2px solid ${palette.orange}` }}>
-            <p style={{ margin: "0 0 10px 0", fontSize: "12px", fontWeight: 700, color: palette.orange, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Aniversário — não esqueça!</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {/* Alunos */}
+          <div style={{ background: palette.purple, borderRadius: "14px", padding: "16px 18px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: `${palette.lavender}CC`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Alunos</p>
+            <p style={{ fontSize: "28px", fontWeight: 700, color: "#FFF", margin: 0 }}>{students.length}</p>
+            <p style={{ fontSize: "11px", color: `${palette.lavender}99`, margin: "4px 0 0 0" }}>{new Set(students.map((s) => s.turma_id).filter(Boolean)).size} turmas ativas</p>
+          </div>
+
+          {/* Aulas hoje */}
+          <div style={{ background: aulasHoje.length > 0 ? palette.orange : "#FFF", borderRadius: "14px", padding: "16px 18px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: aulasHoje.length > 0 ? "rgba(255,255,255,0.75)" : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Hoje</p>
+            <p style={{ fontSize: "28px", fontWeight: 700, color: aulasHoje.length > 0 ? "#FFF" : palette.purple, margin: 0 }}>{aulasHoje.length}</p>
+            <p style={{ fontSize: "11px", color: aulasHoje.length > 0 ? "rgba(255,255,255,0.7)" : `${palette.purple}66`, margin: "4px 0 0 0" }}>
+              {aulasHoje.length === 0 ? "Nenhuma aula" : aulasHoje.length === 1 ? "aula agendada" : "aulas agendadas"}
+            </p>
+          </div>
+
+          {/* Amanhã */}
+          <div style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Amanhã</p>
+            <p style={{ fontSize: "28px", fontWeight: 700, color: palette.purple, margin: 0 }}>{aulasAmanha.length}</p>
+            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "4px 0 0 0" }}>{aulasAmanha.length === 1 ? "aula" : "aulas"}</p>
+          </div>
+
+          {/* Cobranças */}
+          <button onClick={() => cobrancasAbertoLista.length > 0 && setModalAberto("cobrancas")} disabled={cobrancasAbertoLista.length === 0}
+            style={{ background: cobrancasAbertoLista.length > 0 ? "#FCF0F0" : "#FFF", borderRadius: "14px", padding: "16px 18px", border: cobrancasAbertoLista.length > 0 ? `1.5px solid #E24B4A` : "none", cursor: cobrancasAbertoLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Em aberto</p>
+            <p style={{ fontSize: "28px", fontWeight: 700, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : palette.purple, margin: 0 }}>{cobrancasAbertoLista.length}</p>
+            <p style={{ fontSize: "11px", color: cobrancasAbertoLista.length > 0 ? "#E24B4A99" : `${palette.purple}66`, margin: "4px 0 0 0" }}>{cobrancasAbertoLista.length > 0 ? "ver quem →" : "cobranças"}</p>
+          </button>
+
+          {/* Reposições */}
+          <button onClick={() => reposicoesPendentesLista.length > 0 && setModalAberto("reposicoes")} disabled={reposicoesPendentesLista.length === 0}
+            style={{ background: reposicoesPendentesLista.length > 0 ? "#FFF6EA" : "#FFF", borderRadius: "14px", padding: "16px 18px", border: reposicoesPendentesLista.length > 0 ? `1.5px solid ${palette.orange}` : "none", cursor: reposicoesPendentesLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: reposicoesPendentesLista.length > 0 ? palette.orange : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Reposições</p>
+            <p style={{ fontSize: "28px", fontWeight: 700, color: reposicoesPendentesLista.length > 0 ? palette.orange : palette.purple, margin: 0 }}>{reposicoesPendentesLista.length}</p>
+            <p style={{ fontSize: "11px", color: reposicoesPendentesLista.length > 0 ? `${palette.orange}99` : `${palette.purple}66`, margin: "4px 0 0 0" }}>{reposicoesPendentesLista.length > 0 ? "ver quem →" : "pendentes"}</p>
+          </button>
+
+          {/* Aniversários urgentes */}
+          {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).length > 0 && (
+            <div style={{ background: "linear-gradient(135deg, #FFDDB5, #FFE8CC)", borderRadius: "14px", padding: "16px 18px", border: `1.5px solid ${palette.orange}`, gridColumn: "span 1" }}>
+              <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>🎂 Aniversário</p>
               {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).map((a, i) => (
                 <button key={i} onClick={() => onSelectStudent(a.aluno)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: "#FFF", border: "none", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: palette.purple }}>{a.nome}</p>
-                    <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: palette.orange, fontWeight: 600 }}>
-                      {a.isHoje ? `🎉 Faz aniversário HOJE (${a.dia}/${a.mes + 1})` : `📅 Faz aniversário AMANHÃ (${a.dia}/${a.mes + 1})`}
-                    </p>
-                  </div>
-                  <span style={{ fontSize: "24px" }}>🎂</span>
+                  style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "'Poppins', sans-serif" }}>
+                  <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple }}>{a.nome}</p>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{a.isHoje ? "🎉 HOJE!" : "📅 Amanhã"}</p>
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Aulas de hoje */}
+          {/* Backup */}
+          <button onClick={baixarBackupGeral} disabled={exportando}
+            style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px", border: `1px solid ${palette.lavender}55`, cursor: exportando ? "default" : "pointer", textAlign: "left", fontFamily: "'Poppins', sans-serif", opacity: exportando ? 0.7 : 1 }}>
+            <p style={{ fontSize: "20px", margin: "0 0 6px 0" }}>💾</p>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, margin: 0 }}>{exportando ? "Gerando..." : "Backup"}</p>
+            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "2px 0 0 0" }}>Exportar JSON</p>
+          </button>
+        </div>
+
+        {/* ── Aulas de hoje ── */}
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
             <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📅 Aulas de hoje</p>
@@ -1655,7 +1692,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           )}
         </div>
 
-        {/* Aulas de amanhã */}
+        {/* ── Aulas de amanhã ── */}
         <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
             <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📆 Aulas de amanhã</p>
@@ -1684,7 +1721,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           )}
         </div>
 
-        {/* Aniversariantes */}
+        {/* ── Próximos aniversariantes ── */}
         {aniversariantes.filter((a) => !a.isHoje && a.diasAte !== 1).length > 0 && (
           <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
             <p style={{ margin: "0 0 12px 0", fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>🎂 Próximos aniversariantes</p>
@@ -1702,28 +1739,6 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             </div>
           </div>
         )}
-
-        {/* Contadores */}
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "20px" }}>
-          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Total de alunos</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: palette.purple }}>{students.length}</p>
-          </div>
-          <div style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99` }}>Total de turmas</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: palette.purple }}>{new Set(students.map((s) => s.turma_id).filter(Boolean)).size}</p>
-          </div>
-          <button onClick={() => cobrancasAbertoLista.length > 0 && setModalAberto("cobrancas")} disabled={cobrancasAbertoLista.length === 0}
-            style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: cobrancasAbertoLista.length > 0 ? `1px solid #E24B4A` : "none", cursor: cobrancasAbertoLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: 0 }}>Cobranças em aberto {cobrancasAbertoLista.length > 0 && <span style={{ fontSize: "10px", color: "#E24B4A" }}>· ver quem</span>}</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : palette.purple, margin: "4px 0 0 0" }}>{cobrancasAbertoLista.length}</p>
-          </button>
-          <button onClick={() => reposicoesPendentesLista.length > 0 && setModalAberto("reposicoes")} disabled={reposicoesPendentesLista.length === 0}
-            style={{ flex: "1 1 140px", background: "#FFF", borderRadius: "12px", padding: "16px", border: reposicoesPendentesLista.length > 0 ? `1px solid ${palette.orange}` : "none", cursor: reposicoesPendentesLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: 0 }}>Reposições pendentes {reposicoesPendentesLista.length > 0 && <span style={{ fontSize: "10px", color: palette.orange }}>· ver quem</span>}</p>
-            <p style={{ marginTop: "4px", fontSize: "20px", fontWeight: 600, color: reposicoesPendentesLista.length > 0 ? palette.orange : palette.purple, margin: "4px 0 0 0" }}>{reposicoesPendentesLista.length}</p>
-          </button>
-        </div>
 
         {/* Modal — Cobranças em aberto */}
         {modalAberto === "cobrancas" && (
@@ -2231,6 +2246,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [anoHomework, setAnoHomework] = useState(() => new Date().getFullYear());
   const [homeworkStatus, setHomeworkStatus] = useState({});
   const [novaAula, setNovaAula] = useState({ data: "", assunto: "", unidade: "", cronogramaUrl: "", cronogramasUrl: [""], embeds: [], presencas: {}, homework: "", materiaisAula: [], conteudoEnsinado: "", paraProximaAula: "" });
+  const [modalNovaAulaAberto, setModalNovaAulaAberto] = useState(false);
   const [novoMaterialAula, setNovoMaterialAula] = useState({ titulo: "", url: "" });
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
@@ -3857,7 +3873,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           const d = cobrancaProxima.diasParaVencer;
           const texto = d === 0
             ? `Sua mensalidade de ${cobrancaProxima.mes} vence HOJE (${cobrancaProxima.vencimento}). Fique em dia!`
-            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). Não esqueça!`;
+            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). Baixe seu boleto na aba financeiro.`;
           const bg = d === 0 ? `${palette.orange}22` : `${palette.lavender}33`;
           const border = d === 0 ? `1px solid ${palette.orange}` : `1px solid ${palette.lavender}`;
           return (
@@ -4035,8 +4051,24 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               {!cronogramaAberto && (
                 <div>
                   {role === "admin" && (
-                    <div style={{ padding: "16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream, marginBottom: "20px" }}>
-                      <p style={{ marginBottom: "10px", fontSize: "13px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>Registrar nova aula</p>
+                    <div style={{ marginBottom: "20px" }}>
+                      <button onClick={() => setModalNovaAulaAberto(true)}
+                        style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", borderRadius: "10px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif" }}>
+                        <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Registrar nova aula
+                      </button>
+                    </div>
+                  )}
+
+                  {modalNovaAulaAberto && (
+                    <div onClick={() => setModalNovaAulaAberto(false)}
+                      style={{ position: "fixed", inset: 0, background: "rgba(29,16,80,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", zIndex: 1000, overflowY: "auto" }}>
+                      <div onClick={(e) => e.stopPropagation()}
+                        style={{ background: dark ? "#2A1D66" : "#FFF", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "560px", boxShadow: "0 24px 60px rgba(29,16,80,0.2)", marginBottom: "24px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                          <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: dark ? "#FFF" : palette.purple }}>Registrar nova aula</p>
+                          <button onClick={() => setModalNovaAulaAberto(false)}
+                            style={{ background: "none", border: "none", cursor: "pointer", fontSize: "22px", color: dark ? "#FFF" : palette.purple, lineHeight: 1, padding: "2px 8px", fontFamily: "'Poppins', sans-serif" }}>×</button>
+                        </div>
 
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Data</label>
                       <input type="date" value={novaAula.data} onChange={(e) => setNovaAula((a) => ({ ...a, data: e.target.value }))}
@@ -4120,7 +4152,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
 
                       {colegas.length > 0 && (
-                        <div style={{ marginBottom: "14px", padding: "12px 14px", borderRadius: "10px", background: dark ? "#2A1D66" : "#FFF", border: `1px solid ${palette.lavender}55` }}>
+                        <div style={{ marginBottom: "14px", padding: "12px 14px", borderRadius: "10px", background: dark ? "#2A1D66" : palette.cream, border: `1px solid ${palette.lavender}55` }}>
                           <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>Presença</p>
                           {[student, ...colegas].map((aluno) => {
                             const presente = !(novaAula.presencas && novaAula.presencas[aluno.id] === false);
@@ -4189,10 +4221,20 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                           style={{ width: "100%", minHeight: "60px", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px", resize: "vertical" }} />
                       </div>
 
-                      <button onClick={registrarAula} style={{ padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
-                        Registrar aula
-                      </button>
+                      <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
+                        <button onClick={async () => { await registrarAula(); setModalNovaAulaAberto(false); }}
+                          style={{ padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF", fontFamily: "'Poppins', sans-serif" }}>
+                          Registrar aula
+                        </button>
+                        <button onClick={() => setModalNovaAulaAberto(false)}
+                          style={{ padding: "10px 18px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "13px", fontWeight: 600, background: "transparent", color: dark ? "#FFF" : palette.purple, fontFamily: "'Poppins', sans-serif" }}>
+                          Cancelar
+                        </button>
+                      </div>
+                      </div>
                     </div>
+                  )}
+
                   )}
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -6958,203 +7000,4 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
               { av: "ok", label: "🙂 Ok", bg: palette.lavender + "44", cor: palette.purple },
               { av: "facil", label: "😄 Fácil", bg: palette.lightGreen + "66", cor: palette.green },
             ].map(({ av, label, bg, cor }) => (
-              <button key={av} onClick={() => !salvando && avaliarCard(av)} disabled={salvando}
-                style={{ flex: 1, padding: "12px 8px", borderRadius: "12px", border: "none", cursor: salvando ? "default" : "pointer", fontWeight: 600, fontSize: "13px", background: bg, color: cor, opacity: salvando ? 0.7 : 1, fontFamily: "'Poppins', sans-serif" }}>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <p style={{ fontSize: "11px", color: textSecondary, textAlign: "center", margin: 0 }}>
-          {virado ? "Como foi lembrar essa palavra?" : "Pense na resposta antes de revelar."}
-        </p>
-      </div>
-    );
-  }
-
-  // TELA: resultado final
-  if (tela === "resultado") {
-    const faceis = resultados.filter(r => r.avaliacao === "facil").length;
-    const oks = resultados.filter(r => r.avaliacao === "ok").length;
-    const dificeis = resultados.filter(r => r.avaliacao === "dificil").length;
-    const total = resultados.length;
-
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <div style={{ textAlign: "center", padding: "8px 0" }}>
-          <span style={{ fontSize: "44px" }}>{faceis === total ? "🏆" : dificeis > total / 2 ? "💪" : "⭐"}</span>
-          <h2 style={{ fontSize: "18px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginTop: "8px" }}>Sessão completa!</h2>
-          <p style={{ fontSize: "13px", color: textSecondary }}>{total} cards revisados</p>
-        </div>
-
-        {/* Resumo */}
-        <div style={{ display: "flex", gap: "10px" }}>
-          {[
-            { label: "Fácil", count: faceis, bg: palette.lightGreen + "55", cor: palette.green },
-            { label: "Ok", count: oks, bg: palette.lavender + "44", cor: palette.purple },
-            { label: "Difícil", count: dificeis, bg: "#F7C1C1", cor: "#791F1F" },
-          ].map(({ label, count, bg, cor }) => (
-            <div key={label} style={{ flex: 1, background: bg, borderRadius: "10px", padding: "12px 8px", textAlign: "center" }}>
-              <p style={{ fontSize: "22px", fontWeight: 700, color: cor, margin: 0 }}>{count}</p>
-              <p style={{ fontSize: "11px", color: cor, margin: 0, fontWeight: 600 }}>{label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Lista de difíceis */}
-        {dificeis > 0 && (
-          <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "12px", padding: "14px" }}>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>
-              😓 Palavras para reforçar:
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {resultados.filter(r => r.avaliacao === "dificil").map((r, i) => (
-                <p key={i} style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, margin: 0 }}>
-                  • <strong>{r.card.frente}</strong> → {r.card.verso}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <p style={{ fontSize: "12px", color: textSecondary, textAlign: "center" }}>
-          O sistema já agendou sua próxima revisão. Continue praticando! 🚀
-        </p>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={voltarInicio} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", cursor: "pointer", background: dark ? "#5A4AA0" : palette.cream, color: dark ? "#FFF" : palette.purple, fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-            ← Outros decks
-          </button>
-          {dificeis > 0 && (
-            <button onClick={reiniciarDeck} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", cursor: "pointer", background: palette.orange, color: "#FFF", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
-              Revisar de novo
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-}
-
-// ---------- APP (controla navegação entre login e dashboard) ----------
-function App() {
-  const { useEffect } = React;
-  const [logado, setLogado] = useState(false);
-  const [papel, setPapel] = useState("aluno");
-  const [alunoSelecionado, setAlunoSelecionado] = useState(null);
-  const [carregandoLogin, setCarregandoLogin] = useState(false);
-  const [verificandoSessao, setVerificandoSessao] = useState(true);
-
-  useEffect(() => {
-    async function restaurarSessao() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session && sessionData.session.user;
-      if (!user) {
-        setVerificandoSessao(false);
-        return;
-      }
-      const { data: studentData } = await supabase.from("students").select("*").eq("id", user.id).single();
-      if (studentData) {
-        setAlunoSelecionado(studentData);
-        setPapel("aluno");
-      } else {
-        setPapel("admin");
-      }
-      setLogado(true);
-      setVerificandoSessao(false);
-    }
-    restaurarSessao();
-  }, []);
-
-  const sair = async () => {
-    await supabase.auth.signOut();
-    setLogado(false);
-    setAlunoSelecionado(null);
-  };
-
-  if (verificandoSessao) {
-    return (
-      <div style={{ minHeight: "100vh", width: "100%", background: palette.cream, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'Poppins', sans-serif", color: palette.purple, fontSize: "14px" }}>Carregando...</p>
-      </div>
-    );
-  }
-
-  if (!logado) {
-    return (
-      <PortalLogin
-        onLogin={async (r, user) => {
-          if (r === "aluno") {
-            setCarregandoLogin(true);
-            const { data, error } = await supabase.from("students").select("*").eq("id", user.id).single();
-            setCarregandoLogin(false);
-            if (error && error.code !== "PGRST116") {
-              // erro técnico (rede, permissão) — não é "aluno inexistente"
-              alert("Erro ao carregar seus dados: " + error.message + "\nTente novamente em alguns segundos.");
-              await supabase.auth.signOut();
-              return;
-            }
-            if (!data) {
-              alert("Esse login não está vinculado a nenhum aluno cadastrado. Fale com a Teacher Mari.");
-              await supabase.auth.signOut();
-              return;
-            }
-            setAlunoSelecionado(data);
-          } else {
-            // Tentando entrar como admin: verifica se esse usuário É admin
-            // Regra: admin é qualquer conta que NÃO está cadastrada como aluno em `students`
-            setCarregandoLogin(true);
-            const { data: alunoExistente } = await supabase.from("students").select("id").eq("id", user.id).single();
-            setCarregandoLogin(false);
-            if (alunoExistente) {
-              // É aluno tentando entrar como professora — bloqueia
-              alert("Este acesso é só pra Teacher Mari. Alunos devem entrar pela opção \"Aluno\" no login.");
-              await supabase.auth.signOut();
-              return;
-            }
-          }
-          setPapel(r);
-          setLogado(true);
-        }}
-      />
-    );
-  }
-
-  if (papel === "admin" && !alunoSelecionado) {
-    return <AdminPanel onLogout={sair} onSelectStudent={setAlunoSelecionado} />;
-  }
-
-  return (
-    <StudentDashboard
-      onLogout={sair}
-      role={papel}
-      student={alunoSelecionado}
-      onBack={papel === "admin" ? () => setAlunoSelecionado(null) : null}
-      onSwitchStudent={papel === "admin" ? (novoAluno) => setAlunoSelecionado(novoAluno) : null}
-      onStudentUpdated={(dados) => setAlunoSelecionado((prev) => {
-        if (!prev) return prev;
-        const { turmas: novasTurmas, ...restoDosDados } = dados;
-        return {
-          ...prev,
-          ...restoDosDados,
-          turmas: novasTurmas ? { ...(prev.turmas || {}), ...novasTurmas } : prev.turmas,
-        };
-      })}
-    />
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-</script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
-    });
-  }
-</script>
-</body>
-</html>
+              <button key
