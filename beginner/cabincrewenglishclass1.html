@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flight Attendant English – 3-Day Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 16px; font-family:'Poppins',sans-serif; font-size:1rem; font-weight:600; color:var(--purple); text-align:center; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width:100%; padding:13px; background:var(--orange); color:var(--white); border:none; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(255,92,35,0.35); transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18; transform:translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display:none; background:linear-gradient(90deg,var(--orange),#ff8c5a); color:var(--white); text-align:center; padding:12px 16px; font-size:1rem; font-weight:700; }
+  #hello-banner.show { display: block; }
+
+  /* HEADER */
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%); padding:28px 24px 22px; text-align:center; position:relative; overflow:hidden; }
+  .header::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,92,35,0.18); }
+  .header::after  { content:''; position:absolute; bottom:-30px; left:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem; font-weight:800; color:var(--white); letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem; font-weight:500; color:rgba(255,255,255,0.70); margin-top:4px; text-transform:uppercase; letter-spacing:1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background:var(--white); padding:16px 20px; box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600; color:var(--purple); margin-bottom:8px; }
+  .progress-track { height:10px; background:var(--gray-light); border-radius:99px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),#ff8c5a); border-radius:99px; transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655); color:var(--white); text-align:center; padding:10px 16px; font-size:0.82rem; font-weight:500; }
+
+  /* TABS */
+  .tabs-wrap { background:var(--white); overflow-x:auto; border-bottom:2px solid var(--gray-light); position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
+  .tabs { display:flex; min-width:max-content; padding:0 8px; }
+  .tab-btn { padding:14px 16px; font-size:0.78rem; font-weight:600; color:var(--gray); background:none; border:none; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; transition:all 0.2s; letter-spacing:0.3px; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange); border-bottom-color:var(--orange); }
+
+  /* CONTENT */
+  .content { max-width:780px; margin:0 auto; padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  /* DAY HEADER */
+  .day-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+  .day-number { background:var(--orange); color:var(--white); font-size:1.1rem; font-weight:800; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem; font-weight:700; color:var(--purple); }
+  .day-desc { font-size:0.82rem; color:var(--gray); margin-top:2px; }
+
+  /* EX CARD */
+  .ex-card { background:var(--white); border-radius:var(--radius); padding:22px; margin-bottom:20px; box-shadow:var(--shadow); border-left:4px solid var(--purple-light); }
+  .ex-card.grammar  { border-left-color:var(--orange); }
+  .ex-card.reading  { border-left-color:var(--teal); }
+  .ex-card.writing  { border-left-color:var(--green); }
+  .ex-title { font-size:0.98rem; font-weight:700; color:var(--purple); margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem; color:var(--gray); margin-bottom:18px; line-height:1.5; }
+
+  /* MC */
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem; font-weight:600; color:var(--purple); margin-bottom:10px; line-height:1.4; }
+  .mc-options { display:flex; flex-direction:column; gap:8px; }
+  .mc-option { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--radius-sm); border:2px solid var(--gray-light); cursor:pointer; transition:all 0.2s; font-size:0.85rem; font-weight:500; background:var(--white); }
+  .mc-option:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light); background:#f5f3ff; }
+  .mc-option.correct { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .mc-option.wrong   { border-color:var(--red);  background:#fef2f2; color:var(--red); }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom:14px; }
+  .fill-line { display:inline; font-size:0.88rem; font-weight:500; color:var(--purple); line-height:2; }
+  .fill-input { border:none; border-bottom:2px solid var(--purple-light); padding:2px 6px; font-family:'Poppins',sans-serif; font-size:0.88rem; font-weight:600; color:var(--purple); background:transparent; min-width:100px; max-width:200px; text-align:center; outline:none; transition:border-color 0.2s; display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal); color:var(--teal); }
+  .fill-input.wrong   { border-bottom-color:var(--red);  color:var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width:100%; border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:12px 14px; font-family:'Poppins',sans-serif; font-size:0.88rem; color:var(--purple); resize:vertical; outline:none; min-height:80px; transition:border-color 0.2s; margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:99px; font-family:'Poppins',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; border:none; transition:all 0.2s; }
+  .btn-primary  { background:var(--orange); color:var(--white); box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18; transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light); color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp { background:#25D366; color:var(--white); box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855; transform:translateY(-1px); }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+
+  /* FEEDBACK */
+  .feedback { display:none; padding:12px 16px; border-radius:var(--radius-sm); font-size:0.83rem; font-weight:600; margin-top:14px; line-height:1.5; }
+  .feedback.show { display:block; }
+  .feedback.ok      { background:#f0fdfa; color:var(--teal);   border:1px solid #99f6e4; }
+  .feedback.err     { background:#fef2f2; color:var(--red);    border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb; color:#b45309;       border:1px solid #fde68a; }
+
+  /* ANSWER KEY */
+  .answer-key { display:none; background:var(--cream); border-radius:var(--radius-sm); padding:14px 16px; margin-top:14px; font-size:0.82rem; line-height:1.8; color:var(--purple); }
+  .answer-key.show { display:block; }
+  .answer-key strong { color:var(--orange); }
+
+  /* READING */
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6); border-radius:var(--radius-sm); padding:18px; margin-bottom:18px; font-size:0.9rem; line-height:1.75; color:var(--purple); font-weight:500; border-left:4px solid var(--teal); }
+
+  /* DIALOGUE */
+  .dialogue-block { border:1px solid var(--gray-light); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:14px; background:var(--white); }
+  .dialogue-line { display:flex; align-items:flex-start; gap:8px; padding:6px 0; font-size:0.88rem; font-weight:500; color:var(--purple); border-bottom:1px solid var(--gray-light); flex-wrap:wrap; line-height:1.5; }
+  .dialogue-line:last-child { border-bottom:none; }
+  .speaker { font-weight:700; color:var(--orange); flex-shrink:0; min-width:130px; }
+
+  /* WORD BOX */
+  .word-box { background:var(--cream); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem; font-weight:600; color:var(--purple); text-align:center; letter-spacing:0.5px; line-height:2; }
+
+  /* TIP BOX */
+  .tip-box { background:#fffbeb; border-left:4px solid #f59e0b; border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:12px 16px; font-size:0.82rem; color:#92400e; margin-bottom:14px; line-height:1.6; }
+
+  /* CROSS-OUT (click wrong word) */
+  .crossout-group { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 10px; }
+  .crossout-word { background:var(--white); border:2px solid var(--gray-light); border-radius:6px; padding:5px 12px; font-size:0.88rem; font-weight:600; color:var(--purple); cursor:pointer; transition:all 0.2s; user-select:none; }
+  .crossout-word:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .crossout-word.selected { border-color:var(--orange); background:#fff5ee; color:var(--orange); text-decoration:line-through; }
+  .crossout-word.correct-x { border-color:var(--teal); background:#f0fdfa; color:var(--teal); text-decoration:line-through; }
+  .crossout-word.wrong-x   { border-color:var(--red);  background:#fef2f2; color:var(--red); }
+  .crossout-item { margin-bottom:14px; }
+  .crossout-label { font-size:0.82rem; font-weight:600; color:var(--purple); margin-bottom:6px; }
+
+  /* MATCH (two-column) */
+  .match-cols { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px; }
+  .match-col  { display:flex; flex-direction:column; gap:8px; }
+  .match-item { padding:10px 14px; border-radius:var(--radius-sm); border:2px solid var(--gray-light); font-size:0.85rem; font-weight:600; color:var(--purple); cursor:pointer; transition:all 0.2s; background:var(--white); user-select:none; min-height:46px; display:flex; align-items:center; line-height:1.3; }
+  .match-item:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .match-item.selected { border-color:var(--orange); background:#fff5ee; color:var(--orange); }
+  .match-item.matched  { border-color:var(--teal); background:#f0fdfa; color:var(--teal); cursor:default; }
+  .match-item.wrong-match { border-color:var(--red); background:#fef2f2; color:var(--red); animation:shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+
+  /* P / FA / B selector */
+  .pfab-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .pfab-text { font-size:0.88rem; font-weight:500; color:var(--purple); flex:1; min-width:180px; }
+  .pfab-btns { display:flex; gap:6px; flex-shrink:0; }
+  .pfab-btn { padding:5px 12px; border-radius:99px; border:2px solid var(--gray-light); font-family:'Poppins',sans-serif; font-size:0.78rem; font-weight:700; cursor:pointer; background:var(--white); transition:all 0.2s; }
+  .pfab-btn:hover { border-color:var(--purple-light); }
+  .pfab-btn.sel-p  { border-color:var(--purple); background:#f5f3ff; color:var(--purple); }
+  .pfab-btn.sel-fa { border-color:var(--orange); background:#fff5ee; color:var(--orange); }
+  .pfab-btn.sel-b  { border-color:var(--teal); background:#f0fdfa; color:var(--teal); }
+  .pfab-btn.correct-pfab { border-color:var(--teal); background:var(--teal); color:#fff; }
+  .pfab-btn.wrong-pfab   { border-color:var(--red);  background:var(--red);  color:#fff; }
+
+  /* CTF */
+  .ctf-wordbank { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:10px 12px; background:var(--cream); border-radius:var(--radius-sm); }
+  .ctf-chip { background:var(--purple); color:var(--white); border:none; border-radius:6px; padding:5px 14px; font-family:'Poppins',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.15s; user-select:none; }
+  .ctf-chip:hover  { background:var(--purple-light); transform:translateY(-1px); }
+  .ctf-chip.active { background:var(--orange); outline:3px solid #ffb347; transform:scale(1.08); }
+  .ctf-chip.used   { background:var(--gray); cursor:default; opacity:0.45; }
+  .ctf-gap { display:inline-block; min-width:72px; text-align:center; border-bottom:2.5px solid var(--purple-light); color:var(--orange); font-weight:700; font-size:0.88rem; padding:0 4px; cursor:pointer; margin:0 2px; transition:border-color 0.2s,background 0.2s; border-radius:4px 4px 0 0; vertical-align:middle; line-height:1.8; }
+  .ctf-gap:empty::before { content:'_ _ _'; color:#bbb; font-weight:400; font-size:0.78rem; }
+  .ctf-gap.ready       { border-bottom-color:var(--orange); background:#fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color:var(--teal); color:var(--teal); background:#f0fdfa; }
+  .ctf-gap.wrong-gap   { border-bottom-color:var(--red);  color:var(--red);  background:#fef2f2; }
+
+  /* SB (Sentence Builder) */
+  .sb-item { margin-bottom:18px; }
+  .sb-label { font-size:0.75rem; font-weight:700; color:var(--gray); margin-bottom:6px; }
+  .sb-context { font-size:0.82rem; font-style:italic; color:var(--gray); margin-bottom:8px; }
+  .sb-words { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; min-height:38px; padding:8px; background:var(--gray-light); border-radius:var(--radius-sm); }
+  .sb-zone  { display:flex; flex-wrap:wrap; gap:8px; min-height:44px; padding:8px 10px; background:var(--white); border:2px dashed var(--purple-light); border-radius:var(--radius-sm); margin-bottom:8px; transition:border-color 0.2s; }
+  .sb-zone.correct-zone { border-color:var(--teal); background:#f0fdfa; }
+  .sb-zone.wrong-zone   { border-color:var(--red);  background:#fef2f2; }
+  .sb-chip { background:var(--purple); color:var(--white); border:none; border-radius:6px; padding:5px 12px; font-family:'Poppins',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; user-select:none; }
+  .sb-chip:hover { background:var(--purple-light); transform:translateY(-1px); }
+  .sb-chip.in-zone { background:var(--orange); }
+
+  /* ERROR CORRECTION input */
+  .error-item { margin-bottom:16px; }
+  .error-wrong { background:#fef2f2; border-left:3px solid var(--red); padding:8px 12px; border-radius:0 6px 6px 0; font-size:0.88rem; font-weight:600; color:var(--red); margin-bottom:6px; }
+  .error-label { font-size:0.75rem; color:var(--gray); margin-bottom:4px; font-weight:500; }
+
+  /* VOCAB */
+  .vocab-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .vocab-chip { background:var(--white); border:2px solid var(--gray-light); border-radius:var(--radius-sm); padding:10px 12px; text-align:center; font-size:0.82rem; font-weight:600; color:var(--purple); cursor:pointer; transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light); background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem; color:var(--gray); font-weight:500; margin-top:2px; }
+
+  /* GRAMMAR TABLE */
+  .grammar-table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+  .grammar-table th { background:var(--purple); color:var(--white); padding:8px 12px; text-align:left; font-weight:600; }
+  .grammar-table td { padding:8px 12px; border-bottom:1px solid var(--gray-light); color:var(--purple); font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange); font-weight:700; }
+  .grammar-table .teal   { color:var(--teal); font-weight:700; }
+
+  /* LISTEN */
+  .listen-btn { background:none; border:none; cursor:pointer; font-size:1rem; padding:2px 4px; opacity:0.65; transition:opacity 0.2s; vertical-align:middle; }
+  .listen-btn:hover { opacity:1; }
+
+  /* CONFETTI + SUMMARY */
+  #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light)); border-radius:var(--radius); padding:24px; text-align:center; color:var(--white); margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem; font-weight:800; margin-bottom:6px; }
+  .summary-card p  { font-size:0.82rem; opacity:0.8; margin-bottom:16px; }
+  .score-big { font-size:2.8rem; font-weight:800; color:var(--orange); }
+
+  /* RESPONSIVE */
+  @media (max-width:600px) {
+    .header h1 { font-size:1.1rem; }
+    .header { padding:20px 16px 16px; }
+    .content { padding:14px 10px 50px; }
+    .ex-card { padding:14px 12px; }
+    .day-number { width:42px; height:42px; font-size:0.95rem; }
+    .day-title { font-size:1rem; }
+    .tab-btn { padding:12px 10px; font-size:0.72rem; }
+    .mc-option { font-size:0.82rem; padding:8px 10px; }
+    .btn { font-size:0.78rem; padding:9px 16px; }
+    .fill-input { min-width:70px; max-width:140px; font-size:0.82rem; }
+    .match-cols { grid-template-columns:1fr; }
+    .pfab-text { min-width:100%; }
+    .speaker { min-width:100%; }
+    .vocab-grid { grid-template-columns:repeat(auto-fill,minmax(85px,1fr)); gap:8px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">✈️ Hello!</div>
+    <div class="welcome-sub">Welcome to your<br><strong>Flight Attendant English</strong><br>3-day practice. What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Digite seu nome..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's go! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>✈️ Flight Attendant English</h1>
+      <div class="subtitle">3-Day Practice · Teacher Mari</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Progresso total</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar">
+  ✈️ <span id="motivation-text">Every great flight attendant starts with great communication. Let's practice!</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">✈️ Day 1</button>
+    <button class="tab-btn" data-tab="day2">💬 Day 2</button>
+    <button class="tab-btn" data-tab="day3">🛠 Day 3</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Phrase Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════ DAY 1 ══════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Understanding Passengers</div>
+      <div class="day-desc">Multiple Choice · Cross Out · Click-to-Fill · Sentence Builder</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – What does the passenger really need?</div>
+    <div class="ex-instruction">
+      Read each situation and choose the best answer.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia cada situação e escolha a melhor resposta.</span>
+    </div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Cross Out -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – One response doesn't fit</div>
+    <div class="ex-instruction">
+      Read the mini-dialogues. Click on the response that does <strong>NOT</strong> fit the situation.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia os mini-diálogos. Clique na resposta que NÃO é adequada para a situação.</span>
+    </div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – CTF -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the conversations</div>
+    <div class="ex-instruction">
+      Click a word from the box, then click the gap to fill it. Click a filled gap to return the word.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em uma palavra do quadro e depois no espaço. Clique no espaço preenchido para devolver.</span>
+    </div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Sentence Builder -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Build the best conversation</div>
+    <div class="ex-instruction">
+      Click the lines in the correct order to build each mini-conversation.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique nas falas na ordem correta para montar cada mini-conversa.</span>
+    </div>
+    <div id="d1e4"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e4-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d1e4-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d1e4-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d1e4-fb"></div>
+    <div class="answer-key" id="d1e4-key">
+      <strong>Gabarito:</strong><br>
+      <strong>A:</strong> Excuse me. I'm cold. → Do you need a blanket? → Yes, please. → One moment, please.<br>
+      <strong>B:</strong> Excuse me. Where is the bathroom? → It's at the back, on the left. → Thank you.<br>
+      <strong>C:</strong> Excuse me. I need help with my bag. → Of course. I can help. → Thank you.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 2 ══════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Choosing the Right Language</div>
+      <div class="day-desc">Match · P / FA / B · What happens next? · Free writing</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Match -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Same situation, different sentence</div>
+    <div class="ex-instruction">
+      Match each passenger sentence on the left to another sentence with a similar meaning on the right. Click one item on each side to match them.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Relacione cada frase do passageiro (esquerda) à frase de significado similar (direita). Clique em um item de cada lado para combinar.</span>
+    </div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – P / FA / B -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Who probably says it?</div>
+    <div class="ex-instruction">
+      Click <strong>P</strong> (Passenger), <strong>FA</strong> (Flight Attendant), or <strong>B</strong> (Both are possible).<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Clique em P (Passageiro), FA (Comissário/a) ou B (Ambos podem dizer).</span>
+    </div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – MC (What happens next) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – What happens next?</div>
+    <div class="ex-instruction">
+      Choose the most logical next line in each exchange.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Escolha a fala mais lógica para continuar cada troca.</span>
+    </div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d2e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Open writing -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Complete with your own words</div>
+    <div class="ex-instruction">
+      Complete each sentence so it makes sense on a flight. More than one answer is possible. Send your answers to Teacher Mari!<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Complete cada frase para que faça sentido em um voo. Mais de uma resposta é possível. Envie para a Teacher Mari!</span>
+    </div>
+    <div id="d2e4-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d2e4-wa">📲 Enviar para Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d2e4-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 3 ══════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Solving Problems on Board</div>
+      <div class="day-desc">Read + Fill · Error Correction · Read + Identify · Dialogue Writing</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Read cabin notes + fill seat number -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read the cabin notes</div>
+    <div class="ex-instruction">
+      A flight attendant has notes about four passengers. Read the flight attendant's sentences and write the correct seat number.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Uma comissária tem anotações sobre quatro passageiros. Leia as frases dela e escreva o número de assento correto.</span>
+    </div>
+    <div class="reading-text" id="rt-d3e1">
+      <button class="listen-btn" onclick="speakEl('rt-d3e1')" title="Listen">🔊</button><br>
+      <strong>Cabin notes:</strong><br>
+      Seat 12A — passenger is cold.<br>
+      Seat 14C — passenger needs water.<br>
+      Seat 18B — passenger has a problem with the seat.<br>
+      Seat 21D — passenger needs help with a bag.
+    </div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Error correction (FA response) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Find and correct the problem</div>
+    <div class="ex-instruction">
+      The passenger's line is correct. The flight attendant's response is wrong for the situation. Write the correct response.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 A fala do passageiro está certa. A resposta da comissária não é adequada à situação. Escreva a resposta correta.</span>
+    </div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e2-show">👁 Ver gabarito</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+    <div class="answer-key" id="d3e2-key">
+      <strong>Gabarito (respostas possíveis):</strong><br>
+      1. Do you need a blanket?<br>
+      2. It's at the back, on the left.<br>
+      3. Of course. I can help.<br>
+      4. Do you need some water?<br>
+      5. Yes. This is your seat.
+    </div>
+  </div>
+
+  <!-- EX 3 – Read text, identify seat -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Read and identify the passengers</div>
+    <div class="ex-instruction">
+      Read the text, then write the correct seat number for each flight attendant sentence.<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia o texto e escreva o número de assento correto para cada frase da comissária.</span>
+    </div>
+    <div class="reading-text" id="rt-d3e3">
+      <button class="listen-btn" onclick="speakEl('rt-d3e3')" title="Listen">🔊</button><br>
+      Flight 205 is very busy today. A passenger in 10A is cold. The passenger in 11C needs some water. In 15B, a passenger has a problem with the seat. A passenger in 17D doesn't feel well. Finally, the passenger in 20A needs help with a bag.
+    </div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">✔ Verificar</button>
+      <button class="btn btn-secondary" id="d3e3-reset">↺ Reiniciar</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+
+  <!-- EX 4 – Dialogue writing (open, WhatsApp) -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Passenger problem cards</div>
+    <div class="ex-instruction">
+      Read each situation and write a short mini-dialogue. Try to use at least two useful phrases from the week. Send your dialogues to Teacher Mari!<br>
+      <span style="color:var(--orange);font-size:0.78rem;">🇧🇷 Leia cada situação e escreva um mini-diálogo curto. Use pelo menos duas expressões úteis da semana. Envie para a Teacher Mari!</span>
+    </div>
+    <div id="d3e4-situations"></div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d3e4-wa">📲 Enviar para Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d3e4-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ VOCAB BANK ══════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--green);">🔤</div>
+    <div>
+      <div class="day-title">Vocab Bank</div>
+      <div class="day-desc">Key expressions for this unit</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">✈️ Passenger expressions</div>
+    <div class="vocab-grid" id="vocab-passenger"></div>
+  </div>
+  <div class="bank-section" style="margin-top:20px;">
+    <div class="bank-title">🛎 Flight Attendant expressions</div>
+    <div class="vocab-grid" id="vocab-fa"></div>
+  </div>
+</div>
+
+<!-- ══════════ PHRASE BANK ══════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">📐</div>
+    <div>
+      <div class="day-title">Phrase Bank</div>
+      <div class="day-desc">Useful language on board</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Useful chunks</div>
+    <table class="grammar-table">
+      <tr><th>Situation</th><th>Passenger says</th><th>Flight Attendant says</th></tr>
+      <tr><td>Temperature</td><td class="orange">I'm cold.</td><td class="teal">Do you need a blanket?</td></tr>
+      <tr><td>Drink</td><td class="orange">I need some water.</td><td class="teal">Here you are.</td></tr>
+      <tr><td>Luggage</td><td class="orange">I need help with my bag.</td><td class="teal">Of course. I can help.</td></tr>
+      <tr><td>Bathroom</td><td class="orange">Where is the bathroom?</td><td class="teal">It's at the back, on the left.</td></tr>
+      <tr><td>Seat</td><td class="orange">Is this seat 14A?</td><td class="teal">Yes. This is your seat.</td></tr>
+      <tr><td>Not feeling well</td><td class="orange">I don't feel well.</td><td class="teal">Do you need some water?</td></tr>
+      <tr><td>Polite wait</td><td>—</td><td class="teal">One moment, please.</td></tr>
+    </table>
+    <div class="tip-box" style="margin-top:16px;">
+      💡 <strong>Tip:</strong> Always start with <em>"Excuse me"</em> to get attention politely. Use <em>"please"</em> to sound more friendly.
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════
+//  MOTIVATIONS
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  'Every great flight attendant starts with great communication!',
+  'Small phrases make a big difference in the sky.',
+  'Practice today, perform with confidence tomorrow!',
+  'Your words can make passengers feel safe and welcome.',
+  'One conversation at a time — you\'re getting better every day!',
+  'Good communication is a skill, and skills grow with practice.',
+  'You\'ve got this! Keep going! ✈️',
+];
+
+// ══════════════════════════════════════════════
+//  STORAGE + PROGRESS
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_flightattendant3d';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+const TOTAL_EXERCISES = 11;
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  markExerciseDone(exId);
+}
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EXERCISES) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══════════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════════
+const welcome = document.getElementById('welcome-screen');
+const helloBanner = document.getElementById('hello-banner');
+let studentName = localStorage.getItem('teachermari_fa_name') || '';
+if (studentName) {
+  welcome.classList.add('hidden');
+  helloBanner.textContent = '✈️ Welcome back, ' + studentName + '! Ready to practice?';
+  helloBanner.classList.add('show');
+}
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) return;
+  studentName = val;
+  localStorage.setItem('teachermari_fa_name', studentName);
+  welcome.classList.add('hidden');
+  helloBanner.textContent = '✈️ Welcome, ' + studentName + '! Ready to fly?';
+  helloBanner.classList.add('show');
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('welcome-start-btn').click();
+});
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Well done! You got all ${total} correct! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Good work! ${correct}/${total} correct. Check the mistakes and try again!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} correct. Keep practising — you can do it!`, type: 'err' };
+}
+
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-GB'; u.rate = 0.9;
+  window.speechSynthesis.speak(u);
+}
+function speakEl(id) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.innerText.replace(/🔊/g,'').trim();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-GB'; u.rate = 0.9;
+  window.speechSynthesis.speak(u);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = `<button onclick="speakWord('${item.en.replace(/'/g,"\\'")}\")" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div><div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">${item.opts.map((o,j)=>`<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('')}</div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  const detailLines = [];
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if (sel) {
+      const v = parseInt(sel.value);
+      if (v === item.ans) { opts[v].classList.add('correct'); correct++; }
+      else {
+        opts[v].classList.add('wrong');
+        opts[item.ans].classList.add('correct');
+        if (item.exp) detailLines.push(`<br>📌 ${i+1}. ${item.exp}`);
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  const extra = detailLines.length ? detailLines.join('') : '';
+  showFeedback(fbId, r.msg + extra, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(fbId).className = 'feedback';
+}
+
+function buildCTF(cfg) {
+  const wrap = document.getElementById(cfg.wrapId);
+  const rt = document.createElement('div');
+  rt.className = 'reading-text'; rt.id = cfg.rtId;
+  let gi = 0;
+  rt.innerHTML = cfg.rtHtml.replace(/___/g, () => {
+    const ans = cfg.gapAns[gi] || '';
+    return `<span class="ctf-gap" data-gi="${gi++}" data-ans="${ans}"></span>`;
+  });
+  wrap.appendChild(rt);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w,wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  rt.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const back = bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.filledWi}"]`);
+      if (back) back.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const back = bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.filledWi}"]`);
+      if (back) back.classList.remove('used');
+    }
+    gap.textContent = selected.word; gap.dataset.filled = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; rt.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    const details = [];
+    rt.querySelectorAll('.ctf-gap').forEach((gap,i) => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const filled = (gap.textContent||'').trim().toLowerCase();
+      const ans = (gap.dataset.ans||'').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        if (cfg.gapExp && cfg.gapExp[i]) details.push(`<br>📌 Gap ${i+1}: ${cfg.gapExp[i]}`);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg + (details.join('')), r.type);
+    incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    rt.querySelectorAll('.ctf-gap').forEach(gap => { gap.textContent=''; gap.dataset.filled=''; gap.dataset.filledWi=''; gap.classList.remove('correct-gap','wrong-gap','ready'); });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1 — EX 1: MC
+// ══════════════════════════════════════════════
+const d1e1Data = [
+  { q: 'A passenger says: <em>"Excuse me. I\'m very cold."</em><br>What does the passenger probably need?',
+    opts: ['some water', 'a blanket', 'help with the seat'], ans: 1,
+    exp: '"I\'m cold" → a passenger who is cold needs a blanket (cobertor), not water or seat help.' },
+  { q: 'A passenger is looking at seat numbers and says: <em>"Excuse me. Is this seat 14A?"</em><br>She probably needs:',
+    opts: ['help finding her seat', 'some food', 'a blanket'], ans: 0,
+    exp: 'She is looking at seat numbers → ela precisa de ajuda para encontrar seu assento.' },
+  { q: 'A passenger is holding a heavy bag and says: <em>"Excuse me. I need help."</em><br>What is probably the problem?',
+    opts: ['the bathroom', 'the bag', 'the water'], ans: 1,
+    exp: 'Ela está carregando uma mala pesada → o problema é a mala (bag).' },
+  { q: 'A passenger says: <em>"Excuse me. I don\'t feel well."</em><br>What is the best first response?',
+    opts: ['Do you need some water?', 'This is your seat.', 'Coffee or tea?'], ans: 0,
+    exp: '"I don\'t feel well" → a best first response offers care, like asking if they need water.' },
+  { q: 'A passenger says: <em>"Excuse me. Where is the bathroom?"</em><br>What information does the passenger need?',
+    opts: ['a place', 'a drink', 'a seat number'], ans: 0,
+    exp: '"Where is the bathroom?" → the passenger needs to know a place (location).' },
+];
+buildMC('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', 'd1e1-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 1 — EX 2: CROSS OUT (click wrong response)
+// ══════════════════════════════════════════════
+const d1e2Data = [
+  { passenger: 'Excuse me. I\'m cold.', opts: ['a) Do you need a blanket?', 'b) One moment, please.', 'c) This is your seat.'], wrong: 2,
+    exp: '"This is your seat" não faz sentido quando o passageiro está com frio. A resposta adequada é oferecer um cobertor ou pedir um momento.' },
+  { passenger: 'Excuse me. Where is the bathroom?', opts: ['a) It\'s at the back.', 'b) It\'s on the left.', 'c) Here you are.'], wrong: 2,
+    exp: '"Here you are" é usado quando você entrega algo. Não responde a pergunta sobre o local do banheiro.' },
+  { passenger: 'I need some water.', opts: ['a) One moment, please.', 'b) Here you are.', 'c) This is your seat.'], wrong: 2,
+    exp: '"This is your seat" não tem nada a ver com um pedido de água. A resposta correta é entregar a água ou pedir um momento.' },
+  { passenger: 'I have a problem with my bag.', opts: ['a) I can help you.', 'b) Do you need help?', 'c) Coffee or tea?'], wrong: 2,
+    exp: '"Coffee or tea?" é uma oferta de bebida — não é uma resposta adequada para um problema com a mala.' },
+  { passenger: 'Is this seat 12B?', opts: ['a) Yes. This is your seat.', 'b) I can help you.', 'c) Do you need a blanket?'], wrong: 2,
+    exp: '"Do you need a blanket?" é irrelevante — o passageiro está perguntando sobre o assento, não sobre temperatura.' },
+];
+
+(function(){
+  const wrap = document.getElementById('d1e2');
+  d1e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'crossout-item';
+    div.innerHTML = `<div class="crossout-label">${i+1}. Passenger: <span style="font-style:italic;">"${item.passenger}"</span></div><div class="crossout-group" id="d1e2g_${i}"></div>`;
+    wrap.appendChild(div);
+    const group = document.getElementById('d1e2g_' + i);
+    item.opts.forEach((opt, j) => {
+      const btn = document.createElement('button');
+      btn.className = 'crossout-word'; btn.dataset.item = i; btn.dataset.j = j;
+      btn.textContent = opt; group.appendChild(btn);
+    });
+  });
+  let selections = {};
+  wrap.addEventListener('click', e => {
+    const btn = e.target.closest('.crossout-word');
+    if (!btn || btn.classList.contains('correct-x') || btn.classList.contains('wrong-x')) return;
+    const i = btn.dataset.item;
+    const prev = document.querySelector(`.crossout-word[data-item="${i}"].selected`);
+    if (prev) prev.classList.remove('selected');
+    btn.classList.add('selected');
+    selections[i] = parseInt(btn.dataset.j);
+  });
+  document.getElementById('d1e2-check').addEventListener('click', () => {
+    let correct = 0;
+    const details = [];
+    d1e2Data.forEach((item, i) => {
+      const chosen = selections[i];
+      const group = document.getElementById('d1e2g_' + i);
+      group.querySelectorAll('.crossout-word').forEach(b => b.classList.remove('selected','correct-x','wrong-x'));
+      if (chosen === undefined) return;
+      const btn = group.querySelectorAll('.crossout-word')[chosen];
+      if (chosen === item.wrong) { btn.classList.add('correct-x'); correct++; }
+      else {
+        btn.classList.add('wrong-x');
+        group.querySelectorAll('.crossout-word')[item.wrong].classList.add('correct-x');
+        details.push(`<br>📌 ${i+1}. ${item.exp}`);
+      }
+    });
+    const r = scoreText(correct, d1e2Data.length);
+    showFeedback('d1e2-fb', r.msg + details.join(''), r.type);
+    incrementChecked('d1e2');
+  });
+  document.getElementById('d1e2-reset').addEventListener('click', () => {
+    selections = {};
+    document.getElementById('d1e2').querySelectorAll('.crossout-word').forEach(b => b.className = 'crossout-word');
+    document.getElementById('d1e2-fb').className = 'feedback';
+  });
+})();
+
+// ══════════════════════════════════════════════
+//  DAY 1 — EX 3: CTF
+// ══════════════════════════════════════════════
+buildCTF({
+  wrapId: 'd1e3', exId: 'd1e3', fbId: 'd1e3-fb', checkId: 'd1e3-check', resetId: 'd1e3-reset',
+  rtId: 'rt-d1e3',
+  rtHtml: `<button class='listen-btn' onclick="speakEl('rt-d1e3')" title='Listen'>🔊</button>
+<strong>Conversation 1</strong><br>
+Passenger: Excuse me. ___<br>
+Flight Attendant: ___<br>
+Passenger: Yes, please.<br>
+Flight Attendant: ___<br><br>
+<strong>Conversation 2</strong><br>
+Passenger: Excuse me. ___<br>
+Flight Attendant: ___<br>
+Passenger: Thank you.`,
+  words: ["I'm cold.", "Do you need a blanket?", "One moment, please.", "Where is the bathroom?", "It's at the back, on the left."],
+  gapAns: ["I'm cold.", "Do you need a blanket?", "One moment, please.", "Where is the bathroom?", "It's at the back, on the left."],
+  gapExp: [
+    'The passenger is cold → "I\'m cold." abre a conversa.',
+    '"Do you need a blanket?" é a resposta adequada para um passageiro com frio.',
+    '"One moment, please." mostra que o comissário vai buscar o cobertor.',
+    '"Where is the bathroom?" é a pergunta lógica para a situação 2.',
+    '"It\'s at the back, on the left." informa a localização do banheiro.',
+  ],
+});
+
+// ══════════════════════════════════════════════
+//  DAY 1 — EX 4: SENTENCE BUILDER (conversation order)
+// ══════════════════════════════════════════════
+const d1e4Items = [
+  {
+    label: 'Conversation A',
+    lines: ['Yes, please.', 'Excuse me. I\'m cold.', 'One moment, please.', 'Do you need a blanket?'],
+    ans: ['Excuse me. I\'m cold.', 'Do you need a blanket?', 'Yes, please.', 'One moment, please.'],
+  },
+  {
+    label: 'Conversation B',
+    lines: ['Thank you.', 'It\'s at the back, on the left.', 'Excuse me. Where is the bathroom?'],
+    ans: ['Excuse me. Where is the bathroom?', 'It\'s at the back, on the left.', 'Thank you.'],
+  },
+  {
+    label: 'Conversation C',
+    lines: ['Of course. I can help.', 'Excuse me. I need help with my bag.', 'Thank you.'],
+    ans: ['Excuse me. I need help with my bag.', 'Of course. I can help.', 'Thank you.'],
+  },
+];
+
+(function(){
+  const wrap = document.getElementById('d1e4');
+  d1e4Items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    const shuffled = [...item.lines].sort(() => Math.random() - 0.5);
+    div.innerHTML = `<div class="sb-label">${item.label}</div>
+      <div class="sb-words" id="d1e4-words-${i}">${shuffled.map(l=>`<button class="sb-chip" data-line="${encodeURIComponent(l)}" data-item="${i}">${l}</button>`).join('')}</div>
+      <div class="sb-label">Your order:</div>
+      <div class="sb-zone" id="d1e4-zone-${i}"></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById('d1e4-words-' + i);
+    const zone  = document.getElementById('d1e4-zone-'  + i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if (chip.parentElement === words) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else { chip.classList.remove('in-zone'); words.appendChild(chip); }
+  });
+})();
+document.getElementById('d1e4-check').addEventListener('click', () => {
+  let correct = 0;
+  const details = [];
+  d1e4Items.forEach((item, i) => {
+    const zone = document.getElementById('d1e4-zone-' + i);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => decodeURIComponent(c.dataset.line));
+    zone.classList.remove('correct-zone','wrong-zone');
+    const ok = JSON.stringify(built) === JSON.stringify(item.ans);
+    if (ok) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      details.push(`<br>📌 ${item.label}: ${item.ans.join(' → ')}`);
+    }
+  });
+  const r = scoreText(correct, d1e4Items.length);
+  showFeedback('d1e4-fb', r.msg + (details.length ? '<br>' + details.join('') : ''), r.type);
+  incrementChecked('d1e4');
+});
+document.getElementById('d1e4-show').addEventListener('click', () => document.getElementById('d1e4-key').classList.toggle('show'));
+document.getElementById('d1e4-reset').addEventListener('click', () => {
+  d1e4Items.forEach((item, i) => {
+    const zone  = document.getElementById('d1e4-zone-'  + i);
+    const words = document.getElementById('d1e4-words-' + i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+  });
+  document.getElementById('d1e4-fb').className = 'feedback';
+  document.getElementById('d1e4-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 2 — EX 1: MATCH (two columns)
+// ══════════════════════════════════════════════
+const d2e1Pairs = [
+  { left: '1. I\'m cold.', right: 'c) Do you have a blanket?', id: 1 },
+  { left: '2. I need some water.', right: 'd) Can I have some water, please?', id: 2 },
+  { left: '3. I have a problem with my seat.', right: 'a) My seat isn\'t OK.', id: 3 },
+  { left: '4. Where is the bathroom?', right: 'e) Is the bathroom at the back?', id: 4 },
+  { left: '5. I need help with my bag.', right: 'b) Can you help me with my bag?', id: 5 },
+];
+
+(function(){
+  const wrap = document.getElementById('d2e1');
+  const cols = document.createElement('div'); cols.className = 'match-cols';
+  const leftCol = document.createElement('div'); leftCol.className = 'match-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'match-col';
+  // Shuffle right
+  const rightShuffled = [...d2e1Pairs].sort(() => Math.random() - 0.5);
+  d2e1Pairs.forEach((pair) => {
+    const l = document.createElement('div');
+    l.className = 'match-item'; l.dataset.side = 'left'; l.dataset.id = pair.id;
+    l.textContent = pair.left; leftCol.appendChild(l);
+  });
+  rightShuffled.forEach((pair) => {
+    const r = document.createElement('div');
+    r.className = 'match-item'; r.dataset.side = 'right'; r.dataset.id = pair.id;
+    r.textContent = pair.right; rightCol.appendChild(r);
+  });
+  cols.appendChild(leftCol); cols.appendChild(rightCol); wrap.appendChild(cols);
+
+  let selectedLeft = null, selectedRight = null;
+  const matched = {};
+
+  wrap.addEventListener('click', e => {
+    const item = e.target.closest('.match-item');
+    if (!item || item.classList.contains('matched')) return;
+    item.classList.remove('wrong-match');
+
+    if (item.dataset.side === 'left') {
+      if (selectedLeft) selectedLeft.classList.remove('selected');
+      selectedLeft = item; item.classList.add('selected');
+    } else {
+      if (selectedRight) selectedRight.classList.remove('selected');
+      selectedRight = item; item.classList.add('selected');
+    }
+
+    if (selectedLeft && selectedRight) {
+      if (selectedLeft.dataset.id === selectedRight.dataset.id) {
+        selectedLeft.classList.remove('selected'); selectedLeft.classList.add('matched');
+        selectedRight.classList.remove('selected'); selectedRight.classList.add('matched');
+        matched[selectedLeft.dataset.id] = true;
+        selectedLeft = null; selectedRight = null;
+      } else {
+        const l = selectedLeft, r = selectedRight;
+        l.classList.add('wrong-match'); r.classList.add('wrong-match');
+        setTimeout(() => { l.classList.remove('selected','wrong-match'); r.classList.remove('selected','wrong-match'); }, 700);
+        selectedLeft = null; selectedRight = null;
+      }
+    }
+  });
+
+  window._d2e1matched = matched;
+  window._d2e1reset = () => {
+    wrap.querySelectorAll('.match-item').forEach(m => m.classList.remove('selected','matched','wrong-match'));
+    Object.keys(matched).forEach(k => delete matched[k]);
+    selectedLeft = null; selectedRight = null;
+    document.getElementById('d2e1-fb').className = 'feedback';
+  };
+})();
+
+document.getElementById('d2e1-check').addEventListener('click', () => {
+  const correct = Object.keys(window._d2e1matched).length;
+  const r = scoreText(correct, d2e1Pairs.length);
+  const extra = correct < d2e1Pairs.length ? '<br>📌 Dica: se a resposta for errada, as duas ficam vermelhas brevemente e você tenta de novo.' : '';
+  showFeedback('d2e1-fb', r.msg + extra, r.type);
+  incrementChecked('d2e1');
+});
+document.getElementById('d2e1-reset').addEventListener('click', window._d2e1reset);
+
+// ══════════════════════════════════════════════
+//  DAY 2 — EX 2: P / FA / B
+// ══════════════════════════════════════════════
+const d2e2Data = [
+  { text: 'Excuse me.',                       ans: 'B',  exp: 'Ambos podem dizer "Excuse me" para chamar atenção.' },
+  { text: 'I need some water.',               ans: 'P',  exp: '"I need some water" é um pedido típico de passageiro.' },
+  { text: 'One moment, please.',              ans: 'FA', exp: '"One moment, please" é resposta típica do comissário/a.' },
+  { text: 'Where is the bathroom?',           ans: 'P',  exp: 'Passageiros perguntam onde fica o banheiro.' },
+  { text: 'I can help you.',                  ans: 'FA', exp: '"I can help you" é oferecido pelo comissário/a.' },
+  { text: 'Thank you.',                       ans: 'B',  exp: 'Ambos podem agradecer em diferentes momentos.' },
+  { text: 'Here you are.',                    ans: 'FA', exp: '"Here you are" é dito ao entregar algo — típico do comissário/a.' },
+  { text: 'I have a problem with my seat.',   ans: 'P',  exp: 'Passageiros relatam problemas com seus assentos.' },
+  { text: 'Do you need a blanket?',           ans: 'FA', exp: '"Do you need a blanket?" é uma oferta do comissário/a.' },
+  { text: "I don't feel well.",               ans: 'P',  exp: 'Passageiros informam quando não se sentem bem.' },
+];
+
+(function(){
+  const wrap = document.getElementById('d2e2');
+  const sels = {};
+  d2e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'pfab-item';
+    div.innerHTML = `<div class="pfab-text">${i+1}. <em>"${item.text}"</em></div>
+      <div class="pfab-btns">
+        <button class="pfab-btn" id="d2e2_p_${i}" data-i="${i}" data-val="P">P</button>
+        <button class="pfab-btn" id="d2e2_fa_${i}" data-i="${i}" data-val="FA">FA</button>
+        <button class="pfab-btn" id="d2e2_b_${i}" data-i="${i}" data-val="B">B</button>
+      </div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.pfab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = btn.dataset.i;
+      sels[i] = btn.dataset.val;
+      ['p','fa','b'].forEach(x => { const b = document.getElementById(`d2e2_${x}_${i}`); if(b) b.classList.remove('sel-p','sel-fa','sel-b'); });
+      btn.classList.add('sel-' + btn.dataset.val.toLowerCase());
+    });
+  });
+  window._d2e2sels = sels;
+  window._d2e2reset = () => {
+    Object.keys(sels).forEach(k => delete sels[k]);
+    wrap.querySelectorAll('.pfab-btn').forEach(b => b.classList.remove('sel-p','sel-fa','sel-b','correct-pfab','wrong-pfab'));
+    document.getElementById('d2e2-fb').className = 'feedback';
+  };
+})();
+
+document.getElementById('d2e2-check').addEventListener('click', () => {
+  let correct = 0;
+  const details = [];
+  d2e2Data.forEach((item, i) => {
+    ['p','fa','b'].forEach(x => {
+      const b = document.getElementById(`d2e2_${x}_${i}`); if(b) b.classList.remove('correct-pfab','wrong-pfab');
+    });
+    const chosen = window._d2e2sels[i];
+    if (!chosen) return;
+    const chosenBtn = document.getElementById(`d2e2_${chosen.toLowerCase()}_${i}`);
+    const correctBtn = document.getElementById(`d2e2_${item.ans.toLowerCase()}_${i}`);
+    if (chosen === item.ans) { if(chosenBtn) chosenBtn.classList.add('correct-pfab'); correct++; }
+    else {
+      if(chosenBtn) chosenBtn.classList.add('wrong-pfab');
+      if(correctBtn) correctBtn.classList.add('correct-pfab');
+      details.push(`<br>📌 ${i+1}. ${item.exp}`);
+    }
+  });
+  const r = scoreText(correct, d2e2Data.length);
+  showFeedback('d2e2-fb', r.msg + details.join(''), r.type);
+  incrementChecked('d2e2');
+});
+document.getElementById('d2e2-reset').addEventListener('click', window._d2e2reset);
+
+// ══════════════════════════════════════════════
+//  DAY 2 — EX 3: MC (what happens next)
+// ══════════════════════════════════════════════
+const d2e3Data = [
+  { q: '<em>Passenger:</em> "Excuse me. I need some water."',
+    opts: ['Here you are.', 'It\'s at the back.', 'This is your seat.'], ans: 0,
+    exp: '"Here you are" é a resposta ao entregar algo — neste caso, a água pedida pelo passageiro.' },
+  { q: '<em>Flight Attendant:</em> "Do you need a blanket?"',
+    opts: ['I\'m cold.', 'Yes, please.', 'Here you are.'], ans: 1,
+    exp: '"Yes, please" é a resposta natural a uma oferta. "I\'m cold" seria a frase do passageiro, não a resposta.' },
+  { q: '<em>Passenger:</em> "Excuse me. I have a problem with my seat."',
+    opts: ['What\'s the problem?', 'Water or juice?', 'It\'s on the left.'], ans: 0,
+    exp: '"What\'s the problem?" é a resposta lógica — o comissário precisa entender qual é o problema.' },
+  { q: '<em>Flight Attendant:</em> "One moment, please."',
+    opts: ['Thank you.', 'I can help you.', 'Where is the bathroom?'], ans: 0,
+    exp: '"Thank you" é a resposta educada do passageiro quando o comissário pede um momento.' },
+  { q: '<em>Passenger:</em> "Excuse me. I need help with my bag."',
+    opts: ['It\'s at the back.', 'Of course. I can help.', 'Here you are.'], ans: 1,
+    exp: '"Of course. I can help." é a resposta adequada a um pedido de ajuda com a mala.' },
+  { q: '<em>Passenger:</em> "Excuse me. Is this seat 16C?"',
+    opts: ['Yes. This is your seat.', 'Do you need some water?', 'One blanket, please.'], ans: 0,
+    exp: '"Yes. This is your seat." confirma o assento — é a única resposta que responde à pergunta.' },
+];
+buildMC('d2e3', d2e3Data, 'd2e3');
+document.getElementById('d2e3-check').addEventListener('click', () => checkMC(d2e3Data, 'd2e3', 'd2e3-fb', 'd2e3'));
+document.getElementById('d2e3-reset').addEventListener('click', () => resetMC('d2e3', 'd2e3', 'd2e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2 — EX 4: OPEN WRITING
+// ══════════════════════════════════════════════
+(function(){
+  const wrap = document.getElementById('d2e4-questions');
+  const prompts = [
+    'Excuse me. I need ___',
+    "Excuse me. I'm ___",
+    'Excuse me. Where is ___?',
+    'I have a problem with ___',
+    'Do you need ___?',
+    'I can help you with ___',
+  ];
+  prompts.forEach((q, i) => {
+    const div = document.createElement('div'); div.style.marginBottom = '14px';
+    div.innerHTML = `<div style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:6px;">${i+1}. ${q}</div><input class="fill-input" id="d2e4_${i}" placeholder="Complete the sentence..." style="min-width:200px;max-width:100%;width:100%;border:2px solid var(--gray-light);border-radius:6px;padding:8px 12px;text-align:left;font-size:0.88rem;"/>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e4-wa').addEventListener('click', () => {
+  const prompts = [
+    'Excuse me. I need ___',
+    "Excuse me. I'm ___",
+    'Excuse me. Where is ___?',
+    'I have a problem with ___',
+    'Do you need ___?',
+    'I can help you with ___',
+  ];
+  let msg = `✈️ *Flight Attendant English – Day 2 Writing*\nOlá, Teacher Mari!\n\n`;
+  prompts.forEach((q, i) => {
+    const val = (document.getElementById('d2e4_' + i)||{}).value || '(sem resposta)';
+    msg += `${i+1}. ${q.replace('___', val)}\n\n`;
+  });
+  msg += `_Enviado pelo exercício semanal_ 🧡`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+  showFeedback('d2e4-fb', '✅ Abrindo WhatsApp! Boa sorte com suas frases! 🧡', 'ok');
+  incrementChecked('d2e4');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 3 — EX 1: Fill seat number
+// ══════════════════════════════════════════════
+const d3e1Data = [
+  { q: '"Do you need a blanket?"', ans: ['12A','12a'], exp: 'O passageiro do assento 12A está com frio → um cobertor (blanket) é a resposta adequada.' },
+  { q: '"I can help you."', ans: ['21D','21d'], exp: 'O passageiro do assento 21D precisa de ajuda com a mala.' },
+  { q: '"What\'s the problem with your seat?"', ans: ['18B','18b'], exp: 'O passageiro do assento 18B tem um problema com o assento.' },
+  { q: '"Here you are." + a glass of water', ans: ['14C','14c'], exp: 'O passageiro do assento 14C precisa de água.' },
+  { q: '"One moment, please. I can help with your bag."', ans: ['21D','21d'], exp: 'O passageiro do assento 21D precisa de ajuda com a mala — pode aparecer duas vezes.' },
+];
+(function(){
+  const wrap = document.getElementById('d3e1');
+  d3e1Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.q} → Seat: <input class="fill-input" id="d3e1_${i}" placeholder="e.g. 12A" style="min-width:70px;max-width:90px;"/></div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e1-check').addEventListener('click', () => {
+  let correct = 0;
+  const details = [];
+  d3e1Data.forEach((item, i) => {
+    const inp = document.getElementById('d3e1_' + i);
+    inp.classList.remove('correct','wrong');
+    const val = inp.value.trim().toUpperCase();
+    if (item.ans.map(a=>a.toUpperCase()).includes(val)) { inp.classList.add('correct'); correct++; }
+    else { inp.classList.add('wrong'); details.push(`<br>📌 ${i+1}. ${item.exp}`); }
+  });
+  const r = scoreText(correct, d3e1Data.length);
+  showFeedback('d3e1-fb', r.msg + details.join(''), r.type);
+  incrementChecked('d3e1');
+});
+document.getElementById('d3e1-reset').addEventListener('click', () => {
+  d3e1Data.forEach((_,i) => { const inp=document.getElementById('d3e1_'+i); inp.value=''; inp.className='fill-input'; });
+  document.getElementById('d3e1-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 3 — EX 2: Error correction (FA response)
+// ══════════════════════════════════════════════
+const d3e2Data = [
+  { passenger: 'Excuse me. I\'m cold.',             wrongFA: 'This is your seat.',    possAns: ['do you need a blanket?','do you need a blanket'] },
+  { passenger: 'Excuse me. Where is the bathroom?', wrongFA: 'Here you are.',          possAns: ["it's at the back, on the left.", "it's at the back", "it's on the left", "it's at the back.", "it's on the left."] },
+  { passenger: 'I need help with my bag.',          wrongFA: 'Coffee or tea?',          possAns: ['of course. i can help.','of course. i can help','i can help you.','i can help you'] },
+  { passenger: "I don't feel well.",                wrongFA: 'This is your seat.',    possAns: ['do you need some water?','do you need some water'] },
+  { passenger: 'Excuse me. Is this seat 22A?',      wrongFA: 'Do you need a blanket?', possAns: ['yes. this is your seat.','yes, this is your seat.','yes. this is your seat','yes, this is your seat'] },
+];
+(function(){
+  const wrap = document.getElementById('d3e2');
+  d3e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'error-item';
+    div.innerHTML = `
+      <div class="crossout-label">${i+1}. Passenger: <em>"${item.passenger}"</em></div>
+      <div class="error-wrong">✗ Flight Attendant: "${item.wrongFA}"</div>
+      <div class="error-label">Correct response:</div>
+      <input class="fill-input" id="d3e2_${i}" placeholder="Write the correct response..." style="width:100%;max-width:100%;border:2px solid var(--gray-light);border-radius:6px;padding:8px 12px;text-align:left;font-size:0.85rem;min-width:unset;max-width:unset;"/>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e2-check').addEventListener('click', () => {
+  let correct = 0;
+  const details = [];
+  d3e2Data.forEach((item, i) => {
+    const inp = document.getElementById('d3e2_' + i);
+    inp.classList.remove('correct','wrong');
+    const val = inp.value.trim().toLowerCase();
+    if (item.possAns.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      details.push(`<br>📌 ${i+1}. Resposta esperada: "${item.possAns[0]}"`);
+    }
+  });
+  const r = scoreText(correct, d3e2Data.length);
+  showFeedback('d3e2-fb', r.msg + details.join(''), r.type);
+  incrementChecked('d3e2');
+});
+document.getElementById('d3e2-show').addEventListener('click', () => document.getElementById('d3e2-key').classList.toggle('show'));
+document.getElementById('d3e2-reset').addEventListener('click', () => {
+  d3e2Data.forEach((_,i) => { const inp=document.getElementById('d3e2_'+i); inp.value=''; inp.className='fill-input'; });
+  document.getElementById('d3e2-fb').className = 'feedback';
+  document.getElementById('d3e2-key').classList.remove('show');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 3 — EX 3: Read text, fill seat
+// ══════════════════════════════════════════════
+const d3e3Data = [
+  { q: '"Do you need a blanket?"', ans: ['10A','10a'], exp: 'O passageiro do assento 10A está com frio → precisa de cobertor.' },
+  { q: '"Here you are. Some water."', ans: ['11C','11c'], exp: 'O passageiro do assento 11C precisa de água.' },
+  { q: '"What\'s the problem?"', ans: ['15B','15b'], exp: 'O passageiro do assento 15B tem problema com o assento.' },
+  { q: '"Do you need some water?"', ans: ['17D','17d'], exp: 'O passageiro do assento 17D não se sente bem → água é o primeiro cuidado.' },
+  { q: '"Of course. I can help."', ans: ['20A','20a'], exp: 'O passageiro do assento 20A precisa de ajuda com a mala.' },
+];
+(function(){
+  const wrap = document.getElementById('d3e3');
+  d3e3Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.q} → Seat: <input class="fill-input" id="d3e3_${i}" placeholder="e.g. 10A" style="min-width:70px;max-width:90px;"/></div>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e3-check').addEventListener('click', () => {
+  let correct = 0;
+  const details = [];
+  d3e3Data.forEach((item, i) => {
+    const inp = document.getElementById('d3e3_' + i);
+    inp.classList.remove('correct','wrong');
+    const val = inp.value.trim().toUpperCase();
+    if (item.ans.map(a=>a.toUpperCase()).includes(val)) { inp.classList.add('correct'); correct++; }
+    else { inp.classList.add('wrong'); details.push(`<br>📌 ${i+1}. ${item.exp}`); }
+  });
+  const r = scoreText(correct, d3e3Data.length);
+  showFeedback('d3e3-fb', r.msg + details.join(''), r.type);
+  incrementChecked('d3e3');
+});
+document.getElementById('d3e3-reset').addEventListener('click', () => {
+  d3e3Data.forEach((_,i) => { const inp=document.getElementById('d3e3_'+i); inp.value=''; inp.className='fill-input'; });
+  document.getElementById('d3e3-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 3 — EX 4: Dialogue writing
+// ══════════════════════════════════════════════
+(function(){
+  const wrap = document.getElementById('d3e4-situations');
+  const situations = [
+    { label: 'Situation A', desc: 'The passenger is very cold.' },
+    { label: 'Situation B', desc: 'The passenger cannot find the bathroom.' },
+    { label: 'Situation C', desc: 'The passenger has a problem with their seat.' },
+    { label: 'Situation D', desc: 'The passenger needs help with a bag.' },
+  ];
+  situations.forEach((sit, i) => {
+    const div = document.createElement('div'); div.style.marginBottom = '18px';
+    div.innerHTML = `
+      <div style="font-size:0.88rem;font-weight:700;color:var(--orange);margin-bottom:4px;">${sit.label}</div>
+      <div style="font-size:0.82rem;color:var(--gray);margin-bottom:8px;font-style:italic;">${sit.desc}</div>
+      <textarea class="writing-area" id="d3e4_${i}" placeholder="Write your mini-dialogue here... (e.g. Passenger: Excuse me..." rows="4"></textarea>`;
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e4-wa').addEventListener('click', () => {
+  const situations = ['A – cold passenger','B – bathroom','C – seat problem','D – bag help'];
+  let msg = `✈️ *Flight Attendant English – Day 3 Dialogues*\nOlá, Teacher Mari!\n\n`;
+  situations.forEach((sit, i) => {
+    const val = (document.getElementById('d3e4_' + i)||{}).value || '(sem resposta)';
+    msg += `*Situation ${sit}*\n${val}\n\n`;
+  });
+  msg += `_Enviado pelo exercício semanal_ 🧡`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+  showFeedback('d3e4-fb', '✅ Abrindo WhatsApp! Teacher Mari vai adorar seus diálogos! 🧡', 'ok');
+  incrementChecked('d3e4');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+const vocabPassenger = [
+  { en: "Excuse me.", pt: "Com licença." },
+  { en: "I'm cold.", pt: "Estou com frio." },
+  { en: "I need some water.", pt: "Preciso de água." },
+  { en: "I need help with my bag.", pt: "Preciso de ajuda com minha mala." },
+  { en: "Where is the bathroom?", pt: "Onde é o banheiro?" },
+  { en: "Is this seat 14A?", pt: "Este é o assento 14A?" },
+  { en: "I have a problem with my seat.", pt: "Tenho um problema com meu assento." },
+  { en: "I don't feel well.", pt: "Não estou me sentindo bem." },
+  { en: "Thank you.", pt: "Obrigado/a." },
+  { en: "Yes, please.", pt: "Sim, por favor." },
+];
+const vocabFA = [
+  { en: "Do you need a blanket?", pt: "Precisa de um cobertor?" },
+  { en: "One moment, please.", pt: "Um momento, por favor." },
+  { en: "Here you are.", pt: "Aqui está." },
+  { en: "Of course. I can help.", pt: "Claro. Posso ajudar." },
+  { en: "It's at the back, on the left.", pt: "É no fundo, à esquerda." },
+  { en: "This is your seat.", pt: "Este é o seu assento." },
+  { en: "What's the problem?", pt: "Qual é o problema?" },
+  { en: "Do you need some water?", pt: "Precisa de água?" },
+];
+renderVocabGrid('vocab-passenger', vocabPassenger);
+renderVocabGrid('vocab-fa', vocabFA);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3','d1e4'],
+  day2: ['d2e1','d2e2','d2e3','d2e4'],
+  day3: ['d3e1','d3e2','d3e3','d3e4'],
+};
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_fa3d_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_fa3d_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_fa3d_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_fa3d_days', JSON.stringify([...completedDays]));
+        if (completedDays.size >= 3) setTimeout(() => celebrateWeek(), 400);
+        else setTimeout(() => celebrateDay(), 400);
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1, drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360, spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle=p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y+=p.speed; p.x+=p.drift; p.angle+=p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function celebrateDay()  { launchConfetti(140, 200); showToast('🎉 Day complete! Excellent work!'); }
+function celebrateWeek() { launchConfetti(300, 380); showToast('🏆 All 3 days done! You are amazing! ✈️🧡'); }
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;`;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3500);
+}
+</script>
+</body>
+</html>
