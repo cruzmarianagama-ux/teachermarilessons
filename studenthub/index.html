@@ -5963,7 +5963,7 @@ function FlashcardAdminPanel({ students }) {
 
   // Assign to student
   const [assignDeck, setAssignDeck] = useState(null);
-  const [assignStudentId, setAssignStudentId] = useState("");
+  const [assignStudentIds, setAssignStudentIds] = useState([]);
   const [assignando, setAssignando] = useState(false);
 
   // Form novo deck
@@ -6231,36 +6231,40 @@ JSON only, no markdown, no backticks:
     abrirDeck(deckAtivo);
   };
 
-  // Assign deck base a aluno específico (cria cópia personalizada)
+  // Assign deck base a múltiplos alunos (cria cópia personalizada para cada)
   const assignToStudent = async () => {
-    if (!assignDeck || !assignStudentId) return;
+    if (!assignDeck || assignStudentIds.length === 0) return;
     setAssignando(true);
-    // Verifica se já existe deck personalizado desse base pra esse aluno
-    const { data: existente } = await supabase.from("flashcard_decks")
-      .select("id").eq("student_id", assignStudentId).eq("nome", assignDeck.nome + " (personalizado)").maybeSingle();
-    if (existente) {
-      flash("Esse aluno já tem uma cópia personalizada desse deck.", "erro");
-      setAssignando(false);
-      return;
-    }
-    // Busca os cards do deck base
+    // Busca os cards do deck base uma só vez
     const { data: cardsBase } = await supabase.from("flashcards").select("*").eq("deck_id", assignDeck.id);
-    // Cria o novo deck personalizado
-    const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks").insert({
-      nome: assignDeck.nome + " (personalizado)",
-      descricao: assignDeck.descricao,
-      unidade: assignDeck.unidade,
-      student_id: assignStudentId,
-    }).select().single();
-    if (errDeck) { flash("Erro ao criar deck: " + errDeck.message, "erro"); setAssignando(false); return; }
-    // Copia os cards
-    if (cardsBase && cardsBase.length > 0) {
-      const novosCards = cardsBase.map(c => ({ frente: c.frente, verso: c.verso, exemplo: c.exemplo, deck_id: novoDeck.id, ordem: c.ordem }));
-      await supabase.from("flashcards").insert(novosCards);
+    let atribuidos = 0;
+    let pulados = 0;
+    for (const sid of assignStudentIds) {
+      // Verifica se já existe deck personalizado desse base pra esse aluno
+      const { data: existente } = await supabase.from("flashcard_decks")
+        .select("id").eq("student_id", sid).eq("nome", assignDeck.nome + " (personalizado)").maybeSingle();
+      if (existente) { pulados++; continue; }
+      // Cria o novo deck personalizado
+      const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks").insert({
+        nome: assignDeck.nome + " (personalizado)",
+        descricao: assignDeck.descricao,
+        unidade: assignDeck.unidade,
+        student_id: sid,
+      }).select().single();
+      if (errDeck) { pulados++; continue; }
+      // Copia os cards
+      if (cardsBase && cardsBase.length > 0) {
+        const novosCards = cardsBase.map(c => ({ frente: c.frente, verso: c.verso, exemplo: c.exemplo, deck_id: novoDeck.id, ordem: c.ordem }));
+        await supabase.from("flashcards").insert(novosCards);
+      }
+      atribuidos++;
     }
-    flash(`Deck atribuído a ${students.find(s => s.id === assignStudentId)?.nome || "aluno"} com ${cardsBase?.length || 0} cards!`);
+    const msgs = [];
+    if (atribuidos > 0) msgs.push(`Deck atribuído a ${atribuidos} aluno${atribuidos > 1 ? "s" : ""} com ${cardsBase?.length || 0} cards!`);
+    if (pulados > 0) msgs.push(`${pulados} aluno${pulados > 1 ? "s" : ""} já tinha${pulados > 1 ? "m" : ""} esse deck (pulado${pulados > 1 ? "s" : ""}).`);
+    flash(msgs.join(" "), atribuidos === 0 ? "erro" : undefined);
     setAssignDeck(null);
-    setAssignStudentId("");
+    setAssignStudentIds([]);
     setAssignando(false);
     carregarDecks();
   };
@@ -6435,23 +6439,53 @@ JSON only, no markdown, no backticks:
 
       {/* Modal Assign to Student */}
       {assignDeck && (
-        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "16px", maxWidth: "420px", border: `2px solid ${palette.orange}` }}>
+        <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "16px", maxWidth: "460px", border: `2px solid ${palette.orange}` }}>
           <p style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>
-            👤 Atribuir deck a aluno
+            👤 Atribuir deck a alunos
           </p>
           <p style={{ fontSize: "12px", color: `${palette.purple}99`, marginBottom: "12px" }}>
-            Uma cópia editável de <strong>{assignDeck.nome}</strong> será criada para o aluno escolhido.
+            Uma cópia editável de <strong>{assignDeck.nome}</strong> será criada para cada aluno selecionado.
           </p>
-          <select value={assignStudentId} onChange={e => setAssignStudentId(e.target.value)} style={{ ...inputStyle }}>
-            <option value="">— Escolha um aluno —</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.nivel || "—"})</option>)}
-          </select>
-          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-            <button onClick={assignToStudent} disabled={assignando || !assignStudentId}
-              style={{ ...btnOrange, opacity: (assignando || !assignStudentId) ? 0.7 : 1 }}>
-              {assignando ? "Atribuindo..." : "✓ Atribuir"}
+          {/* Selecionar todos */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", paddingBottom: "8px", borderBottom: `1px solid ${palette.lavender}44` }}>
+            <input
+              type="checkbox"
+              id="assign-todos"
+              checked={assignStudentIds.length === students.length && students.length > 0}
+              onChange={e => setAssignStudentIds(e.target.checked ? students.map(s => s.id) : [])}
+              style={{ width: "16px", height: "16px", accentColor: palette.orange, cursor: "pointer" }}
+            />
+            <label htmlFor="assign-todos" style={{ fontSize: "12px", fontWeight: 700, color: palette.purple, cursor: "pointer" }}>
+              Selecionar todos ({students.length} alunos)
+            </label>
+          </div>
+          {/* Lista de alunos com checkbox */}
+          <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
+            {students.map(s => {
+              const checked = assignStudentIds.includes(s.id);
+              return (
+                <label key={s.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "8px", background: checked ? palette.orange + "18" : "#FFF", cursor: "pointer", border: `1px solid ${checked ? palette.orange + "66" : palette.lavender + "44"}`, transition: "all 0.15s" }}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={e => setAssignStudentIds(prev => e.target.checked ? [...prev, s.id] : prev.filter(id => id !== s.id))}
+                    style={{ width: "15px", height: "15px", accentColor: palette.orange, cursor: "pointer", flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: "13px", color: palette.purple, fontWeight: checked ? 600 : 400 }}>{s.nome}</span>
+                  <span style={{ fontSize: "11px", color: `${palette.purple}66`, marginLeft: "auto" }}>{s.nivel || "—"}</span>
+                </label>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: "11px", color: `${palette.purple}88`, marginBottom: "10px" }}>
+            {assignStudentIds.length === 0 ? "Nenhum aluno selecionado" : `${assignStudentIds.length} aluno${assignStudentIds.length > 1 ? "s" : ""} selecionado${assignStudentIds.length > 1 ? "s" : ""}`}
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={assignToStudent} disabled={assignando || assignStudentIds.length === 0}
+              style={{ ...btnOrange, opacity: (assignando || assignStudentIds.length === 0) ? 0.7 : 1 }}>
+              {assignando ? "Atribuindo..." : `✓ Atribuir${assignStudentIds.length > 0 ? ` (${assignStudentIds.length})` : ""}`}
             </button>
-            <button onClick={() => { setAssignDeck(null); setAssignStudentId(""); }} style={btnGhost}>Cancelar</button>
+            <button onClick={() => { setAssignDeck(null); setAssignStudentIds([]); }} style={btnGhost}>Cancelar</button>
           </div>
         </div>
       )}
@@ -6503,7 +6537,7 @@ JSON only, no markdown, no backticks:
                         </div>
                         <div style={{ display: "flex", gap: "5px", flexWrap: "wrap", flexShrink: 0 }}>
                           <button onClick={() => abrirDeck(deck)} style={{ ...btnOrange, padding: "6px 12px", fontSize: "12px" }}>Ver cards</button>
-                          <button onClick={() => { setAssignDeck(deck); setAssignStudentId(""); setMostrarFormDeck(false); }} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px", background: palette.lavender + "33", borderColor: palette.lavender }}>👤</button>
+                          <button onClick={() => { setAssignDeck(deck); setAssignStudentIds([]); setMostrarFormDeck(false); }} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px", background: palette.lavender + "33", borderColor: palette.lavender }}>👤</button>
                           <button onClick={() => abrirProgresso(deck)} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px" }}>📊</button>
                           <button onClick={() => abrirEdicaoDeck(deck)} style={{ ...btnGhost, padding: "6px 10px", fontSize: "12px" }}>✏️</button>
                           <button onClick={() => excluirDeck(deck)} style={{ ...btnRed, padding: "6px 10px", fontSize: "12px" }}>🗑️</button>
