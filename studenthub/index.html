@@ -5967,7 +5967,7 @@ function FlashcardAdminPanel({ students }) {
   const [assignando, setAssignando] = useState(false);
 
   // Form novo deck
-  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
+  const [formDeck, setFormDeck] = useState({ nome: "", descricao: "", nivel: "", unidade: "", student_ids: [], modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
   const [mostrarFormDeck, setMostrarFormDeck] = useState(false);
   const [editandoDeck, setEditandoDeck] = useState(null);
 
@@ -6077,41 +6077,20 @@ function FlashcardAdminPanel({ students }) {
     return { cards: [] };
   };
 
-  // Salvar deck (novo ou edição)
-  const salvarDeck = async () => {
-    if (!formDeck.nome.trim()) { flash("Nome do deck é obrigatório.", "erro"); return; }
-    setSalvando(true);
-    const payload = {
-      nome: formDeck.nome.trim(),
-      descricao: formDeck.descricao.trim() || null,
-      unidade: formDeck.unidade || null,
-      nivel: formDeck.nivel || null,
-      student_id: formDeck.student_id || null,
-    };
-    let error, novoDeckId;
-    if (editandoDeck) {
-      ({ error } = await supabase.from("flashcard_decks").update(payload).eq("id", editandoDeck.id));
-    } else {
-      const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks").insert(payload).select().single();
-      error = errDeck;
-      novoDeckId = novoDeck?.id;
-    }
-    if (error) { setSalvando(false); flash("Erro ao salvar: " + error.message, "erro"); return; }
-
-    if (!editandoDeck && novoDeckId) {
-      // Modo IA com prompt livre
-      if (formDeck.modoCreacao === "ia_prompt" && formDeck.promptIA?.trim()) {
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
-          if (!token) throw new Error("Sessão expirada — faça login novamente.");
-          const resp = await fetch(ANTHROPIC_PROXY, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({
-              model: "claude-haiku-4-5-20251001",
-              max_tokens: 1200,
-              system: `You are an ESL teacher creating flashcards from a teacher's instructions.
+  // Gera cards via IA ou lista e os insere no deck informado
+  const _inserirCards = async (novoDeckId) => {
+    if (formDeck.modoCreacao === "ia_prompt" && formDeck.promptIA?.trim()) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        if (!token) throw new Error("Sessão expirada — faça login novamente.");
+        const resp = await fetch(ANTHROPIC_PROXY, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 1200,
+            system: `You are an ESL teacher creating flashcards from a teacher's instructions.
 ${formDeck.nivel ? `Student level: ${formDeck.nivel}.` : ""}
 
 RULES:
@@ -6128,50 +6107,105 @@ Card types:
 
 JSON only, no markdown, no backticks:
 {"cards":[{"frente":"...","verso":"...","exemplo":"..."}]}`,
-              messages: [{ role: "user", content: `Create flashcards following EXACTLY the content below. Do NOT add content I didn't ask for.${formDeck.nivel ? ` Level: ${formDeck.nivel}.` : ""}\n\n${formDeck.promptIA.trim()}` }],
-            }),
-          });
-          const respText = await resp.text();
-          if (!resp.ok) { console.error("Proxy error:", respText); throw new Error(`Erro ${resp.status} no proxy`); }
-          const data = JSON.parse(respText);
-          const texto = data.content?.[0]?.text || "";
-          if (!texto) throw new Error("IA não retornou conteúdo.");
-          const parsed = parseCardsJSON(texto);
-          if (parsed.cards && parsed.cards.length > 0) {
-            const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
-            const { error: errCards } = await supabase.from("flashcards").insert(cardsIA);
-            if (errCards) throw new Error("Erro ao salvar cards: " + errCards.message);
-            flash(`🎯 Deck criado com ${cardsIA.length} cards gerados a partir do seu prompt!`);
-          } else {
-            flash("Deck criado! A IA não retornou cards — adicione manualmente.");
-          }
-        } catch (e) {
-          console.error("Erro na geração ia_prompt:", e);
-          flash(`Deck criado, mas erro ao gerar cards: ${e.message}.`, "erro");
+            messages: [{ role: "user", content: `Create flashcards following EXACTLY the content below. Do NOT add content I didn't ask for.${formDeck.nivel ? ` Level: ${formDeck.nivel}.` : ""}\n\n${formDeck.promptIA.trim()}` }],
+          }),
+        });
+        const respText = await resp.text();
+        if (!resp.ok) throw new Error(`Erro ${resp.status} no proxy`);
+        const data = JSON.parse(respText);
+        const texto = data.content?.[0]?.text || "";
+        if (!texto) throw new Error("IA não retornou conteúdo.");
+        const parsed = parseCardsJSON(texto);
+        if (parsed.cards && parsed.cards.length > 0) {
+          const cardsIA = parsed.cards.filter(c => c.frente && c.verso).map((c, i) => ({ deck_id: novoDeckId, frente: c.frente, verso: c.verso, exemplo: c.exemplo || null, ordem: i + 1 }));
+          await supabase.from("flashcards").insert(cardsIA);
+          return cardsIA.length;
         }
-
-      // Modo lista de palavras
-      } else if (formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim()) {
-        const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
-        const cardsLista = linhas.map((linha, i) => {
-          const [parteEsquerda, exemplo] = linha.split("|").map(s => s.trim());
-          const [frente, verso] = parteEsquerda.split("=").map(s => s.trim());
-          return { deck_id: novoDeckId, frente, verso: verso || "", exemplo: exemplo || null, ordem: i + 1 };
-        }).filter(c => c.frente && c.verso);
-        if (cardsLista.length > 0) {
-          const { error: errCards } = await supabase.from("flashcards").insert(cardsLista);
-          if (errCards) { setSalvando(false); flash(`Deck criado mas erro nos cards: ${errCards.message}`, "erro"); carregarDecks(); return; }
-        }
-        flash(`Deck criado com ${cardsLista.length} cards!`);
-      } else {
-        flash("Deck criado! Adicione cards manualmente.");
+        return 0;
+      } catch (e) {
+        console.error("Erro na geração ia_prompt:", e);
+        return -1; // sinaliza erro
       }
-    } else if (editandoDeck) {
+    } else if (formDeck.modoCreacao === "lista" && formDeck.listaPalavras.trim()) {
+      const linhas = formDeck.listaPalavras.trim().split("\n").filter(l => l.includes("="));
+      const cardsLista = linhas.map((linha, i) => {
+        const [parteEsquerda, exemplo] = linha.split("|").map(s => s.trim());
+        const [frente, verso] = parteEsquerda.split("=").map(s => s.trim());
+        return { deck_id: novoDeckId, frente, verso: verso || "", exemplo: exemplo || null, ordem: i + 1 };
+      }).filter(c => c.frente && c.verso);
+      if (cardsLista.length > 0) {
+        await supabase.from("flashcards").insert(cardsLista);
+        return cardsLista.length;
+      }
+      return 0;
+    }
+    return 0;
+  };
+
+  // Salvar deck (novo ou edição) — suporta múltiplos alunos
+  const salvarDeck = async () => {
+    if (!formDeck.nome.trim()) { flash("Nome do deck é obrigatório.", "erro"); return; }
+    setSalvando(true);
+
+    const basePayload = {
+      nome: formDeck.nome.trim(),
+      descricao: formDeck.descricao.trim() || null,
+      unidade: formDeck.unidade || null,
+      nivel: formDeck.nivel || null,
+    };
+
+    // ─── Modo EDIÇÃO ────────────────────────────────────────────────────────────
+    if (editandoDeck) {
+      const { error } = await supabase.from("flashcard_decks")
+        .update({ ...basePayload, student_id: editandoDeck.student_id || null })
+        .eq("id", editandoDeck.id);
+      if (error) { setSalvando(false); flash("Erro ao salvar: " + error.message, "erro"); return; }
       flash("Deck atualizado!");
+      setSalvando(false);
+      setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_ids: [], modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
+      setMostrarFormDeck(false);
+      setEditandoDeck(null);
+      carregarDecks();
+      return;
+    }
+
+    // ─── Modo CRIAÇÃO ────────────────────────────────────────────────────────────
+    const sids = formDeck.student_ids; // array; vazio = deck base
+    // Quantos decks criar: um por aluno, ou um deck base
+    const targets = sids.length > 0 ? sids : [null]; // null = sem aluno (base)
+
+    let totalCards = 0;
+    let erros = 0;
+    let decksOk = 0;
+
+    for (const sid of targets) {
+      const { data: novoDeck, error: errDeck } = await supabase.from("flashcard_decks")
+        .insert({ ...basePayload, student_id: sid })
+        .select().single();
+      if (errDeck) { erros++; continue; }
+      const qtd = await _inserirCards(novoDeck.id);
+      if (qtd === -1) erros++;
+      else totalCards = qtd; // usa o valor da última chamada (todos terão o mesmo nº de cards)
+      decksOk++;
+    }
+
+    if (decksOk === 0) {
+      flash("Erro ao criar decks. Tente novamente.", "erro");
+    } else if (sids.length > 1) {
+      const label = formDeck.modoCreacao === "ia_prompt" && totalCards > 0
+        ? `🎯 ${decksOk} decks criados com ${totalCards} cards cada!`
+        : `Deck criado para ${decksOk} aluno${decksOk > 1 ? "s" : ""}!${erros > 0 ? ` (${erros} erro${erros > 1 ? "s" : ""})` : ""}`;
+      flash(label, erros > 0 ? "erro" : undefined);
+    } else {
+      const label = formDeck.modoCreacao === "ia_prompt" && totalCards > 0
+        ? `🎯 Deck criado com ${totalCards} cards gerados a partir do seu prompt!`
+        : totalCards > 0 ? `Deck criado com ${totalCards} cards!`
+        : "Deck criado! Adicione cards manualmente.";
+      flash(label, erros > 0 ? "erro" : undefined);
     }
 
     setSalvando(false);
-    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_id: "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
+    setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_ids: [], modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(false);
     setEditandoDeck(null);
     carregarDecks();
@@ -6179,7 +6213,7 @@ JSON only, no markdown, no backticks:
 
   const abrirEdicaoDeck = (deck) => {
     setEditandoDeck(deck);
-    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_id: deck.student_id || "", modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
+    setFormDeck({ nome: deck.nome, descricao: deck.descricao || "", nivel: "", unidade: deck.unidade || "", student_ids: deck.student_id ? [deck.student_id] : [], modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" });
     setMostrarFormDeck(true);
   };
 
@@ -6304,7 +6338,7 @@ JSON only, no markdown, no backticks:
           <h2 style={{ fontSize: "15px", fontWeight: 700, color: palette.purple, margin: 0 }}>🃏 Gerenciar Flashcards</h2>
           <p style={{ fontSize: "12px", color: `${palette.purple}99`, margin: "4px 0 0" }}>Crie decks base (para todos) ou personalizados por aluno</p>
         </div>
-        <button onClick={() => { setEditandoDeck(null); setFormDeck({ nome: "", descricao: "", unidade: "", student_id: "" }); setMostrarFormDeck(true); }} style={btnOrange}>
+        <button onClick={() => { setEditandoDeck(null); setFormDeck({ nome: "", descricao: "", nivel: "", unidade: "", student_ids: [], modoCreacao: "ia_prompt", listaPalavras: "", promptIA: "" }); setMostrarFormDeck(true); }} style={btnOrange}>
           + Novo deck
         </button>
       </div>
@@ -6348,14 +6382,14 @@ JSON only, no markdown, no backticks:
             placeholder="Ex: Números 11-100, perguntas com Wh-" style={inputStyle} />
 
           {/* Nível e Unidade — obrigatórios para decks base, opcionais para personalizados */}
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível {formDeck.student_id ? "(opcional)" : "*"}</label>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Nível {formDeck.student_ids.length > 0 ? "(opcional)" : "*"}</label>
           <select value={formDeck.nivel || ""} onChange={e => setFormDeck(f => ({ ...f, nivel: e.target.value, unidade: "" }))} style={{ ...inputStyle }}>
-            <option value="">{formDeck.student_id ? "— Sem nível específico —" : "— Escolha o nível —"}</option>
+            <option value="">{formDeck.student_ids.length > 0 ? "— Sem nível específico —" : "— Escolha o nível —"}</option>
             {Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
           </select>
           {formDeck.nivel && (
             <>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade {formDeck.student_id ? "(opcional)" : "*"}</label>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Unidade {formDeck.student_ids.length > 0 ? "(opcional)" : "*"}</label>
               <select value={formDeck.unidade || ""} onChange={e => setFormDeck(f => ({ ...f, unidade: e.target.value }))} style={{ ...inputStyle }}>
                 <option value="">— Escolha a unidade —</option>
                 {(SYLLABUS[formDeck.nivel] || []).map(u => <option key={u.id} value={u.id}>{u.t}</option>)}
@@ -6401,20 +6435,53 @@ JSON only, no markdown, no backticks:
             </div>
           )}
 
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Aluno específico (deixe em branco para deck base)</label>
-          <select value={formDeck.student_id} onChange={e => setFormDeck(f => ({ ...f, student_id: e.target.value }))} style={{ ...inputStyle }}>
-            <option value="">— Base (visível para todos os alunos) —</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.nivel || "—"})</option>)}
-          </select>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>
+            Alunos específicos <span style={{ fontWeight: 400, color: `${palette.purple}88` }}>(deixe em branco para deck base)</span>
+          </label>
+          {/* Deck base toggle */}
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", borderRadius: "8px", background: formDeck.student_ids.length === 0 ? palette.lavender + "33" : "#FFF", border: `1px solid ${formDeck.student_ids.length === 0 ? palette.lavender : palette.lavender + "44"}`, cursor: "pointer", marginBottom: "6px" }}>
+            <input type="checkbox" checked={formDeck.student_ids.length === 0}
+              onChange={() => setFormDeck(f => ({ ...f, student_ids: [] }))}
+              style={{ width: "15px", height: "15px", accentColor: palette.purple, cursor: "pointer", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: palette.purple, fontWeight: formDeck.student_ids.length === 0 ? 700 : 400 }}>🌍 Base — visível para todos os alunos</span>
+          </label>
+          {/* Selecionar todos */}
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", borderRadius: "8px", background: "#FFF", border: `1px solid ${palette.lavender}44`, cursor: "pointer", marginBottom: "4px" }}>
+            <input type="checkbox"
+              checked={formDeck.student_ids.length === students.length && students.length > 0}
+              onChange={e => setFormDeck(f => ({ ...f, student_ids: e.target.checked ? students.map(s => s.id) : [] }))}
+              style={{ width: "15px", height: "15px", accentColor: palette.orange, cursor: "pointer", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: palette.purple, fontWeight: 600 }}>Selecionar todos os alunos</span>
+          </label>
+          {/* Lista de alunos */}
+          <div style={{ maxHeight: "180px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "3px", marginBottom: "8px", padding: "2px" }}>
+            {students.map(s => {
+              const checked = formDeck.student_ids.includes(s.id);
+              return (
+                <label key={s.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "8px", background: checked ? palette.orange + "18" : "#FFF", cursor: "pointer", border: `1px solid ${checked ? palette.orange + "66" : palette.lavender + "33"}` }}>
+                  <input type="checkbox" checked={checked}
+                    onChange={e => setFormDeck(f => ({ ...f, student_ids: e.target.checked ? [...f.student_ids, s.id] : f.student_ids.filter(id => id !== s.id) }))}
+                    style={{ width: "14px", height: "14px", accentColor: palette.orange, cursor: "pointer", flexShrink: 0 }} />
+                  <span style={{ fontSize: "12px", color: palette.purple, fontWeight: checked ? 600 : 400, flex: 1 }}>{s.nome}</span>
+                  <span style={{ fontSize: "10px", color: `${palette.purple}66` }}>{s.nivel || "—"}</span>
+                </label>
+              );
+            })}
+          </div>
+          {formDeck.student_ids.length > 0 && (
+            <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600, marginBottom: "8px" }}>
+              {formDeck.student_ids.length} aluno{formDeck.student_ids.length > 1 ? "s" : ""} selecionado{formDeck.student_ids.length > 1 ? "s" : ""} — será criada uma cópia do deck para cada um
+            </p>
+          )}
 
           {msgFeedback}
           <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
             <button onClick={salvarDeck}
               disabled={salvando
-                || (!formDeck.student_id && (!formDeck.nivel || !formDeck.unidade))
+                || (formDeck.student_ids.length === 0 && (!formDeck.nivel || !formDeck.unidade))
                 || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())
               }
-              style={{ ...btnOrange, opacity: (salvando || (!formDeck.student_id && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
+              style={{ ...btnOrange, opacity: (salvando || (formDeck.student_ids.length === 0 && (!formDeck.nivel || !formDeck.unidade)) || (formDeck.modoCreacao === "ia_prompt" && !formDeck.promptIA?.trim())) ? 0.7 : 1 }}>
               {salvando
                 ? (formDeck.modoCreacao === "ia_prompt" ? "Gerando com IA..." : "Salvando...")
                 : editandoDeck ? "Salvar alterações"
