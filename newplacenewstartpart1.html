@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>New Place, New Start – Part 1 | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--purple); text-align: center; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width: 100%; padding: 13px; background: var(--orange); color: var(--white); border: none; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s; }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a); color: var(--white); text-align: center; padding: 12px 16px; font-size: 1rem; font-weight: 700; }
+  #hello-banner.show { display: block; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,92,35,0.18); }
+  .header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,92,35,0.12); }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+
+  /* TABS */
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn { padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; letter-spacing: 0.3px; }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* CONTENT */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* DAY HEADER */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number { background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* WORD BOX */
+  .word-box { background: var(--cream); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; font-size: 0.85rem; font-weight: 600; color: var(--purple); text-align: center; letter-spacing: 0.5px; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* FEEDBACK */
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* MC */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white); }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line { display: inline; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .fill-input { border: none; border-bottom: 2px solid var(--purple-light); padding: 2px 6px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--purple); background: transparent; min-width: 100px; max-width: 160px; width: auto; text-align: center; outline: none; transition: border-color 0.2s; display: inline-block; }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--purple); resize: vertical; outline: none; min-height: 90px; transition: border-color 0.2s; margin-bottom: 8px; }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* MATCH SELECT */
+  .match-select { border: 2px solid var(--gray-light); border-radius: 6px; padding: 5px 10px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--purple); outline: none; transition: border-color 0.2s; background: var(--white); max-width: min(100%, 260px); vertical-align: middle; }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* CLICK-MATCH */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item { padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 600; color: var(--purple); background: var(--white); text-align: center; user-select: none; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--purple-light); color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
+  @media (max-width: 600px) { .cm-wrap { gap: 12px; } .cm-item { font-size: 0.78rem; padding: 8px 10px; } }
+
+  /* READING */
+  .reading-text { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; font-size: 0.9rem; line-height: 1.75; color: var(--purple); font-weight: 500; border-left: 4px solid var(--teal); }
+
+  /* T/F */
+  .tf-item { margin-bottom: 10px; }
+  .tf-line { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn { padding: 4px 14px; border-radius: 99px; border: 2px solid var(--gray-light); font-family: 'Poppins', sans-serif; font-size: 0.80rem; font-weight: 700; cursor: pointer; background: var(--white); transition: all 0.2s; }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; outline: 2px solid var(--teal); }
+
+  /* CTF */
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); }
+  .ctf-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 5px 14px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .ctf-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-chip.wrong-pick { background: var(--red); opacity: 1; }
+  .ctf-chip.correct-pick { background: var(--teal); opacity: 1; }
+  .ctf-gap { display: inline-block; min-width: 72px; text-align: center; border-bottom: 2.5px solid var(--purple-light); color: var(--orange); font-weight: 700; font-size: 0.88rem; padding: 0 4px; cursor: pointer; margin: 0 2px; transition: border-color 0.2s, background 0.2s; border-radius: 4px 4px 0 0; vertical-align: middle; line-height: 1.8; }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* TABLE */
+  .info-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 18px; }
+  .info-table th { background: var(--purple); color: var(--white); padding: 9px 12px; text-align: left; font-weight: 700; }
+  .info-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .info-table tr:nth-child(even) td { background: var(--cream-light); }
+  .info-table .highlight { color: var(--orange); font-weight: 700; }
+  @media (max-width: 600px) { .info-table { font-size: 0.76rem; } .info-table th, .info-table td { padding: 6px 8px; } }
+
+  /* DIALOGUE */
+  .dialogue-line { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); flex-wrap: wrap; }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; min-width: 80px; }
+
+  /* VOCAB / GRAMMAR BANK */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--purple); cursor: pointer; transition: all 0.2s; }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+  /* SUMMARY */
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--white); margin-top: 10px; }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* RANK GRID */
+  .rank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .rank-item { display: flex; align-items: center; gap: 8px; background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 0.85rem; font-weight: 600; color: var(--purple); }
+  .rank-input { border: none; border-bottom: 2px solid var(--purple-light); width: 36px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--purple); background: transparent; outline: none; }
+  .rank-input:focus { border-bottom-color: var(--orange); }
+
+  /* OPEN FEEDBACK */
+  .open-info { font-size: 0.78rem; color: var(--gray); font-style: italic; margin-bottom: 8px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .btn-row { gap: 8px; }
+    .fill-input { min-width: 70px; max-width: 120px; font-size: 0.82rem; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+    .vocab-chip { padding: 8px 8px; font-size: 0.78rem; }
+    .writing-area { font-size: 0.85rem; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+    .tip-box { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>New Place, New Start — Part 1</strong>.<br>What is your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's start!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>New Place, New Start — Part 1</h1>
+      <div class="subtitle">Beginner · Weekly Practice</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar">
+  <span id="motivation-text">Loading your daily message...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════ DAY 1 ════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Finding the Right Flat</div>
+      <div class="day-desc">Compare flats · Choose the right question · Recommend a flat · Rank your priorities</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Which flat is better?</div>
+    <div class="ex-instruction">Read the table. Then complete the sentences with <strong>Flat A</strong> or <strong>Flat B</strong>.</div>
+    <table class="info-table">
+      <tr><th></th><th>Flat A</th><th>Flat B</th></tr>
+      <tr><td>Rent</td><td>$1,100/month</td><td>$1,250/month</td></tr>
+      <tr><td>Deposit</td><td>$1,100</td><td>$600</td></tr>
+      <tr><td>Water</td><td>included</td><td>included</td></tr>
+      <tr><td>Electricity</td><td>not included</td><td>included</td></tr>
+      <tr><td>Internet</td><td>not included</td><td>included</td></tr>
+      <tr><td>Lease</td><td>12 months</td><td>6 months</td></tr>
+      <tr><td>Extra fee</td><td>$50 parking</td><td>no extra fees</td></tr>
+    </table>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What would you ask?</div>
+    <div class="ex-instruction">Choose the best question for each situation.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – The best choice</div>
+    <div class="ex-instruction">Read about Ben. Then recommend a flat and give three reasons.</div>
+    <div class="reading-text">
+      Ben is moving to the city for a new job. He will probably stay for only <strong>six months</strong>. He has a car and doesn't want to pay a lot of money before moving in. He also prefers to know exactly how much he will spend every month.
+    </div>
+    <p style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:10px;">Which flat is better for Ben?</p>
+    <p class="open-info">Open answer — write your ideas and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d1e3-text" placeholder="I think Flat ___ is better because...&#10;&#10;Reason 1:&#10;Reason 2:&#10;Reason 3:" rows="6"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d1e3-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Your priorities</div>
+    <div class="ex-instruction">Rank these from 1 (very important) to 5 (not very important) when choosing a flat. Then explain your top choice.</div>
+    <div class="rank-grid">
+      <div class="rank-item"><input class="rank-input" id="r1" type="number" min="1" max="5" placeholder="#"> low rent</div>
+      <div class="rank-item"><input class="rank-input" id="r2" type="number" min="1" max="5" placeholder="#"> low deposit</div>
+      <div class="rank-item"><input class="rank-input" id="r3" type="number" min="1" max="5" placeholder="#"> bills included</div>
+      <div class="rank-item"><input class="rank-input" id="r4" type="number" min="1" max="5" placeholder="#"> short lease</div>
+      <div class="rank-item"><input class="rank-input" id="r5" type="number" min="1" max="5" placeholder="#"> no extra fees</div>
+    </div>
+    <p style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:8px;">Explain your number 1:</p>
+    <p class="open-info">Open answer — write your ideas and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d1e4-text" placeholder="For me, ___ is very important because..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d1e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 2 ════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">The Rental Problem</div>
+      <div class="day-desc">Good news or bad news · True or False · Write questions · Give your opinion</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Good news or bad news?</div>
+    <div class="ex-instruction">Read each statement. Write <strong>G</strong> (good news) or <strong>B</strong> (bad news).</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – A message from your landlord</div>
+    <div class="ex-instruction">Read the message. Are the statements True or False?</div>
+    <div class="reading-text">
+      Hi Mia! The flat is $1,350 a month. Water is included, but electricity and internet aren't. The deposit is $1,350. The lease is for 12 months. Rent is due on the first day of every month. There is also a $30 monthly parking fee.
+    </div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Mia still has questions</div>
+    <div class="ex-instruction">Three important questions are NOT answered in the landlord's message. Write them. Think about: <strong>deposit back · signing the lease · moving in · extra fees</strong></div>
+    <div class="fill-item"><div class="fill-line">1. <input class="fill-input" id="d2e3_0" placeholder="..." style="min-width:260px;max-width:100%;width:min(100%,340px);"></div></div>
+    <div class="fill-item"><div class="fill-line">2. <input class="fill-input" id="d2e3_1" placeholder="..." style="min-width:260px;max-width:100%;width:min(100%,340px);"></div></div>
+    <div class="fill-item"><div class="fill-line">3. <input class="fill-input" id="d2e3_2" placeholder="..." style="min-width:260px;max-width:100%;width:min(100%,340px);"></div></div>
+    <div class="tip-box">Possible questions: <em>When will I get my deposit back? / When can I sign the lease? / When can I move in? / Are there any other extra fees?</em></div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d2e3-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Take the flat or not?</div>
+    <div class="ex-instruction">Would you rent Mia's flat? Choose and explain using at least three pieces of information.</div>
+    <div id="d2e4"></div>
+    <p class="open-info" style="margin-top:12px;">Open answer — explain your decision and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d2e4-text" placeholder="I would / would not rent this flat because..." rows="4"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e4-check">Check choice</button>
+      <button class="btn btn-secondary" id="d2e4-reset">Reset</button>
+      <button class="btn btn-whatsapp" id="d2e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+    <div class="feedback" id="d2e4-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 3 ════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">At the Bank</div>
+      <div class="day-desc">Documents · Match questions · Read bank info · Choose what matters</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Before you go to the bank</div>
+    <div class="ex-instruction">Read about Lucas. He wants to open a bank account. He has: passport, driver's licence, proof of employment, $100, phone.<br>Which things does he probably need?</div>
+    <div class="fill-item">
+      <div class="fill-line">I think Lucas needs <input class="fill-input" id="d3e1_0" placeholder="..." style="min-width:140px;"> and <input class="fill-input" id="d3e1_1" placeholder="..." style="min-width:180px;">.</div>
+    </div>
+    <div class="tip-box">Think about what a bank always asks for when you open a new account.</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What does the customer want to know?</div>
+    <div class="ex-instruction">Click a customer situation on the left. Then click the best question on the right.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Read between the lines</div>
+    <div class="ex-instruction">Read the bank information. Answer the questions.</div>
+    <div class="reading-text">
+      <strong>CITY BANK — EVERYDAY ACCOUNT</strong><br><br>
+      Minimum deposit: $50 &nbsp;|&nbsp; Monthly fee: $4 &nbsp;|&nbsp; Debit card: included<br>
+      Online banking: free &nbsp;|&nbsp; Online payments: yes &nbsp;|&nbsp; Transfers to other banks: $2<br>
+      Debit card delivery: 5–7 days
+    </div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Is this account good for you?</div>
+    <div class="ex-instruction">Choose the two most important things for you. Then decide: would you open the City Bank account? Why / why not?</div>
+    <div id="d3e4-options" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;"></div>
+    <p class="open-info">Open answer — explain your decision and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d3e4-text" placeholder="I would / would not open this account because..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d3e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 4 ════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Bank Account Options</div>
+      <div class="day-desc">Compare accounts · Customer profiles · Complete a dialogue · Make a recommendation</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Compare the accounts</div>
+    <div class="ex-instruction">Read the table. Choose the best account for each situation.</div>
+    <table class="info-table">
+      <tr><th></th><th>Easy Account</th><th>Smart Account</th></tr>
+      <tr><td>Minimum deposit</td><td>$0</td><td>$100</td></tr>
+      <tr><td>Monthly fee</td><td>$7</td><td>$0</td></tr>
+      <tr><td>Debit card</td><td>yes</td><td>yes</td></tr>
+      <tr><td>Online payments</td><td>yes</td><td>yes</td></tr>
+      <tr><td>Transfers</td><td>free</td><td>$3</td></tr>
+      <tr><td>Card delivery</td><td>3 days</td><td>7 days</td></tr>
+    </table>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 2 – Customer profiles</div>
+    <div class="ex-instruction">Read the profiles. Which account is better for each customer? Give two reasons each.</div>
+    <div class="reading-text">
+      <strong>Customer A — Chloe:</strong> She transfers money to her family every week. She needs her card quickly.<br><br>
+      <strong>Customer B — Adam:</strong> He rarely transfers money. He hates monthly fees and has $200 to open the account.
+    </div>
+    <p style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:6px;">Chloe:</p>
+    <textarea class="writing-area" id="d4e2a-text" placeholder="I recommend the ___ Account for Chloe because..." rows="3"></textarea>
+    <p style="font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:6px;">Adam:</p>
+    <textarea class="writing-area" id="d4e2b-text" placeholder="I recommend the ___ Account for Adam because..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d4e2-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the conversation naturally</div>
+    <div class="ex-instruction">Read the dialogue. Fill in the four gaps with the correct question.</div>
+    <div style="background:var(--cream-light);border-radius:var(--radius-sm);padding:16px;margin-bottom:14px;">
+      <div class="dialogue-line"><span class="speaker">Customer:</span> Hi. I'd like to open a bank account.</div>
+      <div class="dialogue-line"><span class="speaker">Advisor:</span> Of course. <input class="fill-input" id="d4e3_0" placeholder="..." style="min-width:200px;max-width:min(100%,320px);">?</div>
+      <div class="dialogue-line"><span class="speaker">Customer:</span> Sure. Here's my passport.</div>
+      <div class="dialogue-line"><span class="speaker">Advisor:</span> Thank you. And <input class="fill-input" id="d4e3_1" placeholder="..." style="min-width:200px;max-width:min(100%,320px);">?</div>
+      <div class="dialogue-line"><span class="speaker">Customer:</span> I work at Green Tech.</div>
+      <div class="dialogue-line"><span class="speaker">Customer:</span> Can I ask you something? <input class="fill-input" id="d4e3_2" placeholder="..." style="min-width:200px;max-width:min(100%,320px);">?</div>
+      <div class="dialogue-line"><span class="speaker">Advisor:</span> No, there aren't any monthly fees.</div>
+      <div class="dialogue-line"><span class="speaker">Customer:</span> Great. And <input class="fill-input" id="d4e3_3" placeholder="..." style="min-width:200px;max-width:min(100%,320px);">?</div>
+      <div class="dialogue-line"><span class="speaker">Advisor:</span> Yes, you can use your debit card for online payments.</div>
+    </div>
+    <div class="tip-box">Useful phrases: <em>Can I see your identification, please? / Where are you employed? / Are there any monthly fees? / Can I use my debit card for online payments?</em></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Make your recommendation</div>
+    <div class="ex-instruction">A friend has just moved to your country and needs a bank account. Recommend the Easy Account or the Smart Account. Mention: deposit, monthly fee, card, transfers.</div>
+    <p class="open-info">Open answer — write your recommendation and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d4e4-text" placeholder="I recommend the ___ Account because..." rows="5"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d4e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 5 ════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Spot the Problem</div>
+      <div class="day-desc">Fix wrong responses · Correct questions · Rank problems · Give advice</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Something doesn't make sense</div>
+    <div class="ex-instruction">Read each mini-dialogue. Find the response that <strong>doesn't make sense</strong> and write a better answer in the correction box.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Wrong question</div>
+    <div class="ex-instruction">These questions have grammar mistakes. Write the correct question.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Which problem is more serious?</div>
+    <div class="ex-instruction">Rank these from 1 = biggest problem to 6 = smallest problem. Then compare your top two.</div>
+    <div class="rank-grid">
+      <div class="rank-item"><input class="rank-input" id="p1" type="number" min="1" max="6" placeholder="#"> high rent</div>
+      <div class="rank-item"><input class="rank-input" id="p2" type="number" min="1" max="6" placeholder="#"> expensive bills</div>
+      <div class="rank-item"><input class="rank-input" id="p3" type="number" min="1" max="6" placeholder="#"> long lease</div>
+      <div class="rank-item"><input class="rank-input" id="p4" type="number" min="1" max="6" placeholder="#"> high deposit</div>
+      <div class="rank-item"><input class="rank-input" id="p5" type="number" min="1" max="6" placeholder="#"> monthly bank fees</div>
+      <div class="rank-item"><input class="rank-input" id="p6" type="number" min="1" max="6" placeholder="#"> expensive bank transfers</div>
+    </div>
+    <p class="open-info">Compare your top two and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d5e3-text" placeholder="I think ___ is a bigger problem than ___ because..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d5e3-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Give the person advice</div>
+    <div class="ex-instruction">Choose ONE situation. Write four questions your friend should ask before making a decision.</div>
+    <div id="d5e4-choice" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
+    <div class="reading-text" id="d5e4-situation" style="display:none;font-size:0.85rem;"></div>
+    <p class="open-info">Write four questions and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d5e4-text" placeholder="1.&#10;2.&#10;3.&#10;4:" rows="5"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d5e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DAY 6 ════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">A New Start</div>
+      <div class="day-desc">Recommend a flat · Choose a bank · Elena's checklist · Write a decision report</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – One person, two decisions</div>
+    <div class="ex-instruction">Read about Elena. Which flat would you recommend? Explain using her situation.</div>
+    <div class="reading-text">
+      Elena has just moved to a new city for a one-year job. She has <strong>$1,500 available now</strong>. She often buys things online and sends money to her family every month.<br><br>
+      <strong>Flat Green:</strong> Rent $950 · Deposit $950 · Bills $150/month · Lease 12 months<br>
+      <strong>Flat Blue:</strong> Rent $1,100 · Deposit $500 · Water + internet included · Lease 6 or 12 months
+    </div>
+    <p class="open-info">Open answer — send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d6e1-text" placeholder="I recommend Flat ___ for Elena because..." rows="4"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d6e1-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Now choose her bank</div>
+    <div class="ex-instruction">Read the two banks. Which would you recommend for Elena? Give two reasons.</div>
+    <div class="reading-text" style="font-size:0.85rem;">
+      <strong>Bank One:</strong> No minimum deposit · $6 monthly fee · Free transfers · Online payments available<br><br>
+      <strong>Bank Two:</strong> $100 minimum deposit · No monthly fee · $4 transfers · Online payments available
+    </div>
+    <p class="open-info">There is no single correct answer. Give two reasons and send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d6e2-text" placeholder="I recommend Bank ___ for Elena because..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d6e2-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Elena's checklist</div>
+    <div class="ex-instruction">Elena wants to make sure she has all the information she needs. Write <strong>FLAT</strong>, <strong>BANK</strong>, or <strong>BOTH</strong> for each question.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Decision report</div>
+    <div class="ex-instruction">Complete the decision report for Elena.</div>
+    <div id="d6e4"></div>
+    <p class="open-info">Open parts — send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d6e4-text" placeholder="Additional comments..." rows="3"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e4-check">Check</button>
+      <button class="btn btn-secondary" id="d6e4-reset">Reset</button>
+      <button class="btn btn-whatsapp" id="d6e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+    <div class="feedback" id="d6e4-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 7 ════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Weekly Review &amp; Real-Life Task</div>
+      <div class="day-desc">Vocabulary review · Match questions to purposes · Prepare real questions · Final writing</div>
+    </div>
+  </div>
+
+  <!-- EX 1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Choose the missing word</div>
+    <div class="ex-instruction">Click a word from the box. Then click the gap to complete each sentence.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What are you trying to find out?</div>
+    <div class="ex-instruction">Click a question on the left. Then click its purpose on the right.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – The New Start Challenge</div>
+    <div class="ex-instruction">You have just moved to another country. Prepare real questions you need answered.</div>
+    <p style="font-size:0.88rem;font-weight:700;color:var(--orange);margin-bottom:6px;">Task A — Five questions for the landlord</p>
+    <p style="font-size:0.78rem;color:var(--gray);margin-bottom:8px;">Think about: rent · deposit · lease · bills · extra fees · payment</p>
+    <textarea class="writing-area" id="d7e3a-text" placeholder="1.&#10;2.&#10;3.&#10;4.&#10;5." rows="6"></textarea>
+    <p style="font-size:0.88rem;font-weight:700;color:var(--orange);margin:14px 0 6px;">Task B — Five questions for the bank advisor</p>
+    <p style="font-size:0.78rem;color:var(--gray);margin-bottom:8px;">Think about: documents · minimum deposit · fees · debit card · online payments · transfers</p>
+    <textarea class="writing-area" id="d7e3b-text" placeholder="1.&#10;2.&#10;3.&#10;4.&#10;5." rows="6"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 4 – Final Writing Challenge</div>
+    <div class="ex-instruction">Your friend is moving to a new country next month. Write a short message (70–90 words) giving practical advice about renting a flat and opening a bank account.<br>
+    Include: 2 things to check before renting · 2 things to ask at the bank · at least 4 words from the unit · at least 2 questions your friend could ask.</div>
+    <div class="word-box">Useful language: Before you rent a flat, check... · Ask if... · You should also ask... · At the bank, ask... · Don't forget to...</div>
+    <p class="open-info">Open writing task — send to Teacher Mari.</p>
+    <textarea class="writing-area" id="d7e4-text" placeholder="Write your message here (70–90 words)..." rows="7"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e4-wa">Send to Teacher Mari via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div id="weekly-summary" style="display:none;">
+    <div class="summary-card">
+      <h3>Week Complete!</h3>
+      <p>You finished all seven days. Well done!</p>
+      <div class="score-big" id="final-score">0</div>
+      <p style="margin-top:4px;">exercises checked</p>
+      <div class="btn-row" style="justify-content:center;margin-top:16px;">
+        <button class="btn btn-whatsapp" id="summary-whatsapp">Send results to Teacher Mari</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ VOCAB BANK ════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.85rem;">VB</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Key words for this unit</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Renting a Flat</div>
+    <div class="vocab-grid" id="vocab-flat"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Banking</div>
+    <div class="vocab-grid" id="vocab-bank"></div>
+  </div>
+</div>
+
+<!-- ════ GRAMMAR BANK ════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.85rem;">GB</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Questions and comparatives</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Asking Questions</div>
+    <table class="grammar-table">
+      <tr><th>Structure</th><th>Example</th></tr>
+      <tr><td><span class="orange">Are there any</span> + noun?</td><td>Are there any extra fees?</td></tr>
+      <tr><td><span class="orange">Is there a</span> + noun?</td><td>Is there a monthly fee?</td></tr>
+      <tr><td><span class="orange">How much is</span> + noun?</td><td>How much is the rent?</td></tr>
+      <tr><td><span class="orange">How much are</span> + noun (plural)?</td><td>How much are the bills?</td></tr>
+      <tr><td><span class="orange">When will I</span> + verb?</td><td>When will I receive my card?</td></tr>
+      <tr><td><span class="orange">Can I</span> + verb?</td><td>Can I use my debit card online?</td></tr>
+      <tr><td><span class="orange">Do I need to</span> + verb?</td><td>Do I need to pay a deposit?</td></tr>
+    </table>
+    <div class="tip-box">Notice: <em>Is there a</em> (singular) vs <em>Are there any</em> (plural/uncountable). <em>How much is</em> (singular) vs <em>How much are</em> (plural).</div>
+  </div>
+  <div class="bank-section" style="margin-top:24px;">
+    <div class="bank-title">Comparatives</div>
+    <table class="grammar-table">
+      <tr><th>Adjective</th><th>Comparative</th><th>Example</th></tr>
+      <tr><td>cheap</td><td><span class="teal">cheaper</span></td><td>Flat A has a cheaper rent.</td></tr>
+      <tr><td>low</td><td><span class="teal">lower</span></td><td>Flat B has a lower deposit.</td></tr>
+      <tr><td>short</td><td><span class="teal">shorter</span></td><td>Flat B has a shorter lease.</td></tr>
+      <tr><td>expensive</td><td><span class="teal">more expensive</span></td><td>Flat B is more expensive.</td></tr>
+      <tr><td>good</td><td><span class="teal">better</span></td><td>Flat B is better for Ben.</td></tr>
+    </table>
+    <div class="tip-box">Use <em>than</em> to compare two things: <em>Flat A has a cheaper rent than Flat B.</em></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════
+//  HELPERS
+// ══════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: 'Great job! You got all ' + total + ' correct!', type: 'ok' };
+  if (correct >= total * 0.7) return { msg: 'Well done! ' + correct + '/' + total + ' correct. Review the mistakes and try again!', type: 'partial' };
+  return { msg: correct + '/' + total + ' correct. Keep practising — you can do it!', type: 'err' };
+}
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o,j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(97+j) + ') ' + o + '</label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const old = itemDiv.querySelector('.mc-explain'); if (old) old.remove(); }
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const optBox = itemDiv.querySelector('.mc-options');
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = '💡 ' + item.why;
+          optBox.insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    let html = '<div class="fill-line">' + (i+1) + '. ' + parts[0];
+    for (let k = 1; k < parts.length; k++) {
+      html += '<input class="fill-input" id="' + prefix + '_' + i + '_' + (k-1) + '" placeholder="...">' + parts[k];
+    }
+    html += '</div>';
+    div.innerHTML = html;
+    wrap.appendChild(div);
+  });
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((ans, k) => {
+      total++;
+      const inp = document.getElementById(prefix + '_' + i + '_' + k);
+      if (!inp) return;
+      inp.classList.remove('correct','wrong');
+      const existing = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+      if (existing) existing.remove();
+      const val = inp.value.trim().toLowerCase();
+      const ok = Array.isArray(ans) ? ans.map(a=>a.toLowerCase()).includes(val) : val === ans.toLowerCase();
+      if (ok) { inp.classList.add('correct'); correct++; }
+      else {
+        inp.classList.add('wrong');
+        const correctAns = Array.isArray(ans) ? ans[0] : ans;
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = '(✔ ' + correctAns + ')';
+        inp.insertAdjacentElement('afterend', hint);
+      }
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((_, k) => {
+      const inp = document.getElementById(prefix + '_' + i + '_' + k);
+      if (inp) { inp.value = ''; inp.className = 'fill-input'; const h = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if (h) h.remove(); }
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line">' + (i+1) + '. ' + item.s + ' <div class="tf-btns"><button class="tf-btn t" id="' + prefix + 't_' + i + '" data-val="T">True</button><button class="tf-btn f" id="' + prefix + 'f_' + i + '" data-val="F">False</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(prefix + 't_','').replace(prefix + 'f_','');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + idx); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    if (sel[i] === item.ans) correct++;
+    else {
+      if (sel[i]) { const wb = document.getElementById(prefix + sel[i].toLowerCase() + '_' + i); if (wb) wb.classList.add('wrong-sel'); }
+      const rb = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rb) rb.classList.add('right-answer');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_,i) => { ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); }); });
+  document.getElementById(fbId).className = 'feedback';
+}
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const list = document.createElement('div');
+  const si = cfg.startIndex || 1;
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const html = item.line.replace(/___/g, () => '<span class="ctf-gap" data-ans="' + item.ans + '"></span>');
+    div.innerHTML = '<div class="fill-line">' + (i+si) + '. ' + html + '</div>';
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const rWi = gap.dataset.filledWi;
+      const cb = bank.querySelector('.ctf-chip[data-wi="' + rWi + '"]');
+      if (cb) cb.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return;
+    }
+    if (!selected) return;
+    if (gap.textContent) { const ow = gap.dataset.filledWi; const cb2 = bank.querySelector('.ctf-chip[data-wi="' + ow + '"]'); if (cb2) cb2.classList.remove('used'); }
+    gap.textContent = selected.word; gap.dataset.filled = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const ex = gap.parentElement.querySelector('.correct-hint'); if (ex) ex.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span'); hint.className = 'correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = '(✔ ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => { gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = ''; gap.classList.remove('correct-gap','wrong-gap','ready'); });
+    list.querySelectorAll('.correct-hint').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]]; }
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => { const div = document.createElement('div'); div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i; div.textContent = item.left; leftCol.appendChild(div); });
+  rightShuffled.forEach((item) => { const div = document.createElement('div'); div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex; div.textContent = item.text; rightCol.appendChild(div); });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+  const links = {}; let selectedLeft = null; let pairCount = 0;
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      const num = pairCount;
+      selectedLeft.classList.remove('active'); selectedLeft.classList.add('linked'); item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove()); item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const bL = document.createElement('span'); bL.className = 'cm-pair-num'; bL.textContent = num;
+      const bR = document.createElement('span'); bR.className = 'cm-pair-num'; bR.textContent = num;
+      selectedLeft.appendChild(bL); item.appendChild(bR);
+      selectedLeft.dataset.pairNum = num; item.dataset.pairNum = num;
+      selectedLeft = null;
+    }
+  });
+  return { links, leftCol, rightCol, data };
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    if (linkedRightIdx === undefined) { if (correctRightEl) correctRightEl.classList.add('correct-link'); if (leftEl) leftEl.classList.add('wrong-link'); return; }
+    if (parseInt(linkedRightIdx) === i) { correct++; leftEl.classList.add('correct-link'); if (correctRightEl) correctRightEl.classList.add('correct-link'); }
+    else {
+      leftEl.classList.add('wrong-link');
+      const wEl = rightCol.querySelector('.cm-item[data-idx="' + linkedRightIdx + '"]');
+      if (wEl) wEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => { col.querySelectorAll('.cm-item').forEach(el => { el.classList.remove('active','linked','correct-link','wrong-link'); el.querySelectorAll('.cm-pair-num').forEach(b => b.remove()); delete el.dataset.pairNum; }); });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════
+//  PROGRESS & STORAGE
+// ══════════════════════════
+const STORAGE_KEY = 'teachermari_newplace_part1';
+let appState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(appState.totalChecked || 0);
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  appState.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const total = 18;
+  const pct = Math.min(100, Math.round((totalChecked / total) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══════════════════════════
+//  MOTIVATION
+// ══════════════════════════
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes are part of learning. Try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practice every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════
+//  WELCOME
+// ══════════════════════════
+const savedName = localStorage.getItem('teachermari_student_name');
+if (savedName) {
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + savedName + '! Ready to practise?';
+  banner.classList.add('show');
+}
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const name = document.getElementById('student-name-input').value.trim();
+  if (!name) { document.getElementById('student-name-input').focus(); return; }
+  localStorage.setItem('teachermari_student_name', name);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + name + '! Ready to practise?';
+  banner.classList.add('show');
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+
+// ══════════════════════════
+//  TABS
+// ══════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ══════════════════════════════════
+//  DAY 1
+// ══════════════════════════════════
+
+// D1 EX 1 — Fill: Flat A or Flat B
+const d1e1Data = [
+  {line:'___ has a cheaper monthly rent.', ans:['Flat A']},
+  {line:'___ has a shorter lease.', ans:['Flat B']},
+  {line:'___ has a lower deposit.', ans:['Flat B']},
+  {line:'___ includes electricity.', ans:['Flat B']},
+  {line:'___ has an extra fee.', ans:['Flat A']},
+  {line:'___ is better for someone who only wants to stay for six months.', ans:['Flat B']},
+];
+buildFill('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkFill(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetFill(d1e1Data, 'd1e1', 'd1e1-fb'));
+
+// D1 EX 2 — MC: choose best question
+const d1e2Data = [
+  {q:'You want to know if electricity is part of the monthly price.', opts:['When do I pay the rent?','Are the bills included?','How long is the lease?'], ans:1, why:'"Are the bills included?" asks about electricity, water and internet — things included in the monthly price.'},
+  {q:'You do not want to stay for a year.', opts:['How long is the lease?','How much is the deposit?','Are there any extra fees?'], ans:0, why:'The lease tells you how long you must stay. Ask "How long is the lease?" to find out.'},
+  {q:'You have a car.', opts:['When can I sign the lease?','Is there a parking fee?','When will I get my deposit back?'], ans:1, why:'If you have a car, you need to know about parking. "Is there a parking fee?" is the right question.'},
+  {q:'You want to know how much money you need before moving in.', opts:['How much is the deposit?','How much are the bills?','When do I pay rent?'], ans:0, why:'The deposit is the money you pay before you move in. "How much is the deposit?" is the correct question.'},
+  {q:'You do not want any surprise costs.', opts:['Are there any extra fees?','When can I move in?','How long is the lease?'], ans:0, why:'"Extra fees" means any additional costs you did not expect. Always ask this to avoid surprises.'},
+];
+buildMC('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkMC(d1e2Data, 'd1e2', 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetMC('d1e2', 'd1e2', d1e2Data, 'd1e2-fb'));
+
+// D1 EX 3 — WhatsApp open writing
+document.getElementById('d1e3-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d1e3-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 1, Exercise 3\nStudent: ' + name + '\n\n' + (txt || '(no answer written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d1e3');
+});
+
+// D1 EX 4 — WhatsApp open writing
+document.getElementById('d1e4-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d1e4-text').value.trim();
+  const r1 = document.getElementById('r1').value;
+  const r2 = document.getElementById('r2').value;
+  const r3 = document.getElementById('r3').value;
+  const r4 = document.getElementById('r4').value;
+  const r5 = document.getElementById('r5').value;
+  const ranks = 'low rent=' + r1 + ' | low deposit=' + r2 + ' | bills included=' + r3 + ' | short lease=' + r4 + ' | no extra fees=' + r5;
+  const msg = 'New Place, New Start Part 1 — Day 1, Exercise 4\nStudent: ' + name + '\nRanking: ' + ranks + '\n\n' + (txt || '(no explanation written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d1e4');
+});
+
+// ══════════════════════════════════
+//  DAY 2
+// ══════════════════════════════════
+
+// D2 EX 1 — Fill G or B
+const d2e1Data = [
+  {line:'"Water and internet are included." ___', ans:['G']},
+  {line:'"The deposit is two months\' rent." ___', ans:['B']},
+  {line:'"There are no extra fees." ___', ans:['G']},
+  {line:'"The lease is for two years." ___', ans:['B']},
+  {line:'"You can get your deposit back when you move out." ___', ans:['G']},
+  {line:'"There is an extra $100 parking fee." ___', ans:['B']},
+];
+buildFill('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkFill(d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetFill(d2e1Data, 'd2e1', 'd2e1-fb'));
+
+// D2 EX 2 — True/False
+const d2e2Data = [
+  {s:'The rent is $1,350.', ans:'T'},
+  {s:'All bills are included.', ans:'F', why:'Only water is included. Electricity and internet are not included.'},
+  {s:'The deposit is the same amount as one month\'s rent.', ans:'T'},
+  {s:'The lease is six months.', ans:'F', why:'The lease is 12 months, not six months.'},
+  {s:'Mia needs to pay rent at the beginning of the month.', ans:'T'},
+  {s:'Parking is free.', ans:'F', why:'There is a $30 monthly parking fee.'},
+];
+(function() {
+  const wrap = document.getElementById('d2e2');
+  const sel = {};
+  d2e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line">' + (i+1) + '. ' + item.s + ' <div class="tf-btns"><button class="tf-btn t" id="d2e2t_' + i + '" data-val="T">True</button><button class="tf-btn f" id="d2e2f_' + i + '" data-val="F">False</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace('d2e2t_','').replace('d2e2f_','');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById('d2e2' + x + '_' + idx); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  document.getElementById('d2e2-check').addEventListener('click', () => {
+    let correct = 0;
+    d2e2Data.forEach((item, i) => {
+      ['t','f'].forEach(x => { const b = document.getElementById('d2e2' + x + '_' + i); if (b) b.classList.remove('wrong-sel','right-answer'); });
+      const old = document.getElementById('d2e2-why-' + i); if (old) old.remove();
+      if (sel[i] === item.ans) correct++;
+      else {
+        if (sel[i]) { const wb = document.getElementById('d2e2' + sel[i].toLowerCase() + '_' + i); if (wb) wb.classList.add('wrong-sel'); }
+        const rb = document.getElementById('d2e2' + item.ans.toLowerCase() + '_' + i); if (rb) rb.classList.add('right-answer');
+        if (item.why) {
+          const tfLine = document.getElementById('d2e2t_' + i).closest('.tf-item');
+          const hint = document.createElement('div'); hint.id = 'd2e2-why-' + i;
+          hint.style.cssText = 'font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;margin-top:4px;';
+          hint.textContent = '💡 ' + item.why; tfLine.appendChild(hint);
+        }
+      }
+    });
+    const r = scoreText(correct, d2e2Data.length);
+    showFeedback('d2e2-fb', r.msg, r.type);
+    incrementChecked('d2e2');
+  });
+  document.getElementById('d2e2-reset').addEventListener('click', () => {
+    Object.keys(sel).forEach(k => delete sel[k]);
+    d2e2Data.forEach((_,i) => {
+      ['t','f'].forEach(x => { const b = document.getElementById('d2e2' + x + '_' + i); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+      const hint = document.getElementById('d2e2-why-' + i); if (hint) hint.remove();
+    });
+    document.getElementById('d2e2-fb').className = 'feedback';
+  });
+})();
+
+// D2 EX 3 — Open questions WhatsApp
+document.getElementById('d2e3-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const q1 = document.getElementById('d2e3_0').value.trim();
+  const q2 = document.getElementById('d2e3_1').value.trim();
+  const q3 = document.getElementById('d2e3_2').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 2, Exercise 3\nStudent: ' + name + '\n\n1. ' + (q1||'-') + '\n2. ' + (q2||'-') + '\n3. ' + (q3||'-');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d2e3');
+});
+
+// D2 EX 4 — MC choice + open writing
+const d2e4Data = [{q:'Would you rent this flat?', opts:['Yes, I would rent it.','Maybe — I need more information.','No, I would not rent it.'], ans:-1}];
+(function() {
+  const wrap = document.getElementById('d2e4');
+  const div = document.createElement('div'); div.className = 'mc-item';
+  div.innerHTML = '<div class="mc-options">' +
+    d2e4Data[0].opts.map((o,j) => '<label class="mc-option" data-q="d2e4_0" data-opt="' + j + '"><input type="radio" name="d2e4_0" value="' + j + '"> ' + o + '</label>').join('') + '</div>';
+  wrap.appendChild(div);
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+})();
+document.getElementById('d2e4-check').addEventListener('click', () => {
+  const sel = document.querySelector('input[name="d2e4_0"]:checked');
+  if (!sel) { showFeedback('d2e4-fb', 'Please choose an option first.', 'err'); return; }
+  showFeedback('d2e4-fb', 'Choice saved! Now explain your decision using information from the message above.', 'ok');
+  incrementChecked('d2e4');
+});
+document.getElementById('d2e4-reset').addEventListener('click', () => {
+  document.querySelectorAll('input[name="d2e4_0"]').forEach(r => r.checked = false);
+  document.querySelectorAll('[data-q="d2e4_0"]').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById('d2e4-fb').className = 'feedback';
+});
+document.getElementById('d2e4-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const sel = document.querySelector('input[name="d2e4_0"]:checked');
+  const choice = sel ? d2e4Data[0].opts[parseInt(sel.value)] : '(no choice)';
+  const txt = document.getElementById('d2e4-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 2, Exercise 4\nStudent: ' + name + '\nChoice: ' + choice + '\n\n' + (txt || '(no explanation written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ══════════════════════════════════
+//  DAY 3
+// ══════════════════════════════════
+
+// D3 EX 1 — Two fill inputs (passport/ID + proof of employment)
+(function() {
+  document.getElementById('d3e1-check').addEventListener('click', () => {
+    const inp0 = document.getElementById('d3e1_0');
+    const inp1 = document.getElementById('d3e1_1');
+    [inp0, inp1].forEach(inp => { inp.classList.remove('correct','wrong'); const h = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if (h) h.remove(); });
+    const accepted0 = ['passport','id','identification','id card','driver\'s licence','drivers licence'];
+    const accepted1 = ['proof of employment','employment proof','proof of work'];
+    const v0 = inp0.value.trim().toLowerCase();
+    const v1 = inp1.value.trim().toLowerCase();
+    let correct = 0;
+    const allAccepted = accepted0.concat(accepted1);
+    if (allAccepted.includes(v0)) { inp0.classList.add('correct'); correct++; }
+    else { inp0.classList.add('wrong'); const h = document.createElement('span'); h.className='correct-hint'; h.dataset.for=inp0.id; h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;'; h.textContent='(✔ passport / ID)'; inp0.insertAdjacentElement('afterend', h); }
+    if (allAccepted.includes(v1)) { inp1.classList.add('correct'); correct++; }
+    else { inp1.classList.add('wrong'); const h = document.createElement('span'); h.className='correct-hint'; h.dataset.for=inp1.id; h.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;'; h.textContent='(✔ proof of employment)'; inp1.insertAdjacentElement('afterend', h); }
+    const r = scoreText(correct, 2);
+    showFeedback('d3e1-fb', r.msg, r.type);
+    incrementChecked('d3e1');
+  });
+  document.getElementById('d3e1-reset').addEventListener('click', () => {
+    ['d3e1_0','d3e1_1'].forEach(id => { const inp = document.getElementById(id); inp.value = ''; inp.className = 'fill-input'; const h = inp.parentElement.querySelector('.correct-hint[data-for="' + id + '"]'); if(h) h.remove(); });
+    document.getElementById('d3e1-fb').className = 'feedback';
+  });
+})();
+
+// D3 EX 2 — Click-match: customer situation → question
+const d3e2Data = [
+  {left:'Sofia buys many things online.', right:'Can I use my debit card for online payments?'},
+  {left:'Daniel needs his card before travelling next week.', right:'When will I receive my debit card?'},
+  {left:'Paula does not want to pay the bank every month.', right:'Are there any monthly fees?'},
+  {left:'Mark wants to send money to another bank regularly.', right:'Do I need to pay a fee to transfer money to other banks?'},
+  {left:'Anna only has $20 with her today.', right:'Is there a minimum deposit?'},
+];
+const d3e2state = buildClickMatch('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkClickMatch(d3e2state, 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetClickMatch(d3e2state, 'd3e2-fb'));
+
+// D3 EX 3 — Fill: City Bank questions
+const d3e3Data = [
+  {line:'You have $30. Can you open the account today? ___', ans:['No', 'No.', 'no']},
+  {line:'Do you pay for online banking? ___', ans:['No', 'No.', 'no']},
+  {line:'How much do you pay to transfer money to another bank? ___', ans:['$2', '2', '2 dollars']},
+  {line:'When will your card probably arrive? ___', ans:['5-7 days', 'in 5-7 days', '5 to 7 days', 'in 5 to 7 days']},
+  {line:'Do you get a credit card with this account? ___', ans:['No', 'No.', 'no']},
+];
+buildFill('d3e3', d3e3Data, 'd3e3');
+document.getElementById('d3e3-check').addEventListener('click', () => checkFill(d3e3Data, 'd3e3', 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetFill(d3e3Data, 'd3e3', 'd3e3-fb'));
+
+// D3 EX 4 — Toggle chips + open writing
+(function() {
+  const options = ['no monthly fees','online banking','online payments','free transfers','low minimum deposit','fast card delivery'];
+  const container = document.getElementById('d3e4-options');
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.textContent = opt;
+    btn.addEventListener('click', () => btn.classList.toggle('active'));
+    container.appendChild(btn);
+  });
+  document.getElementById('d3e4-wa').addEventListener('click', () => {
+    const name = localStorage.getItem('teachermari_student_name') || 'Student';
+    const chosen = Array.from(container.querySelectorAll('.ctf-chip.active')).map(b => b.textContent).join(', ');
+    const txt = document.getElementById('d3e4-text').value.trim();
+    const msg = 'New Place, New Start Part 1 — Day 3, Exercise 4\nStudent: ' + name + '\nMost important for me: ' + (chosen || '(none selected)') + '\n\n' + (txt || '(no explanation written)');
+    window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+    incrementChecked('d3e4');
+  });
+})();
+
+// ══════════════════════════════════
+//  DAY 4
+// ══════════════════════════════════
+
+// D4 EX 1 — MC: choose best account
+const d4e1Data = [
+  {q:'You do not have money for a minimum deposit.', opts:['Easy Account','Smart Account'], ans:0, why:'The Easy Account has a $0 minimum deposit, so you can open it with no money upfront.'},
+  {q:'You do not want a monthly fee.', opts:['Easy Account','Smart Account'], ans:1, why:'The Smart Account has no monthly fee. The Easy Account charges $7 every month.'},
+  {q:'You transfer money to other banks frequently.', opts:['Easy Account','Smart Account'], ans:0, why:'The Easy Account offers free transfers. The Smart Account charges $3 per transfer.'},
+  {q:'You need your card very quickly.', opts:['Easy Account','Smart Account'], ans:0, why:'The Easy Account delivers your card in 3 days. The Smart Account takes 7 days.'},
+];
+buildMC('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data, 'd4e1', 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetMC('d4e1', 'd4e1', d4e1Data, 'd4e1-fb'));
+
+// D4 EX 2 — Open writing WhatsApp
+document.getElementById('d4e2-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const ta = document.getElementById('d4e2a-text').value.trim();
+  const tb = document.getElementById('d4e2b-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 4, Exercise 2\nStudent: ' + name + '\n\nChloe:\n' + (ta||'(no answer)') + '\n\nAdam:\n' + (tb||'(no answer)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d4e2');
+});
+
+// D4 EX 3 — Fill in dialogue (open, accepted multiple answers)
+(function() {
+  const answers = [
+    ['can i see your identification please', 'can i see your id please', 'may i see your identification', 'could i see your id please', 'can i see your passport please'],
+    ['where are you employed', 'where do you work', 'what is your job', 'what do you do', 'where are you working'],
+    ['are there any monthly fees', 'is there a monthly fee', 'do you have monthly fees', 'do i pay a monthly fee'],
+    ['can i use my debit card for online payments', 'can i pay online with my debit card', 'can i use my card online', 'can i use the debit card for online payments'],
+  ];
+  document.getElementById('d4e3-check').addEventListener('click', () => {
+    let correct = 0;
+    answers.forEach((ans, i) => {
+      const inp = document.getElementById('d4e3_' + i);
+      inp.classList.remove('correct','wrong');
+      const old = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if (old) old.remove();
+      const val = inp.value.trim().toLowerCase().replace(/\?$/,'').trim();
+      if (ans.includes(val)) { inp.classList.add('correct'); correct++; }
+      else {
+        inp.classList.add('wrong');
+        const hint = document.createElement('span'); hint.className='correct-hint'; hint.dataset.for=inp.id;
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = '(✔ ' + [['Can I see your identification, please?'],['Where are you employed?'],['Are there any monthly fees?'],['Can I use my debit card for online payments?']][i][0] + ')';
+        inp.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, 4);
+    showFeedback('d4e3-fb', r.msg, r.type);
+    incrementChecked('d4e3');
+  });
+  document.getElementById('d4e3-reset').addEventListener('click', () => {
+    [0,1,2,3].forEach(i => { const inp = document.getElementById('d4e3_' + i); inp.value=''; inp.className='fill-input'; const h = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if(h) h.remove(); });
+    document.getElementById('d4e3-fb').className = 'feedback';
+  });
+})();
+
+// D4 EX 4 — Open writing WhatsApp
+document.getElementById('d4e4-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d4e4-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 4, Exercise 4\nStudent: ' + name + '\n\n' + (txt||'(no answer written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d4e4');
+});
+
+// ══════════════════════════════════
+//  DAY 5
+// ══════════════════════════════════
+
+// D5 EX 1 — Show 5 dialogues, student decides which response is wrong and rewrites it
+(function() {
+  const dialogues = [
+    {q:'Customer: Are there any monthly fees?', a:'Advisor: It will arrive next week.', wrong:true, fix:'Yes, there is a $5 monthly fee. / No, there are no monthly fees.'},
+    {q:'Tenant: How much is the rent?', a:'Landlord: It is $1,200 a month.', wrong:false},
+    {q:'Customer: When will I receive my debit card?', a:'Advisor: You need your passport.', wrong:true, fix:'It will arrive in 5 to 7 days.'},
+    {q:'Tenant: Are the bills included?', a:'Landlord: Yes, water and electricity.', wrong:false},
+    {q:'Customer: Can I use my card for online payments?', a:'Advisor: The minimum deposit is $50.', wrong:true, fix:'Yes, you can use your debit card for online payments.'},
+  ];
+  const wrap = document.getElementById('d5e1');
+  dialogues.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.style.cssText = 'background:var(--cream-light);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;';
+    div.innerHTML = '<div style="font-size:0.85rem;font-weight:600;color:var(--purple);margin-bottom:4px;">' + (i+1) + '. ' + item.q + '</div>' +
+      '<div style="font-size:0.85rem;color:var(--gray);margin-bottom:8px;">' + item.a + '</div>' +
+      '<div style="font-size:0.78rem;font-weight:700;color:var(--purple);margin-bottom:4px;">Does this response make sense?</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
+        '<button class="tf-btn t" id="d5e1t_' + i + '" data-val="T">Yes</button>' +
+        '<button class="tf-btn f" id="d5e1f_' + i + '" data-val="F">No</button>' +
+      '</div>' +
+      '<div id="d5e1-fix-' + i + '" style="display:none;">' +
+        '<div style="font-size:0.78rem;color:var(--gray);margin-bottom:4px;">Write a better response:</div>' +
+        '<input class="fill-input" id="d5e1fix_' + i + '" placeholder="..." style="min-width:240px;max-width:min(100%,380px);">' +
+      '</div>';
+    wrap.appendChild(div);
+  });
+  const sel5e1 = {};
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace('d5e1t_','').replace('d5e1f_','');
+      sel5e1[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById('d5e1' + x + '_' + idx); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+      const box = document.getElementById('d5e1-fix-' + idx);
+      if (box) box.style.display = (btn.dataset.val === 'F') ? 'block' : 'none';
+    });
+  });
+  document.getElementById('d5e1-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    dialogues.forEach((item, i) => {
+      total++;
+      ['t','f'].forEach(x => { const b = document.getElementById('d5e1' + x + '_' + i); if(b) b.classList.remove('wrong-sel','right-answer'); });
+      const old = document.getElementById('d5e1-hint-' + i); if (old) old.remove();
+      const correct_answer = item.wrong ? 'F' : 'T';
+      if (sel5e1[i] === correct_answer) correct++;
+      else {
+        if (sel5e1[i]) { const wb = document.getElementById('d5e1' + sel5e1[i].toLowerCase() + '_' + i); if (wb) wb.classList.add('wrong-sel'); }
+        const rb = document.getElementById('d5e1' + correct_answer.toLowerCase() + '_' + i); if (rb) rb.classList.add('right-answer');
+      }
+      if (item.wrong) {
+        total++;
+        const fix = document.getElementById('d5e1fix_' + i);
+        if (fix) {
+          fix.classList.remove('correct','wrong');
+          const old2 = fix.parentElement.querySelector('.correct-hint[data-for="' + fix.id + '"]'); if (old2) old2.remove();
+          const val = fix.value.trim().toLowerCase();
+          if (val && val.length > 5) { fix.classList.add('correct'); correct++; }
+          else {
+            fix.classList.add('wrong');
+            const hint = document.createElement('span'); hint.className='correct-hint'; hint.dataset.for=fix.id;
+            hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:4px;';
+            hint.textContent = '✔ Suggested: ' + item.fix; fix.insertAdjacentElement('afterend', hint);
+          }
+        }
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d5e1-fb', r.msg, r.type);
+    incrementChecked('d5e1');
+  });
+  document.getElementById('d5e1-reset').addEventListener('click', () => {
+    Object.keys(sel5e1).forEach(k => delete sel5e1[k]);
+    dialogues.forEach((_,i) => {
+      ['t','f'].forEach(x => { const b = document.getElementById('d5e1' + x + '_' + i); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+      const hint = document.getElementById('d5e1-hint-' + i); if (hint) hint.remove();
+      const box = document.getElementById('d5e1-fix-' + i); if (box) box.style.display='none';
+      const fix = document.getElementById('d5e1fix_' + i); if (fix) { fix.value=''; fix.className='fill-input'; const h = fix.parentElement.querySelector('.correct-hint[data-for="' + fix.id + '"]'); if (h) h.remove(); }
+    });
+    document.getElementById('d5e1-fb').className = 'feedback';
+  });
+})();
+
+// D5 EX 2 — Correct the questions (fill)
+const d5e2Data = [
+  {line:'How much ___ the bills? (correct: How much are the bills?)', ans:['are']},
+  {line:'___ there a monthly fee? (correct: Is there a monthly fee?)', ans:['is', 'Is']},
+  {line:'When ___ I receive my debit card? (correct: When will I receive...)', ans:['will']},
+  {line:'Do I need ___ a deposit? (correct: Do I need to pay a deposit?)', ans:['to pay', 'to pay a deposit']},
+  {line:'How much ___ the rent? (correct: How much is the rent?)', ans:['is']},
+];
+buildFill('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkFill(d5e2Data, 'd5e2', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetFill(d5e2Data, 'd5e2', 'd5e2-fb'));
+
+// D5 EX 3 — Open writing WhatsApp
+document.getElementById('d5e3-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const p1=document.getElementById('p1').value, p2=document.getElementById('p2').value, p3=document.getElementById('p3').value;
+  const p4=document.getElementById('p4').value, p5=document.getElementById('p5').value, p6=document.getElementById('p6').value;
+  const ranks = 'high rent=' + p1 + ' | expensive bills=' + p2 + ' | long lease=' + p3 + ' | high deposit=' + p4 + ' | monthly bank fees=' + p5 + ' | expensive bank transfers=' + p6;
+  const txt = document.getElementById('d5e3-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 5, Exercise 3\nStudent: ' + name + '\nRanking: ' + ranks + '\n\n' + (txt||'(no explanation)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d5e3');
+});
+
+// D5 EX 4 — Choose situation + open writing
+(function() {
+  const situations = [
+    {label:'Situation A', text:'Your friend found a cheap flat, but the deposit is very high and no bills are included.'},
+    {label:'Situation B', text:'Your friend found a bank with no monthly fee, but every bank transfer costs $5.'},
+  ];
+  const container = document.getElementById('d5e4-choice');
+  const sitBox = document.getElementById('d5e4-situation');
+  situations.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.textContent = s.label;
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.ctf-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sitBox.textContent = s.text; sitBox.style.display = 'block';
+    });
+    container.appendChild(btn);
+  });
+  document.getElementById('d5e4-wa').addEventListener('click', () => {
+    const name = localStorage.getItem('teachermari_student_name') || 'Student';
+    const chosen = container.querySelector('.ctf-chip.active');
+    const sit = chosen ? chosen.textContent : '(no situation chosen)';
+    const txt = document.getElementById('d5e4-text').value.trim();
+    const msg = 'New Place, New Start Part 1 — Day 5, Exercise 4\nStudent: ' + name + '\nSituation: ' + sit + '\n\n' + (txt||'(no questions written)');
+    window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+    incrementChecked('d5e4');
+  });
+})();
+
+// ══════════════════════════════════
+//  DAY 6
+// ══════════════════════════════════
+
+// D6 EX 1, 2 — Open writing WhatsApp
+document.getElementById('d6e1-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d6e1-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 6, Exercise 1\nStudent: ' + name + '\n\n' + (txt||'(no answer)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d6e1');
+});
+document.getElementById('d6e2-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d6e2-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 6, Exercise 2\nStudent: ' + name + '\n\n' + (txt||'(no answer)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d6e2');
+});
+
+// D6 EX 3 — Fill: FLAT, BANK, or BOTH
+const d6e3Data = [
+  {line:'"Are there any extra fees?" → ___', ans:['BOTH', 'both', 'Both']},
+  {line:'"How much is the deposit?" → ___', ans:['FLAT', 'flat', 'Flat', 'BANK', 'bank', 'Bank', 'BOTH', 'both', 'Both']},
+  {line:'"Are there any monthly fees?" → ___', ans:['BANK', 'bank', 'Bank']},
+  {line:'"What documents do I need?" → ___', ans:['BANK', 'bank', 'Bank']},
+  {line:'"When do I need to pay?" → ___', ans:['BOTH', 'both', 'Both']},
+  {line:'"How long is the lease?" → ___', ans:['FLAT', 'flat', 'Flat']},
+  {line:'"Can I use it for online payments?" → ___', ans:['BANK', 'bank', 'Bank']},
+];
+buildFill('d6e3', d6e3Data, 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkFill(d6e3Data, 'd6e3', 'd6e3-fb', 'd6e3'));
+document.getElementById('d6e3-reset').addEventListener('click', () => resetFill(d6e3Data, 'd6e3', 'd6e3-fb'));
+
+// D6 EX 4 — Structured fill + open writing
+const d6e4Data = [
+  {line:'I recommend Flat ___ and Bank ___ for Elena.', ans:[['Green','Blue','green','blue'], ['One','Two','one','two']]},
+];
+buildFill('d6e4', d6e4Data, 'd6e4');
+document.getElementById('d6e4-check').addEventListener('click', () => {
+  const inp0 = document.getElementById('d6e4_0_0');
+  const inp1 = document.getElementById('d6e4_0_1');
+  let correct = 0;
+  [inp0, inp1].forEach((inp, k) => {
+    inp.classList.remove('correct','wrong');
+    const h = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if(h) h.remove();
+    const val = inp.value.trim().toLowerCase();
+    const accepted = k===0 ? ['green','blue'] : ['one','two'];
+    if (accepted.includes(val)) { inp.classList.add('correct'); correct++; }
+    else { inp.classList.add('wrong'); }
+  });
+  const r = scoreText(correct, 2);
+  showFeedback('d6e4-fb', r.msg, r.type);
+  incrementChecked('d6e4');
+});
+document.getElementById('d6e4-reset').addEventListener('click', () => {
+  ['d6e4_0_0','d6e4_0_1'].forEach(id => { const inp = document.getElementById(id); if(inp){ inp.value=''; inp.className='fill-input'; } });
+  document.getElementById('d6e4-fb').className = 'feedback';
+  document.getElementById('d6e4-text').value = '';
+});
+document.getElementById('d6e4-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const flat = document.getElementById('d6e4_0_0').value.trim();
+  const bank = document.getElementById('d6e4_0_1').value.trim();
+  const txt = document.getElementById('d6e4-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 6, Exercise 4\nStudent: ' + name + '\n\nFlat: ' + (flat||'-') + ' | Bank: ' + (bank||'-') + '\n\n' + (txt||'(no additional comments)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ══════════════════════════════════
+//  DAY 7
+// ══════════════════════════════════
+
+// D7 EX 1 — CTF sentences: unit vocabulary
+buildCTFSentences({
+  containerId: 'd7e1',
+  words: ['rent','bills','lease','deposit','identification','debit card','fee','online banking'],
+  items: [
+    {line:'You usually pay ___ every month to live in a flat.', ans:'rent'},
+    {line:'Water and electricity are examples of ___.', ans:'bills'},
+    {line:'A ___ tells you how long you can live in a rented property.', ans:'lease'},
+    {line:'You usually pay a ___ before moving into a flat.', ans:'deposit'},
+    {line:'A bank may ask to see your ___.', ans:'identification'},
+    {line:'You can use a ___ to pay for things using money from your account.', ans:'debit card'},
+    {line:'Some banks charge a monthly ___.', ans:'fee'},
+    {line:'With ___, you can manage your account on the internet.', ans:'online banking'},
+  ],
+  startIndex: 1,
+  exId: 'd7e1', fbId: 'd7e1-fb', checkId: 'd7e1-check', resetId: 'd7e1-reset'
+});
+
+// D7 EX 2 — Click-match: question → purpose
+const d7e2Data = [
+  {left:'Are there any extra fees?', right:'additional costs'},
+  {left:'When will I receive my debit card?', right:'card delivery'},
+  {left:'How long is the lease?', right:'contract duration'},
+  {left:'Is there a minimum deposit?', right:'initial bank payment'},
+  {left:'Are the bills included?', right:'utilities'},
+];
+const d7e2state = buildClickMatch('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkClickMatch(d7e2state, 'd7e2-fb', 'd7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetClickMatch(d7e2state, 'd7e2-fb'));
+
+// D7 EX 3 — Open writing tasks A + B
+document.getElementById('d7e3-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const ta = document.getElementById('d7e3a-text').value.trim();
+  const tb = document.getElementById('d7e3b-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 7, Exercise 3\nStudent: ' + name + '\n\nTask A (Landlord questions):\n' + (ta||'(no answer)') + '\n\nTask B (Bank questions):\n' + (tb||'(no answer)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d7e3');
+});
+
+// D7 EX 4 — Final writing WhatsApp
+document.getElementById('d7e4-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const txt = document.getElementById('d7e4-text').value.trim();
+  const msg = 'New Place, New Start Part 1 — Day 7, Exercise 4 (Final Writing)\nStudent: ' + name + '\n\n' + (txt||'(no answer written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d7e4');
+});
+
+// Summary WhatsApp
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_student_name') || 'Student';
+  const msg = 'New Place, New Start Part 1 — Week Complete!\n\nStudent: ' + name + '\nExercises checked: ' + totalChecked + '\n\nSent via weekly practice file.';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ══════════════════════════
+//  VOCAB BANK
+// ══════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word); u.lang='en-US'; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = '<button onclick="speakWord(\'' + item.en.replace(/'/g,"\\'") + '\')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button>' +
+      '<div style="font-weight:700;font-size:0.88rem;color:var(--purple);">' + item.en + '</div>' +
+      '<div class="vc-pt">' + item.def + '</div>';
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-flat', [
+  {en:'rent', def:'money paid to live somewhere'},
+  {en:'deposit', def:'money paid before moving in'},
+  {en:'lease', def:'contract for how long you stay'},
+  {en:'bills', def:'electricity, water, internet costs'},
+  {en:'landlord', def:'the person who owns the flat'},
+  {en:'included', def:'part of the price — no extra cost'},
+  {en:'extra fees', def:'additional costs to pay'},
+  {en:'monthly fee', def:'money you pay every month'},
+]);
+renderVocabGrid('vocab-bank', [
+  {en:'debit card', def:'card linked to your bank account'},
+  {en:'online banking', def:'manage your account on the internet'},
+  {en:'minimum deposit', def:'the smallest amount you can start with'},
+  {en:'transfer', def:'send money to another account'},
+  {en:'identification', def:'passport, ID card, or driver\'s licence'},
+  {en:'proof of employment', def:'document showing you have a job'},
+  {en:'bank advisor', def:'the person who helps you at the bank'},
+  {en:'monthly fee', def:'a charge the bank takes every month'},
+]);
+
+// ══════════════════════════
+//  CONFETTI & DAY COMPLETE
+// ══════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3','d1e4'],
+  day2: ['d2e1','d2e2','d2e3','d2e4'],
+  day3: ['d3e1','d3e2','d3e3','d3e4'],
+  day4: ['d4e1','d4e2','d4e3','d4e4'],
+  day5: ['d5e1','d5e2','d5e3','d5e4'],
+  day6: ['d6e1','d6e2','d6e3','d6e4'],
+  day7: ['d7e1','d7e2','d7e3','d7e4'],
+};
+const TOTAL_DAYS = 7;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_newplace_part1_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_newplace_part1_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_newplace_part1_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_newplace_part1_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function celebrateDay() { launchConfetti(140, 200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('Week complete! You are amazing!'); }
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:"Poppins",sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+</script>
+</body>
+</html>
