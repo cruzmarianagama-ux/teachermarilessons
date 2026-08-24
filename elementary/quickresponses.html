@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quick Responses – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--purple); text-align: center; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width: 100%; padding: 13px; background: var(--orange); color: var(--white); border: none; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s; }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a); color: var(--white); text-align: center; padding: 12px 16px; font-size: 1rem; font-weight: 700; }
+  #hello-banner.show { display: block; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,92,35,0.18); }
+  .header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,92,35,0.12); }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+
+  /* TABS */
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn { padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* CONTENT */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* DAY HEADER */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number { background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* WORD BOX */
+  .word-box { background: var(--cream); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; font-size: 0.85rem; font-weight: 600; color: var(--purple); text-align: center; letter-spacing: 0.5px; line-height: 2; }
+
+  /* MC */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white); }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line { display: inline; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .fill-input { border: none; border-bottom: 2px solid var(--purple-light); padding: 2px 6px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--purple); background: transparent; min-width: 100px; max-width: min(100%, 260px); text-align: center; outline: none; transition: border-color 0.2s; display: inline-block; }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--purple); resize: vertical; outline: none; min-height: 120px; transition: border-color 0.2s; margin-bottom: 8px; }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* FEEDBACK */
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* TF */
+  .tf-item { margin-bottom: 10px; }
+  .tf-line { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn { padding: 4px 16px; border-radius: 99px; border: 2px solid var(--gray-light); font-family: 'Poppins', sans-serif; font-size: 0.80rem; font-weight: 700; cursor: pointer; background: var(--white); transition: all 0.2s; }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; }
+
+  /* CLICK-MATCH */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item { padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 600; color: var(--purple); background: var(--white); text-align: center; user-select: none; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--purple-light); color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
+  @media (max-width: 600px) { .cm-wrap { gap: 12px; } .cm-item { font-size: 0.78rem; padding: 8px 10px; } }
+
+  /* ODD ONE OUT (cross out) */
+  .ctf-chip { padding: 7px 14px; border-radius: 99px; border: 2px solid var(--gray-light); background: var(--white); font-family: 'Poppins', sans-serif; font-size: 0.83rem; font-weight: 600; color: var(--purple); cursor: pointer; transition: all 0.2s; margin-right: 6px; margin-bottom: 6px; }
+  .ctf-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .ctf-chip.active { border-color: var(--orange); background: #fff5ee; text-decoration: line-through; color: var(--orange); }
+  .ctf-chip.used { opacity: 0.4; pointer-events: none; }
+  .ctf-chip.correct-pick { border-color: var(--teal); background: #f0fdfa; color: var(--teal); text-decoration: line-through; }
+  .ctf-chip.wrong-pick { border-color: var(--red); background: #fef2f2; color: var(--red); text-decoration: line-through; }
+
+  /* CTF GAPS */
+  .ctf-gap { display: inline-block; min-width: 120px; border-bottom: 2px solid var(--purple-light); padding: 2px 8px; font-weight: 700; color: var(--purple); cursor: pointer; text-align: center; transition: all 0.2s; border-radius: 4px; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; padding: 14px; background: var(--cream); border-radius: var(--radius-sm); }
+
+  /* DIALOGUE */
+  .dialogue-line { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); flex-wrap: wrap; }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; min-width: 36px; }
+
+  /* VOCAB BANK */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 700; color: var(--purple); }
+  .vocab-chip .vc-sub { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+
+  /* GRAMMAR TABLE */
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+  /* CATEGORY SORT (Day 7 Ex 2) */
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .cat-box { border: 2px dashed var(--gray-light); border-radius: var(--radius-sm); padding: 12px; min-height: 80px; }
+  .cat-box-title { font-size: 0.78rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .cat-drop { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
+  .cat-chip { padding: 5px 12px; border-radius: 99px; background: var(--cream); border: 2px solid var(--gray-light); font-size: 0.78rem; font-weight: 600; color: var(--purple); cursor: pointer; transition: all 0.2s; user-select: none; }
+  .cat-chip:hover { border-color: var(--purple-light); }
+  .cat-chip.placed { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .cat-chip.correct-cat { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .cat-chip.wrong-cat { background: var(--red); color: #fff; border-color: var(--red); }
+
+  /* WEEKLY SUMMARY */
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 32px 24px; text-align: center; color: var(--white); margin-top: 24px; }
+  .summary-card h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+  .summary-card p { font-size: 0.88rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 3rem; font-weight: 800; color: var(--orange); }
+
+  /* EXAMPLE BOX */
+  .example-box { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; font-size: 0.88rem; line-height: 1.8; color: var(--purple); font-weight: 500; border: 2px dashed var(--orange); }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; margin-bottom: 4px; }
+
+  /* CONFETTI */
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .cat-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly practice<br><strong>Quick Responses</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Quick Responses – Weekly Practice</h1>
+      <div class="subtitle">Pre-Intermediate · Everyday Reactions</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar">
+  🌟 <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">💬 Day 1</button>
+    <button class="tab-btn" data-tab="day2">😲 Day 2</button>
+    <button class="tab-btn" data-tab="day3">📰 Day 3</button>
+    <button class="tab-btn" data-tab="day4">📅 Day 4</button>
+    <button class="tab-btn" data-tab="day5">⚡ Day 5</button>
+    <button class="tab-btn" data-tab="day6">🎯 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🏆 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══ DAY 1 ══ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">What Does the Speaker Mean?</div>
+      <div class="day-desc">Interpret quick responses in context</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Same Words, Different Intentions</div>
+    <div class="ex-instruction">Read each mini-dialogue. What does the response mean: A, B or C? Item 1 is done for you as an example.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Click Match -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Happened Before?</div>
+    <div class="ex-instruction">Match each quick response (1–6) with the situation (A–F) that comes just before it. Click a response on the left, then click the matching situation on the right.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – MC multi-select -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Quick Reaction</div>
+    <div class="ex-instruction">Choose the <strong>two most natural responses</strong> to each situation. Select two options for each question.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══ DAY 2 ══ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Surprise!</div>
+      <div class="day-desc">No way! · You're kidding! · You don't say! · That can't be true!</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – TF (✓/✗) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Is Surprise Appropriate?</div>
+    <div class="ex-instruction">Read each statement. Would a <strong>surprise response</strong> sound natural (✓) or strange (✗)?</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – CTF dialogue -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Complete the Conversation Naturally</div>
+    <div class="ex-instruction">Click an expression from the word bank, then click the correct gap to fill it. More than one answer may be possible — any correct option is accepted.</div>
+    <div class="word-box">No way! &nbsp;•&nbsp; You're kidding! &nbsp;•&nbsp; You don't say! &nbsp;•&nbsp; That can't be true!</div>
+    <div id="d2e2-dialogue" style="margin-bottom:14px;">
+      <div class="dialogue-line"><span class="speaker">Mia:</span> You remember Alex from school?</div>
+      <div class="dialogue-line"><span class="speaker">Ben:</span> Yes. Why?</div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span> He's a professional actor now.</div>
+      <div class="dialogue-line"><span class="speaker">Ben:</span> (1) <span class="ctf-gap" id="gap-d2e2-1" data-opts="No way!|You're kidding!|You don't say!"></span></div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span> And he lives in Los Angeles.</div>
+      <div class="dialogue-line"><span class="speaker">Ben:</span> (2) <span class="ctf-gap" id="gap-d2e2-2" data-opts="No way!|You're kidding!|You don't say!"></span> I thought he lived in London.</div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span> He also says he met Brad Pitt last week.</div>
+      <div class="dialogue-line"><span class="speaker">Ben:</span> (3) <span class="ctf-gap" id="gap-d2e2-3" data-opts="That can't be true!|You're kidding!"></span> He's probably joking.</div>
+    </div>
+    <div class="ctf-wordbank" id="d2e2-bank"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══ DAY 3 ══ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Good News, Bad News</div>
+      <div class="day-desc">Choosing the right reaction for the situation</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Read the Room</div>
+    <div class="ex-instruction">Choose the response that best matches the speaker's news.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Odd One Out (cross out) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – One Response Doesn't Belong</div>
+    <div class="ex-instruction">Click the response that does <strong>not</strong> fit the situation.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Free text -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – The News Desk</div>
+    <div class="ex-instruction">Write an immediate response to each piece of news. Try not to use the same expression twice.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══ DAY 4 ══ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Making Plans</div>
+      <div class="day-desc">Sounds good! · Sure, why not? · It's OK with me! · Fine, see you then! · Sure, no problem!</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Click Match -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Which Situation Fits Best?</div>
+    <div class="ex-instruction">Match each response (left) with its most natural situation (right). Click a response, then click the matching situation.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Fill (replace wrong response) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Save the Conversation</div>
+    <div class="ex-instruction">Each response below is wrong for the situation. Replace it with a natural expression from the lesson.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Writing task -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Plan Saturday</div>
+    <div class="ex-instruction">Write a short dialogue planning a Saturday with a friend. Use at least three different quick responses from this lesson. Cover the topics below.</div>
+    <div class="word-box" style="text-align:left;line-height:2;">
+      Discuss: <strong>activity · time · place · food or drink · whether another person can come</strong><br>
+      Finish with a complete Saturday plan.
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Example</div>
+      A: Let's have lunch in town.<br>
+      B: Sounds good! How about the Italian restaurant?
+    </div>
+    <textarea class="writing-area" id="d4e3-text" placeholder="Write your dialogue here..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d4e3-wa">📲 Send to Teacher Mari</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAY 5 ══ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Everyday Reactions</div>
+      <div class="day-desc">Bless you! · No problem! · Hurry up! · Don't worry! · You're welcome!</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Free fill -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – What Would You Say?</div>
+    <div class="ex-instruction">Write the most natural immediate response for each situation.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – CTF dialogue -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Who Says What?</div>
+    <div class="ex-instruction">Click an expression from the word bank, then click the correct gap in the dialogue.</div>
+    <div class="word-box">Don't worry! &nbsp;•&nbsp; Hurry up! &nbsp;•&nbsp; Bless you! &nbsp;•&nbsp; No problem! &nbsp;•&nbsp; Good luck!</div>
+    <div id="d5e2-dialogue" style="margin-bottom:14px;">
+      <div class="dialogue-line"><span class="speaker">Leo:</span> (sneezes) Achoo!</div>
+      <div class="dialogue-line"><span class="speaker">Amy:</span> (1) <span class="ctf-gap" id="gap-d5e2-1" data-opts="Bless you!"></span></div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Thanks. What time is it?</div>
+      <div class="dialogue-line"><span class="speaker">Amy:</span> 8:55! Our train is at nine. (2) <span class="ctf-gap" id="gap-d5e2-2" data-opts="Hurry up!"></span></div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Oh no! I can't find my ticket!</div>
+      <div class="dialogue-line"><span class="speaker">Amy:</span> (3) <span class="ctf-gap" id="gap-d5e2-3" data-opts="Don't worry!"></span> It's on the table.</div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Oh, yes! Thanks!</div>
+      <div class="dialogue-line"><span class="speaker">Amy:</span> (4) <span class="ctf-gap" id="gap-d5e2-4" data-opts="No problem!"></span></div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> I have my job interview as soon as we arrive.</div>
+      <div class="dialogue-line"><span class="speaker">Amy:</span> Really? (5) <span class="ctf-gap" id="gap-d5e2-5" data-opts="Good luck!"></span></div>
+    </div>
+    <div class="ctf-wordbank" id="d5e2-bank"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Free fill -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Five-Second Challenge</div>
+    <div class="ex-instruction">Write the first natural response that comes to mind for each situation.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══ DAY 6 ══ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Choose the Reaction, Not the Word</div>
+      <div class="day-desc">Intention · context · meaning behind the expression</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC intention -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – What Is the Intention?</div>
+    <div class="ex-instruction">For each expression, choose the speaker's intention.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Free fill five dialogues -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Three Conversations, Three Moods</div>
+    <div class="ex-instruction">Write an appropriate quick response for each dialogue gap. Do not repeat any expression.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Writing task -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Reaction Dominoes</div>
+    <div class="ex-instruction">Write a chain conversation that uses at least <strong>six different quick responses</strong>. Start with <em>"I have some news…"</em> and keep the conversation going naturally.</div>
+    <div class="example-box">
+      <div class="ex-label">Example</div>
+      A: I got a new job!<br>
+      B: Congratulations! I have a job interview tomorrow.<br>
+      A: Good luck!
+    </div>
+    <textarea class="writing-area" id="d6e3-text" placeholder="Write your conversation here..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d6e3-wa">📲 Send to Teacher Mari</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAY 7 ══ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Review &amp; Real Communication</div>
+      <div class="day-desc">Best response · category sorting · full conversation</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – The Best Response</div>
+    <div class="ex-instruction">Several responses may be possible, but one fits the situation <strong>best</strong>. Choose it.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Category sort -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Reaction Bank Challenge</div>
+    <div class="ex-instruction">Click an expression below, then click the correct category box to place it. Can you sort all 19 expressions from memory?</div>
+    <div class="ctf-wordbank" id="d7e2-chips" style="margin-bottom:16px;"></div>
+    <div class="cat-grid" id="d7e2-cats"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Free fill + follow-up -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Final Challenge: Keep the Conversation Alive</div>
+    <div class="ex-instruction">Respond to each person <strong>and add one natural follow-up sentence or question</strong>.</div>
+    <div class="example-box">
+      <div class="ex-label">Example</div>
+      A: I'm going to Japan next month!<br>
+      B: Have fun! How long are you staying?
+    </div>
+    <div id="d7e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e3-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e3-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e3-fb"></div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Week complete!</h3>
+    <p>You finished Quick Responses. Amazing work!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.7;margin-top:4px;margin-bottom:18px;">exercises checked</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">📲 Share with Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ══ VOCAB BANK ══ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Quick Responses – all target expressions</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">😲 Surprise</div>
+    <div class="vocab-grid" id="vocab-surprise"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">✅ Agreeing / Accepting</div>
+    <div class="vocab-grid" id="vocab-agree"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">😢 Bad News / Sympathy</div>
+    <div class="vocab-grid" id="vocab-bad"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🎉 Good News / Special Moments</div>
+    <div class="vocab-grid" id="vocab-good"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🙏 Thanking / Responding to Thanks</div>
+    <div class="vocab-grid" id="vocab-thanks"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">💬 Other Everyday Responses</div>
+    <div class="vocab-grid" id="vocab-other"></div>
+  </div>
+</div>
+
+<!-- ══ GRAMMAR BANK ══ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">When and how to use quick responses</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">💬 What Are Quick Responses?</div>
+    <p style="font-size:0.85rem;font-weight:500;color:var(--purple);line-height:1.7;margin-bottom:12px;">Quick responses are short fixed phrases we use immediately when someone gives us news, makes a suggestion, or needs help. They show that we are listening and reacting naturally.</p>
+    <table class="grammar-table">
+      <tr><th>Situation</th><th>Natural response(s)</th></tr>
+      <tr><td>You hear surprising news</td><td class="orange">No way! / You're kidding! / You don't say! / That can't be true!</td></tr>
+      <tr><td>Someone has good news</td><td class="orange">Congratulations! / No way! (positive surprise)</td></tr>
+      <tr><td>Someone has bad news</td><td class="teal">That's too bad. / What a pity! / I'm sorry to hear that.</td></tr>
+      <tr><td>Someone is nervous / worried</td><td class="teal">Don't worry! / Good luck!</td></tr>
+      <tr><td>Someone is going somewhere fun</td><td class="orange">Have fun!</td></tr>
+      <tr><td>Someone suggests a plan</td><td class="orange">Sounds good! / Sure, why not?</td></tr>
+      <tr><td>Someone asks for permission</td><td class="orange">Sure, no problem! / It's OK with me!</td></tr>
+      <tr><td>An arrangement is confirmed</td><td class="orange">Fine, see you then!</td></tr>
+      <tr><td>Someone thanks you</td><td class="teal">You're welcome! / No problem!</td></tr>
+      <tr><td>Someone sneezes</td><td class="teal">Bless you!</td></tr>
+      <tr><td>Someone is very slow</td><td class="orange">Hurry up!</td></tr>
+    </table>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">⚠️ Common Mistakes</div>
+    <table class="grammar-table">
+      <tr><th>Wrong</th><th>Right</th><th>Why</th></tr>
+      <tr><td style="color:var(--red);">"What a pity!" (for good news)</td><td class="orange">Congratulations!</td><td>What a pity expresses sadness, not celebration.</td></tr>
+      <tr><td style="color:var(--red);">"Have fun!" (for bad news)</td><td class="teal">I'm sorry to hear that.</td><td>Have fun is only for positive situations.</td></tr>
+      <tr><td style="color:var(--red);">"Sounds good!" (to refuse)</td><td class="teal">I'm sorry, I can't.</td><td>Sounds good always accepts, never refuses.</td></tr>
+      <tr><td style="color:var(--red);">"Bless you!" (to thank someone)</td><td class="teal">You're welcome!</td><td>Bless you is only after a sneeze.</td></tr>
+    </table>
+    <div class="tip-box">💡 <strong>Tip:</strong> Before you react, think: is this <em>good news</em>, <em>bad news</em>, <em>surprising news</em>, <em>a suggestion</em>, or <em>a request</em>? Match your response to the <strong>situation</strong>, not just the words.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Tone Matters</div>
+    <p style="font-size:0.85rem;font-weight:500;color:var(--purple);line-height:1.7;">The same expression can mean different things depending on context and tone:</p>
+    <table class="grammar-table" style="margin-top:10px;">
+      <tr><th>Expression</th><th>Context A</th><th>Context B</th></tr>
+      <tr><td class="orange">No way!</td><td>Surprise: "She won €20,000." → "No way!"</td><td>Refusal: "Can I borrow your laptop for a month?" → "No way!"</td></tr>
+      <tr><td class="orange">No problem!</td><td>You're welcome: "Thanks for helping." → "No problem!"</td><td>Accepting: "Can I use your phone?" → "Sure, no problem!"</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══ WELCOME ══
+const STUDENT_KEY = 'teachermari_quickresponses_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + studentName + '! Let\'s practise your quick responses!';
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) { document.getElementById('student-name-input').focus(); document.getElementById('student-name-input').style.borderColor = 'var(--red)'; return; }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+document.getElementById('student-name-input').addEventListener('input', () => { document.getElementById('student-name-input').style.borderColor = ''; });
+
+// ══ MOTIVATION ══
+const MOTIVATIONS = [
+  'Every reaction you learn makes you sound more natural!',
+  'Small phrases, big communication skills!',
+  'Real English is about reacting, not just talking!',
+  'You are doing great — keep going!',
+  'Mistakes are part of learning. Try again!',
+  'Practice every day and you will improve!',
+  'Teacher Mari believes in you!'
+];
+const dayIdx = new Date().getDay();
+document.getElementById('motivation-text').textContent = MOTIVATIONS[dayIdx % MOTIVATIONS.length];
+
+// ══ TABS ══
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ══ PROGRESS & STORAGE ══
+const STORAGE_KEY = 'teachermari_quickresponses';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+const TOTAL_EX = 19;
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EX) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══ SHARED HELPERS ══
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: '✅ Perfect! All ' + total + ' correct! Well done!', type: 'ok' };
+  if (correct >= total * 0.7) return { msg: '🌟 Good job! ' + correct + '/' + total + ' correct. Check the mistakes and try again!', type: 'partial' };
+  return { msg: '💪 ' + correct + '/' + total + ' correct. Keep practising — you can do it!', type: 'err' };
+}
+
+// ══ BUILD MC ══
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o,j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(65+j) + ') ' + o + '</label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const old = itemDiv.querySelector('.mc-explain'); if (old) old.remove(); }
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = '💡 ' + item.why;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ BUILD CLICK-MATCH ══
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]];
+  }
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.textContent = item.left; leftCol.appendChild(div);
+  });
+  rightShuffled.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex;
+    div.textContent = item.text; rightCol.appendChild(div);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+  const links = {}; let selectedLeft = null; let pairCount = 0;
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      selectedLeft.classList.remove('active'); selectedLeft.classList.add('linked'); item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const badgeL = document.createElement('span'); badgeL.className = 'cm-pair-num'; badgeL.textContent = pairCount;
+      const badgeR = document.createElement('span'); badgeR.className = 'cm-pair-num'; badgeR.textContent = pairCount;
+      selectedLeft.appendChild(badgeL); item.appendChild(badgeR);
+      selectedLeft.dataset.pairNum = pairCount; item.dataset.pairNum = pairCount;
+      selectedLeft = null;
+    }
+  });
+  return { links, leftCol, rightCol, data };
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    if (linkedRightIdx === undefined) {
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+      if (leftEl) leftEl.classList.add('wrong-link'); return;
+    }
+    if (parseInt(linkedRightIdx) === i) {
+      correct++; leftEl.classList.add('correct-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    } else {
+      leftEl.classList.add('wrong-link');
+      const wrongRightEl = rightCol.querySelector('.cm-item[data-idx="' + linkedRightIdx + '"]');
+      if (wrongRightEl) wrongRightEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => {
+    col.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active','linked','correct-link','wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      delete el.dataset.pairNum;
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ BUILD TF ══
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line">' + (i+1) + '. ' + item.s + ' <div class="tf-btns"><button class="tf-btn t" id="' + prefix + 't_' + i + '" data-val="T">✓</button><button class="tf-btn f" id="' + prefix + 'f_' + i + '" data-val="F">✗</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(prefix + 't_', '').replace(prefix + 'f_', '');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + idx); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    if (sel[i] === item.ans) correct++;
+    else if (sel[i]) {
+      const wrongBtn = document.getElementById(prefix + sel[i].toLowerCase() + '_' + i);
+      if (wrongBtn) wrongBtn.classList.add('wrong-sel');
+      const rightBtn = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    } else {
+      const rightBtn = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ BUILD ODD ONE OUT ══
+function buildOddOneOut(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const label = item.label ? '<strong style="color:var(--orange);">' + item.label + ':</strong> ' : '';
+    const optsHtml = item.group.map((w,j) => '<button class="ctf-chip" data-item="' + i + '" data-opt="' + j + '">' + w + '</button>').join('');
+    div.innerHTML = '<div class="fill-line" style="display:block;margin-bottom:4px;">' + (i+1) + '. ' + label + '<br>' + optsHtml + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    wrap.querySelectorAll('.ctf-chip[data-item="' + i + '"]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+}
+function checkOddOneOut(data, containerId, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    document.querySelectorAll('#' + containerId + ' .ctf-chip[data-item="' + i + '"]').forEach(c => c.classList.remove('correct-pick','wrong-pick'));
+    const sel = document.querySelector('#' + containerId + ' .ctf-chip[data-item="' + i + '"].active');
+    if (sel) {
+      if (parseInt(sel.dataset.opt) === item.ans) { sel.classList.add('correct-pick'); correct++; }
+      else {
+        sel.classList.add('wrong-pick');
+        const correctChip = document.querySelector('#' + containerId + ' .ctf-chip[data-item="' + i + '"][data-opt="' + item.ans + '"]');
+        if (correctChip) correctChip.classList.add('correct-pick');
+      }
+    } else {
+      const correctChip = document.querySelector('#' + containerId + ' .ctf-chip[data-item="' + i + '"][data-opt="' + item.ans + '"]');
+      if (correctChip) correctChip.classList.add('correct-pick');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetOddOneOut(containerId, fbId) {
+  document.querySelectorAll('#' + containerId + ' .ctf-chip').forEach(c => c.classList.remove('active','correct-pick','wrong-pick'));
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ BUILD FILL (free text) ══
+function buildFreeText(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line" style="display:block;"><strong>' + (i+1) + '.</strong> ' + item.prompt + '<br><input class="fill-input" id="' + prefix + '_' + i + '" placeholder="..." style="min-width:220px;max-width:100%;width:100%;text-align:left;margin-top:6px;"></div>';
+    wrap.appendChild(div);
+  });
+}
+function checkFreeText(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const inp = document.getElementById(prefix + '_' + i);
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/[!?.,]/g,'');
+    const accepted = item.ans.map(a => a.toLowerCase().replace(/[!?.,]/g,''));
+    if (accepted.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = '✔ Possible answers: ' + item.ans.join(' / ');
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetFreeText(data, prefix, fbId) {
+  data.forEach((_, i) => {
+    const inp = document.getElementById(prefix + '_' + i);
+    if (inp) { inp.value = ''; inp.className = 'fill-input'; const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]'); if (hint) hint.remove(); }
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ DIALOGUE CTF ══
+function buildDialogueCTF(bankId, words) {
+  const bank = document.getElementById(bankId);
+  words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; clearGapReady(bankId); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    clearGapReady(bankId);
+    document.querySelectorAll('.ctf-gap').forEach(g => { if (!g.textContent) g.classList.add('ready'); });
+  });
+  document.querySelectorAll('.ctf-gap').forEach(gap => {
+    gap.addEventListener('click', () => {
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      if (gap.textContent && !selected) {
+        const returnWi = gap.dataset.filledWi;
+        const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+        if (chipBack) chipBack.classList.remove('used','active');
+        gap.textContent = ''; gap.dataset.filledWord = ''; gap.dataset.filledWi = '';
+        clearGapReady(bankId); return;
+      }
+      if (!selected) return;
+      if (gap.textContent) {
+        const oldWi = gap.dataset.filledWi;
+        const chipBack = bank.querySelector('.ctf-chip[data-wi="' + oldWi + '"]');
+        if (chipBack) chipBack.classList.remove('used');
+      }
+      gap.textContent = selected.word; gap.dataset.filledWord = selected.word; gap.dataset.filledWi = selected.wi;
+      selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+      selected = null; clearGapReady(bankId);
+    });
+  });
+}
+function clearGapReady(bankId) {
+  document.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+}
+function checkDialogueCTF(gapIds, bankId, fbId, exId) {
+  let correct = 0;
+  gapIds.forEach(id => {
+    const gap = document.getElementById('gap-' + id);
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap');
+    const existingHint = gap.parentElement.querySelector('.correct-hint[data-gapfor="' + id + '"]');
+    if (existingHint) existingHint.remove();
+    const filled = (gap.textContent || '').trim().toLowerCase().replace(/[!?]/g,'');
+    const opts = (gap.dataset.opts || '').split('|').map(o => o.toLowerCase().replace(/[!?]/g,''));
+    if (opts.includes(filled)) { gap.classList.add('correct-gap'); correct++; }
+    else {
+      gap.classList.add('wrong-gap');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint'; hint.dataset.gapfor = id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.78rem;margin-left:6px;';
+      hint.textContent = '(✔ ' + gap.dataset.opts.split('|')[0] + ')';
+      gap.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, gapIds.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetDialogueCTF(gapIds, bankId, fbId) {
+  gapIds.forEach(id => {
+    const gap = document.getElementById('gap-' + id);
+    if (!gap) return;
+    gap.textContent = ''; gap.dataset.filledWord = ''; gap.dataset.filledWi = '';
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    const hint = gap.parentElement.querySelector('.correct-hint[data-gapfor="' + id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById(bankId).querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══ MULTI-SELECT MC ══
+function buildMultiMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    let optsHtml = item.opts.map((o, j) =>
+      '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="checkbox" name="' + prefix + '_' + i + '" value="' + j + '"> ' + o + '</label>'
+    ).join('');
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' + optsHtml + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const cb = opt.querySelector('input[type=checkbox]');
+      cb.checked = !cb.checked;
+      if (cb.checked) opt.classList.add('selected'); else opt.classList.remove('selected');
+    });
+  });
+}
+function checkMultiMC(data, prefix, fbId, exId) {
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const checked = Array.from(document.querySelectorAll('input[name="' + prefix + '_' + i + '"]:checked')).map(c => parseInt(c.value));
+    const ansSet = new Set(item.ans);
+    total += item.ans.length;
+    item.ans.forEach(a => {
+      if (checked.includes(a)) { opts[a].classList.add('correct'); correct++; }
+      else opts[a].classList.add('correct');
+    });
+    checked.forEach(c => {
+      if (!ansSet.has(c)) {
+        opts[c].classList.add('wrong');
+        const why = '<div style="font-size:0.78rem;color:var(--red);margin-top:4px;margin-left:2px;">This response does not fit the situation.</div>';
+        if (!opts[c].nextElementSibling || !opts[c].nextElementSibling.classList.contains('multi-why')) {
+          opts[c].insertAdjacentHTML('afterend', why);
+        }
+      }
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMultiMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => { o.classList.remove('selected','correct','wrong'); o.querySelector('input').checked = false; });
+  document.getElementById(containerId).querySelectorAll('.multi-why').forEach(e => e.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1
+// ══════════════════════════════════════════════
+
+// D1 E1 – Same words, different intentions (MC, item 1 = example)
+const d1e1Data = [
+  {q:'"Thanks for waiting for me." / "No problem!" <span style="color:var(--orange);font-size:0.78rem;">(example)</span>', opts:["I'm surprised.", "You're welcome.", "I don't agree."], ans:1},
+  {q:'"Can I use your phone for a minute?" / "Sure, no problem."', opts:["I agree to the request.", "I'm sorry.", "I'm surprised."], ans:0, why:"'No problem!' as a response to a request means you are happy to help — it accepts the request."},
+  {q:'"She won the competition!" / "No way!"', opts:["I don't believe it / I'm surprised.", "I'm saying congratulations.", "I'm worried."], ans:0, why:"'No way!' in response to surprising good news means disbelief or surprise, not congratulations."},
+  {q:'"Can I borrow your new laptop for a month?" / "No way!"', opts:["I'm surprised.", "I refuse.", "I'm sorry."], ans:1, why:"Here 'No way!' is a strong refusal. Context changes the meaning — it is not surprise."},
+  {q:'"Achoo!" / "Bless you!"', opts:["I agree.", "I react to a sneeze.", "I say thank you."], ans:1, why:"'Bless you!' is only used when someone sneezes. It is not an expression of agreement or thanks."},
+];
+(function(){
+  buildMC('d1e1', d1e1Data, 'd1e1');
+  const opts = document.querySelectorAll('[data-q="d1e1_0"]');
+  opts.forEach((o,j) => {
+    o.querySelector('input').checked = (j === d1e1Data[0].ans);
+    if (j === d1e1Data[0].ans) o.classList.add('correct');
+    o.style.pointerEvents = 'none';
+  });
+})();
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => {
+  resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb');
+  const opts = document.querySelectorAll('[data-q="d1e1_0"]');
+  opts.forEach((o,j) => { o.querySelector('input').checked = (j === d1e1Data[0].ans); if (j === d1e1Data[0].ans) o.classList.add('correct'); o.style.pointerEvents = 'none'; });
+});
+
+// D1 E2 – Click match: response → situation
+const d1e2Data = [
+  {left:'Congratulations!', right:'Your sister has just got her first job.'},
+  {left:"Don't worry!", right:'Your friend is nervous about making a presentation.'},
+  {left:'What a pity!', right:"Someone tells you they can't go on holiday anymore."},
+  {left:'Hurry up!', right:'Your friend is getting dressed very slowly and your taxi is outside.'},
+  {left:'Good luck!', right:'Someone is about to take an important test.'},
+  {left:'Have fun!', right:'Your friends are leaving for a party.'},
+];
+const d1e2state = buildClickMatch('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkClickMatch(d1e2state, 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetClickMatch(d1e2state, 'd1e2-fb'));
+
+// D1 E3 – Multi-select: two most natural responses
+const d1e3Data = [
+  {q:'"I\'m getting married!"', opts:['Congratulations!', "That's too bad.", 'No way!', "I'm sorry to hear that."], ans:[0,2]},
+  {q:'"I lost my passport on the first day of my holiday."', opts:['Sounds good!', "That's too bad.", "I'm sorry to hear that.", 'Congratulations!'], ans:[1,2]},
+  {q:'"I met my favourite singer yesterday!"', opts:["You're kidding!", 'No way!', 'Fine, see you then!', 'What a pity!'], ans:[0,1]},
+  {q:'"Why don\'t we have lunch together tomorrow?"', opts:['Sounds good!', 'Sure, why not?', "That can't be true!", 'Bless you!'], ans:[0,1]},
+];
+buildMultiMC('d1e3', d1e3Data, 'd1e3');
+document.getElementById('d1e3-check').addEventListener('click', () => checkMultiMC(d1e3Data, 'd1e3', 'd1e3-fb', 'd1e3'));
+document.getElementById('d1e3-reset').addEventListener('click', () => resetMultiMC('d1e3', 'd1e3', d1e3Data, 'd1e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2
+// ══════════════════════════════════════════════
+
+// D2 E1 – TF: is surprise appropriate?
+const d2e1Data = [
+  {s:'My 80-year-old grandmother started learning Japanese last month.', ans:'T'},
+  {s:'I had coffee this morning.', ans:'F'},
+  {s:'My brother won €20,000.', ans:'T'},
+  {s:'Our teacher has twelve dogs.', ans:'T'},
+  {s:'I usually go to bed at night.', ans:'F'},
+  {s:'I met a famous actor on the train.', ans:'T'},
+  {s:'My cat opened the kitchen cupboard by itself.', ans:'T'},
+];
+const d2e1sel = buildTF('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkTF(d2e1Data, d2e1sel, 'd2e1-fb', 'd2e1', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetTF(d2e1Data, d2e1sel, 'd2e1', 'd2e1-fb'));
+
+// D2 E2 – CTF dialogue (multi-accept)
+buildDialogueCTF('d2e2-bank', ['No way!', "You're kidding!", "You don't say!", "That can't be true!"]);
+document.getElementById('d2e2-check').addEventListener('click', () => checkDialogueCTF(['d2e2-1','d2e2-2','d2e2-3'], 'd2e2-bank', 'd2e2-fb', 'd2e2'));
+document.getElementById('d2e2-reset').addEventListener('click', () => resetDialogueCTF(['d2e2-1','d2e2-2','d2e2-3'], 'd2e2-bank', 'd2e2-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 3
+// ══════════════════════════════════════════════
+
+// D3 E1 – Read the room (MC)
+const d3e1Data = [
+  {q:'"I finally passed my driving test!"', opts:['What a pity!', 'Congratulations!', "Don't worry!"], ans:1, why:"The speaker shares good news. 'Congratulations!' is the right reaction to an achievement."},
+  {q:'"My holiday was cancelled because I\'m ill."', opts:['Have fun!', 'Sounds good!', "I'm sorry to hear that."], ans:2, why:"This is bad news. 'Have fun!' or 'Sounds good!' would be very inappropriate here."},
+  {q:'"I have my final interview tomorrow."', opts:['Good luck!', 'Congratulations!', "That's too bad."], ans:0, why:"The speaker has something important ahead. 'Good luck!' shows support and encouragement."},
+  {q:'"We\'re going to spend two weeks in Italy!"', opts:['What a pity!', 'Have fun!', 'Hurry up!'], ans:1, why:"The speaker is going somewhere exciting. 'Have fun!' is the natural reaction."},
+  {q:'"I didn\'t get the job."', opts:["That's too bad.", 'Congratulations!', 'Sounds good!'], ans:0, why:"This is bad news. 'That\'s too bad.' shows sympathy for a disappointing result."},
+];
+buildMC('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data, 'd3e1', 'd3e1-fb', 'd3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMC('d3e1', 'd3e1', d3e1Data, 'd3e1-fb'));
+
+// D3 E2 – Odd one out (cross out wrong response)
+const d3e2Data = [
+  {label:'"My dog is very sick."', group:["That's too bad.", "I'm sorry to hear that.", 'Sounds good!'], ans:2},
+  {label:'"I got promoted!"', group:['Congratulations!', 'No way!', 'What a pity!'], ans:2},
+  {label:'"I can\'t come on Saturday. I have to work."', group:['What a pity!', "That's too bad.", 'Have fun!'], ans:2},
+  {label:'"I\'m going to a music festival this weekend."', group:['Have fun!', 'Sounds good!', "I'm sorry to hear that."], ans:2},
+  {label:'"I\'m really worried about tomorrow."', group:["Don't worry!", 'Good luck!', 'Congratulations!'], ans:2},
+];
+buildOddOneOut('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkOddOneOut(d3e2Data, 'd3e2', 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetOddOneOut('d3e2', 'd3e2-fb'));
+
+// D3 E3 – Free text news desk
+const d3e3Data = [
+  {prompt:'"I\'m starting a new job on Monday."', ans:['congratulations','congratulations!']},
+  {prompt:'"My car broke down again."', ans:["that's too bad","that's too bad.","what a pity","what a pity!","i'm sorry to hear that","i'm sorry to hear that."]},
+  {prompt:'"I\'m travelling around Europe next month."', ans:['have fun','have fun!','sounds good','sounds good!']},
+  {prompt:'"I failed my exam."', ans:["i'm sorry to hear that","i'm sorry to hear that.","what a pity","what a pity!","that's too bad","that's too bad."]},
+  {prompt:'"My daughter graduated from university."', ans:['congratulations','congratulations!']},
+  {prompt:'"I have an important meeting with my boss tomorrow."', ans:['good luck','good luck!']},
+];
+buildFreeText('d3e3', d3e3Data, 'd3e3');
+document.getElementById('d3e3-check').addEventListener('click', () => checkFreeText(d3e3Data, 'd3e3', 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetFreeText(d3e3Data, 'd3e3', 'd3e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 4
+// ══════════════════════════════════════════════
+
+// D4 E1 – Match response to situation
+const d4e1Data = [
+  {left:'Fine, see you then!', right:"OK, let's meet outside the station at 6."},
+  {left:'Sure, why not?', right:'How about trying that new restaurant?'},
+  {left:"It's OK with me!", right:'Can we have dinner at 8 instead of 7?'},
+  {left:'Sure, no problem!', right:'Can I bring my sister?'},
+  {left:'Sounds good!', right:"Let's get pizza and watch a movie."},
+];
+const d4e1state = buildClickMatch('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkClickMatch(d4e1state, 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetClickMatch(d4e1state, 'd4e1-fb'));
+
+// D4 E2 – Replace wrong response (fill)
+const d4e2Data = [
+  {prompt:'"How about coffee after class?" — wrong response: "What a pity!"<br><em>Replace it:</em>', ans:['sounds good','sounds good!','sure, why not','sure, why not?','sure why not']},
+  {prompt:'"Can we meet at 10 instead?" — wrong response: "You\'re kidding!"<br><em>Replace it:</em>', ans:["it's ok with me","it's ok with me!","it's ok by me","it's ok by me!","sure, no problem","sure, no problem!","no problem","no problem!"]},
+  {prompt:'"Let\'s meet outside the cinema at 7." — wrong response: "I\'m sorry to hear that."<br><em>Replace it:</em>', ans:['fine, see you then','fine, see you then!','fine see you then']},
+  {prompt:'"Can my boyfriend come too?" — wrong response: "That can\'t be true!"<br><em>Replace it:</em>', ans:['sure, no problem','sure, no problem!','no problem','no problem!',"it's ok with me","it's ok with me!"]},
+  {prompt:'"Why don\'t we order Chinese food?" — wrong response: "Bless you!"<br><em>Replace it:</em>', ans:['sounds good','sounds good!','sure, why not','sure, why not?','sure why not']},
+];
+buildFreeText('d4e2', d4e2Data, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkFreeText(d4e2Data, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetFreeText(d4e2Data, 'd4e2', 'd4e2-fb'));
+
+// D4 E3 – Writing task / WhatsApp
+document.getElementById('d4e3-wa').addEventListener('click', () => {
+  const text = document.getElementById('d4e3-text').value.trim();
+  const msg = encodeURIComponent('Plan Saturday — ' + studentName + ':\n\n' + text);
+  window.open('https://wa.me/5524992723816?text=' + msg, '_blank');
+  incrementChecked('d4e3');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 5
+// ══════════════════════════════════════════════
+
+// D5 E1 – Free text reactions
+const d5e1Data = [
+  {prompt:'Your friend sneezes.', ans:['bless you','bless you!']},
+  {prompt:'Someone says, "Thanks for the lift."', ans:["you're welcome","you're welcome!",'no problem','no problem!']},
+  {prompt:'Your friend says, "Sorry I\'m five minutes late."', ans:['no problem','no problem!',"don't worry","don't worry!"]},
+  {prompt:'Your friend is walking slowly and your train leaves in one minute.', ans:['hurry up','hurry up!']},
+  {prompt:'Someone says, "Thanks for helping me move house."', ans:["you're welcome","you're welcome!",'no problem','no problem!']},
+];
+buildFreeText('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkFreeText(d5e1Data, 'd5e1', 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetFreeText(d5e1Data, 'd5e1', 'd5e1-fb'));
+
+// D5 E2 – CTF dialogue
+buildDialogueCTF('d5e2-bank', ['Don\'t worry!', 'Hurry up!', 'Bless you!', 'No problem!', 'Good luck!']);
+document.getElementById('d5e2-check').addEventListener('click', () => checkDialogueCTF(['d5e2-1','d5e2-2','d5e2-3','d5e2-4','d5e2-5'], 'd5e2-bank', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetDialogueCTF(['d5e2-1','d5e2-2','d5e2-3','d5e2-4','d5e2-5'], 'd5e2-bank', 'd5e2-fb'));
+
+// D5 E3 – Five-second challenge
+const d5e3Data = [
+  {prompt:'"Achoo!"', ans:['bless you','bless you!']},
+  {prompt:'"Thanks for the coffee."', ans:["you're welcome","you're welcome!",'no problem','no problem!']},
+  {prompt:'"I\'m really nervous about my exam."', ans:["don't worry","don't worry!",'good luck','good luck!']},
+  {prompt:'"We\'re going to miss the bus!"', ans:['hurry up','hurry up!']},
+  {prompt:'"Sorry I forgot to call you."', ans:['no problem','no problem!',"don't worry","don't worry!"]},
+  {prompt:'"I\'m going to a party tonight."', ans:['have fun','have fun!']},
+];
+buildFreeText('d5e3', d5e3Data, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkFreeText(d5e3Data, 'd5e3', 'd5e3-fb', 'd5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetFreeText(d5e3Data, 'd5e3', 'd5e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 6
+// ══════════════════════════════════════════════
+
+// D6 E1 – MC intention
+const d6e1Data = [
+  {q:'"You\'re kidding!"', opts:['sympathy','surprise','agreement'], ans:1, why:"'You're kidding!' expresses disbelief or surprise, not sympathy or agreement."},
+  {q:'"That\'s too bad."', opts:['sympathy','congratulations','refusal'], ans:0, why:"'That's too bad.' shows sympathy — you feel sorry for the other person."},
+  {q:'"Sure, why not?"', opts:['accepting a suggestion','expressing surprise','thanking someone'], ans:0, why:"'Sure, why not?' accepts a suggestion in a relaxed, positive way."},
+  {q:'"Don\'t worry!"', opts:['rushing someone','reassuring someone','refusing something'], ans:1, why:"'Don't worry!' reassures someone who is anxious or concerned."},
+  {q:'"Fine, see you then!"', opts:['confirming an arrangement','reacting to bad news','expressing disbelief'], ans:0, why:"'Fine, see you then!' confirms that a plan or arrangement is agreed."},
+];
+buildMC('d6e1', d6e1Data, 'd6e1');
+document.getElementById('d6e1-check').addEventListener('click', () => checkMC(d6e1Data, 'd6e1', 'd6e1-fb', 'd6e1'));
+document.getElementById('d6e1-reset').addEventListener('click', () => resetMC('d6e1', 'd6e1', d6e1Data, 'd6e1-fb'));
+
+// D6 E2 – Free text five dialogues
+const d6e2Data = [
+  {prompt:'A: "I\'ve got some bad news. I lost my job."', ans:["i'm sorry to hear that","i'm sorry to hear that.","that's too bad","that's too bad.","what a pity","what a pity!"]},
+  {prompt:'B: "You\'ll never believe this. I won a trip to Hawaii!"', ans:['no way','no way!',"you're kidding","you're kidding!","you don't say","you don't say!","that can't be true","that can't be true!"]},
+  {prompt:'C: "Would you like to have dinner with us on Friday?"', ans:['sure, why not','sure, why not?','sounds good','sounds good!','sure why not']},
+  {prompt:'D: "I finally finished my degree!"', ans:['congratulations','congratulations!']},
+  {prompt:"E: \"Can we move our meeting to Wednesday?\"", ans:["it's ok with me","it's ok with me!","it's ok by me","it's ok by me!","sure, no problem","sure, no problem!","no problem","no problem!"]},
+];
+buildFreeText('d6e2', d6e2Data, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkFreeText(d6e2Data, 'd6e2', 'd6e2-fb', 'd6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetFreeText(d6e2Data, 'd6e2', 'd6e2-fb'));
+
+// D6 E3 – Writing task
+document.getElementById('d6e3-wa').addEventListener('click', () => {
+  const text = document.getElementById('d6e3-text').value.trim();
+  const msg = encodeURIComponent('Reaction Dominoes — ' + studentName + ':\n\n' + text);
+  window.open('https://wa.me/5524992723816?text=' + msg, '_blank');
+  incrementChecked('d6e3');
+});
+
+// ══════════════════════════════════════════════
+//  DAY 7
+// ══════════════════════════════════════════════
+
+// D7 E1 – Best response (MC)
+const d7e1Data = [
+  {q:'Your friend tells you quietly that her mother is in hospital.', opts:['What a pity!', "I'm sorry to hear that.", 'No way!'], ans:1, why:"'I'm sorry to hear that.' is more personal and gentle. 'What a pity!' can sound too casual for serious situations."},
+  {q:'Your friend says she met Beyoncé in a small café yesterday.', opts:["You're kidding!", 'Congratulations!', 'Good luck!'], ans:0, why:"This is surprising news. 'You're kidding!' expresses disbelief naturally."},
+  {q:'Someone suggests going for a drink after work.', opts:['Sure, why not?', "You're welcome!", "That's too bad."], ans:0, why:"'Sure, why not?' accepts the suggestion in a positive, relaxed way."},
+  {q:'Your colleague says, "Can we meet at 3 instead of 2?"', opts:['Have fun!', "It's OK with me.", "You don't say!"], ans:1, why:"'It's OK with me.' accepts a change to a plan or arrangement naturally."},
+  {q:'Your friend has just passed a very difficult exam.', opts:["Don't worry!", 'Congratulations!', 'Bless you!'], ans:1, why:"Passing a difficult exam is an achievement. 'Congratulations!' is the right reaction."},
+  {q:'Someone thanks you for a small favour.', opts:['No problem!', "That can't be true!", 'Hurry up!'], ans:0, why:"'No problem!' responds to thanks naturally and tells the person it was no trouble."},
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb'));
+
+// D7 E2 – Category sort
+const D7E2_CATEGORIES = [
+  {key:'surprise', label:'😲 Surprise'},
+  {key:'agree', label:'✅ Agreeing / Accepting'},
+  {key:'bad', label:'😢 Bad News / Sympathy'},
+  {key:'good', label:'🎉 Good News / Special Moments'},
+  {key:'thanks', label:'🙏 Thanking / Responding to Thanks'},
+  {key:'other', label:'💬 Other Everyday Responses'},
+];
+const D7E2_EXPRESSIONS = [
+  {text:'No way!', cat:'surprise'},
+  {text:"You're kidding!", cat:'surprise'},
+  {text:"You don't say!", cat:'surprise'},
+  {text:"That can't be true!", cat:'surprise'},
+  {text:'Sounds good!', cat:'agree'},
+  {text:'Sure, why not?', cat:'agree'},
+  {text:'Fine, see you then!', cat:'agree'},
+  {text:"It's OK with me!", cat:'agree'},
+  {text:'No problem!', cat:'agree'},
+  {text:'What a pity!', cat:'bad'},
+  {text:"That's too bad.", cat:'bad'},
+  {text:"I'm sorry to hear that.", cat:'bad'},
+  {text:'Congratulations!', cat:'good'},
+  {text:'Good luck!', cat:'good'},
+  {text:'Have fun!', cat:'good'},
+  {text:"You're welcome!", cat:'thanks'},
+  {text:'Bless you!', cat:'other'},
+  {text:"Don't worry!", cat:'other'},
+  {text:'Hurry up!', cat:'other'},
+];
+(function(){
+  const chipsWrap = document.getElementById('d7e2-chips');
+  const catGrid = document.getElementById('d7e2-cats');
+  // shuffle
+  const shuffled = [...D7E2_EXPRESSIONS].sort(() => Math.random() - 0.5);
+  shuffled.forEach((expr, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.expr = i; btn.dataset.cat = expr.cat;
+    btn.textContent = expr.text; chipsWrap.appendChild(btn);
+  });
+  D7E2_CATEGORIES.forEach(cat => {
+    const box = document.createElement('div'); box.className = 'cat-box'; box.dataset.cat = cat.key;
+    box.innerHTML = '<div class="cat-box-title">' + cat.label + '</div><div class="cat-drop" id="catdrop-' + cat.key + '"></div>';
+    catGrid.appendChild(box);
+  });
+  let selectedChip = null;
+  chipsWrap.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip) return;
+    if (selectedChip === chip) { chip.classList.remove('active'); selectedChip = null; return; }
+    chipsWrap.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active'); selectedChip = chip;
+  });
+  catGrid.addEventListener('click', e => {
+    const box = e.target.closest('.cat-box');
+    if (!box || !selectedChip) return;
+    const drop = box.querySelector('.cat-drop');
+    selectedChip.classList.remove('active','correct-cat','wrong-cat'); selectedChip.classList.add('placed');
+    selectedChip.dataset.placedIn = box.dataset.cat;
+    drop.appendChild(selectedChip);
+    selectedChip = null;
+  });
+  // allow click on placed chip to return it
+  catGrid.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip.placed');
+    if (!chip) return;
+    chip.classList.remove('placed','correct-cat','wrong-cat','active');
+    delete chip.dataset.placedIn;
+    chipsWrap.appendChild(chip);
+    if (selectedChip === chip) selectedChip = null;
+  });
+})();
+document.getElementById('d7e2-check').addEventListener('click', () => {
+  let correct = 0;
+  D7E2_EXPRESSIONS.forEach((expr, i) => {
+    const chip = document.querySelector('#d7e2-chips [data-expr="' + i + '"], #d7e2-cats [data-expr="' + i + '"]');
+    if (!chip) return;
+    chip.classList.remove('correct-cat','wrong-cat');
+    const placedIn = chip.dataset.placedIn;
+    if (placedIn === expr.cat) { chip.classList.add('correct-cat'); correct++; }
+    else if (placedIn) { chip.classList.add('wrong-cat'); }
+  });
+  const r = scoreText(correct, D7E2_EXPRESSIONS.length);
+  showFeedback('d7e2-fb', r.msg, r.type);
+  incrementChecked('d7e2');
+});
+document.getElementById('d7e2-reset').addEventListener('click', () => {
+  const chipsWrap = document.getElementById('d7e2-chips');
+  document.querySelectorAll('#d7e2-cats .ctf-chip').forEach(chip => {
+    chip.classList.remove('placed','correct-cat','wrong-cat','active');
+    delete chip.dataset.placedIn;
+    chipsWrap.appendChild(chip);
+  });
+  document.getElementById('d7e2-fb').className = 'feedback';
+});
+
+// D7 E3 – Final challenge: respond + follow-up (free text)
+const d7e3Data = [
+  {prompt:'"I got a promotion at work!"', ans:['congratulations','congratulations!']},
+  {prompt:'"I lost my phone on the bus yesterday."', ans:["that's too bad","that's too bad.","i'm sorry to hear that","i'm sorry to hear that.","what a pity","what a pity!"]},
+  {prompt:'"I\'m going to run a marathon next weekend."', ans:['good luck','good luck!']},
+  {prompt:'"You won\'t believe this — my sister is going to be on TV!"', ans:["you're kidding","you're kidding!",'no way','no way!',"you don't say","you don't say!","that can't be true","that can't be true!"]},
+  {prompt:'"Why don\'t we go somewhere for lunch?"', ans:['sounds good','sounds good!','sure, why not','sure, why not?','sure why not']},
+  {prompt:'"Thanks for all your help this week."', ans:['no problem','no problem!',"you're welcome","you're welcome!"]},
+];
+buildFreeText('d7e3', d7e3Data, 'd7e3');
+document.getElementById('d7e3-check').addEventListener('click', () => checkFreeText(d7e3Data, 'd7e3', 'd7e3-fb', 'd7e3'));
+document.getElementById('d7e3-reset').addEventListener('click', () => resetFreeText(d7e3Data, 'd7e3', 'd7e3-fb'));
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+const VOCAB = {
+  surprise: [
+    {t:'No way!', s:'disbelief or strong surprise'},
+    {t:"You're kidding!", s:'disbelief, can\'t believe it'},
+    {t:"You don't say!", s:'surprise (slightly ironic)'},
+    {t:"That can't be true!", s:'strong disbelief'},
+  ],
+  agree: [
+    {t:'Sounds good!', s:'accepting a suggestion'},
+    {t:'Sure, why not?', s:'relaxed acceptance'},
+    {t:'Fine, see you then!', s:'confirming a plan'},
+    {t:"It's OK with me!", s:'accepting a change or request'},
+    {t:'Sure, no problem!', s:'accepting a request easily'},
+  ],
+  bad: [
+    {t:'What a pity!', s:'disappointment'},
+    {t:"That's too bad.", s:'sympathy for bad news'},
+    {t:"I'm sorry to hear that.", s:'personal, warm sympathy'},
+  ],
+  good: [
+    {t:'Congratulations!', s:'celebrating an achievement'},
+    {t:'Good luck!', s:'encouragement before something important'},
+    {t:'Have fun!', s:'wishing someone an enjoyable time'},
+  ],
+  thanks: [
+    {t:"You're welcome!", s:'responding to thanks'},
+    {t:'No problem!', s:'responding to thanks informally'},
+  ],
+  other: [
+    {t:'Bless you!', s:'after someone sneezes'},
+    {t:"Don't worry!", s:'reassuring someone'},
+    {t:'Hurry up!', s:'telling someone to move faster'},
+  ],
+};
+Object.entries(VOCAB).forEach(([key, items]) => {
+  const grid = document.getElementById('vocab-' + key);
+  if (!grid) return;
+  items.forEach(item => {
+    const chip = document.createElement('div'); chip.className = 'vocab-chip';
+    chip.innerHTML = '<strong>' + item.t + '</strong><div class="vc-sub">' + item.s + '</div>';
+    grid.appendChild(chip);
+  });
+});
+
+// ══════════════════════════════════════════════
+//  CONFETTI & DAY COMPLETION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7e3'],
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_quickresponses_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_quickresponses_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_quickresponses_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_quickresponses_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1, drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360, spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('🏆 Week complete! You are amazing!'); }
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:\'Poppins\',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+
+// WhatsApp summary
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = encodeURIComponent('I completed the Quick Responses weekly practice! My name is ' + studentName + ' and I checked ' + totalChecked + ' exercises. 🎉');
+  window.open('https://wa.me/5524992723816?text=' + msg, '_blank');
+});
+</script>
+</body>
+</html>
