@@ -904,6 +904,286 @@ function CertificadoAdmin({ students }) {
   );
 }
 
+// ========== DIAGNÓSTICO ADMIN ==========
+function DiagnosticoAdmin({ students }) {
+  const { useEffect, useState: useLocalState } = React;
+  const hoje = new Date();
+  const hojeISO = hoje.toISOString().split("T")[0];
+  const ontemISO = new Date(hoje - 86400000).toISOString().split("T")[0];
+
+  const [carregando, setCarregando] = useLocalState(true);
+  const [aulasSemEntrada, setAulasSemEntrada] = useLocalState([]);
+  const [aulasHojeOntem, setAulasHojeOntem] = useLocalState([]);
+  const [aulasARepor, setAulasARepor] = useLocalState([]);
+  const [billingAberto, setBillingAberto] = useLocalState([]);
+  const [billingAtrasado, setBillingAtrasado] = useLocalState([]);
+  const [dataInicio, setDataInicio] = useLocalState(() => {
+    const d = new Date(hoje);
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [dataFim, setDataFim] = useLocalState(hojeISO);
+  const [secaoAberta, setSecaoAberta] = useLocalState("semEntrada");
+
+  const nomesAlunos = {};
+  const turmaParaAluno = {};
+  (students || []).forEach((s) => {
+    if (s.turma_id) turmaParaAluno[s.turma_id] = s.nome;
+    nomesAlunos[s.id] = s.nome;
+  });
+
+  const carregar = async () => {
+    setCarregando(true);
+    const [lessonsRes, recordsRes, billingRes] = await Promise.all([
+      supabase.from("lessons").select("id, turma_id, data, status, horario, turmas(students(nome, id))").gte("data", dataInicio).lte("data", dataFim).in("status", ["realizada", "reposicaoAgendada", "agendada"]),
+      supabase.from("lesson_records").select("turma_id, data").gte("data", dataInicio).lte("data", dataFim),
+      supabase.from("billing").select("*, turmas(students(nome))").neq("status", "pago"),
+    ]);
+
+    const lessons = lessonsRes.data || [];
+    const records = recordsRes.data || [];
+    const billing = billingRes.data || [];
+
+    // Lições realizadas no passado (até ontem) SEM lesson_record correspondente
+    const chaveRegistros = new Set(records.map((r) => `${r.turma_id}__${r.data}`));
+    const semEntrada = lessons.filter((l) => {
+      if (l.data >= hojeISO) return false; // pula hoje
+      if (l.status !== "realizada") return false;
+      return !chaveRegistros.has(`${l.turma_id}__${l.data}`);
+    }).map((l) => {
+      const nomes = l.turmas?.students?.map((s) => s.nome).join(", ") || turmaParaAluno[l.turma_id] || "—";
+      return { ...l, nomesAlunos: nomes };
+    }).sort((a, b) => b.data.localeCompare(a.data));
+
+    // Aulas de hoje e ontem que ainda estão "agendada" (não foram finalizadas)
+    const pendentes = lessons.filter((l) => {
+      if (l.data !== hojeISO && l.data !== ontemISO) return false;
+      if (l.status !== "agendada" && l.status !== "reposicaoAgendada") return false;
+      return true;
+    }).map((l) => {
+      const nomes = l.turmas?.students?.map((s) => s.nome).join(", ") || turmaParaAluno[l.turma_id] || "—";
+      return { ...l, nomesAlunos: nomes };
+    }).sort((a, b) => b.data.localeCompare(a.data));
+
+    // A repor: buscar separado pois pode estar fora do período
+    const { data: aReporData } = await supabase
+      .from("lessons")
+      .select("id, turma_id, data, status, prazo_reposicao, turmas(students(nome))")
+      .eq("status", "aRepor");
+
+    const aRepor = (aReporData || []).map((l) => {
+      const nomes = l.turmas?.students?.map((s) => s.nome).join(", ") || turmaParaAluno[l.turma_id] || "—";
+      const prazo = l.prazo_reposicao;
+      const vencida = prazo && prazo < hojeISO;
+      return { ...l, nomesAlunos: nomes, vencida };
+    }).sort((a, b) => {
+      if (a.vencida && !b.vencida) return -1;
+      if (!a.vencida && b.vencida) return 1;
+      return (a.prazo_reposicao || "").localeCompare(b.prazo_reposicao || "");
+    });
+
+    // Billing em aberto: sem vencimento vencido
+    const aberto = billing.filter((b) => !b.vencimento || b.vencimento >= hojeISO).map((b) => {
+      const nomes = b.turmas?.students?.map((s) => s.nome).join(", ") || "—";
+      return { ...b, nomesAlunos: nomes };
+    }).sort((a, b) => (a.vencimento || "").localeCompare(b.vencimento || ""));
+
+    // Billing atrasado: vencimento no passado
+    const atrasado = billing.filter((b) => b.vencimento && b.vencimento < hojeISO).map((b) => {
+      const nomes = b.turmas?.students?.map((s) => s.nome).join(", ") || "—";
+      const diasAtraso = Math.floor((new Date(hojeISO) - new Date(b.vencimento)) / 86400000);
+      return { ...b, nomesAlunos: nomes, diasAtraso };
+    }).sort((a, b) => b.diasAtraso - a.diasAtraso);
+
+    setAulasSemEntrada(semEntrada);
+    setAulasHojeOntem(pendentes);
+    setAulasARepor(aRepor);
+    setBillingAberto(aberto);
+    setBillingAtrasado(atrasado);
+    setCarregando(false);
+  };
+
+  useEffect(() => { carregar(); }, []);
+
+  const fmtData = (iso) => {
+    if (!iso) return "—";
+    const [y, m, d] = iso.split("-");
+    return `${d}/${m}/${y}`;
+  };
+
+  const secoes = [
+    { id: "semEntrada", emoji: "📝", label: "Sem entrada", count: aulasSemEntrada.length, cor: palette.orange },
+    { id: "pendentes", emoji: "⏳", label: "Hoje/Ontem pendentes", count: aulasHojeOntem.length, cor: "#B45309" },
+    { id: "aRepor", emoji: "🔄", label: "A repor", count: aulasARepor.length, cor: palette.purple },
+    { id: "billingAberto", emoji: "💳", label: "Cobrança em aberto", count: billingAberto.length, cor: palette.green },
+    { id: "billingAtrasado", emoji: "🚨", label: "Cobrança atrasada", count: billingAtrasado.length, cor: "#991B1B" },
+  ];
+
+  const cardStyle = (ativo) => ({
+    background: ativo ? palette.lavender + "33" : "#FFF",
+    border: `2px solid ${ativo ? palette.lavender : "#E8E0F5"}`,
+    borderRadius: "12px", padding: "12px 16px", cursor: "pointer",
+    display: "flex", alignItems: "center", gap: "10px", transition: "all 0.15s",
+    flex: "1 1 140px", minWidth: "120px",
+  });
+
+  const tagStyle = (cor) => ({
+    background: cor + "22", color: cor, borderRadius: "8px",
+    padding: "2px 10px", fontWeight: 700, fontSize: "12px",
+  });
+
+  const linhaStyle = (i) => ({
+    background: i % 2 === 0 ? "#FAFAFA" : "#FFF",
+    borderRadius: "10px", padding: "10px 14px",
+    display: "flex", alignItems: "center", gap: "12px",
+    fontSize: "13px", color: palette.purple,
+    border: "1px solid #F0EBF8",
+  });
+
+  return (
+    <div style={{ padding: "0 0 24px" }}>
+      {/* Filtro de período */}
+      <div style={{ background: "#FFF", borderRadius: "14px", padding: "16px 20px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", boxShadow: "0 2px 8px rgba(29,16,80,0.06)" }}>
+        <span style={{ fontSize: "13px", fontWeight: 600, color: palette.purple }}>📅 Período para "sem entrada":</span>
+        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)}
+          style={{ border: `1.5px solid ${palette.lavender}`, borderRadius: "8px", padding: "6px 10px", fontSize: "13px", fontFamily: "Poppins, sans-serif", color: palette.purple, outline: "none" }} />
+        <span style={{ fontSize: "13px", color: palette.purple + "99" }}>até</span>
+        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)}
+          style={{ border: `1.5px solid ${palette.lavender}`, borderRadius: "8px", padding: "6px 10px", fontSize: "13px", fontFamily: "Poppins, sans-serif", color: palette.purple, outline: "none" }} />
+        <button onClick={carregar} style={{ background: palette.orange, color: "#FFF", border: "none", borderRadius: "8px", padding: "7px 18px", fontWeight: 700, fontSize: "13px", cursor: "pointer", fontFamily: "Poppins, sans-serif" }}>
+          Atualizar
+        </button>
+        {carregando && <span style={{ fontSize: "12px", color: palette.purple + "88" }}>Carregando…</span>}
+      </div>
+
+      {/* Cards resumo */}
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
+        {secoes.map((s) => (
+          <div key={s.id} onClick={() => setSecaoAberta(s.id)} style={cardStyle(secaoAberta === s.id)}>
+            <span style={{ fontSize: "20px" }}>{s.emoji}</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: "11px", color: palette.purple + "88", fontWeight: 600, marginBottom: "2px", textTransform: "uppercase", letterSpacing: "0.04em" }}>{s.label}</p>
+              <p style={{ fontSize: "22px", fontWeight: 700, color: s.count > 0 ? s.cor : palette.purple + "44", margin: 0 }}>{s.count}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Conteúdo da seção ativa */}
+      <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 8px rgba(29,16,80,0.06)" }}>
+
+        {/* --- SEM ENTRADA --- */}
+        {secaoAberta === "semEntrada" && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: "15px", color: palette.purple, marginBottom: "4px" }}>📝 Aulas realizadas sem entrada</p>
+            <p style={{ fontSize: "12px", color: palette.purple + "88", marginBottom: "16px" }}>Aulas com status "Realizada" no período selecionado que ainda não têm lesson record registrado.</p>
+            {aulasSemEntrada.length === 0
+              ? <p style={{ fontSize: "13px", color: "#16A34A", fontWeight: 600 }}>✅ Tudo em dia! Nenhuma aula sem entrada no período.</p>
+              : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {aulasSemEntrada.map((a, i) => (
+                    <div key={a.id} style={linhaStyle(i)}>
+                      <span style={tagStyle(palette.orange)}>{fmtData(a.data)}</span>
+                      <span style={{ flex: 1, fontWeight: 500 }}>{a.nomesAlunos}</span>
+                      <span style={{ fontSize: "11px", color: palette.purple + "66" }}>{a.horario || ""}</span>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
+
+        {/* --- PENDENTES HOJE/ONTEM --- */}
+        {secaoAberta === "pendentes" && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: "15px", color: palette.purple, marginBottom: "4px" }}>⏳ Aulas pendentes — hoje e ontem</p>
+            <p style={{ fontSize: "12px", color: palette.purple + "88", marginBottom: "16px" }}>Aulas de hoje ou ontem que ainda estão como "Agendada" — precisam ser finalizadas (realizada, falta, a repor…).</p>
+            {aulasHojeOntem.length === 0
+              ? <p style={{ fontSize: "13px", color: "#16A34A", fontWeight: 600 }}>✅ Nenhuma aula pendente de hoje ou ontem.</p>
+              : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {aulasHojeOntem.map((a, i) => (
+                    <div key={a.id} style={linhaStyle(i)}>
+                      <span style={tagStyle(a.data === hojeISO ? "#B45309" : palette.orange)}>{a.data === hojeISO ? "Hoje" : "Ontem"}</span>
+                      <span style={{ flex: 1, fontWeight: 500 }}>{a.nomesAlunos}</span>
+                      <span style={{ fontSize: "11px", color: palette.purple + "66" }}>{a.horario || ""}</span>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
+
+        {/* --- A REPOR --- */}
+        {secaoAberta === "aRepor" && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: "15px", color: palette.purple, marginBottom: "4px" }}>🔄 Aulas a repor em aberto</p>
+            <p style={{ fontSize: "12px", color: palette.purple + "88", marginBottom: "16px" }}>Todas as aulas com status "A repor" — as com prazo vencido aparecem primeiro.</p>
+            {aulasARepor.length === 0
+              ? <p style={{ fontSize: "13px", color: "#16A34A", fontWeight: 600 }}>✅ Nenhuma aula a repor em aberto.</p>
+              : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {aulasARepor.map((a, i) => (
+                    <div key={a.id} style={linhaStyle(i)}>
+                      {a.vencida
+                        ? <span style={tagStyle("#991B1B")}>Prazo vencido</span>
+                        : <span style={tagStyle(palette.purple)}>Em aberto</span>
+                      }
+                      <span style={{ flex: 1, fontWeight: 500 }}>{a.nomesAlunos}</span>
+                      <span style={{ fontSize: "12px", color: palette.purple + "88" }}>Faltou em {fmtData(a.data)}</span>
+                      {a.prazo_reposicao && (
+                        <span style={{ fontSize: "11px", color: a.vencida ? "#991B1B" : palette.purple + "66" }}>prazo: {fmtData(a.prazo_reposicao)}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
+
+        {/* --- BILLING ABERTO --- */}
+        {secaoAberta === "billingAberto" && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: "15px", color: palette.purple, marginBottom: "4px" }}>💳 Cobranças em aberto (não vencidas)</p>
+            <p style={{ fontSize: "12px", color: palette.purple + "88", marginBottom: "16px" }}>Mensalidades pendentes cujo vencimento ainda não passou.</p>
+            {billingAberto.length === 0
+              ? <p style={{ fontSize: "13px", color: "#16A34A", fontWeight: 600 }}>✅ Nenhuma cobrança em aberto.</p>
+              : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {billingAberto.map((b, i) => (
+                    <div key={b.id} style={linhaStyle(i)}>
+                      <span style={tagStyle(palette.green)}>{b.mes || "—"}</span>
+                      <span style={{ flex: 1, fontWeight: 500 }}>{b.nomesAlunos}</span>
+                      <span style={{ fontSize: "12px", color: palette.purple + "88" }}>R$ {Number(b.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      <span style={{ fontSize: "11px", color: palette.purple + "66" }}>vence {fmtData(b.vencimento)}</span>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
+
+        {/* --- BILLING ATRASADO --- */}
+        {secaoAberta === "billingAtrasado" && (
+          <div>
+            <p style={{ fontWeight: 700, fontSize: "15px", color: palette.purple, marginBottom: "4px" }}>🚨 Cobranças atrasadas</p>
+            <p style={{ fontSize: "12px", color: palette.purple + "88", marginBottom: "16px" }}>Mensalidades pendentes com vencimento no passado — mais atrasadas primeiro.</p>
+            {billingAtrasado.length === 0
+              ? <p style={{ fontSize: "13px", color: "#16A34A", fontWeight: 600 }}>✅ Nenhuma cobrança atrasada.</p>
+              : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {billingAtrasado.map((b, i) => (
+                    <div key={b.id} style={linhaStyle(i)}>
+                      <span style={tagStyle("#991B1B")}>+{b.diasAtraso}d</span>
+                      <span style={{ flex: 1, fontWeight: 500 }}>{b.nomesAlunos}</span>
+                      <span style={{ fontSize: "12px", color: "#991B1B", fontWeight: 600 }}>R$ {Number(b.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      <span style={{ fontSize: "12px", color: palette.purple + "88" }}>{b.mes || "—"} · venceu {fmtData(b.vencimento)}</span>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
@@ -1483,73 +1763,64 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
     carregarAlunos();
   };
 
+  // Cores por nível
+  const corPorNivel = {
+    "Beginner": { bg: "#EEF6FF", text: "#1E5FAD", border: "#BFDBFE" },
+    "Elementary": { bg: "#F0FDF4", text: "#166534", border: "#BBF7D0" },
+    "Pre-Intermediate": { bg: "#FDF4FF", text: "#7E22CE", border: "#E9D5FF" },
+    "Private Advanced Practice": { bg: "#FFF7ED", text: "#9A3412", border: "#FED7AA" },
+  };
+
+  // Alertas por turma_id
+  const alertasPorTurma = React.useMemo(() => {
+    const m = {};
+    cobrancasAbertoLista.forEach((c) => {
+      if (c.representante && c.representante.turma_id) {
+        const tid = c.representante.turma_id;
+        m[tid] = [...(m[tid] || []), "cobranca"];
+      }
+    });
+    reposicoesPendentesLista.forEach((r) => {
+      if (r.representante && r.representante.turma_id) {
+        const tid = r.representante.turma_id;
+        m[tid] = [...(m[tid] || []), "reposicao"];
+      }
+    });
+    return m;
+  }, [cobrancasAbertoLista, reposicoesPendentesLista]);
+
   return (
-    <div style={{ minHeight: "100vh", width: "100%", background: palette.cream, display: "flex" }}>
-      {/* Barra lateral */}
-      <div style={{ width: "190px", flexShrink: 0, background: palette.purple, minHeight: "100vh", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", overflowY: "hidden" }}>
-        <div style={{ padding: "18px 12px 10px" }}>
-          <p style={{ color: palette.lightGreen, fontSize: "10px", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "14px" }}>Teacher Mari</p>
-          <div style={{ position: "relative", marginBottom: "4px" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ position: "absolute", left: "9px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-              <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input type="text" value={buscaTurma} onChange={(e) => setBuscaTurma(e.target.value)}
-              placeholder="Buscar..."
-              style={{ width: "100%", padding: "7px 10px 7px 28px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.1)", fontSize: "12px", fontFamily: "'Poppins', sans-serif", color: "#FFF", outline: "none", boxSizing: "border-box" }} />
-          </div>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 8px 8px" }}>
-          {(() => {
-            const normalizar = (t) => (t || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-            const termo = normalizar(buscaTurma.trim());
-            const turmasMap = new Map();
-            const semTurma = [];
-            students.forEach((s) => {
-              if (!s.turma_id) { semTurma.push(s); return; }
-              if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, []);
-              turmasMap.get(s.turma_id).push(s);
-            });
-            const entradas = [
-              ...Array.from(turmasMap.values()).map((alunos) => {
-                const ord = [...alunos].sort((a, b) => a.nome.localeCompare(b.nome));
-                const primeiroNome = (n) => n.split(" ")[0];
-                const label = ord.length === 1 ? ord[0].nome : ord.map((a) => primeiroNome(a.nome)).join(" + ");
-                return { rep: ord[0], label };
-              }),
-              ...semTurma.map((s) => ({ rep: s, label: s.nome })),
-            ].sort((a, b) => a.label.localeCompare(b.label));
-            const filtradas = termo ? entradas.filter((e) => normalizar(e.label).includes(termo) || normalizar(e.rep.nome).includes(termo)) : entradas;
-            if (filtradas.length === 0) return (
-              <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", padding: "12px 6px", textAlign: "center" }}>Nenhum aluno</p>
-            );
-            return filtradas.map((e) => (
-              <button key={e.rep.id} onClick={() => onSelectStudent(e.rep)}
-                style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 10px", borderRadius: "8px", border: "none", background: "none", cursor: "pointer", fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.8)", fontFamily: "'Poppins', sans-serif", marginBottom: "1px" }}
-                onMouseEnter={(ev) => ev.currentTarget.style.background = "rgba(255,255,255,0.12)"}
-                onMouseLeave={(ev) => ev.currentTarget.style.background = "none"}>
-                {e.label}
-              </button>
-            ));
-          })()}
-        </div>
-        <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-          <button onClick={onLogout} style={{ width: "100%", padding: "7px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.15)", background: "none", cursor: "pointer", fontSize: "12px", color: "rgba(255,255,255,0.6)", fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: palette.cream }}>
+      {/* ── HEADER HORIZONTAL ── */}
+      <div style={{ background: palette.purple, padding: "0 24px", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(29,16,80,0.18)" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", gap: "14px", height: "60px" }}>
+          <img src={LOGO} alt="Teacher Mari" style={{ height: "32px", objectFit: "contain", flexShrink: 0 }} />
+          {abaAdmin === "alunos" && (
+            <div style={{ position: "relative", flex: 1, maxWidth: "300px" }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="text" value={buscaTurma} onChange={(e) => setBuscaTurma(e.target.value)}
+                placeholder="Buscar aluno..."
+                style={{ width: "100%", padding: "7px 10px 7px 30px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.12)", fontSize: "12px", fontFamily: "\'Poppins\', sans-serif", color: "#FFF", outline: "none" }} />
+            </div>
+          )}
+          <div style={{ flex: 1 }} />
+          <button onClick={() => { setAbaAdmin("alunos"); setMostrarForm(true); setTimeout(() => { const el = document.getElementById("form-nova-turma"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 100); }}
+            style={{ padding: "8px 16px", borderRadius: "20px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "12px", background: palette.orange, color: "#FFF", fontFamily: "\'Poppins\', sans-serif", flexShrink: 0, whiteSpace: "nowrap" }}>
+            + Nova Turma
+          </button>
+          <button onClick={onLogout}
+            style={{ padding: "7px 14px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.2)", background: "none", cursor: "pointer", fontSize: "12px", color: "rgba(255,255,255,0.7)", fontFamily: "\'Poppins\', sans-serif", flexShrink: 0 }}>
             Sair
           </button>
         </div>
       </div>
-      {/* Conteúdo principal */}
-      <div style={{ flex: 1, minWidth: 0, padding: "20px 20px 80px" }}>
-      <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-        <div style={{ background: palette.purple, borderRadius: "18px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", position: "relative", overflow: "hidden", flexWrap: "wrap", gap: "16px" }}>
-          <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: palette.orange, borderRadius: "0 0 0 120px", opacity: 0.15 }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <p style={{ color: palette.lightGreen, fontSize: "12px", fontWeight: 600, marginBottom: "4px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Painel administrativo</p>
-            <h1 style={{ color: "#FFF", fontSize: "22px", fontWeight: 600 }}>Olá, Teacher Mari!</h1>
-          </div>
 
-        </div>
+      {/* Conteúdo principal */}
+      <div style={{ padding: "24px 24px 80px" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
         {avisos.length > 0 && (
           <div style={{ background: "#F7C1C133", border: "1px solid #F7C1C1", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
@@ -1576,36 +1847,132 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: "6px", marginBottom: "20px", flexWrap: "wrap" }}>
-          <button onClick={() => setAbaAdmin("alunos")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "alunos" ? palette.orange : "#FFF", color: abaAdmin === "alunos" ? "#FFF" : palette.purple }}>
-            Alunos
-          </button>
-          <button onClick={() => setAbaAdmin("calendario")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "calendario" ? palette.orange : "#FFF", color: abaAdmin === "calendario" ? "#FFF" : palette.purple }}>
-            Calendário geral
-          </button>
-          <button onClick={() => setAbaAdmin("planejador")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "planejador" ? palette.orange : "#FFF", color: abaAdmin === "planejador" ? "#FFF" : palette.purple }}>
-            📋 Planejador Semanal
-          </button>
-          <button onClick={() => { setAbaAdmin("materiais"); setNivelSelecionado(null); }}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "materiais" ? palette.orange : "#FFF", color: abaAdmin === "materiais" ? "#FFF" : palette.purple }}>
-            Materiais
-          </button>
-          <button onClick={() => setAbaAdmin("certificados")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "certificados" ? palette.orange : "#FFF", color: abaAdmin === "certificados" ? "#FFF" : palette.purple }}>
-            🎓 Certificados
-          </button>
-          <button onClick={() => setAbaAdmin("flashcards")}
-            style={{ padding: "10px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", background: abaAdmin === "flashcards" ? palette.orange : "#FFF", color: abaAdmin === "flashcards" ? "#FFF" : palette.purple }}>
-            🃏 Flashcards
-          </button>
-
+        {/* ── TABS ── */}
+        <div style={{ display: "flex", gap: "6px", marginBottom: "20px", flexWrap: "wrap", background: "#FFF", borderRadius: "14px", padding: "8px 10px", boxShadow: "0 2px 8px rgba(29,16,80,0.06)" }}>
+          {[
+            { id: "alunos", label: "🎓 Portais", badge: null },
+            { id: "aulasHoje", label: "📅 Aulas de Hoje", badge: aulasHoje.filter(a => { const [h,m]=(a.horario||"00:00").split(":").map(Number); return (new Date().getHours()*60+new Date().getMinutes())>h*60+m && a.status==="agendada"; }).length || null },
+            { id: "calendario", label: "📆 Calendário" },
+            { id: "planejador", label: "📋 Planejador" },
+            { id: "materiais", label: "📁 Materiais" },
+            { id: "certificados", label: "🎓 Certificados" },
+            { id: "flashcards", label: "🃏 Flashcards" },
+            { id: "diagnostico", label: "🔍 Diagnóstico" },
+            { id: "backup", label: "💾 Backup" },
+          ].map((tab) => (
+            <button key={tab.id}
+              onClick={() => { if (tab.id === "materiais") setNivelSelecionado(null); setAbaAdmin(tab.id); }}
+              style={{ position: "relative", padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "12px",
+                background: abaAdmin === tab.id ? (tab.id === "diagnostico" ? palette.lavender : palette.purple) : "transparent",
+                color: abaAdmin === tab.id ? (tab.id === "diagnostico" ? palette.purple : "#FFF") : palette.purple + "CC",
+                transition: "all 0.15s" }}>
+              {tab.label}
+              {tab.badge > 0 && (
+                <span style={{ position: "absolute", top: "2px", right: "2px", width: "8px", height: "8px", borderRadius: "50%", background: "#E24B4A" }} />
+              )}
+            </button>
+          ))}
         </div>
 
         {abaAdmin === "planejador" && (
           <PlanejadorSemanalEnxuto students={students} onSelectStudent={onSelectStudent} />
+        )}
+
+        {abaAdmin === "aulasHoje" && (
+          <div>
+            {/* Mini painel de avisos do dia */}
+            {(() => {
+              const agora = new Date();
+              const agoraMins = agora.getHours() * 60 + agora.getMinutes();
+              const semEntrada = aulasHoje.filter(a => { const [h,m]=(a.horario||"00:00").split(":").map(Number); return agoraMins > h*60+m && a.status==="agendada"; });
+              return (
+                <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+                  <div style={{ flex: "1 1 120px", background: palette.purple, borderRadius: "12px", padding: "14px 16px" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 600, color: palette.lavender, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Aulas hoje</p>
+                    <p style={{ fontSize: "26px", fontWeight: 700, color: "#FFF", margin: 0 }}>{aulasHoje.length}</p>
+                  </div>
+                  <div style={{ flex: "1 1 120px", background: semEntrada.length > 0 ? "#FCF0F0" : "#F0FDF4", borderRadius: "12px", padding: "14px 16px", border: semEntrada.length > 0 ? "1.5px solid #E24B4A" : "1.5px solid #BBF7D0" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 600, color: semEntrada.length > 0 ? "#E24B4A" : "#166534", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Sem entrada</p>
+                    <p style={{ fontSize: "26px", fontWeight: 700, color: semEntrada.length > 0 ? "#E24B4A" : "#166534", margin: 0 }}>{semEntrada.length}</p>
+                  </div>
+                  <div style={{ flex: "1 1 120px", background: "#FFF", borderRadius: "12px", padding: "14px 16px", border: "1.5px solid #E8E0F5" }}>
+                    <p style={{ fontSize: "10px", fontWeight: 600, color: palette.purple + "99", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>Amanhã</p>
+                    <p style={{ fontSize: "26px", fontWeight: 700, color: palette.purple, margin: 0 }}>{aulasAmanha.length}</p>
+                  </div>
+                  {reposicoesPendentesLista.length > 0 && (
+                    <div style={{ flex: "1 1 120px", background: "#FFF6EA", borderRadius: "12px", padding: "14px 16px", border: `1.5px solid ${palette.orange}` }}>
+                      <p style={{ fontSize: "10px", fontWeight: 600, color: palette.orange, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>A repor</p>
+                      <p style={{ fontSize: "26px", fontWeight: 700, color: palette.orange, margin: 0 }}>{reposicoesPendentesLista.length}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Aulas de hoje */}
+            <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px", boxShadow: "0 2px 8px rgba(29,16,80,0.05)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, textTransform: "uppercase", letterSpacing: "0.05em" }}>📅 Hoje</p>
+                <p style={{ margin: 0, fontSize: "12px", color: palette.purple + "99" }}>
+                  {(() => { const d = new Date(); const dias = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}`; })()}
+                </p>
+              </div>
+              {aulasHoje.length === 0
+                ? <p style={{ fontSize: "13px", color: palette.purple + "99", fontStyle: "italic" }}>Nenhuma aula agendada pra hoje. Bora descansar 🌴</p>
+                : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {aulasHoje.map((a, i) => {
+                      const agora = new Date();
+                      const [h, m] = (a.horario || "00:00").split(":").map(Number);
+                      const pendente = agora.getHours() * 60 + agora.getMinutes() > h * 60 + m && a.status === "agendada";
+                      let corBadge = palette.lavender, textoBadge = palette.purple, labelStatus = null;
+                      if (pendente) { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "⚠️ SEM ENTRADA"; }
+                      else if (a.status === "realizada") { corBadge = palette.lightGreen; textoBadge = palette.green; labelStatus = "✓ Realizada"; }
+                      else if (a.status === "aRepor") { corBadge = "#FFDDB5"; textoBadge = palette.orange; labelStatus = "A repor"; }
+                      else if (a.status === "perdida") { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "Perdida"; }
+                      else if (a.status === "reposicaoAgendada") { corBadge = palette.lavender; textoBadge = palette.purple; labelStatus = "Reposição"; }
+                      return (
+                        <button key={i} onClick={() => onSelectStudent(a.representante)}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: pendente ? "#FCF0F0" : palette.cream, border: pendente ? "1px solid #E24B4A" : "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
+                            <div style={{ minWidth: 0 }}>
+                              <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                              <p style={{ margin: "2px 0 0", fontSize: "11px", color: palette.purple + "99" }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
+                            </div>
+                          </div>
+                          {labelStatus && <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: corBadge, color: textoBadge, whiteSpace: "nowrap", flexShrink: 0 }}>{labelStatus}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+              }
+            </div>
+
+            {/* Aulas de amanhã */}
+            <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", boxShadow: "0 2px 8px rgba(29,16,80,0.05)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, textTransform: "uppercase", letterSpacing: "0.05em" }}>📆 Amanhã</p>
+                <p style={{ margin: 0, fontSize: "12px", color: palette.purple + "99" }}>
+                  {(() => { const d = new Date(); d.setDate(d.getDate()+1); const dias = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}`; })()}
+                </p>
+              </div>
+              {aulasAmanha.length === 0
+                ? <p style={{ fontSize: "13px", color: palette.purple + "99", fontStyle: "italic" }}>Nenhuma aula amanhã.</p>
+                : <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {aulasAmanha.map((a, i) => (
+                      <button key={i} onClick={() => onSelectStudent(a.representante)}
+                        style={{ display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "12px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.nomes}</p>
+                          <p style={{ margin: "2px 0 0", fontSize: "11px", color: palette.purple + "99" }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+              }
+            </div>
+          </div>
         )}
 
         {abaAdmin === "materiais" && (
@@ -1702,6 +2069,85 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           <FlashcardAdminPanel students={students} />
         )}
 
+        {abaAdmin === "diagnostico" && (
+          <DiagnosticoAdmin students={students} />
+        )}
+
+        {abaAdmin === "backup" && (
+          <div>
+            {/* Toast backup */}
+            {backupAutoStatus === "ok" && (
+              <div style={{ background: palette.lightGreen, borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "16px" }}>✅</span>
+                <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: palette.green }}>Backup semanal automático gerado e salvo no seu dispositivo.</p>
+              </div>
+            )}
+            {backupAutoStatus === "erro" && (
+              <div style={{ background: "#F7C1C1", borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "16px" }}>⚠️</span>
+                <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "#791F1F" }}>Backup automático falhou. Faça um backup manual abaixo.</p>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+              <button onClick={baixarBackupGeral} disabled={exportando}
+                style={{ flex: "1 1 200px", background: "#FFF", borderRadius: "16px", padding: "24px 20px", border: `1.5px solid ${palette.lavender}55`, cursor: exportando ? "default" : "pointer", textAlign: "left", fontFamily: "\'Poppins\', sans-serif", opacity: exportando ? 0.7 : 1, boxShadow: "0 2px 8px rgba(29,16,80,0.06)" }}>
+                <p style={{ fontSize: "28px", margin: "0 0 8px" }}>💾</p>
+                <p style={{ fontSize: "14px", fontWeight: 700, color: palette.purple, margin: "0 0 4px" }}>{exportando ? "Gerando..." : "Backup"}</p>
+                <p style={{ fontSize: "12px", color: palette.purple + "66", margin: "0 0 8px" }}>Exportar JSON completo</p>
+                {(() => {
+                  const ultimo = localStorage.getItem("studenthub_ultimo_backup_auto");
+                  if (!ultimo) return <p style={{ fontSize: "11px", color: "#E24B4A", margin: 0, fontWeight: 600 }}>Nenhum backup automático ainda</p>;
+                  const proximo = new Date(Number(ultimo) + 7 * 24 * 60 * 60 * 1000);
+                  const diasRestantes = Math.ceil((proximo - new Date()) / 86400000);
+                  const label = diasRestantes <= 0 ? "Hoje" : diasRestantes === 1 ? "Amanhã" : `Em ${diasRestantes} dias`;
+                  const cor = diasRestantes <= 1 ? palette.orange : palette.purple + "66";
+                  return <p style={{ fontSize: "11px", color: cor, margin: 0, fontWeight: diasRestantes <= 1 ? 700 : 400 }}>Próximo auto: {label}</p>;
+                })()}
+              </button>
+              <button onClick={() => setModalImportarAberto(true)}
+                style={{ flex: "1 1 200px", background: "#FFF", borderRadius: "16px", padding: "24px 20px", border: `1.5px solid ${palette.lavender}55`, cursor: "pointer", textAlign: "left", fontFamily: "\'Poppins\', sans-serif", boxShadow: "0 2px 8px rgba(29,16,80,0.06)" }}>
+                <p style={{ fontSize: "28px", margin: "0 0 8px" }}>📥</p>
+                <p style={{ fontSize: "14px", fontWeight: 700, color: palette.purple, margin: "0 0 4px" }}>Restaurar</p>
+                <p style={{ fontSize: "12px", color: palette.purple + "66", margin: 0 }}>Importar JSON de backup</p>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de importação (backup tab) */}
+        {modalImportarAberto && (
+          <div onClick={() => !importando && setModalImportarAberto(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(29,16,80,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", zIndex: 1000 }}>
+            <div onClick={(e) => e.stopPropagation()}
+              style={{ background: "#FFF", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "480px", boxShadow: "0 24px 60px rgba(29,16,80,0.2)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: palette.purple }}>📥 Restaurar backup</p>
+                {!importando && (
+                  <button onClick={() => setModalImportarAberto(false)}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "22px", color: palette.purple, lineHeight: 1, padding: "2px 8px" }}>×</button>
+                )}
+              </div>
+              <div style={{ background: "#FFF6EA", border: `1px solid ${palette.orange}`, borderRadius: "10px", padding: "12px 14px", marginBottom: "20px" }}>
+                <p style={{ margin: 0, fontSize: "12px", color: palette.purple, lineHeight: 1.6 }}>
+                  ⚠️ <strong>Atenção:</strong> a importação <strong>sobrescreve</strong> os dados existentes. Use apenas arquivos de backup gerados pelo próprio StudentHub.
+                </p>
+              </div>
+              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "28px", borderRadius: "12px", border: `2px dashed ${palette.lavender}`, cursor: importando ? "default" : "pointer", background: palette.cream }}>
+                <span style={{ fontSize: "32px" }}>📂</span>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: palette.purple }}>
+                  {importando ? "Importando, aguarde..." : "Clique para selecionar o arquivo JSON"}
+                </span>
+                <span style={{ fontSize: "11px", color: `${palette.purple}99` }}>backup-studenthub-AAAA-MM-DD.json</span>
+                <input type="file" accept="application/json,.json" disabled={importando} style={{ display: "none" }}
+                  onChange={(e) => e.target.files[0] && importarBackup(e.target.files[0])} />
+              </label>
+              {importando && (
+                <p style={{ textAlign: "center", fontSize: "12px", color: `${palette.purple}99`, marginTop: "12px" }}>Restaurando dados no Supabase...</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {abaAdmin === "calendario" && (
           <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px" }}>
             <p style={{ marginBottom: "6px", fontSize: "14px", fontWeight: 600, color: palette.purple }}>Dias sem aula</p>
@@ -1760,197 +2206,78 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         {abaAdmin === "alunos" && (
         <React.Fragment>
 
-        {/* ── DASHBOARD — métricas no topo ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "20px" }}>
-          <div style={{ background: palette.purple, borderRadius: "14px", padding: "16px 18px" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: `${palette.lavender}CC`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Alunos</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: "#FFF", margin: 0 }}>{students.length}</p>
-            <p style={{ fontSize: "11px", color: `${palette.lavender}99`, margin: "4px 0 0 0" }}>{new Set(students.map((s) => s.turma_id).filter(Boolean)).size} turmas</p>
-          </div>
-          <div style={{ background: aulasHoje.length > 0 ? palette.orange : "#FFF", borderRadius: "14px", padding: "16px 18px" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: aulasHoje.length > 0 ? "rgba(255,255,255,0.75)" : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Hoje</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: aulasHoje.length > 0 ? "#FFF" : palette.purple, margin: 0 }}>{aulasHoje.length}</p>
-            <p style={{ fontSize: "11px", color: aulasHoje.length > 0 ? "rgba(255,255,255,0.7)" : `${palette.purple}66`, margin: "4px 0 0 0" }}>{aulasHoje.length === 1 ? "aula" : "aulas"}</p>
-          </div>
-          <div style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Amanhã</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: palette.purple, margin: 0 }}>{aulasAmanha.length}</p>
-            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "4px 0 0 0" }}>{aulasAmanha.length === 1 ? "aula" : "aulas"}</p>
-          </div>
-          <button onClick={() => cobrancasAbertoLista.length > 0 && setModalAberto("cobrancas")} disabled={cobrancasAbertoLista.length === 0}
-            style={{ background: cobrancasAbertoLista.length > 0 ? "#FCF0F0" : "#FFF", borderRadius: "14px", padding: "16px 18px", border: cobrancasAbertoLista.length > 0 ? "1.5px solid #E24B4A" : "none", cursor: cobrancasAbertoLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Em aberto</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: cobrancasAbertoLista.length > 0 ? "#E24B4A" : palette.purple, margin: 0 }}>{cobrancasAbertoLista.length}</p>
-            <p style={{ fontSize: "11px", color: cobrancasAbertoLista.length > 0 ? "#E24B4A99" : `${palette.purple}66`, margin: "4px 0 0 0" }}>{cobrancasAbertoLista.length > 0 ? "ver quem →" : "cobranças"}</p>
-          </button>
-          <button onClick={() => reposicoesPendentesLista.length > 0 && setModalAberto("reposicoes")} disabled={reposicoesPendentesLista.length === 0}
-            style={{ background: reposicoesPendentesLista.length > 0 ? "#FFF6EA" : "#FFF", borderRadius: "14px", padding: "16px 18px", border: reposicoesPendentesLista.length > 0 ? `1.5px solid ${palette.orange}` : "none", cursor: reposicoesPendentesLista.length > 0 ? "pointer" : "default", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: reposicoesPendentesLista.length > 0 ? palette.orange : `${palette.purple}99`, margin: "0 0 4px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>Reposições</p>
-            <p style={{ fontSize: "28px", fontWeight: 700, color: reposicoesPendentesLista.length > 0 ? palette.orange : palette.purple, margin: 0 }}>{reposicoesPendentesLista.length}</p>
-            <p style={{ fontSize: "11px", color: reposicoesPendentesLista.length > 0 ? `${palette.orange}99` : `${palette.purple}66`, margin: "4px 0 0 0" }}>{reposicoesPendentesLista.length > 0 ? "ver quem →" : "pendentes"}</p>
-          </button>
-          {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).length > 0 && (
-            <div style={{ background: "linear-gradient(135deg, #FFDDB5, #FFE8CC)", borderRadius: "14px", padding: "16px 18px", border: `1.5px solid ${palette.orange}` }}>
-              <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, margin: "0 0 6px 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>🎂 Aniversário</p>
-              {aniversariantes.filter((a) => a.isHoje || a.diasAte === 1).map((a, i) => (
-                <button key={i} onClick={() => onSelectStudent(a.aluno)}
-                  style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: "0 0 4px 0", fontFamily: "'Poppins', sans-serif" }}>
-                  <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple }}>{a.nome}</p>
-                  <p style={{ margin: 0, fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{a.isHoje ? "🎉 HOJE!" : "📅 Amanhã"}</p>
-                </button>
-              ))}
-            </div>
-          )}
-          <button onClick={baixarBackupGeral} disabled={exportando}
-            style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px", border: `1px solid ${palette.lavender}55`, cursor: exportando ? "default" : "pointer", textAlign: "left", fontFamily: "'Poppins', sans-serif", opacity: exportando ? 0.7 : 1 }}>
-            <p style={{ fontSize: "20px", margin: "0 0 4px 0" }}>💾</p>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, margin: 0 }}>{exportando ? "Gerando..." : "Backup"}</p>
-            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "2px 0 0 0" }}>Exportar JSON</p>
-            {(() => {
-              const ultimo = localStorage.getItem("studenthub_ultimo_backup_auto");
-              if (!ultimo) return <p style={{ fontSize: "10px", color: "#E24B4A", margin: "6px 0 0 0", fontWeight: 600 }}>Nenhum backup automático ainda</p>;
-              const proximo = new Date(Number(ultimo) + 7 * 24 * 60 * 60 * 1000);
-              const hoje = new Date();
-              const diasRestantes = Math.ceil((proximo - hoje) / 86400000);
-              const label = diasRestantes <= 0 ? "Hoje" : diasRestantes === 1 ? "Amanhã" : `Em ${diasRestantes} dias`;
-              const cor = diasRestantes <= 1 ? palette.orange : `${palette.purple}66`;
-              return <p style={{ fontSize: "10px", color: cor, margin: "6px 0 0 0", fontWeight: diasRestantes <= 1 ? 700 : 400 }}>Próximo auto: {label}</p>;
-            })()}
-          </button>
-          <button onClick={() => setModalImportarAberto(true)}
-            style={{ background: "#FFF", borderRadius: "14px", padding: "16px 18px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", textAlign: "left", fontFamily: "'Poppins', sans-serif" }}>
-            <p style={{ fontSize: "20px", margin: "0 0 4px 0" }}>📥</p>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, margin: 0 }}>Restaurar</p>
-            <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "2px 0 0 0" }}>Importar JSON</p>
-          </button>
-        </div>
-
-        {/* Toast de backup automático */}
-        {backupAutoStatus === "ok" && (
-          <div style={{ background: palette.lightGreen, borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "16px" }}>✅</span>
-            <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: palette.green }}>Backup semanal automático gerado e salvo no seu dispositivo.</p>
-          </div>
-        )}
-        {backupAutoStatus === "erro" && (
-          <div style={{ background: "#F7C1C1", borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "16px" }}>⚠️</span>
-            <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "#791F1F" }}>Backup automático falhou. Faça um backup manual pelo card acima.</p>
-          </div>
-        )}
-
-        {/* Modal de importação */}
-        {modalImportarAberto && (
-          <div onClick={() => !importando && setModalImportarAberto(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(29,16,80,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", zIndex: 1000 }}>
-            <div onClick={(e) => e.stopPropagation()}
-              style={{ background: "#FFF", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "480px", boxShadow: "0 24px 60px rgba(29,16,80,0.2)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: palette.purple }}>📥 Restaurar backup</p>
-                {!importando && (
-                  <button onClick={() => setModalImportarAberto(false)}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "22px", color: palette.purple, lineHeight: 1, padding: "2px 8px" }}>×</button>
-                )}
-              </div>
-              <div style={{ background: "#FFF6EA", border: `1px solid ${palette.orange}`, borderRadius: "10px", padding: "12px 14px", marginBottom: "20px" }}>
-                <p style={{ margin: 0, fontSize: "12px", color: palette.purple, lineHeight: 1.6 }}>
-                  ⚠️ <strong>Atenção:</strong> a importação <strong>sobrescreve</strong> os dados existentes. Use apenas arquivos de backup gerados pelo próprio StudentHub. Uma confirmação será pedida antes de prosseguir.
-                </p>
-              </div>
-              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "28px", borderRadius: "12px", border: `2px dashed ${palette.lavender}`, cursor: importando ? "default" : "pointer", background: palette.cream }}>
-                <span style={{ fontSize: "32px" }}>📂</span>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: palette.purple }}>
-                  {importando ? "Importando, aguarde..." : "Clique para selecionar o arquivo JSON"}
-                </span>
-                <span style={{ fontSize: "11px", color: `${palette.purple}99` }}>backup-studenthub-AAAA-MM-DD.json</span>
-                <input type="file" accept="application/json,.json" disabled={importando} style={{ display: "none" }}
-                  onChange={(e) => e.target.files[0] && importarBackup(e.target.files[0])} />
-              </label>
-              {importando && (
-                <p style={{ textAlign: "center", fontSize: "12px", color: `${palette.purple}99`, marginTop: "12px" }}>Restaurando dados no Supabase...</p>
+        {/* ── PORTAIS DOS ALUNOS — cards ── */}
+        {(() => {
+          const normalizar = (t) => (t||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+          const termo = normalizar(buscaTurma.trim());
+          const turmasMap = new Map();
+          const semTurma = [];
+          students.forEach((s) => {
+            if (!s.turma_id) { semTurma.push(s); return; }
+            if (!turmasMap.has(s.turma_id)) turmasMap.set(s.turma_id, []);
+            turmasMap.get(s.turma_id).push(s);
+          });
+          const entradas = [
+            ...Array.from(turmasMap.values()).map((alunos) => {
+              const ord = [...alunos].sort((a,b) => a.nome.localeCompare(b.nome));
+              const primeiroNome = (n) => n.split(" ")[0];
+              const label = ord.length === 1 ? ord[0].nome : ord.map((a) => primeiroNome(a.nome)).join(" + ");
+              const rep = ord[0];
+              const nivel = rep.turmas ? rep.turmas.nivel || rep.nivel : rep.nivel;
+              // Último acesso via turmas
+              return { rep, label, alunos: ord, nivel };
+            }),
+            ...semTurma.map((s) => ({ rep: s, label: s.nome, alunos: [s], nivel: s.nivel })),
+          ].sort((a,b) => a.label.localeCompare(b.label));
+          const filtradas = termo ? entradas.filter((e) => normalizar(e.label).includes(termo) || e.alunos.some(a => normalizar(a.nome).includes(termo))) : entradas;
+          const corNivel = corPorNivel || {};
+          return (
+            <div>
+              {filtradas.length === 0 && (
+                <p style={{ fontSize: "13px", color: palette.purple+"99", padding: "20px 0", textAlign: "center" }}>Nenhum aluno encontrado.</p>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* ── Aulas de hoje ── */}
-        <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
-            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📅 Aulas de hoje</p>
-            <p style={{ margin: 0, fontSize: "12px", color: `${palette.purple}99` }}>
-              {(() => { const d = new Date(); const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}`; })()}
-            </p>
-          </div>
-          {aulasHoje.length === 0 ? (
-            <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic", margin: 0 }}>Nenhuma aula agendada pra hoje. Bora descansar 🌴</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {aulasHoje.map((a, i) => {
-                const agora = new Date();
-                const [h, m] = (a.horario || "00:00").split(":").map(Number);
-                const horarioMinutos = h * 60 + m;
-                const agoraMinutos = agora.getHours() * 60 + agora.getMinutes();
-                const horarioPassou = agoraMinutos > horarioMinutos;
-                const pendente = horarioPassou && a.status === "agendada";
-                let corBadge = palette.lavender, textoBadge = palette.purple, labelStatus = null;
-                if (pendente) { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "⚠️ SEM ENTRADA"; }
-                else if (a.status === "realizada") { corBadge = palette.lightGreen; textoBadge = palette.green; labelStatus = "✓ Realizada"; }
-                else if (a.status === "aRepor") { corBadge = "#FFDDB5"; textoBadge = palette.orange; labelStatus = "A repor"; }
-                else if (a.status === "perdida") { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "Perdida"; }
-                else if (a.status === "reposicaoAgendada") { corBadge = palette.lavender; textoBadge = palette.purple; labelStatus = "Reposição"; }
-                return (
-                  <button key={i} onClick={() => onSelectStudent(a.representante)}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: pendente ? "#FCF0F0" : palette.cream, border: pendente ? `1px solid #E24B4A` : "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "10px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {a.nomes}
-                          {a.vindaDe && <span style={{ fontSize: "10px", fontWeight: 500, color: palette.orange, marginLeft: "6px" }}>· 🔁 vinda de {a.vindaDe}</span>}
-                        </p>
-                        <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "14px", marginBottom: "24px" }}>
+                {filtradas.map((e) => {
+                  const nv = e.nivel || "Beginner";
+                  const cor = corNivel[nv] || { bg: "#F5F3FF", text: palette.purple, border: palette.lavender+"44" };
+                  const alertas = alertasPorTurma[e.rep.turma_id] || [];
+                  const temCobranca = alertas.includes("cobranca");
+                  const temReposicao = alertas.includes("reposicao");
+                  const turma = e.rep.turmas;
+                  const unidade = turma && turma.unidade_atual ? turma.unidade_atual : null;
+                  const diasH = turma && turma.dias_horarios ? (Array.isArray(turma.dias_horarios) ? turma.dias_horarios : JSON.parse(turma.dias_horarios||"[]")) : [];
+                  const horarioLabel = diasH.length > 0 ? diasH.map(dh => `${dh.dia} ${dh.horario}`).join(", ") : null;
+                  return (
+                    <button key={e.rep.id} onClick={() => onSelectStudent(e.rep)}
+                      style={{ background: "#FFF", borderRadius: "16px", padding: "18px 16px", border: `1.5px solid ${(temCobranca||temReposicao) ? "#E24B4A" : "#EEE8FC"}`, cursor: "pointer", textAlign: "left", fontFamily: "\'Poppins\', sans-serif", transition: "all 0.15s", boxShadow: "0 2px 8px rgba(29,16,80,0.05)", position: "relative" }}>
+                      {/* Badge alerta */}
+                      {(temCobranca || temReposicao) && (
+                        <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", gap: "4px" }}>
+                          {temCobranca && <span style={{ fontSize: "10px", fontWeight: 700, background: "#FCF0F0", color: "#E24B4A", borderRadius: "20px", padding: "2px 7px" }}>💳</span>}
+                          {temReposicao && <span style={{ fontSize: "10px", fontWeight: 700, background: "#FFF6EA", color: palette.orange, borderRadius: "20px", padding: "2px 7px" }}>🔄</span>}
+                        </div>
+                      )}
+                      {/* Avatar */}
+                      <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: cor.bg, border: `2px solid ${cor.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "18px", fontWeight: 700, color: cor.text }}>
+                          {e.alunos.length === 1 ? (e.alunos[0].nome||"?")[0].toUpperCase() : "👥"}
+                        </span>
                       </div>
-                    </div>
-                    {labelStatus && (
-                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: corBadge, color: textoBadge, whiteSpace: "nowrap", flexShrink: 0 }}>
-                        {labelStatus}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                      {/* Nome */}
+                      <p style={{ margin: "0 0 4px", fontSize: "14px", fontWeight: 700, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: (temCobranca||temReposicao) ? "60px" : "0" }}>{e.label}</p>
+                      {/* Nível badge */}
+                      <span style={{ display: "inline-block", fontSize: "10px", fontWeight: 700, background: cor.bg, color: cor.text, borderRadius: "20px", padding: "2px 8px", marginBottom: "8px", border: `1px solid ${cor.border}` }}>{nv}</span>
+                      {/* Unidade */}
+                      {unidade && <p style={{ margin: "0 0 2px", fontSize: "11px", color: palette.purple+"88" }}>📖 {unidade}</p>}
+                      {/* Horário */}
+                      {horarioLabel && <p style={{ margin: 0, fontSize: "11px", color: palette.purple+"66", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>🕐 {horarioLabel}</p>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Aulas de amanhã */}
-        <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
-            <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: palette.purple, letterSpacing: "0.05em", textTransform: "uppercase" }}>📆 Aulas de amanhã</p>
-            <p style={{ margin: 0, fontSize: "12px", color: `${palette.purple}99` }}>
-              {(() => { const d = new Date(); d.setDate(d.getDate() + 1); const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]; return `${dias[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}`; })()}
-            </p>
-          </div>
-          {aulasAmanha.length === 0 ? (
-            <p style={{ fontSize: "13px", color: `${palette.purple}99`, fontStyle: "italic", margin: 0 }}>Nenhuma aula agendada pra amanhã.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {aulasAmanha.map((a, i) => (
-                <button key={i} onClick={() => onSelectStudent(a.representante)}
-                  style={{ display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left", gap: "12px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: palette.purple, minWidth: "50px" }}>{a.horario}</span>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {a.nomes}
-                      {a.vindaDe && <span style={{ fontSize: "10px", fontWeight: 500, color: palette.orange, marginLeft: "6px" }}>· 🔁 vinda de {a.vindaDe}</span>}
-                    </p>
-                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.nivel}{a.unidade ? ` · ${a.unidade}` : ""}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* Aniversariantes */}
         {aniversariantes.filter((a) => !a.isHoje && a.diasAte !== 1).length > 0 && (
@@ -1962,7 +2289,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                   style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "10px", background: palette.cream, border: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
                   <div>
                     <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{a.nome}</p>
-                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>{a.dia}/{a.mes + 1} · em {a.diasAte} dias</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: palette.purple+"99" }}>{a.dia}/{a.mes + 1} · em {a.diasAte} dias</p>
                   </div>
                   <span style={{ fontSize: "18px" }}>🗓️</span>
                 </button>
@@ -1971,7 +2298,135 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </div>
         )}
 
+        {/* FORM Nova Turma */}
+        <div id="form-nova-turma" style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: mostrarForm ? "16px" : "0" }}>
+            <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>Cadastrar nova turma</p>
+            <button onClick={() => setMostrarForm(!mostrarForm)}
+              style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
+              {mostrarForm ? "Fechar" : "+ Nova turma"}
+            </button>
+          </div>
 
+          {mostrarForm && (
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Modalidade</label>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+                {["individual", "dupla", "grupo"].map((m) => (
+                  <button key={m} onClick={() => mudarModalidade(m)}
+                    style={{ flex: 1, padding: "9px", borderRadius: "8px", border: novaTurma.modalidade === m ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: novaTurma.modalidade === m ? palette.cream : "#FFF", color: palette.purple, textTransform: "capitalize" }}>
+                    {m === "grupo" ? "Grupo (3-6)" : m}
+                  </button>
+                ))}
+              </div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Frequência</label>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+                {["1x", "2x"].map((f) => (
+                  <button key={f} onClick={() => setNovaTurma((t) => ({ ...t, frequencia: f }))}
+                    style={{ flex: 1, padding: "9px", borderRadius: "8px", border: novaTurma.frequencia === f ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: novaTurma.frequencia === f ? palette.cream : "#FFF", color: palette.purple }}>
+                    {f} por semana
+                  </button>
+                ))}
+              </div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Dia(s) e horário(s)</label>
+              {novaTurma.diasHorarios.map((dh, i) => (
+                <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                  <select value={dh.dia} onChange={(e) => atualizarHorario(i, "dia", e.target.value)}
+                    style={{ flex: 2, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif" }}>
+                    {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((d) => <option key={d}>{d}</option>)}
+                  </select>
+                  <input type="time" value={dh.horario} onChange={(e) => atualizarHorario(i, "horario", e.target.value)}
+                    style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif" }} />
+                  {novaTurma.diasHorarios.length > 1 && (
+                    <button onClick={() => removerHorario(i)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", cursor: "pointer", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600 }}>×</button>
+                  )}
+                </div>
+              ))}
+              <button onClick={adicionarHorario} style={{ marginBottom: "14px", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#FFF", color: palette.purple }}>
+                + adicionar horário
+              </button>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Nível</label>
+              <select value={novaTurma.nivel} onChange={(e) => setNovaTurma((t) => ({ ...t, nivel: e.target.value }))}
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "16px" }}>
+                <option>Beginner</option>
+                <option>Elementary</option>
+                <option>Pre-Intermediate</option>
+                <option>Private Advanced Practice</option>
+              </select>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de início das aulas</label>
+              <input type="date" value={novaTurma.dataInicio} onChange={(e) => setNovaTurma((t) => ({ ...t, dataInicio: e.target.value }))}
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "6px" }} />
+              <p style={{ fontSize: "11px", color: palette.purple+"99", marginBottom: "16px" }}>Pode ser uma data retroativa — o calendário é gerado a partir dela.</p>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de término — opcional</label>
+              <input type="date" value={novaTurma.dataFim} onChange={(e) => setNovaTurma((t) => ({ ...t, dataFim: e.target.value }))}
+                min={novaTurma.dataInicio}
+                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "6px" }} />
+              <p style={{ fontSize: "11px", color: palette.purple+"99", marginBottom: "16px" }}>Deixe em branco pra aulas até o fim do ano.</p>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "10px" }}>
+                {novaTurma.modalidade === "individual" ? "Dados do aluno" : `Alunos da turma (${novaTurma.alunos.length})`}
+              </p>
+              {novaTurma.alunos.map((a, i) => (
+                <div key={i} style={{ background: palette.cream, borderRadius: "10px", padding: "12px", marginBottom: "10px" }}>
+                  {novaTurma.modalidade === "grupo" && (
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: palette.purple+"99" }}>Aluno {i + 1}</span>
+                      {novaTurma.alunos.length > 3 && (
+                        <button onClick={() => removerAlunoGrupo(i)} style={{ fontSize: "11px", color: "#E24B4A", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>remover</button>
+                      )}
+                    </div>
+                  )}
+                  <input type="text" value={a.nome} onChange={(e) => atualizarAluno(i, "nome", e.target.value)}
+                    placeholder="Nome do aluno"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "8px" }} />
+                  <input type="email" value={a.email} onChange={(e) => atualizarAluno(i, "email", e.target.value)}
+                    placeholder="E-mail"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "8px" }} />
+                  <input type="text" value={a.senha} onChange={(e) => atualizarAluno(i, "senha", e.target.value)}
+                    placeholder="Senha provisória (mín. 6 caracteres)"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "8px" }} />
+                  <input type="tel" value={a.telefone} onChange={(e) => atualizarAluno(i, "telefone", e.target.value)}
+                    placeholder="WhatsApp (com código do país, ex: 5511999999999)"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "8px" }} />
+                  <input type="date" value={a.aniversario} onChange={(e) => atualizarAluno(i, "aniversario", e.target.value)}
+                    placeholder="Aniversário"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif" }} />
+                </div>
+              ))}
+              {novaTurma.modalidade === "grupo" && novaTurma.alunos.length < 6 && (
+                <button onClick={adicionarAlunoGrupo} style={{ marginBottom: "14px", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#FFF", color: palette.purple }}>
+                  + adicionar aluno
+                </button>
+              )}
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Link da aula (Google Meet, Zoom…)</label>
+              <input type="url" value={novaTurma.linkAula} onChange={(e) => setNovaTurma((t) => ({ ...t, linkAula: e.target.value }))}
+                placeholder="https://meet.google.com/..."
+                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "\'Poppins\', sans-serif", marginBottom: "16px" }} />
+              {statusForm.tipo === "erro" && (
+                <div style={{ background: "#FCF0F0", border: "1px solid #F7C1C1", borderRadius: "8px", padding: "10px 12px", marginBottom: "12px" }}>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#791F1F" }}>{statusForm.texto}</p>
+                </div>
+              )}
+              {statusForm.tipo === "sucesso" && (
+                <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", padding: "10px 12px", marginBottom: "12px" }}>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#166534", fontWeight: 600 }}>✅ {statusForm.texto}</p>
+                  {statusForm.whatsappLinks && statusForm.whatsappLinks.map((l, i) => (
+                    <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
+                      style={{ display: "inline-block", marginTop: "8px", marginRight: "8px", padding: "6px 12px", borderRadius: "8px", background: "#25D366", color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                      📲 Enviar acesso pra {l.nome}
+                    </a>
+                  ))}
+                </div>
+              )}
+              <button onClick={cadastrarTurma} disabled={enviando}
+                style={{ padding: "10px 18px", borderRadius: "8px", border: "none", cursor: enviando ? "default" : "pointer", fontSize: "13px", fontWeight: 700, background: palette.purple, color: "#FFF", fontFamily: "\'Poppins\', sans-serif", opacity: enviando ? 0.7 : 1 }}>
+                {enviando ? "Cadastrando..." : "Cadastrar turma"}
+              </button>
+              <p style={{ fontSize: "11px", color: palette.purple+"99", marginTop: "8px" }}>
+                {novaTurma.modalidade === "individual" ? "O aluno terá seu próprio portal de acesso." : "Cada aluno terá seu próprio acesso ao portal."}
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Modal — Cobranças em aberto */}
         {modalAberto === "cobrancas" && (
@@ -2045,148 +2500,6 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           </div>
         )}
 
-        <div style={{ background: "#FFF", borderRadius: "16px", padding: "20px", marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: mostrarForm ? "16px" : "0" }}>
-            <p style={{ fontSize: "14px", fontWeight: 600, color: palette.purple }}>Cadastrar turma</p>
-            <button onClick={() => setMostrarForm(!mostrarForm)}
-              style={{ padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
-              {mostrarForm ? "Fechar" : "+ Nova turma"}
-            </button>
-          </div>
-
-          {mostrarForm && (
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Modalidade</label>
-              <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
-                {["individual", "dupla", "grupo"].map((m) => (
-                  <button key={m} onClick={() => mudarModalidade(m)}
-                    style={{ flex: 1, padding: "9px", borderRadius: "8px", border: novaTurma.modalidade === m ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: novaTurma.modalidade === m ? palette.cream : "#FFF", color: palette.purple, textTransform: "capitalize" }}>
-                    {m === "grupo" ? "Grupo (3-6)" : m}
-                  </button>
-                ))}
-              </div>
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Frequência</label>
-              <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
-                {["1x", "2x"].map((f) => (
-                  <button key={f} onClick={() => setNovaTurma((t) => ({ ...t, frequencia: f }))}
-                    style={{ flex: 1, padding: "9px", borderRadius: "8px", border: novaTurma.frequencia === f ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: novaTurma.frequencia === f ? palette.cream : "#FFF", color: palette.purple }}>
-                    {f} por semana
-                  </button>
-                ))}
-              </div>
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Dia(s) e horário(s)</label>
-              {novaTurma.diasHorarios.map((dh, i) => (
-                <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                  <select value={dh.dia} onChange={(e) => atualizarHorario(i, "dia", e.target.value)}
-                    style={{ flex: 2, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }}>
-                    {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((d) => <option key={d}>{d}</option>)}
-                  </select>
-                  <input type="time" value={dh.horario} onChange={(e) => atualizarHorario(i, "horario", e.target.value)}
-                    style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
-                  {novaTurma.diasHorarios.length > 1 && (
-                    <button onClick={() => removerHorario(i)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", cursor: "pointer", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600 }}>×</button>
-                  )}
-                </div>
-              ))}
-              <button onClick={adicionarHorario} style={{ marginBottom: "14px", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#FFF", color: palette.purple }}>
-                + adicionar horário
-              </button>
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Nível</label>
-              <select value={novaTurma.nivel} onChange={(e) => setNovaTurma((t) => ({ ...t, nivel: e.target.value }))}
-                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "16px" }}>
-                <option>Beginner</option>
-                <option>Elementary</option>
-                <option>Pre-Intermediate</option>
-                <option>Private Advanced Practice</option>
-              </select>
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de início das aulas</label>
-              <input type="date" value={novaTurma.dataInicio} onChange={(e) => setNovaTurma((t) => ({ ...t, dataInicio: e.target.value }))}
-                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
-              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "16px" }}>
-                Pode ser uma data retroativa — o calendário é gerado a partir dela.
-              </p>
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Data de término das aulas — opcional</label>
-              <input type="date" value={novaTurma.dataFim} onChange={(e) => setNovaTurma((t) => ({ ...t, dataFim: e.target.value }))}
-                min={novaTurma.dataInicio}
-                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "6px" }} />
-              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginBottom: "16px" }}>
-                Deixe em branco pra aulas até o fim do ano. Preencha só se este aluno vai estudar por período limitado (1 semana, 1 mês etc.).
-              </p>
-
-              <p style={{ fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "10px" }}>
-                {novaTurma.modalidade === "individual" ? "Dados do aluno" : `Alunos da turma (${novaTurma.alunos.length})`}
-              </p>
-
-              {novaTurma.alunos.map((a, i) => (
-                <div key={i} style={{ background: palette.cream, borderRadius: "10px", padding: "12px", marginBottom: "10px" }}>
-                  {novaTurma.modalidade === "grupo" && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <span style={{ fontSize: "11px", fontWeight: 600, color: `${palette.purple}99` }}>Aluno {i + 1}</span>
-                      {novaTurma.alunos.length > 3 && (
-                        <button onClick={() => removerAlunoGrupo(i)} style={{ fontSize: "11px", color: "#E24B4A", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>remover</button>
-                      )}
-                    </div>
-                  )}
-                  <input type="text" value={a.nome} onChange={(e) => atualizarAluno(i, "nome", e.target.value)}
-                    placeholder="Nome do aluno"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                  <input type="email" value={a.email} onChange={(e) => atualizarAluno(i, "email", e.target.value)}
-                    placeholder="E-mail"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                  <input type="text" value={a.senha} onChange={(e) => atualizarAluno(i, "senha", e.target.value)}
-                    placeholder="Senha provisória (mín. 6 caracteres)"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                  <input type="tel" value={a.telefone} onChange={(e) => atualizarAluno(i, "telefone", e.target.value)}
-                    placeholder="Telefone WhatsApp (opcional)"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "8px" }} />
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: `${palette.purple}99`, marginBottom: "4px" }}>Aniversário (opcional)</label>
-                  <input type="date" value={a.aniversario || ""} onChange={(e) => atualizarAluno(i, "aniversario", e.target.value)}
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
-                </div>
-              ))}
-
-              {novaTurma.modalidade === "grupo" && novaTurma.alunos.length < 6 && (
-                <button onClick={adicionarAlunoGrupo} style={{ marginBottom: "16px", padding: "6px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, cursor: "pointer", fontSize: "12px", fontWeight: 600, background: "#FFF", color: palette.purple }}>
-                  + adicionar aluno
-                </button>
-              )}
-
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>Link da aula ao vivo — opcional</label>
-              <input type="url" value={novaTurma.linkAula} onChange={(e) => setNovaTurma((t) => ({ ...t, linkAula: e.target.value }))}
-                placeholder="https://meet.google.com/..."
-                style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "16px" }} />
-
-              {statusForm.texto && (
-                <div style={{ marginBottom: "12px" }}>
-                  <p style={{ fontSize: "12px", color: statusForm.tipo === "erro" ? "#E24B4A" : palette.green, margin: 0 }}>{statusForm.texto}</p>
-                  {statusForm.whatsappLinks && statusForm.whatsappLinks.length > 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
-                      {statusForm.whatsappLinks.map((w, i) => (
-                        <a key={i} href={w.url} target="_blank" rel="noopener noreferrer"
-                          style={{ display: "inline-block", padding: "8px 14px", borderRadius: "8px", background: "#25D366", color: "#FFF", fontSize: "12px", fontWeight: 600, textDecoration: "none", width: "fit-content" }}>
-                          Enviar credenciais pra {w.nome} no WhatsApp
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button onClick={cadastrarTurma} disabled={enviando}
-                style={{ padding: "10px 18px", borderRadius: "8px", border: "none", cursor: enviando ? "default" : "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF", opacity: enviando ? 0.7 : 1 }}>
-                {enviando ? "Cadastrando..." : "Cadastrar turma"}
-              </button>
-              <p style={{ fontSize: "11px", color: `${palette.purple}99`, marginTop: "10px" }}>
-                {novaTurma.modalidade === "individual" ? "O aluno terá seu próprio portal." : "Todos os alunos da turma acessam o mesmo calendário, homework e financeiro."}
-              </p>
-            </div>
-          )}
-        </div>
 
         </React.Fragment>
         )}
