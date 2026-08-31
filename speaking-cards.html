@@ -611,6 +611,156 @@
     .remove-card{align-self:flex-end;}
   }
 
+  /* ---------- FOLDERS ---------- */
+  .folder-block{
+    background:var(--cream);
+    border-radius:20px;
+    margin-bottom:16px;
+    box-shadow:0 4px 0 rgba(29,16,80,0.12);
+    border:2px solid transparent;
+    transition:.15s;
+  }
+  .folder-block.drag-over{border-color:var(--orange);background:#fff4ee;}
+  .folder-block.drag-over-subfolder{border-color:var(--lavender);}
+  .folder-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 18px;
+    cursor:pointer;
+    user-select:none;
+    border-radius:18px;
+  }
+  .folder-header:hover .folder-name{color:var(--orange);}
+  .folder-chevron{
+    font-size:12px;
+    color:#8a7e6d;
+    transition:transform .2s;
+    flex-shrink:0;
+  }
+  .folder-block.open > .folder-header .folder-chevron{ transform:rotate(90deg); }
+  .folder-icon{ font-size:20px; flex-shrink:0; }
+  .folder-name{
+    font-weight:700;
+    font-size:15px;
+    color:var(--purple);
+    flex:1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .folder-count{ font-size:12px; color:#8a7e6d; flex-shrink:0; }
+  .folder-menu-btn{
+    background:none;border:none;cursor:pointer;
+    font-size:18px;color:#8a7e6d;padding:4px 6px;border-radius:8px;
+    flex-shrink:0;
+  }
+  .folder-menu-btn:hover{background:#e3d4bd;color:var(--purple);}
+  .folder-body{
+    display:none;
+    padding:0 14px 14px;
+  }
+  .folder-block.open > .folder-body{ display:block; }
+  .subfolder-area{
+    margin-bottom:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .subfolder-block{
+    background:var(--white);
+    border-radius:14px;
+    border:2px solid transparent;
+    transition:.15s;
+  }
+  .subfolder-block.drag-over{border-color:var(--orange);background:#fff4ee;}
+  .subfolder-block > .folder-header{
+    padding:10px 14px;
+  }
+  .subfolder-block > .folder-header .folder-name{font-size:13px;}
+  .subfolder-block > .folder-body{
+    padding:0 10px 10px;
+  }
+  .subfolder-block.open > .folder-body{ display:block; }
+  .subfolder-block > .folder-header .folder-chevron{ transform:none; }
+  .subfolder-block.open > .folder-header .folder-chevron{ transform:rotate(90deg); }
+
+  /* sets inside a folder use the same grid */
+  .folder-sets-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:12px;
+    min-height:48px;
+  }
+  .folder-sets-grid.drop-target-active{
+    background:rgba(255,92,35,0.06);
+    border-radius:12px;
+    outline:2px dashed var(--orange);
+    outline-offset:4px;
+  }
+
+  /* Set card drag state */
+  .set-card.dragging{ opacity:.4; transform:scale(.97); }
+  .set-card[draggable="true"]{ cursor:grab; }
+  .set-card[draggable="true"]:active{ cursor:grabbing; }
+
+  /* Context menus */
+  .ctx-menu{
+    position:fixed;
+    background:var(--white);
+    border:2px solid #e3d4bd;
+    border-radius:14px;
+    padding:6px 0;
+    min-width:180px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    z-index:9999;
+    animation:fadeInMenu .1s ease;
+  }
+  @keyframes fadeInMenu{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+  .ctx-menu button{
+    display:flex;align-items:center;gap:8px;
+    width:100%;padding:9px 16px;
+    background:none;border:none;
+    font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;
+    color:var(--purple);cursor:pointer;text-align:left;
+  }
+  .ctx-menu button:hover{background:#f4ede0;}
+  .ctx-menu button.danger{color:#c0392b;}
+  .ctx-menu hr{border:none;border-top:1px solid #e3d4bd;margin:4px 0;}
+  .ctx-menu .submenu-wrap{ position:relative; }
+  .ctx-menu .submenu-wrap > button::after{ content:'›'; margin-left:auto; font-size:16px; }
+  .ctx-menu .submenu{
+    display:none;
+    position:absolute;
+    left:100%;top:-6px;
+    background:var(--white);
+    border:2px solid #e3d4bd;
+    border-radius:14px;
+    padding:6px 0;
+    min-width:180px;
+    max-height:280px;
+    overflow-y:auto;
+    box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    z-index:10000;
+  }
+  .ctx-menu .submenu-wrap:hover .submenu{ display:block; }
+  .ctx-menu .submenu button{ font-weight:500; }
+
+  /* Inline rename input inside folder header */
+  .folder-rename-input{
+    flex:1;
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--purple);
+    border:none;
+    border-bottom:2px solid var(--orange);
+    background:transparent;
+    outline:none;
+    padding:2px 4px;
+    min-width:60px;
+  }
+
   /* ---------- PHONE ---------- */
   @media (max-width:680px){
     .box-grid{grid-template-columns:repeat(4,1fr);}
@@ -648,6 +798,7 @@
 
 <div class="action-bar" id="actionBar">
   <button class="btn btn-primary" id="newSetBtn">+ New set</button>
+  <button class="btn btn-ghost" id="newFolderBtn">📁 New folder</button>
   <input type="text" id="searchSetsInput" placeholder="🔎 Search sets by name...">
   <div class="backup-icons">
     <button class="icon-btn" id="exportJsonBtn" title="Download backup (JSON)">⬇</button>
@@ -740,16 +891,55 @@ const SUPABASE_KEY = 'sb_publishable_XpRAf_0V2YvUQzcKvh4SRA_wPcFhTaK';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ---------------- STORAGE (Supabase-backed) ----------------
-   "sets" is kept as an in-memory cache, refreshed from Supabase
-   after every change, so the rest of the app can keep reading
-   it synchronously exactly like before. */
+   "sets" and "folders" are kept as in-memory caches, refreshed from Supabase
+   after every change, so the rest of the app can keep reading them synchronously. */
 let sets = [];
+let folders = []; // [{id, name, parent_id, position}]
 let editingSetId = null;
 let editorCards = [];
-let setsLastFetched = 0; // timestamp of last successful fetch
+let setsLastFetched = 0;
 
 function mapRowToSet(row){
-  return { id: row.id, name: row.name, cards: row.cards || [] };
+  return { id: row.id, name: row.name, cards: row.cards || [], folder_id: row.folder_id || null };
+}
+
+function mapRowToFolder(row){
+  return { id: row.id, name: row.name, parent_id: row.parent_id || null, position: row.position || 0 };
+}
+
+/* ---- Ensure folders table exists (idempotent via Supabase RPC or just attempt) ---- */
+async function ensureFoldersTable(){
+  // Try to read from folders; if it errors with "relation does not exist", create it via SQL
+  const { error } = await supabaseClient.from('folders').select('id').limit(1);
+  if(error && error.code === '42P01'){
+    // Table missing — create it
+    const { error: sqlErr } = await supabaseClient.rpc('exec_sql', {
+      sql: `CREATE TABLE IF NOT EXISTS folders (
+        id bigserial PRIMARY KEY,
+        name text NOT NULL,
+        parent_id bigint REFERENCES folders(id) ON DELETE CASCADE,
+        position int NOT NULL DEFAULT 0,
+        created_at timestamptz DEFAULT now()
+      );`
+    });
+    if(sqlErr) console.warn('Could not auto-create folders table. Please create it in Supabase:', sqlErr.message);
+  }
+  // Ensure folder_id column exists on card_sets
+  const { error: colErr } = await supabaseClient.from('card_sets').select('folder_id').limit(1);
+  if(colErr && colErr.message && colErr.message.includes('folder_id')){
+    await supabaseClient.rpc('exec_sql', {
+      sql: `ALTER TABLE card_sets ADD COLUMN IF NOT EXISTS folder_id bigint REFERENCES folders(id) ON DELETE SET NULL;`
+    });
+  }
+}
+
+async function fetchAllFolders(){
+  const { data, error } = await supabaseClient
+    .from('folders')
+    .select('*')
+    .order('position', { ascending: true });
+  if(error){ console.error('folders fetch:', error); return []; }
+  return (data || []).map(mapRowToFolder);
 }
 
 async function fetchAllSets(){
@@ -757,10 +947,7 @@ async function fetchAllSets(){
     .from('card_sets')
     .select('*')
     .order('updated_at', { ascending: false });
-  if(error){
-    console.error(error);
-    throw error;
-  }
+  if(error){ console.error(error); throw error; }
   return (data || []).map(mapRowToSet);
 }
 
@@ -774,10 +961,10 @@ async function fetchOneSet(id){
   return mapRowToSet(data);
 }
 
-async function insertSetInDb(name, cards){
+async function insertSetInDb(name, cards, folder_id = null){
   const { data, error } = await supabaseClient
     .from('card_sets')
-    .insert([{ name, cards }])
+    .insert([{ name, cards, folder_id }])
     .select()
     .single();
   if(error) throw error;
@@ -792,11 +979,59 @@ async function updateSetInDb(id, name, cards){
   if(error) throw error;
 }
 
+async function moveSetToFolder(id, folder_id){
+  const { error } = await supabaseClient
+    .from('card_sets')
+    .update({ folder_id: folder_id || null, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if(error) throw error;
+  // update local cache immediately for responsive UI
+  const s = sets.find(s => String(s.id) === String(id));
+  if(s) s.folder_id = folder_id || null;
+}
+
 async function deleteSetInDb(id){
   const { error } = await supabaseClient
     .from('card_sets')
     .delete()
     .eq('id', id);
+  if(error) throw error;
+}
+
+async function insertFolderInDb(name, parent_id = null){
+  const position = folders.filter(f => String(f.parent_id||'') === String(parent_id||'')).length;
+  const { data, error } = await supabaseClient
+    .from('folders')
+    .insert([{ name, parent_id: parent_id || null, position }])
+    .select()
+    .single();
+  if(error) throw error;
+  return mapRowToFolder(data);
+}
+
+async function renameFolderInDb(id, name){
+  const { error } = await supabaseClient
+    .from('folders')
+    .update({ name })
+    .eq('id', id);
+  if(error) throw error;
+}
+
+async function deleteFolderInDb(id){
+  // Move all sets in this folder (and subfolders) to root before deleting
+  // Collect all descendant folder ids
+  function descendants(fid){
+    const kids = folders.filter(f => String(f.parent_id||'') === String(fid));
+    return [fid, ...kids.flatMap(k => descendants(k.id))];
+  }
+  const ids = descendants(id);
+  for(const fid of ids){
+    const setsInFolder = sets.filter(s => String(s.folder_id||'') === String(fid));
+    for(const s of setsInFolder){
+      await moveSetToFolder(s.id, null);
+    }
+  }
+  const { error } = await supabaseClient.from('folders').delete().eq('id', id);
   if(error) throw error;
 }
 
@@ -832,20 +1067,20 @@ async function resolveCardsForSave(cards){
 }
 
 async function refreshSetsFromDb(force){
-  const CACHE_MS = 10000; // reuse in-memory cache if fetched less than 10s ago
+  const CACHE_MS = 10000;
   if(!force && setsLastFetched && sets.length > 0 && (Date.now() - setsLastFetched) < CACHE_MS){
     renderSetsGrid();
     return;
   }
   setsGrid.innerHTML = '<p style="color:#8a7e6d;">⏳ Loading your sets...</p>';
   try{
-    sets = await fetchAllSets();
+    [sets, folders] = await Promise.all([fetchAllSets(), fetchAllFolders()]);
     setsLastFetched = Date.now();
     renderSetsGrid();
     document.getElementById('storageUsageNote').textContent = '';
     document.getElementById('storageUsageNote').className = 'tiny-note';
   }catch(e){
-    setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again. <button onclick="refreshSetsFromDb()" style="margin-left:8px;background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:6px 14px;font-family:Poppins,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Try again</button></p>';
+    setsGrid.innerHTML = '<p style="color:#c0392b;">⚠ Could not connect to Supabase. Check your internet connection and try again. <button onclick="refreshSetsFromDb(true)" style="margin-left:8px;background:#FF5C23;color:#fff;border:none;border-radius:999px;padding:6px 14px;font-family:Poppins,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Try again</button></p>';
     document.getElementById('storageUsageNote').textContent = '🔴 Not connected — check your internet connection.';
     document.getElementById('storageUsageNote').className = 'tiny-note warning';
   }
@@ -887,48 +1122,361 @@ const cardEditorList = document.getElementById('cardEditorList');
 const editorTitle = document.getElementById('editorTitle');
 
 let setsFilter = '';
+let draggedSetId = null;
+let openFolderIds = new Set(); // which folder blocks are expanded
 
 document.getElementById('searchSetsInput').oninput = (e)=>{
   setsFilter = e.target.value.trim().toLowerCase();
   renderSetsGrid();
 };
 
+/* ===================== RENDER SETS GRID WITH FOLDERS ===================== */
 function renderSetsGrid(){
   setsGrid.innerHTML = '';
+  closeCtxMenu();
+
   const filtered = setsFilter
     ? sets.filter(s=> s.name.toLowerCase().includes(setsFilter))
-    : sets;
-  if(sets.length===0){
+    : null; // null = no filter
+
+  if(sets.length===0 && folders.length===0){
+    setsGrid.innerHTML = '<p style="color:#8a7e6d;">No sets or folders yet. Click "+ New set" or "📁 New folder" to get started.</p>';
+    return;
+  }
+
+  // When filtering: show flat list of matching sets (ignore folder structure)
+  if(filtered && setsFilter){
+    if(filtered.length===0){
+      setsGrid.innerHTML = '<p style="color:#8a7e6d;">No sets match your search.</p>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'sets-grid';
+    filtered.forEach(set=> grid.appendChild(makeSetCard(set)));
+    setsGrid.appendChild(grid);
+    return;
+  }
+
+  // Normal view: render folder tree, then loose sets
+  const rootFolders = folders.filter(f=> !f.parent_id).sort((a,b)=>a.position-b.position);
+  rootFolders.forEach(f=> setsGrid.appendChild(makeFolderBlock(f, 0)));
+
+  // Loose sets (no folder)
+  const looseSets = sets.filter(s=> !s.folder_id);
+  if(looseSets.length > 0){
+    const grid = document.createElement('div');
+    grid.className = 'sets-grid';
+    grid.dataset.folderId = '';
+    looseSets.forEach(set=> grid.appendChild(makeSetCard(set)));
+    makeFolderDropTarget(grid, null);
+    setsGrid.appendChild(grid);
+  }
+
+  if(sets.length===0 && folders.length===0){
     setsGrid.innerHTML = '<p style="color:#8a7e6d;">No sets created yet. Click "+ New set" to get started.</p>';
-    return;
   }
-  if(filtered.length===0){
-    setsGrid.innerHTML = '<p style="color:#8a7e6d;">No sets match your search.</p>';
-    return;
+}
+
+/* --- Build a folder block (recursive for subfolders) --- */
+function makeFolderBlock(folder, depth){
+  const isOpen = openFolderIds.has(folder.id);
+  const block = document.createElement('div');
+  block.className = 'folder-block' + (depth > 0 ? ' subfolder-block' : '') + (isOpen ? ' open' : '');
+  block.dataset.folderId = folder.id;
+
+  // Count total sets inside (including subfolders)
+  function countSets(fid){
+    const direct = sets.filter(s=> String(s.folder_id||'') === String(fid)).length;
+    const kids = folders.filter(f=> String(f.parent_id||'') === String(fid));
+    return direct + kids.reduce((acc,k)=> acc + countSets(k.id), 0);
   }
-  filtered.forEach(set=>{
-    const div = document.createElement('div');
-    div.className = 'set-card';
-    div.innerHTML = `
-      <h3>${escapeHtml(set.name)}</h3>
-      <p>${set.cards.length} card${set.cards.length===1?'':'s'}</p>
-      <div class="set-actions">
-        <button class="btn btn-primary btn-sm btn-full" data-action="use-in-class">▶ Use in class</button>
-        <button class="btn btn-secondary btn-sm" data-action="edit">Edit</button>
-        <button class="btn btn-ghost btn-sm" data-action="duplicate">Duplicate</button>
-        <button class="btn btn-ghost btn-sm" data-action="export-pdf">🖨 Export PDF</button>
-        <button class="btn btn-ghost btn-sm" data-action="student-link">🔗 Student link</button>
-        <button class="btn btn-danger btn-sm btn-full" data-action="delete">Delete</button>
-      </div>
-    `;
-    div.querySelector('[data-action="use-in-class"]').onclick = (e)=>{e.stopPropagation(); useSetInClass(set.id);};
-    div.querySelector('[data-action="edit"]').onclick = (e)=>{e.stopPropagation(); openEditor(set.id);};
-    div.querySelector('[data-action="duplicate"]').onclick = (e)=>{e.stopPropagation(); duplicateSet(set.id);};
-    div.querySelector('[data-action="export-pdf"]').onclick = (e)=>{e.stopPropagation(); exportSetAsPDF(set.id);};
-    div.querySelector('[data-action="student-link"]').onclick = (e)=>{e.stopPropagation(); copyStudentLink(set.id);};
-    div.querySelector('[data-action="delete"]').onclick = (e)=>{e.stopPropagation(); deleteSet(set.id);};
-    setsGrid.appendChild(div);
+  const total = countSets(folder.id);
+
+  const subFolders = folders.filter(f=> String(f.parent_id||'') === String(folder.id)).sort((a,b)=>a.position-b.position);
+  const directSets = sets.filter(s=> String(s.folder_id||'') === String(folder.id));
+
+  block.innerHTML = `
+    <div class="folder-header">
+      <span class="folder-chevron">▶</span>
+      <span class="folder-icon">${depth===0 ? '📁' : '📂'}</span>
+      <span class="folder-name">${escapeHtml(folder.name)}</span>
+      <span class="folder-count">${total} set${total===1?'':'s'}</span>
+      <button class="folder-menu-btn" title="Folder options">⋯</button>
+    </div>
+    <div class="folder-body">
+      <div class="subfolder-area" data-parent-id="${folder.id}"></div>
+      <div class="folder-sets-grid" data-folder-id="${folder.id}"></div>
+    </div>
+  `;
+
+  // Toggle open/close
+  const header = block.querySelector('.folder-header');
+  header.onclick = (e)=>{
+    if(e.target.classList.contains('folder-menu-btn')) return;
+    if(e.target.classList.contains('folder-rename-input')) return;
+    block.classList.toggle('open');
+    if(block.classList.contains('open')) openFolderIds.add(folder.id);
+    else openFolderIds.delete(folder.id);
+  };
+
+  // Menu button
+  block.querySelector('.folder-menu-btn').onclick = (e)=>{
+    e.stopPropagation();
+    showFolderMenu(e, folder);
+  };
+
+  // Subfolder area
+  const subfolderArea = block.querySelector('.subfolder-area');
+  subFolders.forEach(sf=> subfolderArea.appendChild(makeFolderBlock(sf, depth+1)));
+
+  // Sets grid inside folder
+  const grid = block.querySelector('.folder-sets-grid');
+  directSets.forEach(set=> grid.appendChild(makeSetCard(set)));
+  makeFolderDropTarget(grid, folder.id);
+
+  // Drag-over for the whole block (dropping a set onto the header)
+  block.addEventListener('dragover', (e)=>{
+    if(!draggedSetId) return;
+    e.preventDefault();
+    block.classList.add('drag-over');
   });
+  block.addEventListener('dragleave', (e)=>{
+    if(!e.currentTarget.contains(e.relatedTarget)){
+      block.classList.remove('drag-over');
+    }
+  });
+  block.addEventListener('drop', async (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    block.classList.remove('drag-over');
+    if(!draggedSetId) return;
+    await doMoveSet(draggedSetId, folder.id);
+  });
+
+  return block;
+}
+
+/* --- Make a grid droppable for sets --- */
+function makeFolderDropTarget(grid, folderId){
+  grid.addEventListener('dragover',(e)=>{
+    if(!draggedSetId) return;
+    e.preventDefault(); e.stopPropagation();
+    grid.classList.add('drop-target-active');
+  });
+  grid.addEventListener('dragleave',(e)=>{
+    if(!grid.contains(e.relatedTarget)) grid.classList.remove('drop-target-active');
+  });
+  grid.addEventListener('drop', async (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    grid.classList.remove('drop-target-active');
+    if(!draggedSetId) return;
+    await doMoveSet(draggedSetId, folderId);
+  });
+}
+
+async function doMoveSet(setId, folderId){
+  try{
+    await moveSetToFolder(setId, folderId);
+    renderSetsGrid();
+  }catch(e){
+    alert('Não foi possível mover o set. Verifique sua conexão.');
+  }
+}
+
+/* ===================== SET CARD ===================== */
+function makeSetCard(set){
+  const div = document.createElement('div');
+  div.className = 'set-card';
+  div.draggable = true;
+  div.dataset.setId = set.id;
+  div.innerHTML = `
+    <h3>${escapeHtml(set.name)}</h3>
+    <p>${set.cards.length} card${set.cards.length===1?'':'s'}</p>
+    <div class="set-actions">
+      <button class="btn btn-primary btn-sm btn-full" data-action="use-in-class">▶ Use in class</button>
+      <button class="btn btn-secondary btn-sm" data-action="edit">Edit</button>
+      <button class="btn btn-ghost btn-sm" data-action="duplicate">Duplicate</button>
+      <button class="btn btn-ghost btn-sm" data-action="export-pdf">🖨 Export PDF</button>
+      <button class="btn btn-ghost btn-sm" data-action="student-link">🔗 Student link</button>
+      <button class="btn btn-ghost btn-sm" data-action="move-to">📂 Move to...</button>
+      <button class="btn btn-danger btn-sm btn-full" data-action="delete">Delete</button>
+    </div>
+  `;
+  div.querySelector('[data-action="use-in-class"]').onclick = (e)=>{e.stopPropagation(); useSetInClass(set.id);};
+  div.querySelector('[data-action="edit"]').onclick = (e)=>{e.stopPropagation(); openEditor(set.id);};
+  div.querySelector('[data-action="duplicate"]').onclick = (e)=>{e.stopPropagation(); duplicateSet(set.id);};
+  div.querySelector('[data-action="export-pdf"]').onclick = (e)=>{e.stopPropagation(); exportSetAsPDF(set.id);};
+  div.querySelector('[data-action="student-link"]').onclick = (e)=>{e.stopPropagation(); copyStudentLink(set.id);};
+  div.querySelector('[data-action="delete"]').onclick = (e)=>{e.stopPropagation(); deleteSet(set.id);};
+  div.querySelector('[data-action="move-to"]').onclick = (e)=>{e.stopPropagation(); showMoveToMenu(e, set);};
+
+  // Drag events
+  div.addEventListener('dragstart',(e)=>{
+    draggedSetId = set.id;
+    div.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  div.addEventListener('dragend',()=>{
+    draggedSetId = null;
+    div.classList.remove('dragging');
+    document.querySelectorAll('.drop-target-active').forEach(el=>el.classList.remove('drop-target-active'));
+    document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  });
+
+  return div;
+}
+
+/* ===================== CONTEXT MENUS ===================== */
+let activeCtxMenu = null;
+function closeCtxMenu(){
+  if(activeCtxMenu){ activeCtxMenu.remove(); activeCtxMenu = null; }
+}
+document.addEventListener('click', closeCtxMenu);
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeCtxMenu(); });
+
+function positionMenu(menu, e){
+  document.body.appendChild(menu);
+  const mx = e.clientX, my = e.clientY;
+  const mw = menu.offsetWidth || 190, mh = menu.offsetHeight || 200;
+  const left = Math.min(mx, window.innerWidth - mw - 8);
+  const top = Math.min(my, window.innerHeight - mh - 8);
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  activeCtxMenu = menu;
+}
+
+/* Folder context menu */
+function showFolderMenu(e, folder){
+  closeCtxMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+  menu.innerHTML = `
+    <button id="fmRename">✏️ Rename folder</button>
+    <button id="fmNewSub">📂 New subfolder</button>
+    <hr>
+    <button id="fmDelete" class="danger">🗑 Delete folder</button>
+  `;
+  menu.querySelector('#fmRename').onclick = ()=>{ closeCtxMenu(); startFolderRename(folder); };
+  menu.querySelector('#fmNewSub').onclick = ()=>{ closeCtxMenu(); createSubfolder(folder.id); };
+  menu.querySelector('#fmDelete').onclick = ()=>{ closeCtxMenu(); deleteFolder(folder.id); };
+  positionMenu(menu, e);
+}
+
+/* Move-to menu for a set */
+function showMoveToMenu(e, set){
+  closeCtxMenu();
+  const menu = document.createElement('div');
+  menu.className = 'ctx-menu';
+
+  // Build flat folder list with indentation
+  function addFolderOptions(parentId, depth){
+    const children = folders.filter(f=> String(f.parent_id||'') === String(parentId||'')).sort((a,b)=>a.position-b.position);
+    children.forEach(f=>{
+      const btn = document.createElement('button');
+      btn.innerHTML = '&nbsp;'.repeat(depth*4) + (depth===0?'📁':'📂') + ' ' + escapeHtml(f.name);
+      const isCurrent = String(set.folder_id||'') === String(f.id);
+      if(isCurrent){ btn.style.opacity='.45'; btn.style.cursor='default'; }
+      else btn.onclick = async ()=>{ closeCtxMenu(); await doMoveSet(set.id, f.id); };
+      menu.appendChild(btn);
+      addFolderOptions(f.id, depth+1);
+    });
+  }
+
+  const rootBtn = document.createElement('button');
+  rootBtn.innerHTML = '🏠 No folder (root)';
+  const isRoot = !set.folder_id;
+  if(isRoot){ rootBtn.style.opacity='.45'; rootBtn.style.cursor='default'; }
+  else rootBtn.onclick = async ()=>{ closeCtxMenu(); await doMoveSet(set.id, null); };
+  menu.appendChild(rootBtn);
+
+  if(folders.length > 0){
+    const hr = document.createElement('hr');
+    menu.appendChild(hr);
+    addFolderOptions(null, 0);
+  }
+
+  positionMenu(menu, e);
+}
+
+/* ===================== FOLDER ACTIONS ===================== */
+document.getElementById('newFolderBtn').onclick = ()=> createRootFolder();
+
+async function createRootFolder(){
+  const name = prompt('Folder name:');
+  if(!name || !name.trim()) return;
+  try{
+    const f = await insertFolderInDb(name.trim(), null);
+    folders.push(f);
+    openFolderIds.add(f.id);
+    renderSetsGrid();
+  }catch(e){ alert('Could not create folder. Check your internet connection.'); }
+}
+
+async function createSubfolder(parentId){
+  const name = prompt('Subfolder name:');
+  if(!name || !name.trim()) return;
+  try{
+    const f = await insertFolderInDb(name.trim(), parentId);
+    folders.push(f);
+    openFolderIds.add(f.id);
+    openFolderIds.add(parentId);
+    renderSetsGrid();
+  }catch(e){ alert('Could not create subfolder. Check your internet connection.'); }
+}
+
+function startFolderRename(folder){
+  // Find the folder-name span and replace it with an input
+  const block = document.querySelector(`.folder-block[data-folder-id="${folder.id}"]`);
+  if(!block) return;
+  const nameSpan = block.querySelector(':scope > .folder-header .folder-name');
+  if(!nameSpan) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'folder-rename-input';
+  input.value = folder.name;
+  nameSpan.replaceWith(input);
+  input.focus(); input.select();
+  async function commit(){
+    const val = input.value.trim();
+    if(val && val !== folder.name){
+      try{
+        await renameFolderInDb(folder.id, val);
+        folder.name = val;
+      }catch(e){ alert('Could not rename. Check your internet connection.'); }
+    }
+    renderSetsGrid();
+  }
+  input.onblur = commit;
+  input.onkeydown = (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ renderSetsGrid(); }
+  };
+}
+
+async function deleteFolder(id){
+  const folder = folders.find(f=> String(f.id)===String(id));
+  function descendants(fid){
+    const kids = folders.filter(f=> String(f.parent_id||'')===String(fid));
+    return [fid, ...kids.flatMap(k=>descendants(k.id))];
+  }
+  const descIds = descendants(id);
+  const setsAffected = sets.filter(s=> descIds.some(fid=> String(s.folder_id||'')===String(fid))).length;
+  const msg = setsAffected > 0
+    ? `Delete the folder "${folder?.name}"?\n\n${setsAffected} set(s) inside will be moved to the root (not deleted).`
+    : `Delete the folder "${folder?.name}"?`;
+  if(!confirm(msg)) return;
+  try{
+    await deleteFolderInDb(id);
+    // Remove from local cache
+    function removeDesc(fid){
+      const kids = folders.filter(f=> String(f.parent_id||'')===String(fid));
+      kids.forEach(k=>removeDesc(k.id));
+      const idx = folders.findIndex(f=>String(f.id)===String(fid));
+      if(idx>-1) folders.splice(idx,1);
+    }
+    removeDesc(id);
+    openFolderIds.delete(id);
+    renderSetsGrid();
+  }catch(e){ alert('Could not delete folder. Check your internet connection.'); }
 }
 
 async function useSetInClass(id){
@@ -969,7 +1517,7 @@ async function duplicateSet(id){
   const cardsCopy = JSON.parse(JSON.stringify(set.cards));
   cardsCopy.forEach(c=> c.id = 'c'+Date.now()+Math.random().toString(36).slice(2,7));
   try{
-    await insertSetInDb(set.name + ' (copy)', cardsCopy);
+    await insertSetInDb(set.name + ' (copy)', cardsCopy, set.folder_id || null);
     await refreshSetsFromDb(true);
   }catch(e){
     alert('Could not duplicate the set — check your internet connection and try again.');
@@ -1289,17 +1837,18 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
 
 /* ---------------- JSON BACKUP ---------------- */
 document.getElementById('exportJsonBtn').onclick = async ()=>{
-  let currentSets;
+  let currentSets, currentFolders;
   try{
-    currentSets = await fetchAllSets();
+    [currentSets, currentFolders] = await Promise.all([fetchAllSets(), fetchAllFolders()]);
   }catch(e){
     alert('Could not reach Supabase to export your backup. Check your internet connection and try again.');
     return;
   }
-  if(currentSets.length===0){ alert('There are no sets created yet to export.'); return; }
+  if(currentSets.length===0 && currentFolders.length===0){ alert('There are no sets or folders to export.'); return; }
   const payload = {
     app: 'teachermari-speaking-cards',
     exportedAt: new Date().toISOString(),
+    folders: currentFolders,
     sets: currentSets
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
@@ -1338,18 +1887,26 @@ document.getElementById('importJsonInput').onchange = (e)=>{
     const mode = confirm(
       'Click "OK" to MERGE this backup with your existing sets.\nClick "Cancel" to REPLACE everything with the backup content.'
     );
+    const incomingFolders = Array.isArray(data.folders) ? data.folders : [];
     try{
       if(!mode){
-        // replace: wipe every existing row first
-        const existing = await fetchAllSets();
-        for(const s of existing){
-          await deleteSetInDb(s.id);
-        }
+        // replace: wipe existing data
+        const existingSets = await fetchAllSets();
+        for(const s of existingSets) await deleteSetInDb(s.id);
+        const existingFolders = await fetchAllFolders();
+        for(const f of existingFolders) await supabaseClient.from('folders').delete().eq('id', f.id);
       }
-      // insert each incoming set as a brand-new row — Supabase assigns fresh ids,
-      // so we don't reuse the old localStorage-era ids from the backup file
+      // Import folders first (root before children) and build id map
+      const folderIdMap = {}; // old id -> new id
+      const sortedFolders = [...incomingFolders].sort((a,b)=> (a.parent_id ? 1 : 0) - (b.parent_id ? 1 : 0));
+      for(const f of sortedFolders){
+        const newParentId = f.parent_id ? (folderIdMap[f.parent_id] || null) : null;
+        const newF = await insertFolderInDb(f.name, newParentId);
+        folderIdMap[f.id] = newF.id;
+      }
       for(const s of incomingSets){
-        await insertSetInDb(s.name, s.cards || []);
+        const newFolderId = s.folder_id ? (folderIdMap[s.folder_id] || null) : null;
+        await insertSetInDb(s.name, s.cards || [], newFolderId);
       }
       await refreshSetsFromDb(true);
       alert('Backup imported successfully!');
@@ -1902,6 +2459,8 @@ async function initStudentModeIfNeeded(){
 (async function init(){
   const isStudentMode = await initStudentModeIfNeeded();
   if(!isStudentMode){
+    // Try to ensure folders table exists (fails gracefully if user doesn't have exec_sql RPC)
+    try{ await ensureFoldersTable(); }catch(_){}
     await refreshSetsFromDb();
   }
 })();
