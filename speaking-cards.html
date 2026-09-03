@@ -950,6 +950,7 @@ async function fetchAllFolders(){
     .from('folders')
     .select('*')
     .order('position', { ascending: true });
+  console.log('[DEBUG] fetchAllFolders data:', data, 'error:', error);
   if(error){ console.error('folders fetch:', error); return []; }
   return (data || []).map(mapRowToFolder);
 }
@@ -1175,8 +1176,9 @@ function renderSetsGrid(){
   const rootFolders = folders.filter(f=> !f.parent_id).sort((a,b)=>a.position-b.position);
   rootFolders.forEach(f=> setsGrid.appendChild(makeFolderBlock(f, 0)));
 
-  // Loose sets (no folder)
-  const looseSets = sets.filter(s=> !s.folder_id);
+  // Loose sets (no folder OR folder not found in loaded folders)
+  const folderIds = new Set(folders.map(f => String(f.id)));
+  const looseSets = sets.filter(s=> !s.folder_id || !folderIds.has(String(s.folder_id)));
   if(looseSets.length > 0){
     const grid = document.createElement('div');
     grid.className = 'sets-grid';
