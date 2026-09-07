@@ -2988,7 +2988,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   }, []);
 
   const anexarBoleto = async (index, file) => {
-    const registro = cobranca[index];
+    const registro = typeof index === "string"
+      ? cobranca.find((c) => c.rowId === index)
+      : cobranca[index];
+    if (!registro) return;
     // Supabase Storage não aceita acentos, espaços, parênteses e outros caracteres especiais na key
     // Normaliza (remove acentos), troca espaços/símbolos por _, e mantém só ASCII seguro
     const nomeSanitizado = file.name
@@ -3002,7 +3005,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(caminho);
     await supabase.from("billing").update({ boleto_url: urlData.publicUrl }).eq("id", registro.rowId);
     // Mostra o nome original pra Mari (com acentos), mas guarda internamente o sanitizado
-    setCobranca((prev) => prev.map((c, i) => (i === index ? { ...c, boletoUrl: urlData.publicUrl, nomeArquivo: file.name } : c)));
+    setCobranca((prev) => prev.map((c) => (c.rowId === registro.rowId ? { ...c, boletoUrl: urlData.publicUrl, nomeArquivo: file.name } : c)));
   };
 
   const [novoDiaMover, setNovoDiaMover] = useState("");
@@ -5274,7 +5277,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               {cobranca.length === 0 && (
                 <p style={{ fontSize: "13px", color: textSecondary }}>Nenhuma cobrança cadastrada ainda.</p>
               )}
-              {cobranca.map((c, i) => {
+              {(() => {
+                const emAberto = cobranca.filter((c) => c.status !== "pago");
+                const pagas = cobranca.filter((c) => c.status === "pago");
+                const ordenadas = [...emAberto, ...pagas];
+                const temAmbos = emAberto.length > 0 && pagas.length > 0;
+                return ordenadas.map((c, i) => {
+                const isFirstPago = temAmbos && c.status === "pago" && i === emAberto.length;
                 const emEdicao = editandoCobrancaId === c.rowId;
                 const diasParaVencer = Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000);
                 let statusLabel, statusBg, statusCor;
@@ -5288,7 +5297,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   statusLabel = "A vencer"; statusBg = dark ? "#5A4AA0" : "#EEE"; statusCor = textSecondary;
                 }
                 return (
-                <div key={i} style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
+                <React.Fragment key={c.rowId || i}>
+                {isFirstPago && (
+                  <div style={{ borderTop: `1px dashed ${dark ? "#5A4AA0" : "#D9CCB8"}`, paddingTop: "12px", marginTop: "4px" }}>
+                    <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: textSecondary, marginBottom: "8px" }}>Pago</p>
+                  </div>
+                )}
+                {!isFirstPago && i === 0 && temAmbos && (
+                  <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: textSecondary, marginBottom: "2px" }}>Em aberto</p>
+                )}
+                <div style={{ padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.cream }}>
                   {emEdicao ? (
                     <div>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Mês / referência</label>
@@ -5333,7 +5351,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <label style={{ display: "inline-block", fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", background: palette.purple, color: "#FFF", cursor: "pointer" }}>
                         {c.boletoUrl ? "Substituir boleto" : "Subir boleto"}
                         <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
-                          onChange={(e) => e.target.files[0] && anexarBoleto(i, e.target.files[0])} />
+                          onChange={(e) => e.target.files[0] && anexarBoleto(c.rowId, e.target.files[0])} />
                       </label>
                       {c.boletoUrl && (
                         <a href={c.boletoUrl} target="_blank" rel="noopener noreferrer"
@@ -5384,8 +5402,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   </React.Fragment>
                   )}
                 </div>
+                </React.Fragment>
                 );
-              })}
+              });
+              })()}
               </div>
             </div>
           )}
