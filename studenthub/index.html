@@ -1208,6 +1208,610 @@ function DiagnosticoAdmin({ students }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// GERADOR DE PROPOSTA — componente completo
+// ─────────────────────────────────────────────
+function GeradorProposta({ students }) {
+  const { useState, useEffect, useCallback } = React;
+
+  // ── utilitários de data ──
+  const isoParaDate = (s) => { const [y,m,d] = s.split("-"); return new Date(+y,+m-1,+d); };
+  const dateParaIso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const somarMeses = (d, n) => { const r = new Date(d); r.setMonth(r.getMonth()+n); r.setDate(r.getDate()-1); return r; };
+  const formatarBR = (iso) => { if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; };
+  const MESES_NOMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const DIAS_NOMES = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  const DIAS_LABELS = ["D","S","T","Q","Q","S","S"];
+
+  // ── estados ──
+  const [step, setStep] = useState(0); // 0=config 1=calendário 2=resultado
+  const [nomeAluno, setNomeAluno] = useState("");
+  const [freq, setFreq] = useState(1);
+  const [diasSel, setDiasSel] = useState([]);
+  const [dataInicio, setDataInicio] = useState("");
+  const [vencimento, setVencimento] = useState(7);
+  const [feriados, setFeriados] = useState(new Set());
+  const [aulasToggle, setAulasToggle] = useState({}); // iso -> bool
+  const [carregando, setCarregando] = useState(false);
+  const [erros, setErros] = useState({});
+  const [toastMsg, setToastMsg] = useState(null);
+  const [gerando, setGerando] = useState(false);
+
+  // ── carregar feriados do Supabase uma vez ──
+  useEffect(() => {
+    supabase.from("dias_sem_aula").select("data").then(({ data }) => {
+      if (data) setFeriados(new Set(data.map(r => r.data)));
+    });
+  }, []);
+
+  const hoje = new Date();
+  const dataInicioObj = dataInicio ? isoParaDate(dataInicio) : null;
+  const dataFimObj = dataInicioObj ? somarMeses(dataInicioObj, 6) : null;
+
+  const toggleDia = (d) => {
+    setDiasSel(prev => {
+      if (prev.includes(d)) return prev.filter(x=>x!==d);
+      if (prev.length < freq) return [...prev, d];
+      return prev;
+    });
+    setErros(e => ({...e, dias: null}));
+  };
+
+  // ── gerar lista de aulas candidatas ──
+  const gerarAulasIniciais = useCallback((inicio, fim, dias) => {
+    const resultado = {};
+    const cur = new Date(inicio);
+    while (cur <= fim) {
+      const iso = dateParaIso(cur);
+      if (dias.includes(cur.getDay())) {
+        resultado[iso] = !feriados.has(iso);
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    return resultado;
+  }, [feriados]);
+
+  // ── ir para o calendário ──
+  const irParaCalendario = async () => {
+    const novosErros = {};
+    if (!nomeAluno.trim()) novosErros.nome = "Informe o nome do aluno.";
+    if (!dataInicio) novosErros.data = "Informe a data de início.";
+    if (diasSel.length !== freq) novosErros.dias = `Selecione exatamente ${freq} dia${freq>1?"s":""}.`;
+    if (Object.keys(novosErros).length) { setErros(novosErros); return; }
+    setErros({});
+    setCarregando(true);
+    // Recarrega feriados do período específico para garantir dados frescos
+    const { data: ferData } = await supabase.from("dias_sem_aula")
+      .select("data")
+      .gte("data", dataInicio)
+      .lte("data", dateParaIso(somarMeses(isoParaDate(dataInicio), 6)));
+    const ferSet = new Set((ferData||[]).map(r=>r.data));
+    setFeriados(ferSet);
+    setCarregando(false);
+    const inicio = isoParaDate(dataInicio);
+    const fim = somarMeses(inicio, 6);
+    const toggle = {};
+    const cur = new Date(inicio);
+    while (cur <= fim) {
+      const iso = dateParaIso(cur);
+      if (diasSel.includes(cur.getDay())) {
+        toggle[iso] = !ferSet.has(iso);
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    setAulasToggle(toggle);
+    setStep(1);
+  };
+
+  const toggleAula = (iso) => {
+    setAulasToggle(prev => {
+      const novo = {...prev, [iso]: !prev[iso]};
+      return novo;
+    });
+    setToastMsg({ iso, ativando: !aulasToggle[iso] });
+    setTimeout(() => setToastMsg(null), 2000);
+  };
+
+  const totalAulas = Object.values(aulasToggle).filter(Boolean).length;
+  const valorPorAula = freq === 1 ? 90 : 85;
+  const mensalidade = totalAulas * valorPorAula / 6;
+
+  // ── calcular datas das parcelas ──
+  const calcularParcelas = () => {
+    const inicio = isoParaDate(dataInicio);
+    return Array.from({length:6}, (_,i) => {
+      const d = new Date(inicio.getFullYear(), inicio.getMonth()+i, vencimento);
+      return dateParaIso(d);
+    });
+  };
+
+  // ── gerar PDF ──
+  const gerarPDF = () => {
+    setGerando(true);
+    try {
+      const doc = new window.jspdf.jsPDF();
+      const largura = 210;
+      const margemH = 18;
+      let y = 0;
+
+      const roxo = [29,16,80], laranja = [255,92,35], creme = [250,234,211], lavanda = [180,161,255], branco = [255,255,255];
+
+      // ── cabeçalho ──
+      doc.setFillColor(...roxo);
+      doc.rect(0, 0, largura, 46, "F");
+      doc.setFillColor(...laranja);
+      doc.circle(190, 0, 28, "F");
+      doc.setFillColor(58, 43, 122);
+      doc.circle(0, 42, 22, "F");
+
+      // logo
+      try {
+        doc.addImage(LOGO, "PNG", margemH, 8, 52, 28, undefined, "FAST");
+      } catch(_) {}
+
+      doc.setTextColor(...branco);
+      doc.setFontSize(10);
+      doc.setFont("helvetica","normal");
+      doc.text("teachermarilessons.com.br", 195, 40, { align:"right" });
+
+      y = 60;
+
+      // ── título ──
+      doc.setTextColor(...roxo);
+      doc.setFontSize(20);
+      doc.setFont("helvetica","bold");
+      doc.text("Proposta de Contrato", margemH, y);
+      y += 7;
+      doc.setFontSize(10);
+      doc.setFont("helvetica","normal");
+      doc.setTextColor(100,100,100);
+      doc.text(`Gerada em ${new Date().toLocaleDateString("pt-BR")}`, margemH, y);
+      y += 14;
+
+      // ── dados do aluno ──
+      doc.setFillColor(...creme);
+      doc.roundedRect(margemH, y, largura-2*margemH, 24, 4, 4, "F");
+      doc.setTextColor(...roxo);
+      doc.setFontSize(9);
+      doc.setFont("helvetica","bold");
+      doc.text("ALUNO", margemH+6, y+8);
+      doc.setFontSize(13);
+      doc.setFont("helvetica","bold");
+      doc.text(nomeAluno, margemH+6, y+18);
+      y += 32;
+
+      // ── resumo do contrato ──
+      doc.setFillColor(...roxo);
+      doc.roundedRect(margemH, y, largura-2*margemH, 40, 4, 4, "F");
+
+      doc.setTextColor(...lavanda);
+      doc.setFontSize(8);
+      doc.setFont("helvetica","bold");
+      doc.text("FREQUÊNCIA", margemH+6, y+10);
+      doc.setTextColor(...branco);
+      doc.setFontSize(11);
+      doc.text(freq === 1 ? "1× por semana" : "2× por semana", margemH+6, y+19);
+
+      doc.setTextColor(...lavanda);
+      doc.setFontSize(8);
+      doc.text("PERÍODO", margemH+6, y+30);
+      doc.setTextColor(...branco);
+      doc.setFontSize(10);
+      doc.text(`${formatarBR(dataInicio)}  →  ${formatarBR(dateParaIso(dataFimObj))}`, margemH+6, y+39);
+
+      // total de aulas (canto direito)
+      doc.setTextColor(...laranja);
+      doc.setFontSize(26);
+      doc.setFont("helvetica","bold");
+      doc.text(String(totalAulas), 192, y+22, { align:"right" });
+      doc.setTextColor(...lavanda);
+      doc.setFontSize(9);
+      doc.setFont("helvetica","normal");
+      doc.text("aulas", 192, y+31, { align:"right" });
+
+      y += 48;
+
+      // ── mensalidade destaque ──
+      doc.setFillColor(...laranja);
+      doc.roundedRect(margemH, y, largura-2*margemH, 22, 4, 4, "F");
+      doc.setTextColor(...branco);
+      doc.setFontSize(10);
+      doc.setFont("helvetica","bold");
+      const mensFormatada = mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+      doc.text(`Mensalidade (6×):   ${mensFormatada}`, margemH+6, y+14);
+      y += 30;
+
+      // ── linha divisória ──
+      doc.setDrawColor(...lavanda);
+      doc.setLineWidth(0.5);
+      doc.line(margemH, y, largura-margemH, y);
+      y += 10;
+
+      // ── tabela de parcelas ──
+      doc.setTextColor(...roxo);
+      doc.setFontSize(11);
+      doc.setFont("helvetica","bold");
+      doc.text("Cronograma de parcelas", margemH, y);
+      y += 8;
+
+      const parcelas = calcularParcelas();
+      parcelas.forEach((iso, i) => {
+        if (y > 265) { doc.addPage(); y = 20; }
+        const par = i+1;
+        const bg = i % 2 === 0 ? creme : branco;
+        doc.setFillColor(...bg);
+        doc.rect(margemH, y-4, largura-2*margemH, 10, "F");
+        doc.setTextColor(...roxo);
+        doc.setFontSize(10);
+        doc.setFont("helvetica","bold");
+        doc.text(`${par}ª parcela`, margemH+4, y+3);
+        doc.setFont("helvetica","normal");
+        doc.text(`Vencimento: ${formatarBR(iso)}`, 90, y+3);
+        doc.setFont("helvetica","bold");
+        doc.setTextColor(...laranja);
+        doc.text(mensFormatada, 192, y+3, { align:"right" });
+        y += 11;
+      });
+
+      y += 8;
+      if (y > 240) { doc.addPage(); y = 20; }
+
+      // ── lista de datas das aulas ──
+      doc.setDrawColor(...lavanda);
+      doc.line(margemH, y, largura-margemH, y);
+      y += 10;
+      doc.setTextColor(...roxo);
+      doc.setFontSize(11);
+      doc.setFont("helvetica","bold");
+      doc.text("Datas das aulas", margemH, y);
+      y += 8;
+
+      const aulasAtivas = Object.entries(aulasToggle)
+        .filter(([,v])=>v)
+        .map(([k])=>k)
+        .sort();
+
+      let col = 0;
+      const colW = (largura - 2*margemH) / 3;
+      aulasAtivas.forEach((iso) => {
+        if (y > 270) { doc.addPage(); y = 20; col = 0; }
+        const x = margemH + col * colW;
+        doc.setFontSize(9);
+        doc.setFont("helvetica","normal");
+        doc.setTextColor(60,60,60);
+        doc.text(`• ${formatarBR(iso)}`, x, y);
+        col++;
+        if (col === 3) { col = 0; y += 7; }
+      });
+      if (col > 0) y += 7;
+
+      // ── rodapé ──
+      const totalPags = doc.internal.getNumberOfPages();
+      for (let p=1; p<=totalPags; p++) {
+        doc.setPage(p);
+        doc.setFillColor(...roxo);
+        doc.rect(0, 284, largura, 14, "F");
+        doc.setTextColor(...lavanda);
+        doc.setFontSize(8);
+        doc.setFont("helvetica","normal");
+        doc.text("Teacher Mari Lessons · teachermarilessons.com.br", margemH, 292);
+        doc.text(`Pág. ${p}/${totalPags}`, largura-margemH, 292, { align:"right" });
+      }
+
+      const nomeArq = `proposta-${nomeAluno.replace(/\s+/g,"-").toLowerCase()}-${dataInicio}.pdf`;
+      doc.save(nomeArq);
+    } catch(e) {
+      alert("Erro ao gerar PDF: " + e.message);
+    }
+    setGerando(false);
+  };
+
+  // ── helpers de estilo ──
+  const cardStyle = { background:"#FFF", borderRadius:"16px", padding:"18px 20px", marginBottom:"12px", boxShadow:"0 2px 8px rgba(29,16,80,0.06)" };
+  const labelStyle = { fontSize:"12px", fontWeight:600, color:palette.purple, display:"block", marginBottom:"5px" };
+  const inputStyle = { width:"100%", padding:"9px 12px", borderRadius:"10px", border:`1.5px solid ${palette.lavender}55`, fontSize:"13px", fontFamily:"'Poppins',sans-serif", color:palette.purple, outline:"none" };
+  const btnPrimary = { width:"100%", padding:"13px", borderRadius:"10px", border:"none", background:palette.orange, color:"#FFF", fontSize:"14px", fontWeight:700, cursor:"pointer", fontFamily:"'Poppins',sans-serif" };
+  const btnSecondary = { width:"100%", padding:"11px", borderRadius:"10px", border:`1.5px solid ${palette.purple}`, background:"transparent", color:palette.purple, fontSize:"13px", fontWeight:600, cursor:"pointer", fontFamily:"'Poppins',sans-serif" };
+  const sectionTitle = { fontSize:"11px", fontWeight:600, color:`${palette.purple}99`, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"8px" };
+
+  // ── renderização do calendário ──
+  const renderCalendario = () => {
+    if (!dataInicioObj || !dataFimObj) return null;
+    const meses = [];
+    let cur = new Date(dataInicioObj.getFullYear(), dataInicioObj.getMonth(), 1);
+    const ultimoMes = new Date(dataFimObj.getFullYear(), dataFimObj.getMonth(), 1);
+    while (cur <= ultimoMes) {
+      meses.push(new Date(cur));
+      cur.setMonth(cur.getMonth()+1);
+    }
+    return meses.map((mesDate, mi) => {
+      const mes = mesDate.getMonth();
+      const ano = mesDate.getFullYear();
+      const primeiroDia = new Date(ano,mes,1).getDay();
+      const diasNoMes = new Date(ano,mes+1,0).getDate();
+      const celulas = [];
+      // cabeçalho dias da semana
+      DIAS_NOMES.forEach(dn => celulas.push(
+        <div key={"h"+dn} style={{ textAlign:"center", fontSize:"10px", fontWeight:600, color:`${palette.purple}88`, padding:"3px 0" }}>{dn}</div>
+      ));
+      // células vazias
+      for(let i=0; i<primeiroDia; i++) celulas.push(<div key={"e"+i} />);
+      // dias
+      for(let d=1; d<=diasNoMes; d++) {
+        const data = new Date(ano,mes,d);
+        const iso = dateParaIso(data);
+        const foraDoRange = data < dataInicioObj || data > dataFimObj;
+        const eFeriado = feriados.has(iso);
+        const eAula = iso in aulasToggle;
+        const ativa = aulasToggle[iso];
+        let bg = "transparent", cor = `${palette.purple}88`, fw = 400, cursor = "default", borda = "1.5px solid transparent", textDec = "none";
+        if (!foraDoRange) {
+          if (eFeriado) { bg="#F7C1C1"; cor="#791F1F"; textDec="line-through"; }
+          else if (eAula) {
+            if (ativa) { bg=palette.purple; cor=palette.lavender; fw=700; cursor="pointer"; }
+            else { bg="transparent"; cor:`${palette.purple}44`; borda=`1.5px dashed ${palette.purple}44`; textDec="line-through"; cursor="pointer"; }
+          }
+        } else { cor=`${palette.purple}33`; }
+        celulas.push(
+          <div key={d}
+            onClick={eAula && !foraDoRange && !eFeriado ? ()=>toggleAula(iso) : undefined}
+            title={eFeriado ? "Feriado/sem aula" : eAula && !ativa ? "Clique para reativar" : eAula && ativa ? "Clique para remover" : ""}
+            style={{ aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center", borderRadius:"6px", fontSize:"11px", fontWeight:fw, color:cor, background:bg, cursor:cursor, border:borda, textDecoration:textDec, transition:"all 0.1s" }}>
+            {d}
+          </div>
+        );
+      }
+      return (
+        <div key={mi} style={{ marginBottom:"20px" }}>
+          <p style={{ fontSize:"13px", fontWeight:700, color:palette.purple, marginBottom:"8px" }}>{MESES_NOMES[mes]} {ano}</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:"3px" }}>{celulas}</div>
+        </div>
+      );
+    });
+  };
+
+  // ────────────── STEP 0 — CONFIGURAÇÃO ──────────────
+  if (step === 0) return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"20px" }}>
+        <div>
+          <p style={{ fontSize:"18px", fontWeight:700, color:palette.purple, margin:0 }}>Gerar proposta</p>
+          <p style={{ fontSize:"12px", color:`${palette.purple}99`, margin:0 }}>Contrato de 6 meses</p>
+        </div>
+        <div style={{ background:palette.cream, borderRadius:"10px", padding:"6px 14px", fontSize:"12px", fontWeight:600, color:palette.purple }}>Teacher Mari Lessons</div>
+      </div>
+
+      {/* Aluno */}
+      <p style={sectionTitle}>1. Aluno</p>
+      <div style={cardStyle}>
+        <label style={labelStyle}>Nome do aluno</label>
+        {students && students.length > 0 ? (
+          <select value={nomeAluno} onChange={e=>{ setNomeAluno(e.target.value); setErros(er=>({...er,nome:null})); }}
+            style={{...inputStyle, appearance:"none", backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231D1050' strokeWidth='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat:"no-repeat", backgroundPosition:"right 12px center", paddingRight:"32px" }}>
+            <option value="">Selecionar aluno cadastrado…</option>
+            {[...new Set(students.map(s=>s.nome))].sort().map(n=><option key={n} value={n}>{n}</option>)}
+            <option value="__manual__">— Digitar manualmente —</option>
+          </select>
+        ) : null}
+        {(nomeAluno === "__manual__" || !students || students.length === 0) && (
+          <input type="text" placeholder="Nome completo do aluno"
+            value={nomeAluno === "__manual__" ? "" : nomeAluno}
+            onChange={e=>{ setNomeAluno(e.target.value); setErros(er=>({...er,nome:null})); }}
+            style={{...inputStyle, marginTop: students && students.length > 0 ? "10px" : "0"}} />
+        )}
+        {erros.nome && <p style={{ fontSize:"12px", color:"#E24B4A", margin:"6px 0 0" }}>{erros.nome}</p>}
+      </div>
+
+      {/* Frequência */}
+      <p style={sectionTitle}>2. Frequência</p>
+      <div style={cardStyle}>
+        <div style={{ display:"flex", gap:"10px", marginBottom:"16px" }}>
+          {[1,2].map(f=>(
+            <button key={f} onClick={()=>{ setFreq(f); setDiasSel([]); setErros(er=>({...er,dias:null})); }}
+              style={{ flex:1, padding:"10px 8px", borderRadius:"8px", border:"none", fontSize:"13px", fontWeight:600, cursor:"pointer", fontFamily:"'Poppins',sans-serif",
+                background: freq===f ? palette.orange : palette.cream, color: freq===f ? "#FFF" : palette.purple }}>
+              {f}× por semana
+            </button>
+          ))}
+        </div>
+        <label style={labelStyle}>Dia{freq>1?"s":""} fixo{freq>1?"s":""} da semana</label>
+        <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
+          {DIAS_LABELS.map((l,i)=>(
+            <button key={i} onClick={()=>toggleDia(i)}
+              style={{ width:"34px", height:"34px", borderRadius:"50%", border:`1.5px solid ${diasSel.includes(i)?palette.purple:palette.lavender+"88"}`, fontSize:"11px", fontWeight:600, cursor:"pointer", fontFamily:"'Poppins',sans-serif",
+                background: diasSel.includes(i) ? palette.purple : "transparent", color: diasSel.includes(i) ? "#FFF" : palette.purple }}>
+              {l}
+            </button>
+          ))}
+        </div>
+        {erros.dias && <p style={{ fontSize:"12px", color:"#E24B4A", margin:"8px 0 0" }}>{erros.dias}</p>}
+      </div>
+
+      {/* Período e vencimento */}
+      <p style={sectionTitle}>3. Período e vencimento</p>
+      <div style={cardStyle}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"16px" }}>
+          <div>
+            <label style={labelStyle}>Data de início</label>
+            <input type="date" value={dataInicio} onChange={e=>{ setDataInicio(e.target.value); setErros(er=>({...er,data:null})); }}
+              style={{...inputStyle}} />
+            {erros.data && <p style={{ fontSize:"12px", color:"#E24B4A", margin:"4px 0 0" }}>{erros.data}</p>}
+          </div>
+          <div>
+            <label style={labelStyle}>Data de término</label>
+            <input type="text" readOnly value={dataFimObj ? formatarBR(dateParaIso(dataFimObj)) : "—"}
+              style={{...inputStyle, background:palette.cream, color:`${palette.purple}88`}} />
+            <p style={{ fontSize:"10px", color:`${palette.purple}66`, marginTop:"4px" }}>Calculado automaticamente</p>
+          </div>
+        </div>
+        <label style={labelStyle}>Vencimento das parcelas</label>
+        <div style={{ display:"flex", gap:"8px" }}>
+          {[5,7,10].map(v=>(
+            <button key={v} onClick={()=>setVencimento(v)}
+              style={{ padding:"8px 18px", borderRadius:"8px", border:`1.5px solid ${vencimento===v?palette.purple:palette.lavender+"88"}`, fontSize:"13px", fontWeight:600, cursor:"pointer", fontFamily:"'Poppins',sans-serif",
+                background: vencimento===v ? palette.purple : "transparent", color: vencimento===v ? "#FFF" : palette.purple }}>
+              Dia {v}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={irParaCalendario} disabled={carregando}
+        style={{...btnPrimary, opacity: carregando ? 0.7 : 1}}>
+        {carregando ? "Carregando feriados…" : "Ver calendário para confirmar →"}
+      </button>
+    </div>
+  );
+
+  // ────────────── STEP 1 — CALENDÁRIO ──────────────
+  if (step === 1) return (
+    <div>
+      <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px" }}>
+        <button onClick={()=>setStep(0)}
+          style={{ border:"none", background:palette.cream, borderRadius:"8px", padding:"7px 12px", cursor:"pointer", fontSize:"13px", color:palette.purple, fontWeight:600, fontFamily:"'Poppins',sans-serif" }}>
+          ← Voltar
+        </button>
+        <div>
+          <p style={{ fontSize:"16px", fontWeight:700, color:palette.purple, margin:0 }}>
+            Confirmar calendário
+          </p>
+          <p style={{ fontSize:"11px", color:`${palette.purple}88`, margin:0 }}>
+            Clique em uma aula para remover ou reativar
+          </p>
+        </div>
+      </div>
+
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{ background: toastMsg.ativando ? palette.lightGreen : palette.cream, color: toastMsg.ativando ? palette.green : palette.purple, fontSize:"12px", fontWeight:600, padding:"8px 14px", borderRadius:"8px", marginBottom:"12px" }}>
+          {toastMsg.ativando ? `✓ Aula de ${formatarBR(toastMsg.iso)} reativada` : `✗ Aula de ${formatarBR(toastMsg.iso)} removida`}
+        </div>
+      )}
+
+      {/* Legenda */}
+      <div style={{ display:"flex", gap:"14px", flexWrap:"wrap", marginBottom:"14px" }}>
+        {[
+          { cor:palette.purple, texto:"Aula confirmada" },
+          { cor:"#F7C1C1", borda:"1px solid #F09595", texto:"Feriado/sem aula" },
+          { cor:"transparent", borda:`1.5px dashed ${palette.purple}44`, texto:"Removida" },
+        ].map(l=>(
+          <div key={l.texto} style={{ display:"flex", alignItems:"center", gap:"5px" }}>
+            <div style={{ width:"12px", height:"12px", borderRadius:"3px", background:l.cor, border:l.borda||"none", flexShrink:0 }}/>
+            <span style={{ fontSize:"11px", color:`${palette.purple}99` }}>{l.texto}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Calendário */}
+      <div style={{ background:"#FFF", borderRadius:"16px", padding:"18px 20px", marginBottom:"12px", boxShadow:"0 2px 8px rgba(29,16,80,0.06)" }}>
+        {renderCalendario()}
+      </div>
+
+      {/* Barra de resumo */}
+      <div style={{ background:palette.cream, borderRadius:"14px", padding:"14px 18px", marginBottom:"12px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>
+          <p style={{ fontSize:"12px", color:`${palette.purple}88`, margin:0 }}>Aulas confirmadas</p>
+          <p style={{ fontSize:"20px", fontWeight:700, color:palette.purple, margin:0 }}>{totalAulas} aulas</p>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <p style={{ fontSize:"12px", color:`${palette.purple}88`, margin:0 }}>Mensalidade (÷ 6)</p>
+          <p style={{ fontSize:"22px", fontWeight:700, color:palette.orange, margin:0 }}>
+            {mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+          </p>
+        </div>
+      </div>
+
+      <button onClick={()=>setStep(2)} style={btnPrimary}>
+        Confirmar e gerar proposta →
+      </button>
+    </div>
+  );
+
+  // ────────────── STEP 2 — RESULTADO ──────────────
+  if (step === 2) {
+    const parcelas = calcularParcelas();
+    const aulasAtivas = Object.entries(aulasToggle).filter(([,v])=>v).map(([k])=>k).sort();
+    return (
+      <div>
+        <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px" }}>
+          <button onClick={()=>setStep(1)}
+            style={{ border:"none", background:palette.cream, borderRadius:"8px", padding:"7px 12px", cursor:"pointer", fontSize:"13px", color:palette.purple, fontWeight:600, fontFamily:"'Poppins',sans-serif" }}>
+            ← Ajustar
+          </button>
+          <p style={{ fontSize:"16px", fontWeight:700, color:palette.purple, margin:0 }}>Proposta gerada</p>
+        </div>
+
+        {/* Resumo */}
+        <div style={{...cardStyle, border:`1.5px solid ${palette.purple}33` }}>
+          <div style={{ display:"flex", gap:"8px", alignItems:"center", marginBottom:"14px", flexWrap:"wrap" }}>
+            <span style={{ background:palette.purple, color:palette.lavender, fontSize:"11px", fontWeight:600, padding:"3px 10px", borderRadius:"20px" }}>
+              {freq}× por semana
+            </span>
+            <span style={{ fontSize:"12px", color:`${palette.purple}88` }}>
+              {formatarBR(dataInicio)} → {formatarBR(dateParaIso(dataFimObj))}
+            </span>
+          </div>
+          {[
+            ["Total de aulas", <span style={{ fontSize:"18px", fontWeight:700, color:palette.purple }}>{totalAulas} aulas</span>],
+            ["Valor por aula", <span style={{ fontSize:"14px", fontWeight:600, color:palette.purple }}>R$ {valorPorAula.toFixed(2).replace(".",",")}</span>],
+          ].map(([label,val])=>(
+            <div key={label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:`0.5px solid ${palette.lavender}44` }}>
+              <span style={{ fontSize:"13px", color:`${palette.purple}88` }}>{label}</span>
+              {val}
+            </div>
+          ))}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0 0" }}>
+            <span style={{ fontSize:"14px", fontWeight:600, color:palette.purple }}>Mensalidade (× 6)</span>
+            <span style={{ fontSize:"24px", fontWeight:700, color:palette.orange }}>
+              {mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+            </span>
+          </div>
+        </div>
+
+        {/* Parcelas */}
+        <div style={{ ...cardStyle, background:palette.cream }}>
+          <p style={{ fontSize:"12px", fontWeight:600, color:palette.purple, marginBottom:"10px" }}>Parcelas</p>
+          {parcelas.map((iso,i)=>(
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", fontSize:"12px", padding:"6px 0", borderBottom: i<5 ? `0.5px solid ${palette.lavender}44` : "none" }}>
+              <span style={{ color:`${palette.purple}88` }}>{i+1}ª parcela</span>
+              <span style={{ color:palette.purple, fontWeight:600 }}>{formatarBR(iso)} · {mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Datas das aulas (resumo) */}
+        <div style={cardStyle}>
+          <p style={{ fontSize:"12px", fontWeight:600, color:palette.purple, marginBottom:"10px" }}>
+            {totalAulas} aulas confirmadas
+          </p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+            {aulasAtivas.map(iso=>(
+              <span key={iso} style={{ background:palette.cream, border:`1px solid ${palette.lavender}88`, borderRadius:"6px", padding:"3px 8px", fontSize:"11px", color:palette.purple, fontWeight:500 }}>
+                {formatarBR(iso)}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Ações */}
+        <div style={{ display:"flex", flexDirection:"column", gap:"10px", marginTop:"4px" }}>
+          <button onClick={gerarPDF} disabled={gerando}
+            style={{...btnPrimary, opacity: gerando ? 0.7 : 1, display:"flex", alignItems:"center", justifyContent:"center", gap:"8px" }}>
+            📄 {gerando ? "Gerando PDF…" : "Baixar proposta em PDF"}
+          </button>
+          <button onClick={()=>{ setStep(0); setNomeAluno(""); setDiasSel([]); setDataInicio(""); setAulasToggle({}); }}
+            style={btnSecondary}>
+            Gerar nova proposta
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
@@ -1883,6 +2487,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             { id: "flashcards", label: "🃏 Flashcards" },
             { id: "diagnostico", label: "🔍 Diagnóstico" },
             { id: "backup", label: "💾 Backup" },
+            { id: "proposta", label: "📄 Proposta" },
           ].map((tab) => (
             <button key={tab.id}
               onClick={() => { if (tab.id === "materiais") setNivelSelecionado(null); setAbaAdmin(tab.id); }}
@@ -2170,6 +2775,10 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
               )}
             </div>
           </div>
+        )}
+
+        {abaAdmin === "proposta" && (
+          <GeradorProposta students={students} />
         )}
 
         {abaAdmin === "calendario" && (
