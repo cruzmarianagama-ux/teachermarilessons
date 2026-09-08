@@ -1396,7 +1396,7 @@ function GeradorProposta({ students }) {
       txt("ALUNO", mH+6, y+7);
       tc(...branco); sz(12); fn("bold");
       txt(nomeAluno, mH+6, y+14);
-      y += 26;
+      y += 24;
 
       // ═══ 2 COLUNAS: FREQUENCIA + PERIODO ═══
       const col1x = mH, col2x = W/2+2, cW = W/2 - mH - 2;
@@ -1420,7 +1420,7 @@ function GeradorProposta({ students }) {
       // ═══ 3 METRICAS ═══
       const mW = (W - 2*mH - 8) / 3;
       const metricas = [
-        { label:"TOTAL DE AULAS", val: totalAulas + " aulas" },
+        { label:"TOTAL DE AULAS", val: String(totalAulas) + " aulas" },
         { label:"VALOR POR AULA", val: vAulaFmt },
         { label:"TOTAL DO CONTRATO", val: totalFormatado },
       ];
@@ -1447,12 +1447,12 @@ function GeradorProposta({ students }) {
       // ═══ SEPARADOR ═══
       doc.setDrawColor(...cinzaMedio); doc.setLineWidth(0.4);
       doc.line(mH, y, W-mH, y);
-      y += 8;
+      y += 6;
 
       // ═══ TABELA PARCELAS ═══
       tc(...roxo); sz(10); fn("bold");
       txt("Cronograma de parcelas", mH, y);
-      y += 7;
+      y += 6;
 
       fc(...roxo); doc.rect(mH, y, W-2*mH, 8, "F");
       tc(...lavanda); sz(7.5); fn("semibold");
@@ -1463,9 +1463,9 @@ function GeradorProposta({ students }) {
 
       parcelas.forEach((iso, i) => {
         if (y > 268) { rodape(); doc.addPage(); y = mV; }
-        fc(i%2===0 ? cinzaClaro : branco); doc.rect(mH, y, W-2*mH, 8, "F");
+        const bgP = i%2===0 ? cinzaClaro : branco; doc.setFillColor(...bgP); doc.rect(mH, y, W-2*mH, 8, "F");
         tc(...roxo); sz(8.5);
-        fn("semibold"); txt((i+1) + "a parcela", mH+4, y+5.5);
+        fn("semibold"); txt(String(i+1) + "a parcela", mH+4, y+5.5);
         fn("normal"); txt(formatarBR(iso), mH+50, y+5.5);
         fn("semibold"); tc(...laranja); txt(mensFormatada, W-mH-4, y+5.5, {align:"right"});
         y += 8;
@@ -1474,12 +1474,12 @@ function GeradorProposta({ students }) {
 
       doc.setDrawColor(...cinzaMedio);
       doc.line(mH, y, W-mH, y);
-      y += 8;
+      y += 6;
 
       // ═══ DATAS DAS AULAS POR MES ═══
       tc(...roxo); sz(10); fn("bold");
-      txt("Datas das aulas (" + totalAulas + " aulas confirmadas)", mH, y);
-      y += 7;
+      txt("Datas das aulas (" + String(totalAulas) + " aulas confirmadas)", mH, y);
+      y += 6;
 
       const porMes = {};
       aulasAtivas.forEach(iso => {
@@ -1496,7 +1496,7 @@ function GeradorProposta({ students }) {
         tc(...roxo); sz(8); fn("bold");
         txt(grupo.label, mH+5, y+6.5);
         tc(130,128,125); sz(7.5); fn("normal");
-        txt(grupo.datas.length + " aulas", W-mH-5, y+6.5, {align:"right"});
+        txt(String(grupo.datas.length) + " aulas", W-mH-5, y+6.5, {align:"right"});
         y += 11;
 
         const dW = (W - 2*mH) / 4;
