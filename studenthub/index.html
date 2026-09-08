@@ -1236,6 +1236,8 @@ function GeradorProposta({ students }) {
   const [erros, setErros] = useState({});
   const [toastMsg, setToastMsg] = useState(null);
   const [gerando, setGerando] = useState(false);
+  const [valor1x, setValor1x] = useState(90);
+  const [valor2x, setValor2x] = useState(85);
 
   // ── carregar feriados do Supabase uma vez ──
   useEffect(() => {
@@ -1313,7 +1315,7 @@ function GeradorProposta({ students }) {
   };
 
   const totalAulas = Object.values(aulasToggle).filter(Boolean).length;
-  const valorPorAula = freq === 1 ? 90 : 85;
+  const valorPorAula = freq === 1 ? (Number(valor1x) || 0) : (Number(valor2x) || 0);
   const mensalidade = totalAulas * valorPorAula / 6;
 
   // ── calcular datas das parcelas ──
@@ -1626,6 +1628,20 @@ function GeradorProposta({ students }) {
           ))}
         </div>
         {erros.dias && <p style={{ fontSize:"12px", color:"#E24B4A", margin:"8px 0 0" }}>{erros.dias}</p>}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginTop:"16px" }}>
+          <div>
+            <label style={labelStyle}>Valor/aula · 1× semana (R$)</label>
+            <input type="number" min="0" step="0.01" value={valor1x}
+              onChange={e=>setValor1x(e.target.value)}
+              style={{...inputStyle, textAlign:"right"}} />
+          </div>
+          <div>
+            <label style={labelStyle}>Valor/aula · 2× semana (R$)</label>
+            <input type="number" min="0" step="0.01" value={valor2x}
+              onChange={e=>setValor2x(e.target.value)}
+              style={{...inputStyle, textAlign:"right"}} />
+          </div>
+        </div>
       </div>
 
       {/* Período e vencimento */}
