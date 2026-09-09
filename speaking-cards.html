@@ -836,6 +836,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <label style="margin:0;">Cards</label>
         <button class="btn btn-secondary btn-sm" id="addCardBtn">+ Add card</button>
+        <button class="btn btn-secondary btn-sm" id="generateWithAiBtn" style="background:linear-gradient(135deg,#7c5cbf,#a87be8);color:#fff;border:none;">✨ Generate with AI</button>
       </div>
       <p class="tiny-note">Paste a direct image link OR upload a file. From Google Images: open the image full-size first, then right-click it and choose "Copy image address" (not the search results page link). Prompt/question and audio are optional — audio can be a file you upload, or generated automatically by the browser from a text.</p>
       <div id="cardEditorList" class="card-editor-list"></div>
@@ -865,6 +866,27 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <button class="back-to-top" id="backToTopBtn" title="Back to top">↑</button>
 
 <!-- ========== IMAGE SEARCH MODAL ========== -->
+<!-- ========== AI GENERATE MODAL ========== -->
+<div class="img-search-modal-overlay" id="aiGenerateOverlay" style="z-index:2000;">
+  <div class="img-search-modal" style="max-width:520px;width:92%;">
+    <div class="img-search-header">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;">
+        ✨ Generate set with AI
+        <button class="img-search-close" id="aiGenerateClose" title="Close">✕</button>
+      </h3>
+      <p style="margin:0 0 10px;font-size:13px;color:#6b5e4e;line-height:1.5;">
+        Describe what you want in English. Specify the topic, level, and number of cards.<br>
+        <em style="opacity:.75;">E.g.: "8 cards about fruits for A1 beginners" or "10 action verbs for B1, with a question prompt"</em>
+      </p>
+      <textarea id="aiPromptInput" rows="3" placeholder="Describe your set..." style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1.5px solid #d4c5b0;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+    </div>
+    <div style="padding:0 20px 16px;">
+      <button class="btn btn-primary" id="aiGenerateBtn" style="background:linear-gradient(135deg,#7c5cbf,#a87be8);border:none;width:100%;justify-content:center;">✨ Generate</button>
+      <div id="aiGenerateStatus" style="margin-top:12px;font-size:13px;color:#6b5e4e;min-height:20px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
 <div class="img-search-modal-overlay" id="imgSearchOverlay">
   <div class="img-search-modal">
     <div class="img-search-header">
@@ -2469,6 +2491,149 @@ async function initStudentModeIfNeeded(){
   presentSetSelect.disabled = true; // student mode: locked to this one set
   startPresentation(targetSet.id);
   return true;
+}
+
+/* ---------------- AI GENERATE SET ---------------- */
+
+const aiGenerateOverlay = document.getElementById('aiGenerateOverlay');
+const aiPromptInput     = document.getElementById('aiPromptInput');
+const aiGenerateBtn     = document.getElementById('aiGenerateBtn');
+const aiGenerateStatus  = document.getElementById('aiGenerateStatus');
+
+document.getElementById('generateWithAiBtn').onclick = () => {
+  aiPromptInput.value = '';
+  aiGenerateStatus.textContent = '';
+  aiGenerateOverlay.classList.add('open');
+  aiPromptInput.focus();
+};
+
+document.getElementById('aiGenerateClose').onclick = () => {
+  aiGenerateOverlay.classList.remove('open');
+};
+
+aiGenerateOverlay.addEventListener('click', (e) => {
+  if (e.target === aiGenerateOverlay) aiGenerateOverlay.classList.remove('open');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && aiGenerateOverlay.classList.contains('open')) {
+    aiGenerateOverlay.classList.remove('open');
+  }
+});
+
+aiGenerateBtn.onclick = () => runAiGenerate();
+aiPromptInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runAiGenerate();
+});
+
+async function runAiGenerate() {
+  const userPrompt = aiPromptInput.value.trim();
+  if (!userPrompt) {
+    aiGenerateStatus.textContent = '⚠ Please describe what you want to generate.';
+    return;
+  }
+
+  aiGenerateBtn.disabled = true;
+  aiGenerateStatus.textContent = '⏳ Asking Claude to create your set...';
+
+  const systemPrompt = `You are a helpful English teaching assistant for an online teacher who creates speaking flashcard sets for adult learners.
+
+When given a description, generate a flashcard set in English. Respond ONLY with valid JSON, no markdown, no explanation.
+
+JSON format:
+{
+  "setName": "string — short descriptive name for the set",
+  "cards": [
+    {
+      "prompt": "string — a short question or instruction in English shown on the card (e.g. 'What is this?' or 'Name this fruit.' or 'Use this word in a sentence.'). Can be empty string if not appropriate.",
+      "imageKeyword": "string — 1-3 simple English words to search on Pixabay for a relevant photo (e.g. 'red apple', 'airport terminal', 'smiling doctor')"
+    }
+  ]
+}
+
+Rules:
+- All text must be in English.
+- imageKeyword must be concrete and visual — something you can photograph.
+- Respect the number of cards requested; if not specified, default to 8.
+- Keep prompts short and suitable for oral practice.
+- Do not include any text outside the JSON object.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    if (!response.ok) throw new Error('API error: ' + response.status);
+
+    const data = await response.json();
+    const rawText = data.content?.find(b => b.type === 'text')?.text || '';
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      throw new Error('Could not parse AI response. Try again.');
+    }
+
+    if (!parsed.cards || !Array.isArray(parsed.cards) || parsed.cards.length === 0) {
+      throw new Error('AI returned no cards. Try rephrasing your prompt.');
+    }
+
+    aiGenerateStatus.textContent = `✅ ${parsed.cards.length} cards generated! Now fetching images...`;
+
+    // Set the set name if the editor is still blank
+    if (!setNameInput.value.trim() && parsed.setName) {
+      setNameInput.value = parsed.setName;
+    }
+
+    // Fetch first Pixabay image for each card in parallel
+    const newCards = await Promise.all(parsed.cards.map(async (c) => {
+      const cardId = 'c' + Date.now() + Math.random().toString(36).slice(2, 7);
+      let imageUrl = '';
+      if (c.imageKeyword) {
+        try {
+          const px = await fetch(
+            `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(c.imageKeyword)}&per_page=3&page=1&safesearch=true&orientation=horizontal&image_type=photo`
+          );
+          if (px.ok) {
+            const pxData = await px.json();
+            if (pxData.hits && pxData.hits.length > 0) {
+              imageUrl = pxData.hits[0].webformatURL;
+            }
+          }
+        } catch (_) { /* silently skip if image not found */ }
+      }
+      return {
+        id: cardId,
+        image: imageUrl,
+        prompt: c.prompt || '',
+        audioFile: '',
+        audioText: '',
+        audioLang: 'en-US'
+      };
+    }));
+
+    // Prepend generated cards to any existing ones
+    editorCards = [...newCards, ...editorCards];
+    renderCardEditorList();
+
+    aiGenerateOverlay.classList.remove('open');
+    editorPanel.scrollIntoView({ behavior: 'smooth' });
+
+  } catch (err) {
+    console.error('AI Generate error:', err);
+    aiGenerateStatus.textContent = '❌ ' + (err.message || 'Something went wrong. Try again.');
+  } finally {
+    aiGenerateBtn.disabled = false;
+  }
 }
 
 /* ---------------- INIT ---------------- */
