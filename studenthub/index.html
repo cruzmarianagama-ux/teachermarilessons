@@ -1534,21 +1534,28 @@ function GeradorProposta({ students }) {
         const primeiroDia = new Date(g.ano, g.mes, 1).getDay();
         const diasNoMes   = new Date(g.ano, g.mes+1, 0).getDate();
         for (let d=1; d<=diasNoMes; d++) {
-          const idx = primeiroDia + d - 1;
-          const dc  = idx % 7;
-          const dr  = Math.floor(idx/7);
-          const dx  = cx + dc*cellW + cellW/2;
-          const dy  = cy + 16 + dr*7;
+          const idx  = primeiroDia + d - 1;
+          const dc   = idx % 7;
+          const dr   = Math.floor(idx/7);
+          const dx   = cx + dc*cellW + cellW/2;
+          const dy   = cy + 16 + dr*7;
+          const isoD = g.ano+"-"+String(g.mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+          const eFeriado = feriados.has(isoD);
           if (g.dias.has(d)) {
-            // círculo verde escuro (estilo relatório)
+            // aula confirmada: círculo verde escuro
             fc(...verdeEscuro); doc.circle(dx, dy-2, 2.8, "F");
             tc(...lavanda); sz(5); fn("bold");
-          } else {
-            // dias sem aula: rosa muito claro / quase branco
+            txt(String(d), dx, dy, {align:"center"});
+          } else if (eFeriado) {
+            // feriado: círculo rosa claro
             fc(252,228,228); doc.circle(dx, dy-2, 2.8, "F");
             tc(210,150,150); sz(5); fn("normal");
+            txt(String(d), dx, dy, {align:"center"});
+          } else {
+            // dia normal sem aula: só número discreto, sem círculo
+            tc(...cinzaMedio); sz(5); fn("normal");
+            txt(String(d), dx, dy, {align:"center"});
           }
-          txt(String(d), dx, dy, {align:"center"});
         }
       });
 
@@ -1559,7 +1566,7 @@ function GeradorProposta({ students }) {
       txt("Aula confirmada", mg+8, legY);
       fc(252,228,228); doc.circle(mg+50, legY-2, 3, "F");
       tc(180,120,120); sz(7);
-      txt("Sem aula", mg+55, legY);
+      txt("Feriado", mg+55, legY);
 
       rodape(2, 2);
 
