@@ -1340,141 +1340,134 @@ function GeradorProposta({ students }) {
       doc.addFileToVFS("Poppins-Bold.ttf", POPPINS_BOLD_B64);
       doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
 
-      const W = 210, mH = 14;
-      const roxo = [29,16,80], laranja = [255,92,35];
-      const creme = [250,234,211], lavanda = [180,161,255];
-      const cinzaClaro = [245,244,242], cinzaMedio = [220,218,214];
-      const branco = [255,255,255], cinzaTexto = [100,98,95];
+      const W = 210, H = 297, mg = 20;
+      const verdeEscuro = [4,57,47], laranja = [255,92,35];
+      const roxo = [29,16,80], lavanda = [180,161,255], creme = [250,234,211];
+      const cinzaClaro = [245,244,242], cinzaMedio = [210,208,205];
+      const branco = [255,255,255];
 
-      const fn = (w) => doc.setFont("Poppins", w);
-      const fc = (...c) => doc.setFillColor(...c);
-      const tc = (...c) => doc.setTextColor(...c);
-      const sz = (n) => doc.setFontSize(n);
-      const txt = (t, x, y, opts) => doc.text(String(t), x, y, opts||{});
-      const rr = (x,y,w,h,r,mode) => doc.roundedRect(x,y,w,h,r,r,mode||"F");
+      const fn  = (w) => doc.setFont("Poppins", w);
+      const fc  = (...c) => doc.setFillColor(...c);
+      const tc  = (...c) => doc.setTextColor(...c);
+      const sz  = (n) => doc.setFontSize(n);
+      const txt = (t, x, y, o) => doc.text(String(t), x, y, o||{});
+      const rr  = (x,y,w,h,r,mode) => doc.roundedRect(x,y,w,h,r,r,mode||"F");
 
-      const mensFormatada = mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-      const totalFormatado = (totalAulas * valorPorAula).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-      const vAulaFmt = valorPorAula.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-      const parcelas = calcularParcelas();
-      const aulasAtivas = Object.entries(aulasToggle).filter(([,v])=>v).map(([k])=>k).sort();
-      const diasNomesArr = ["Dom","Seg","Ter","Qua","Qui","Sex","Sab"];
-      const mesesNomesArr = ["Janeiro","Fevereiro","Marco","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-      const mesesAbrev = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+      const mensFormatada  = mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+      const totalFormatado = (totalAulas*valorPorAula).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+      const vAulaFmt       = valorPorAula.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+      const parcelas       = calcularParcelas();
+      const aulasAtivas    = Object.entries(aulasToggle).filter(([,v])=>v).map(([k])=>k).sort();
+      const diasNomesArr   = ["Dom","Seg","Ter","Qua","Qui","Sex","Sab"];
+      const mesesNomesArr  = ["Janeiro","Fevereiro","Marco","Abril","Maio","Junho",
+                               "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      const mesesAbrev     = ["Jan","Fev","Mar","Abr","Mai","Jun",
+                               "Jul","Ago","Set","Out","Nov","Dez"];
       const diasStr = diasSel.slice().sort((a,b)=>a-b).map(d=>diasNomesArr[d]).join(", ");
 
-      // ── rodapé (chamado após cada página) ──
+      // ── moldura: fundo verde + área branca interna ──
+      const moldura = () => {
+        fc(...verdeEscuro); doc.rect(0,0,W,H,"F");
+        fc(...branco); rr(9,9,W-18,H-18,3,"F");
+      };
+
+      // ── rodapé ──
       const rodape = (pag, total) => {
-        fc(...roxo); doc.rect(0, 284, W, 14, "F");
+        fc(...verdeEscuro); doc.rect(0,H-14,W,14,"F");
         tc(...lavanda); sz(7.5); fn("normal");
-        txt("Teacher Mari Lessons", mH, 291);
-        txt(pag + " / " + total, W-mH, 291, {align:"right"});
+        txt("Teacher Mari Lessons", mg, H-6);
+        txt(pag+" / "+total, W-mg, H-6, {align:"right"});
       };
 
       // ════════════════════════════════════════
       // PÁG 1 — RESUMO + PARCELAS
       // ════════════════════════════════════════
+      moldura();
 
-      // cabeçalho: branco + linha laranja
-      fc(...branco); doc.rect(0, 0, W, 28, "F");
-      fc(...laranja); doc.rect(0, 26, W, 2, "F");
+      let y = 18;
 
-      // logo proporcional (sem distorção)
-      try {
-        const logoImg = new Image();
-        logoImg.src = LOGO;
-        // proporção aproximada da logo Teacher Mari: ~2.6:1 (larga)
-        const logoH = 18, logoW = 47;
-        doc.addImage(LOGO, "PNG", mH, 5, logoW, logoH, undefined, "FAST");
-      } catch(_) {}
+      // logo (base64, sem distorção — mesma do relatório)
+      doc.addImage("data:image/png;base64,"+LOGO_PDF_B64, "PNG", mg, y-2, 24, 24);
 
-      let y = 38;
+      // título estilo relatório
+      fn("bold"); sz(20); tc(...verdeEscuro);
+      txt("Proposta de Contrato", mg, y+28);
+      sz(14); tc(...laranja); fn("semibold");
+      txt(nomeAluno.toUpperCase(), mg, y+38);
 
-      // título
-      tc(...roxo); sz(17); fn("bold");
-      txt("Proposta de Contrato", mH, y);
-      y += 5;
-      tc(...cinzaTexto); sz(8); fn("normal");
-      txt("Gerada em " + new Date().toLocaleDateString("pt-BR"), mH, y);
-      y += 10;
+      // chips à direita (estilo relatório)
+      const chipsX = 128, chipsW = W-mg-chipsX;
+      let chipY = y+3;
+      const infos = [
+        ["FREQUENCIA", (freq===1?"1x":"2x")+" por semana  |  "+diasStr],
+        ["INICIO", formatarBR(dataInicio)],
+        ["TERMINO", formatarBR(dateParaIso(dataFimObj))],
+      ];
+      infos.forEach(info => {
+        doc.setDrawColor(...lavanda); doc.setLineWidth(0.3);
+        fc(...branco); rr(chipsX, chipY, chipsW, 10, 2, "S");
+        fn("bold"); sz(8); tc(...roxo);
+        txt(info[0]+":", chipsX+4, chipY+6.5);
+        const lw = doc.getTextWidth(info[0]+":");
+        fn("normal"); sz(8);
+        txt(info[1], chipsX+6+lw, chipY+6.5, {maxWidth: chipsW-lw-10});
+        chipY += 11;
+      });
 
-      // faixa aluno
-      fc(...roxo); rr(mH, y, W-2*mH, 16, 3);
-      tc(...lavanda); sz(6.5); fn("semibold");
-      txt("ALUNO", mH+5, y+6);
-      tc(...branco); sz(11); fn("bold");
-      txt(nomeAluno, mH+5, y+13);
+      y += 52;
+
+      // linha divisória
+      doc.setDrawColor(...cinzaMedio); doc.setLineWidth(0.4);
+      doc.line(mg, y, W-mg, y);
+      y += 8;
+
+      // ── 3 métricas ──
+      const mW = (W-2*mg-8)/3;
+      const met = [
+        {label:"TOTAL DE AULAS", val: String(totalAulas)+" aulas"},
+        {label:"VALOR POR AULA",  val: vAulaFmt},
+        {label:"TOTAL DO CONTRATO", val: totalFormatado},
+      ];
+      met.forEach((m,i) => {
+        const mx = mg + i*(mW+4);
+        fc(...cinzaClaro); rr(mx, y, mW, 20, 3);
+        tc(130,128,125); sz(6); fn("semibold");
+        txt(m.label, mx+4, y+7);
+        tc(...roxo); sz(9); fn("bold");
+        txt(m.val, mx+4, y+16);
+      });
+      y += 26;
+
+      // ── faixa mensalidade laranja ──
+      fc(...laranja); rr(mg, y, W-2*mg, 16, 3);
+      tc(...branco); sz(7.5); fn("semibold");
+      txt("MENSALIDADE  (6 parcelas iguais)", mg+6, y+6.5);
+      sz(12); fn("bold");
+      txt(mensFormatada, mg+6, y+13.5);
+      sz(8); fn("normal");
+      txt("por mes", W-mg-6, y+13.5, {align:"right"});
       y += 22;
 
-      // 2 colunas: frequência + período
-      const cW = (W - 2*mH - 6) / 2;
-      fc(...cinzaClaro); rr(mH, y, cW, 26, 3);
-      tc(...cinzaTexto); sz(6.5); fn("semibold");
-      txt("FREQUENCIA", mH+5, y+7);
-      tc(...roxo); sz(10); fn("bold");
-      txt(freq === 1 ? "1x por semana" : "2x por semana", mH+5, y+15);
-      tc(130,128,125); sz(7.5); fn("normal");
-      txt("Dias: " + diasStr, mH+5, y+22);
-
-      const col2 = mH + cW + 6;
-      fc(...cinzaClaro); rr(col2, y, cW, 26, 3);
-      tc(...cinzaTexto); sz(6.5); fn("semibold");
-      txt("PERIODO", col2+5, y+7);
+      // ── tabela parcelas ──
       tc(...roxo); sz(9); fn("bold");
-      txt("Inicio: " + formatarBR(dataInicio), col2+5, y+15);
-      txt("Termino: " + formatarBR(dateParaIso(dataFimObj)), col2+5, y+22);
-      y += 32;
-
-      // 3 métricas
-      const mW = (W - 2*mH - 8) / 3;
-      const metricas = [
-        { label:"TOTAL DE AULAS", val: String(totalAulas) + " aulas" },
-        { label:"VALOR POR AULA", val: vAulaFmt },
-        { label:"TOTAL DO CONTRATO", val: totalFormatado },
-      ];
-      metricas.forEach((m, i) => {
-        const mx = mH + i*(mW+4);
-        fc(...cinzaClaro); rr(mx, y, mW, 22, 3);
-        tc(...cinzaTexto); sz(6); fn("semibold");
-        txt(m.label, mx+4, y+7);
-        tc(...roxo); sz(9.5); fn("bold");
-        txt(m.val, mx+4, y+17);
-      });
-      y += 28;
-
-      // faixa mensalidade
-      fc(...laranja); rr(mH, y, W-2*mH, 18, 3);
-      tc(...branco); sz(7.5); fn("semibold");
-      txt("MENSALIDADE (6 parcelas iguais)", mH+6, y+7);
-      sz(13); fn("bold");
-      txt(mensFormatada, mH+6, y+15);
-      sz(8); fn("normal");
-      txt("por mes", W-mH-6, y+15, {align:"right"});
-      y += 24;
-
-      // separador + título parcelas
-      doc.setDrawColor(...cinzaMedio); doc.setLineWidth(0.4);
-      doc.line(mH, y, W-mH, y);
-      y += 6;
-      tc(...roxo); sz(9); fn("bold");
-      txt("Cronograma de parcelas", mH, y);
+      txt("Cronograma de parcelas", mg, y);
       y += 6;
 
-      // cabeçalho tabela
-      fc(...roxo); doc.rect(mH, y, W-2*mH, 7, "F");
+      // cabeçalho tabela — fundo verde escuro
+      fc(...verdeEscuro); doc.rect(mg, y, W-2*mg, 7, "F");
       tc(...lavanda); sz(7); fn("semibold");
-      txt("Parcela", mH+3, y+5);
-      txt("Vencimento", mH+48, y+5);
-      txt("Valor", W-mH-3, y+5, {align:"right"});
+      txt("Parcela", mg+3, y+5);
+      txt("Vencimento", mg+50, y+5);
+      txt("Valor", W-mg-3, y+5, {align:"right"});
       y += 7;
 
-      parcelas.forEach((iso, i) => {
+      parcelas.forEach((iso,i) => {
         const bgP = i%2===0 ? cinzaClaro : branco;
-        doc.setFillColor(...bgP); doc.rect(mH, y, W-2*mH, 7, "F");
+        doc.setFillColor(...bgP); doc.rect(mg, y, W-2*mg, 7, "F");
         tc(...roxo); sz(8);
-        fn("semibold"); txt(String(i+1) + "a parcela", mH+3, y+5);
-        fn("normal"); txt(formatarBR(iso), mH+48, y+5);
-        fn("semibold"); tc(...laranja); txt(mensFormatada, W-mH-3, y+5, {align:"right"});
+        fn("semibold"); txt(String(i+1)+"a parcela", mg+3, y+5);
+        fn("normal");   txt(formatarBR(iso), mg+50, y+5);
+        fn("semibold"); tc(...laranja); txt(mensFormatada, W-mg-3, y+5, {align:"right"});
         y += 7;
       });
 
@@ -1483,91 +1476,101 @@ function GeradorProposta({ students }) {
       // ════════════════════════════════════════
       // PÁG 2 — CALENDÁRIOS 3×2
       // ════════════════════════════════════════
-      doc.addPage();
-      fc(...branco); doc.rect(0, 0, W, 28, "F");
-      fc(...laranja); doc.rect(0, 26, W, 2, "F");
-      try { doc.addImage(LOGO, "PNG", mH, 5, 47, 18, undefined, "FAST"); } catch(_) {}
-      tc(...cinzaTexto); sz(8); fn("normal");
-      txt("Proposta de Contrato  |  " + nomeAluno, W-mH, 18, {align:"right"});
+      doc.addPage(); moldura();
+      y = 18;
 
-      y = 36;
+      // mini cabeçalho pág 2
+      doc.addImage("data:image/png;base64,"+LOGO_PDF_B64, "PNG", mg, y-2, 20, 20);
+      fn("semibold"); sz(9); tc(130,128,125);
+      txt("Proposta de Contrato  |  "+nomeAluno, mg+24, y+6);
+      y += 26;
+
+      doc.setDrawColor(...cinzaMedio); doc.setLineWidth(0.4);
+      doc.line(mg, y, W-mg, y);
+      y += 7;
+
       tc(...roxo); sz(9); fn("bold");
-      txt("Datas das aulas (" + String(totalAulas) + " aulas confirmadas)", mH, y);
-      y += 6;
+      txt("Datas das aulas ("+String(totalAulas)+" aulas confirmadas)", mg, y);
+      y += 7;
 
-      // agrupar aulas por mês
+      // agrupar por mês
       const porMes = {};
       aulasAtivas.forEach(iso => {
         const p = iso.split("-");
-        const chave = p[0] + "-" + p[1];
-        if (!porMes[chave]) porMes[chave] = { ano: parseInt(p[0]), mes: parseInt(p[1])-1, dias: new Set() };
+        const chave = p[0]+"-"+p[1];
+        if (!porMes[chave]) porMes[chave] = {ano:parseInt(p[0]), mes:parseInt(p[1])-1, dias:new Set()};
         porMes[chave].dias.add(parseInt(p[2]));
       });
-
       const grupos = Object.values(porMes);
+
+      // calendários 3×2
       const nCols = 3;
-      const calW = (W - 2*mH - (nCols-1)*5) / nCols;
-      const calH = 52; // altura fixa por calendário
-      const colGap = 5, rowGap = 6;
+      const calW  = (W - 2*mg - (nCols-1)*5) / nCols;
+      const calH  = 50;
+      const colGap = 5, rowGap = 5;
 
       grupos.forEach((g, gi) => {
         const col = gi % nCols;
         const row = Math.floor(gi / nCols);
-        const cx = mH + col*(calW+colGap);
-        const cy = y + row*(calH+rowGap);
+        const cx  = mg + col*(calW+colGap);
+        const cy  = y  + row*(calH+rowGap);
 
         // cabeçalho creme
-        fc(...creme); rr(cx, cy, calW, 8, 2);
-        tc(...roxo); sz(7); fn("bold");
-        txt(mesesAbrev[g.mes] + " " + g.ano, cx+3, cy+5.5);
-        tc(130,128,125); sz(6.5); fn("normal");
-        txt(String(g.dias.size) + " aulas", cx+calW-3, cy+5.5, {align:"right"});
+        fc(...creme); rr(cx, cy, calW, 7.5, 2);
+        tc(...roxo); sz(6.5); fn("bold");
+        txt(mesesAbrev[g.mes]+" "+g.ano, cx+3, cy+5.5);
+        tc(130,128,125); sz(6); fn("normal");
+        txt(String(g.dias.size)+" aulas", cx+calW-3, cy+5.5, {align:"right"});
 
-        // cabeçalho dias da semana
+        // dias da semana
         const dows = ["D","S","T","Q","Q","S","S"];
-        const cellW = calW / 7;
-        dows.forEach((d, di) => {
-          tc(180,178,175); sz(5.5); fn("semibold");
-          txt(d, cx + di*cellW + cellW/2, cy+13, {align:"center"});
+        const cellW = calW/7;
+        dows.forEach((d,di) => {
+          tc(180,178,175); sz(5); fn("semibold");
+          txt(d, cx+di*cellW+cellW/2, cy+12, {align:"center"});
         });
 
-        // dias
+        // células de dia
         const primeiroDia = new Date(g.ano, g.mes, 1).getDay();
-        const diasNoMes = new Date(g.ano, g.mes+1, 0).getDate();
-        let cellIdx = primeiroDia;
-        for (let d = 1; d <= diasNoMes; d++) {
-          const dc = cellIdx % 7;
-          const dr = Math.floor(cellIdx / 7);
-          const dx = cx + dc*cellW + cellW/2;
-          const dy = cy + 17 + dr*8;
+        const diasNoMes   = new Date(g.ano, g.mes+1, 0).getDate();
+        for (let d=1; d<=diasNoMes; d++) {
+          const idx = primeiroDia + d - 1;
+          const dc  = idx % 7;
+          const dr  = Math.floor(idx/7);
+          const dx  = cx + dc*cellW + cellW/2;
+          const dy  = cy + 16 + dr*7;
           if (g.dias.has(d)) {
-            fc(...roxo); doc.circle(dx, dy-2.5, 3.2, "F");
-            tc(...lavanda); sz(6); fn("bold");
+            // círculo verde escuro (estilo relatório)
+            fc(...verdeEscuro); doc.circle(dx, dy-2, 2.8, "F");
+            tc(...lavanda); sz(5); fn("bold");
           } else {
-            tc(210,208,205); sz(5.5); fn("normal");
+            // dias sem aula: rosa muito claro / quase branco
+            fc(252,228,228); doc.circle(dx, dy-2, 2.8, "F");
+            tc(210,150,150); sz(5); fn("normal");
           }
           txt(String(d), dx, dy, {align:"center"});
-          cellIdx++;
         }
       });
 
       // legenda
-      const legY = y + Math.ceil(grupos.length/nCols)*(calH+rowGap) + 2;
-      fc(...roxo); doc.circle(mH+3, legY-2, 3, "F");
-      tc(...cinzaTexto); sz(7); fn("normal");
-      txt("Aula confirmada", mH+8, legY);
-      fc(210,208,205); doc.circle(mH+50, legY-2, 3, "F");
-      txt("Sem aula", mH+55, legY);
+      const legY = y + Math.ceil(grupos.length/nCols)*(calH+rowGap) + 3;
+      fc(...verdeEscuro); doc.circle(mg+3, legY-2, 3, "F");
+      tc(...roxo); sz(7); fn("normal");
+      txt("Aula confirmada", mg+8, legY);
+      fc(252,228,228); doc.circle(mg+50, legY-2, 3, "F");
+      tc(180,120,120); sz(7);
+      txt("Sem aula", mg+55, legY);
 
       rodape(2, 2);
 
-      const nomeArq = "proposta-" + nomeAluno.replace(/\s+/g,"-").toLowerCase() + "-" + dataInicio + ".pdf";
+      const nomeArq = "proposta-"+nomeAluno.replace(/\s+/g,"-").toLowerCase()+"-"+dataInicio+".pdf";
       doc.save(nomeArq);
     } catch(e) {
-      alert("Erro ao gerar PDF: " + e.message);
+      alert("Erro ao gerar PDF: "+e.message);
     }
     setGerando(false);
   };
+
 
 
   // ── helpers de estilo ──
