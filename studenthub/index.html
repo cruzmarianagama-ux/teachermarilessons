@@ -1340,7 +1340,7 @@ function GeradorProposta({ students }) {
       doc.addFileToVFS("Poppins-Bold.ttf", POPPINS_BOLD_B64);
       doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
 
-      const W = 210, mH = 14, mV = 14;
+      const W = 210, mH = 14;
       const roxo = [29,16,80], laranja = [255,92,35];
       const creme = [250,234,211], lavanda = [180,161,255];
       const cinzaClaro = [245,244,242], cinzaMedio = [220,218,214];
@@ -1350,7 +1350,7 @@ function GeradorProposta({ students }) {
       const fc = (...c) => doc.setFillColor(...c);
       const tc = (...c) => doc.setTextColor(...c);
       const sz = (n) => doc.setFontSize(n);
-      const txt = (t, x, y, opts) => doc.text(t, x, y, opts||{});
+      const txt = (t, x, y, opts) => doc.text(String(t), x, y, opts||{});
       const rr = (x,y,w,h,r,mode) => doc.roundedRect(x,y,w,h,r,r,mode||"F");
 
       const mensFormatada = mensalidade.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -1360,64 +1360,72 @@ function GeradorProposta({ students }) {
       const aulasAtivas = Object.entries(aulasToggle).filter(([,v])=>v).map(([k])=>k).sort();
       const diasNomesArr = ["Dom","Seg","Ter","Qua","Qui","Sex","Sab"];
       const mesesNomesArr = ["Janeiro","Fevereiro","Marco","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+      const mesesAbrev = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
       const diasStr = diasSel.slice().sort((a,b)=>a-b).map(d=>diasNomesArr[d]).join(", ");
 
-      const rodape = () => {
-        const n = doc.internal.getNumberOfPages();
-        for (let p=1; p<=n; p++) {
-          doc.setPage(p);
-          fc(...roxo); doc.rect(0,284,W,14,"F");
-          tc(...lavanda); sz(7.5); fn("normal");
-          txt("Teacher Mari Lessons  |  teachermarilessons.com.br", mH, 291);
-          txt(p + " / " + n, W-mH, 291, {align:"right"});
-        }
+      // ── rodapé (chamado após cada página) ──
+      const rodape = (pag, total) => {
+        fc(...roxo); doc.rect(0, 284, W, 14, "F");
+        tc(...lavanda); sz(7.5); fn("normal");
+        txt("Teacher Mari Lessons", mH, 291);
+        txt(pag + " / " + total, W-mH, 291, {align:"right"});
       };
 
-      // ═══ CAB + LINHA LARANJA ═══
-      fc(...branco); doc.rect(0,0,W,30,"F");
-      fc(...laranja); doc.rect(0,28,W,2,"F");
-      try { doc.addImage(LOGO,"PNG",mH,4,46,22,undefined,"FAST"); } catch(_){}
-      tc(...cinzaTexto); sz(8); fn("normal");
-      txt("teachermarilessons.com.br", W-mH, 18, {align:"right"});
+      // ════════════════════════════════════════
+      // PÁG 1 — RESUMO + PARCELAS
+      // ════════════════════════════════════════
 
-      let y = 40;
+      // cabeçalho: branco + linha laranja
+      fc(...branco); doc.rect(0, 0, W, 28, "F");
+      fc(...laranja); doc.rect(0, 26, W, 2, "F");
 
-      // ═══ TITULO ═══
-      tc(...roxo); sz(18); fn("bold");
+      // logo proporcional (sem distorção)
+      try {
+        const logoImg = new Image();
+        logoImg.src = LOGO;
+        // proporção aproximada da logo Teacher Mari: ~2.6:1 (larga)
+        const logoH = 18, logoW = 47;
+        doc.addImage(LOGO, "PNG", mH, 5, logoW, logoH, undefined, "FAST");
+      } catch(_) {}
+
+      let y = 38;
+
+      // título
+      tc(...roxo); sz(17); fn("bold");
       txt("Proposta de Contrato", mH, y);
-      y += 6;
+      y += 5;
       tc(...cinzaTexto); sz(8); fn("normal");
       txt("Gerada em " + new Date().toLocaleDateString("pt-BR"), mH, y);
       y += 10;
 
-      // ═══ FAIXA ALUNO ═══
-      fc(...roxo); rr(mH, y, W-2*mH, 18, 3);
-      tc(...lavanda); sz(7); fn("semibold");
-      txt("ALUNO", mH+6, y+7);
-      tc(...branco); sz(12); fn("bold");
-      txt(nomeAluno, mH+6, y+14);
-      y += 24;
+      // faixa aluno
+      fc(...roxo); rr(mH, y, W-2*mH, 16, 3);
+      tc(...lavanda); sz(6.5); fn("semibold");
+      txt("ALUNO", mH+5, y+6);
+      tc(...branco); sz(11); fn("bold");
+      txt(nomeAluno, mH+5, y+13);
+      y += 22;
 
-      // ═══ 2 COLUNAS: FREQUENCIA + PERIODO ═══
-      const col1x = mH, col2x = W/2+2, cW = W/2 - mH - 2;
+      // 2 colunas: frequência + período
+      const cW = (W - 2*mH - 6) / 2;
+      fc(...cinzaClaro); rr(mH, y, cW, 26, 3);
+      tc(...cinzaTexto); sz(6.5); fn("semibold");
+      txt("FREQUENCIA", mH+5, y+7);
+      tc(...roxo); sz(10); fn("bold");
+      txt(freq === 1 ? "1x por semana" : "2x por semana", mH+5, y+15);
+      tc(130,128,125); sz(7.5); fn("normal");
+      txt("Dias: " + diasStr, mH+5, y+22);
 
-      fc(...cinzaClaro); rr(col1x, y, cW, 28, 3);
-      tc(...cinzaTexto); sz(7); fn("semibold");
-      txt("FREQUENCIA", col1x+6, y+8);
-      tc(...roxo); sz(11); fn("bold");
-      txt(freq === 1 ? "1x por semana" : "2x por semana", col1x+6, y+17);
-      tc(130,128,125); sz(8); fn("normal");
-      txt("Dias: " + diasStr, col1x+6, y+24);
-
-      fc(...cinzaClaro); rr(col2x, y, cW, 28, 3);
-      tc(...cinzaTexto); sz(7); fn("semibold");
-      txt("PERIODO", col2x+6, y+8);
+      const col2 = mH + cW + 6;
+      fc(...cinzaClaro); rr(col2, y, cW, 26, 3);
+      tc(...cinzaTexto); sz(6.5); fn("semibold");
+      txt("PERIODO", col2+5, y+7);
       tc(...roxo); sz(9); fn("bold");
-      txt("Inicio: " + formatarBR(dataInicio), col2x+6, y+17);
-      txt("Termino: " + formatarBR(dateParaIso(dataFimObj)), col2x+6, y+24);
-      y += 36;
+      txt("Inicio: " + formatarBR(dataInicio), col2+5, y+15);
+      txt("Termino: " + formatarBR(dateParaIso(dataFimObj)), col2+5, y+22);
+      y += 32;
 
-      // ═══ 3 METRICAS ═══
+      // 3 métricas
       const mW = (W - 2*mH - 8) / 3;
       const metricas = [
         { label:"TOTAL DE AULAS", val: String(totalAulas) + " aulas" },
@@ -1426,95 +1434,132 @@ function GeradorProposta({ students }) {
       ];
       metricas.forEach((m, i) => {
         const mx = mH + i*(mW+4);
-        fc(...cinzaClaro); rr(mx, y, mW, 24, 3);
-        tc(...cinzaTexto); sz(6.5); fn("semibold");
-        txt(m.label, mx+5, y+8);
-        tc(...roxo); sz(10); fn("bold");
-        txt(m.val, mx+5, y+18);
+        fc(...cinzaClaro); rr(mx, y, mW, 22, 3);
+        tc(...cinzaTexto); sz(6); fn("semibold");
+        txt(m.label, mx+4, y+7);
+        tc(...roxo); sz(9.5); fn("bold");
+        txt(m.val, mx+4, y+17);
       });
-      y += 32;
-
-      // ═══ FAIXA MENSALIDADE ═══
-      fc(...laranja); rr(mH, y, W-2*mH, 20, 3);
-      tc(...branco); sz(8); fn("semibold");
-      txt("MENSALIDADE (6 parcelas iguais)", mH+8, y+8);
-      sz(14); fn("bold");
-      txt(mensFormatada, mH+8, y+17);
-      sz(9); fn("normal");
-      txt("por mes", W-mH-8, y+17, {align:"right"});
       y += 28;
 
-      // ═══ SEPARADOR ═══
+      // faixa mensalidade
+      fc(...laranja); rr(mH, y, W-2*mH, 18, 3);
+      tc(...branco); sz(7.5); fn("semibold");
+      txt("MENSALIDADE (6 parcelas iguais)", mH+6, y+7);
+      sz(13); fn("bold");
+      txt(mensFormatada, mH+6, y+15);
+      sz(8); fn("normal");
+      txt("por mes", W-mH-6, y+15, {align:"right"});
+      y += 24;
+
+      // separador + título parcelas
       doc.setDrawColor(...cinzaMedio); doc.setLineWidth(0.4);
       doc.line(mH, y, W-mH, y);
       y += 6;
-
-      // ═══ TABELA PARCELAS ═══
-      tc(...roxo); sz(10); fn("bold");
+      tc(...roxo); sz(9); fn("bold");
       txt("Cronograma de parcelas", mH, y);
       y += 6;
 
-      fc(...roxo); doc.rect(mH, y, W-2*mH, 8, "F");
-      tc(...lavanda); sz(7.5); fn("semibold");
-      txt("Parcela", mH+4, y+5.5);
-      txt("Vencimento", mH+50, y+5.5);
-      txt("Valor", W-mH-4, y+5.5, {align:"right"});
-      y += 8;
+      // cabeçalho tabela
+      fc(...roxo); doc.rect(mH, y, W-2*mH, 7, "F");
+      tc(...lavanda); sz(7); fn("semibold");
+      txt("Parcela", mH+3, y+5);
+      txt("Vencimento", mH+48, y+5);
+      txt("Valor", W-mH-3, y+5, {align:"right"});
+      y += 7;
 
       parcelas.forEach((iso, i) => {
-        if (y > 268) { rodape(); doc.addPage(); y = mV; }
-        const bgP = i%2===0 ? cinzaClaro : branco; doc.setFillColor(...bgP); doc.rect(mH, y, W-2*mH, 8, "F");
-        tc(...roxo); sz(8.5);
-        fn("semibold"); txt(String(i+1) + "a parcela", mH+4, y+5.5);
-        fn("normal"); txt(formatarBR(iso), mH+50, y+5.5);
-        fn("semibold"); tc(...laranja); txt(mensFormatada, W-mH-4, y+5.5, {align:"right"});
-        y += 8;
+        const bgP = i%2===0 ? cinzaClaro : branco;
+        doc.setFillColor(...bgP); doc.rect(mH, y, W-2*mH, 7, "F");
+        tc(...roxo); sz(8);
+        fn("semibold"); txt(String(i+1) + "a parcela", mH+3, y+5);
+        fn("normal"); txt(formatarBR(iso), mH+48, y+5);
+        fn("semibold"); tc(...laranja); txt(mensFormatada, W-mH-3, y+5, {align:"right"});
+        y += 7;
       });
-      y += 6;
 
-      doc.setDrawColor(...cinzaMedio);
-      doc.line(mH, y, W-mH, y);
-      y += 6;
+      rodape(1, 2);
 
-      // ═══ DATAS DAS AULAS POR MES ═══
-      tc(...roxo); sz(10); fn("bold");
+      // ════════════════════════════════════════
+      // PÁG 2 — CALENDÁRIOS 3×2
+      // ════════════════════════════════════════
+      doc.addPage();
+      fc(...branco); doc.rect(0, 0, W, 28, "F");
+      fc(...laranja); doc.rect(0, 26, W, 2, "F");
+      try { doc.addImage(LOGO, "PNG", mH, 5, 47, 18, undefined, "FAST"); } catch(_) {}
+      tc(...cinzaTexto); sz(8); fn("normal");
+      txt("Proposta de Contrato  |  " + nomeAluno, W-mH, 18, {align:"right"});
+
+      y = 36;
+      tc(...roxo); sz(9); fn("bold");
       txt("Datas das aulas (" + String(totalAulas) + " aulas confirmadas)", mH, y);
       y += 6;
 
+      // agrupar aulas por mês
       const porMes = {};
       aulasAtivas.forEach(iso => {
-        const partes = iso.split("-");
-        const chave = partes[0] + "-" + partes[1];
-        if (!porMes[chave]) porMes[chave] = { label: mesesNomesArr[parseInt(partes[1])-1] + " " + partes[0], datas:[] };
-        porMes[chave].datas.push(formatarBR(iso));
+        const p = iso.split("-");
+        const chave = p[0] + "-" + p[1];
+        if (!porMes[chave]) porMes[chave] = { ano: parseInt(p[0]), mes: parseInt(p[1])-1, dias: new Set() };
+        porMes[chave].dias.add(parseInt(p[2]));
       });
 
-      Object.values(porMes).forEach(grupo => {
-        if (y > 262) { rodape(); doc.addPage(); y = mV; }
+      const grupos = Object.values(porMes);
+      const nCols = 3;
+      const calW = (W - 2*mH - (nCols-1)*5) / nCols;
+      const calH = 52; // altura fixa por calendário
+      const colGap = 5, rowGap = 6;
 
-        fc(...creme); rr(mH, y, W-2*mH, 9, 2);
-        tc(...roxo); sz(8); fn("bold");
-        txt(grupo.label, mH+5, y+6.5);
-        tc(130,128,125); sz(7.5); fn("normal");
-        txt(String(grupo.datas.length) + " aulas", W-mH-5, y+6.5, {align:"right"});
-        y += 11;
+      grupos.forEach((g, gi) => {
+        const col = gi % nCols;
+        const row = Math.floor(gi / nCols);
+        const cx = mH + col*(calW+colGap);
+        const cy = y + row*(calH+rowGap);
 
-        const dW = (W - 2*mH) / 4;
-        let col = 0;
-        grupo.datas.forEach(d => {
-          if (y > 268) { rodape(); doc.addPage(); y = mV; col = 0; }
-          const dx = mH + col * dW;
-          fc(...cinzaClaro); rr(dx+1, y-3, dW-3, 8, 2);
-          tc(...roxo); sz(8); fn("normal");
-          txt(d, dx + dW/2, y+2.5, {align:"center"});
-          col++;
-          if (col === 4) { col = 0; y += 11; }
+        // cabeçalho creme
+        fc(...creme); rr(cx, cy, calW, 8, 2);
+        tc(...roxo); sz(7); fn("bold");
+        txt(mesesAbrev[g.mes] + " " + g.ano, cx+3, cy+5.5);
+        tc(130,128,125); sz(6.5); fn("normal");
+        txt(String(g.dias.size) + " aulas", cx+calW-3, cy+5.5, {align:"right"});
+
+        // cabeçalho dias da semana
+        const dows = ["D","S","T","Q","Q","S","S"];
+        const cellW = calW / 7;
+        dows.forEach((d, di) => {
+          tc(180,178,175); sz(5.5); fn("semibold");
+          txt(d, cx + di*cellW + cellW/2, cy+13, {align:"center"});
         });
-        if (col > 0) y += 11;
-        y += 3;
+
+        // dias
+        const primeiroDia = new Date(g.ano, g.mes, 1).getDay();
+        const diasNoMes = new Date(g.ano, g.mes+1, 0).getDate();
+        let cellIdx = primeiroDia;
+        for (let d = 1; d <= diasNoMes; d++) {
+          const dc = cellIdx % 7;
+          const dr = Math.floor(cellIdx / 7);
+          const dx = cx + dc*cellW + cellW/2;
+          const dy = cy + 17 + dr*8;
+          if (g.dias.has(d)) {
+            fc(...roxo); doc.circle(dx, dy-2.5, 3.2, "F");
+            tc(...lavanda); sz(6); fn("bold");
+          } else {
+            tc(210,208,205); sz(5.5); fn("normal");
+          }
+          txt(String(d), dx, dy, {align:"center"});
+          cellIdx++;
+        }
       });
 
-      rodape();
+      // legenda
+      const legY = y + Math.ceil(grupos.length/nCols)*(calH+rowGap) + 2;
+      fc(...roxo); doc.circle(mH+3, legY-2, 3, "F");
+      tc(...cinzaTexto); sz(7); fn("normal");
+      txt("Aula confirmada", mH+8, legY);
+      fc(210,208,205); doc.circle(mH+50, legY-2, 3, "F");
+      txt("Sem aula", mH+55, legY);
+
+      rodape(2, 2);
 
       const nomeArq = "proposta-" + nomeAluno.replace(/\s+/g,"-").toLowerCase() + "-" + dataInicio + ".pdf";
       doc.save(nomeArq);
@@ -1523,6 +1568,7 @@ function GeradorProposta({ students }) {
     }
     setGerando(false);
   };
+
 
   // ── helpers de estilo ──
   const cardStyle = { background:"#FFF", borderRadius:"16px", padding:"18px 20px", marginBottom:"12px", boxShadow:"0 2px 8px rgba(29,16,80,0.06)" };
