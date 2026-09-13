@@ -632,7 +632,7 @@
 
   <!-- D7E2 – Writing task -->
   <div class="ex-card challenge">
-    <div class="ex-title">Exercise 3 — Writing Challenge: A Day in My Life</div>
+    <div class="ex-title">Exercise 2 — Writing Challenge: A Day in My Life</div>
     <div class="ex-instruction">Write 8–10 sentences about your own routine. Use the guide below.</div>
     <div class="example-box">
       <div class="ex-label">Model text</div>
@@ -781,7 +781,7 @@ function incrementChecked(exId) {
   if (exId) markExerciseDone(exId);
 }
 function updateProgress() {
-  const total = 20; // 20 check actions total
+  const total = 18; // 18 checkable exercises
   const pct = Math.min(100, Math.round((totalChecked / total) * 100));
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-pct').textContent = pct + '%';
@@ -1122,13 +1122,10 @@ function resetSentenceBuilder(items, prefix, fbId) {
 
 // ── CATEGORISE ──
 function buildCategorise(poolId, groupsId, data, categories, catAnswers) {
-  // data: array of phrase strings
-  // categories: array of label strings
-  // catAnswers: array of arrays — catAnswers[catIdx] = [phraseIdx, ...]
   const pool = document.getElementById(poolId);
   const groups = document.getElementById(groupsId);
 
-  // Build reverse lookup: phraseIdx → catIdx
+  // Reverse lookup: phraseIdx → catIdx
   const answerMap = {};
   catAnswers.forEach((idxList, catIdx) => { idxList.forEach(pIdx => { answerMap[pIdx] = catIdx; }); });
 
@@ -1151,34 +1148,31 @@ function buildCategorise(poolId, groupsId, data, categories, catAnswers) {
 
   let selected = null;
 
-  pool.addEventListener('click', e => {
+  // Single unified handler — avoids bubbling conflicts between pool and zone listeners
+  function handleClick(e) {
     const chip = e.target.closest('.cat-chip');
-    if (!chip || chip.classList.contains('correct-cat') || chip.classList.contains('wrong-cat')) return;
-    if (selected === chip) { chip.classList.remove('active'); selected = null; return; }
-    if (selected) selected.classList.remove('active');
-    chip.classList.add('active'); selected = chip;
-  });
+    const zone = e.target.closest('.cat-drop');
 
-  dropZones.forEach(zone => {
-    zone.addEventListener('click', () => {
+    if (chip) {
+      // Locked chips (after check) — ignore
+      if (chip.classList.contains('correct-cat') || chip.classList.contains('wrong-cat')) return;
+      // Clicked the already-selected chip → deselect
+      if (selected === chip) { chip.classList.remove('active'); selected = null; return; }
+      // Clicked a different chip while one is selected → switch selection
+      if (selected) selected.classList.remove('active');
+      chip.classList.add('active');
+      selected = chip;
+    } else if (zone) {
+      // Clicked zone background (not on a chip) → drop selected chip here
       if (!selected) return;
-      // move to zone
       zone.appendChild(selected);
       selected.classList.remove('active');
       selected = null;
-    });
-  });
+    }
+  }
 
-  // Click chip in zone to return to pool
-  groups.addEventListener('click', e => {
-    const chip = e.target.closest('.cat-chip');
-    if (!chip) return;
-    if (chip.classList.contains('correct-cat') || chip.classList.contains('wrong-cat')) return;
-    if (selected === chip) { chip.classList.remove('active'); selected = null; return; }
-    if (selected) selected.classList.remove('active');
-    chip.classList.add('active'); selected = chip;
-    // Move to pool on double-click: if already active and clicked again → pool
-  });
+  pool.addEventListener('click', handleClick);
+  groups.addEventListener('click', handleClick);
 
   return { chips, dropZones, answerMap, data };
 }
