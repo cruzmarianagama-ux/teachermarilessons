@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pre-Intermediate 1B – At the Airport | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position:fixed;inset:0;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px; }
+  #welcome-screen.hidden { display:none; }
+  .welcome-card { background:var(--white);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .welcome-logo { height:48px;object-fit:contain;margin-bottom:16px; }
+  .welcome-hi { font-size:1.5rem;font-weight:800;color:var(--purple);margin-bottom:6px; }
+  .welcome-sub { font-size:0.82rem;color:var(--gray);margin-bottom:24px;line-height:1.5; }
+  .welcome-input { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:600;color:var(--purple);text-align:center;outline:none;margin-bottom:16px;transition:border-color 0.2s; }
+  .welcome-input:focus { border-color:var(--purple-light); }
+  .welcome-btn { width:100%;padding:13px;background:var(--orange);color:var(--white);border:none;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,92,35,0.35);transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18;transform:translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display:none;background:linear-gradient(90deg,var(--orange),#ff8c5a);color:var(--white);text-align:center;padding:12px 16px;font-size:1rem;font-weight:700;letter-spacing:0.2px; }
+  #hello-banner.show { display:block; }
+
+  /* HEADER */
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);padding:28px 24px 22px;text-align:center;position:relative;overflow:hidden; }
+  .header::before { content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,92,35,0.18); }
+  .header::after { content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem;font-weight:800;color:var(--white);letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.70);margin-top:4px;text-transform:uppercase;letter-spacing:1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background:var(--white);padding:16px 20px;box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;color:var(--purple);margin-bottom:8px; }
+  .progress-track { height:10px;background:var(--gray-light);border-radius:99px;overflow:hidden; }
+  .progress-fill { height:100%;background:linear-gradient(90deg,var(--orange),#ff8c5a);border-radius:99px;transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655);color:var(--white);text-align:center;padding:10px 16px;font-size:0.82rem;font-weight:500; }
+  .motivation-bar span { opacity:0.8; }
+
+  /* TABS */
+  .tabs-wrap { background:var(--white);overflow-x:auto;border-bottom:2px solid var(--gray-light);position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm); }
+  .tabs { display:flex;min-width:max-content;padding:0 8px; }
+  .tab-btn { padding:14px 16px;font-size:0.78rem;font-weight:600;color:var(--gray);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;letter-spacing:0.3px; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange);border-bottom-color:var(--orange); }
+
+  /* CONTENT */
+  .content { max-width:780px;margin:0 auto;padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  /* DAY HEADER */
+  .day-header { display:flex;align-items:center;gap:14px;margin-bottom:24px; }
+  .day-number { background:var(--orange);color:var(--white);font-size:1.1rem;font-weight:800;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem;font-weight:700;color:var(--purple); }
+  .day-desc { font-size:0.82rem;color:var(--gray);margin-top:2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background:var(--white);border-radius:var(--radius);padding:22px;margin-bottom:20px;box-shadow:var(--shadow);border-left:4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color:var(--orange); }
+  .ex-card.reading { border-left-color:var(--teal); }
+  .ex-card.writing { border-left-color:var(--green); }
+  .ex-title { font-size:0.98rem;font-weight:700;color:var(--purple);margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem;color:var(--gray);margin-bottom:18px;line-height:1.5; }
+
+  /* WORD BOX */
+  .word-box { background:var(--cream);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:0.85rem;font-weight:600;color:var(--purple);text-align:center;letter-spacing:0.5px; }
+
+  /* MC */
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:10px;line-height:1.4; }
+  .mc-options { display:flex;flex-direction:column;gap:8px; }
+  .mc-option { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:500;background:var(--white); }
+  .mc-option:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.correct { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
+  .mc-option.wrong { border-color:var(--red);background:#fef2f2;color:var(--red); }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom:14px; }
+  .fill-line { display:inline;align-items:center;flex-wrap:wrap;gap:4px;font-size:0.88rem;font-weight:500;color:var(--purple);line-height:2; }
+  .fill-input { border:none;border-bottom:2px solid var(--purple-light);padding:2px 6px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:600;color:var(--purple);background:transparent;min-width:100px;max-width:160px;width:auto;text-align:center;outline:none;transition:border-color 0.2s;display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal);color:var(--teal); }
+  .fill-input.wrong { border-bottom-color:var(--red);color:var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Poppins',sans-serif;font-size:0.88rem;color:var(--purple);resize:vertical;outline:none;min-height:90px;transition:border-color 0.2s;margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none; }
+  .btn-primary { background:var(--orange);color:var(--white);box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18;transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light);color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp { background:#25D366;color:var(--white);box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855;transform:translateY(-1px); }
+  .btn-row { display:flex;gap:10px;flex-wrap:wrap;margin-top:14px; }
+
+  /* FEEDBACK */
+  .feedback { display:none;padding:12px 16px;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;margin-top:14px;line-height:1.5; }
+  .feedback.show { display:block; }
+  .feedback.ok { background:#f0fdfa;color:var(--teal);border:1px solid #99f6e4; }
+  .feedback.err { background:#fef2f2;color:var(--red);border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb;color:#b45309;border:1px solid #fde68a; }
+
+  /* MATCHING SELECT */
+  .match-select { border:2px solid var(--gray-light);border-radius:6px;padding:5px 10px;font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;color:var(--purple);outline:none;transition:border-color 0.2s;background:var(--white);max-width:min(100%,260px);vertical-align:middle; }
+  .match-select:focus { border-color:var(--purple-light); }
+  .match-select.correct { border-color:var(--teal);color:var(--teal);background:#f0fdfa; }
+  .match-select.wrong { border-color:var(--red);color:var(--red);background:#fef2f2; }
+
+  /* CLICK-MATCH */
+  .cm-wrap { display:flex;gap:24px;align-items:flex-start; }
+  .cm-col { flex:1;display:flex;flex-direction:column;gap:8px; }
+  .cm-item { padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:600;color:var(--purple);background:var(--white);text-align:center;user-select:none; }
+  .cm-item:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .cm-item.active { border-color:var(--orange);background:#fff5ee;outline:2px solid var(--orange); }
+  .cm-item.linked { border-color:var(--purple-light);background:#f5f3ff;opacity:0.7; }
+  .cm-item.correct-link { border-color:var(--teal);background:#f0fdfa;color:var(--teal);opacity:1; }
+  .cm-item.wrong-link { border-color:var(--red);background:#fef2f2;color:var(--red);opacity:1; }
+  .cm-pair-num { display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--purple-light);color:#fff;font-size:0.65rem;font-weight:700;margin-left:6px; }
+  @media(max-width:600px){ .cm-wrap{gap:12px;} .cm-item{font-size:0.78rem;padding:8px 10px;} }
+
+  /* READING */
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:18px;margin-bottom:18px;font-size:0.9rem;line-height:1.75;color:var(--purple);font-weight:500;border-left:4px solid var(--teal); }
+
+  /* TF */
+  .tf-item { margin-bottom:10px; }
+  .tf-line { display:flex;align-items:center;gap:10px;font-size:0.88rem;font-weight:500;color:var(--purple);flex-wrap:wrap; }
+  .tf-btns { display:flex;gap:6px; }
+  .tf-btn { padding:4px 14px;border-radius:99px;border:2px solid var(--gray-light);font-family:'Poppins',sans-serif;font-size:0.80rem;font-weight:700;cursor:pointer;background:var(--white);transition:all 0.2s; }
+  .tf-btn.t:hover { border-color:var(--teal);color:var(--teal); }
+  .tf-btn.f:hover { border-color:var(--red);color:var(--red); }
+  .tf-btn.selected-t { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
+  .tf-btn.selected-f { border-color:var(--red);background:#fef2f2;color:var(--red); }
+  .tf-btn.wrong-sel { border-color:var(--red);background:var(--red);color:#fff; }
+  .tf-btn.right-answer { border-color:var(--teal);background:var(--teal);color:#fff;outline:2px solid var(--teal); }
+
+  /* DIALOGUE */
+  .dialogue-wrap { margin-bottom:14px; }
+  .dialogue-line { display:flex;align-items:flex-start;gap:8px;padding:7px 0;font-size:0.88rem;font-weight:500;color:var(--purple);border-bottom:1px solid var(--gray-light);flex-wrap:wrap; }
+  .dialogue-line:last-child { border-bottom:none; }
+  .speaker { font-weight:700;color:var(--orange);flex-shrink:0;min-width:36px; }
+
+  /* CTF */
+  .ctf-wordbank { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--cream);border-radius:var(--radius-sm); }
+  .ctf-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 14px;font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none; }
+  .ctf-chip:hover { background:var(--purple-light);transform:translateY(-1px); }
+  .ctf-chip.active { background:var(--orange);outline:3px solid #ffb347;transform:scale(1.08); }
+  .ctf-chip.used { background:var(--gray);cursor:default;opacity:0.45; }
+  .ctf-chip.wrong-pick { background:var(--red);outline:2px solid var(--red);opacity:1; }
+  .ctf-chip.correct-pick { background:var(--teal);outline:2px solid var(--teal);opacity:1; }
+  .ctf-gap { display:inline-block;min-width:72px;text-align:center;border-bottom:2.5px solid var(--purple-light);color:var(--orange);font-weight:700;font-size:0.88rem;padding:0 4px;cursor:pointer;margin:0 2px;transition:border-color 0.2s,background 0.2s;border-radius:4px 4px 0 0;vertical-align:middle;line-height:1.8; }
+  .ctf-gap:empty::before { content:'_ _ _';color:#bbb;font-weight:400;font-size:0.78rem; }
+  .ctf-gap.ready { border-bottom-color:var(--orange);background:#fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color:var(--teal);color:var(--teal);background:#f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color:var(--red);color:var(--red);background:#fef2f2; }
+
+  /* CATEGORIZE */
+  .cat-wrap { display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px; }
+  .cat-box { flex:1;min-width:140px;background:var(--gray-light);border-radius:var(--radius-sm);padding:12px;min-height:80px; }
+  .cat-box-title { font-size:0.78rem;font-weight:700;color:var(--purple);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px; }
+  .cat-items-bank { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:10px;background:var(--cream);border-radius:var(--radius-sm); }
+  .cat-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 12px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none; }
+  .cat-chip:hover { background:var(--purple-light);transform:translateY(-1px); }
+  .cat-chip.placed { background:var(--orange); }
+  .cat-chip.correct-cat { background:var(--teal); }
+  .cat-chip.wrong-cat { background:var(--red); }
+
+  /* VOCAB / GRAMMAR */
+  .bank-section { margin-bottom:28px; }
+  .bank-title { font-size:0.9rem;font-weight:700;color:var(--purple);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gray-light); }
+  .vocab-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px; }
+  .vocab-chip { background:var(--white);border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:10px 12px;text-align:center;font-size:0.82rem;font-weight:600;color:var(--purple);cursor:pointer;transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem;color:var(--gray);font-weight:500;margin-top:2px; }
+  .grammar-table { width:100%;border-collapse:collapse;font-size:0.83rem; }
+  .grammar-table th { background:var(--purple);color:var(--white);padding:8px 12px;text-align:left;font-weight:600; }
+  .grammar-table td { padding:8px 12px;border-bottom:1px solid var(--gray-light);color:var(--purple);font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange);font-weight:700; }
+  .grammar-table .teal { color:var(--teal);font-weight:700; }
+  .grammar-table .red { color:var(--red);font-weight:700; }
+  .tip-box { background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;font-size:0.82rem;color:#92400e;margin-top:12px;line-height:1.6; }
+  .example-box { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:16px;margin-top:14px;font-size:0.88rem;line-height:1.8;color:var(--purple);font-weight:500;border:2px dashed var(--orange); }
+  .example-box .ex-label { font-size:0.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px; }
+
+  /* SUMMARY / CONFETTI */
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light));border-radius:var(--radius);padding:24px;text-align:center;color:var(--white);margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem;font-weight:800;margin-bottom:6px; }
+  .summary-card p { font-size:0.82rem;opacity:0.8;margin-bottom:16px; }
+  .score-big { font-size:2.8rem;font-weight:800;color:var(--orange); }
+  #confetti-canvas { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999; }
+
+  /* MOBILE */
+  @media(max-width:600px){
+    .header h1{font-size:1.1rem;} .header{padding:20px 16px 16px;} .content{padding:14px 10px 50px;} .ex-card{padding:14px 12px;} .day-header{gap:10px;margin-bottom:16px;} .day-number{width:42px;height:42px;font-size:0.95rem;} .day-title{font-size:1rem;} .tab-btn{padding:12px 10px;font-size:0.72rem;} .mc-option{font-size:0.82rem;padding:8px 10px;} .btn{font-size:0.78rem;padding:9px 16px;} .btn-row{gap:8px;} .fill-input{min-width:70px;max-width:120px;font-size:0.82rem;} .grammar-table{font-size:0.75rem;} .grammar-table th,.grammar-table td{padding:6px 8px;} .vocab-grid{grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:8px;} .vocab-chip{padding:8px 8px;font-size:0.78rem;} .reading-text{font-size:0.85rem;padding:14px;} .tf-line{font-size:0.82rem;} .writing-area{font-size:0.85rem;} .summary-card{padding:18px;} .score-big{font-size:2.2rem;} .progress-section{padding:12px 14px;} .cat-wrap{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>Pre-Intermediate 1B – At the Airport</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's go!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Pre-Intermediate 1B – Weekly Practice</h1>
+      <div class="subtitle">At the Airport · Going to</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════ DAY 1 ══════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">At the Airport</div>
+      <div class="day-desc">Airport words · Where do you go? · Odd one out</div>
+    </div>
+  </div>
+
+  <!-- D1E1 – Click Match -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Build the Airport Words</div>
+    <div class="ex-instruction">Click a word on the left, then click its match on the right to make an airport word or phrase.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- D1E2 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Where at the Airport?</div>
+    <div class="ex-instruction">Choose the correct airport word or phrase to complete each situation.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- D1E3 – Odd One Out -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Which One Doesn't Belong?</div>
+    <div class="ex-instruction">In each group, click the word or phrase that does NOT belong.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 2 ══════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Airport Journey</div>
+      <div class="day-desc">Before or after? · Follow the passenger · Complete the story</div>
+    </div>
+  </div>
+
+  <!-- D2E1 – Categorize -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Before or After the Flight?</div>
+    <div class="ex-instruction">Click each item, then click the correct category — Before the Flight or After the Flight.</div>
+    <div id="d2e1-bank" class="cat-items-bank"></div>
+    <div class="cat-wrap">
+      <div class="cat-box" id="d2e1-cat-before">
+        <div class="cat-box-title">Before the Flight</div>
+        <div class="cat-drop" id="d2e1-drop-before"></div>
+      </div>
+      <div class="cat-box" id="d2e1-cat-after">
+        <div class="cat-box-title">After the Flight</div>
+        <div class="cat-drop" id="d2e1-drop-after"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- D2E2 – Fill (ordering) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Follow the Passenger</div>
+    <div class="ex-instruction">Put the steps in the correct order. Type a number from 1 to 8 for each step.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- D2E3 – CTF -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Complete the Airport Story</div>
+    <div class="ex-instruction">Click a word from the box below, then click the gap to fill it. Use each word once.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 3 ══════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Plans with Going To</div>
+      <div class="day-desc">Complete the plans · Match situation to consequence · Word order</div>
+    </div>
+  </div>
+
+  <!-- D3E1 – CTF -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete the Plans</div>
+    <div class="ex-instruction">Click a verb from the box, then click the gap. Use the correct form of <em>going to</em>.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- D3E2 – Click Match -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Who Is Going to Do It?</div>
+    <div class="ex-instruction">Click a situation on the left, then click the correct <em>going to</em> consequence on the right.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- D3E3 – Fill (word order) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Build the Sentences</div>
+    <div class="ex-instruction">Put the words in the correct order and type the full sentence in the box.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 4 ══════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">What Are They Going to Do?</div>
+      <div class="day-desc">Negative plans · Choose the question · Complete the questions</div>
+    </div>
+  </div>
+
+  <!-- D4E1 – Fill -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Negative Plans</div>
+    <div class="ex-instruction">Complete each sentence with the negative form of <em>going to</em> and the verb in brackets. Type the full negative verb phrase.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- D4E2 – MC -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Choose the Question</div>
+    <div class="ex-instruction">Choose the question that matches the answer.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- D4E3 – Fill (complete the questions) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the Questions</div>
+    <div class="ex-instruction">Complete each question with the correct words. Look at the answer for a clue.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 5 ══════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Travel Plans in Context</div>
+      <div class="day-desc">Read a message · Mini-dialogues · Rebuild the conversation</div>
+    </div>
+  </div>
+
+  <!-- D5E1 – Reading + MC -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read the Message</div>
+    <div class="ex-instruction">Read Mia's message and choose the correct answer.</div>
+    <div class="reading-text">Hi Anna! Our flight to Madrid is tomorrow! We're going to leave home at 6:00 because our flight is at 9:30. Dad is going to take us to the airport, so we aren't going to take a taxi. I'm only going to take hand luggage, but Luke has a big suitcase. He's going to leave it at the bag drop. After security, we're going to meet at Gate 18. When we arrive in Madrid, we're going to take the airport bus to our hotel. See you soon!<br><br>Mia</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- D5E2 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Complete the Mini-Dialogues</div>
+    <div class="ex-instruction">Choose the best response for each mini-dialogue.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- D5E3 – Fill (reorder conversation) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Rebuild the Conversation</div>
+    <div class="ex-instruction">Put the lines in the correct order. Type a number (1–8) next to each line.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 6 ══════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">The Whole Trip</div>
+      <div class="day-desc">True or false · Which passenger? · Complete the dialogue</div>
+    </div>
+  </div>
+
+  <!-- D6E1 – TF -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Sarah's Trip</div>
+    <div class="ex-instruction">Read the text. Decide if each sentence is True or False.</div>
+    <div class="reading-text">Sarah is going to fly from London to Barcelona on Friday. Her flight leaves from Terminal 2 at 11:20. She's going to take the train to the airport because the traffic is usually bad on Friday mornings. She has one large suitcase, so she's going to leave it at the bag drop. Then she's going to go through security and passport control and find Gate 31.<br><br>Her flight is going to arrive in Barcelona at 2:35. First, Sarah is going to go to baggage reclaim and pick up her suitcase. She isn't going to get a trolley because she only has one bag. After customs, she's going to meet her friend Carla in arrivals. Carla is going to drive them to the hotel.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- D6E2 – MC (which passenger) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Which Passenger?</div>
+    <div class="ex-instruction">Read the three passengers' plans. For each statement, choose Leo, Maya or Ben.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Leo:</strong> My flight is at 7:10 tomorrow morning. I'm going to take a taxi to the airport because there are no buses that early. I only have hand luggage. My cousin is going to meet me in arrivals after the flight.<br><br>
+      <strong style="color:var(--orange);">Maya:</strong> I'm travelling with two large suitcases, so I'm going to get a trolley at the airport. My brother is going to drive me there. After the flight, I'm going to take the airport bus to my hotel.<br><br>
+      <strong style="color:var(--orange);">Ben:</strong> I'm going to travel on Sunday afternoon. I'm going to take the train to the airport. I have one suitcase for the bag drop. When I arrive, my friends are going to pick me up at the airport.
+    </div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- D6E3 – CTF dialogue -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – At the Airport</div>
+    <div class="ex-instruction">Complete the dialogue. Click a sentence from the box, then click the gap. There are two extra sentences.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════ DAY 7 ══════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Weekly Consolidation</div>
+      <div class="day-desc">Complete review · Spot the mistake · Writing challenge</div>
+    </div>
+  </div>
+
+  <!-- D7E1 – MC review -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the best answer for each question.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- D7E2 – MC spot the mistake -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Spot the Mistake</div>
+    <div class="ex-instruction">In each group, three sentences are correct. Click the sentence with a mistake.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- D7E3 – Writing -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – My Next Trip</div>
+    <div class="ex-instruction">Imagine you are going on a trip. Write 6–8 sentences about your plans. Use the guide questions below.</div>
+    <div class="example-box">
+      <div class="ex-label">Guide — include these ideas:</div>
+      Where are you going to travel? · When are you going to go? · How are you going to get to the airport? · What luggage are you going to take? · What are you going to do at the airport? · Where or how long are you going to stay? · Who is going to meet you OR how are you going to get to your hotel?
+    </div>
+    <div class="example-box" style="margin-top:10px;border-color:var(--teal);">
+      <div class="ex-label" style="color:var(--teal);">Useful language:</div>
+      I'm going to travel to... · I'm going to leave... · I'm going to take... · I'm not going to... · At the airport, I'm going to... · After the flight, I'm going to... · I'm going to stay... · My ... is going to meet me...
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="Write your text here..." rows="6"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-wa">Send to Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d7e3-fb"></div>
+  </div>
+
+  <!-- Weekly summary -->
+  <div id="weekly-summary" style="display:none;">
+    <div class="summary-card">
+      <h3>Week complete!</h3>
+      <p>Amazing work! You finished all seven days.</p>
+      <div class="score-big" id="final-score">0</div>
+      <p style="margin-top:6px;">exercises checked this week</p>
+      <div class="btn-row" style="justify-content:center;margin-top:16px;">
+        <button class="btn btn-whatsapp" id="summary-whatsapp">Send result to Teacher Mari</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ VOCAB BANK ══════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.8rem;">V</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Airport places · Things you use · Actions</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Airport Places</div>
+    <div class="vocab-grid" id="vocab-places"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Things You Use</div>
+    <div class="vocab-grid" id="vocab-things"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Useful Actions</div>
+    <div class="vocab-grid" id="vocab-actions"></div>
+  </div>
+</div>
+
+<!-- ══════ GRAMMAR BANK ══════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.8rem;">G</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Going to — affirmative, negative, questions</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Affirmative — I / you / we / they / he / she / it</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Structure</th><th>Example</th></tr>
+      <tr><td>I</td><td class="orange">I'm going to + verb</td><td>I'm going to take the bus.</td></tr>
+      <tr><td>He / She / It</td><td class="orange">He's / She's going to + verb</td><td>She's going to stay at the hotel.</td></tr>
+      <tr><td>You / We / They</td><td class="orange">We're going to + verb</td><td>They're going to miss the flight.</td></tr>
+    </table>
+    <div class="tip-box">We use <strong>going to</strong> for plans and intentions we already have decided.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Negative</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Structure</th><th>Example</th></tr>
+      <tr><td>I</td><td class="red">I'm not going to + verb</td><td>I'm not going to take a taxi.</td></tr>
+      <tr><td>He / She / It</td><td class="red">He isn't going to + verb</td><td>He isn't going to print the boarding pass.</td></tr>
+      <tr><td>You / We / They</td><td class="red">We aren't going to + verb</td><td>We aren't going to stay long.</td></tr>
+    </table>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Yes / No Questions</div>
+    <table class="grammar-table">
+      <tr><th>Question</th><th>Short Answer</th></tr>
+      <tr><td>Are you going to take a taxi?</td><td class="teal">Yes, I am. / No, I'm not.</td></tr>
+      <tr><td>Is she going to fly to Rome?</td><td class="teal">Yes, she is. / No, she isn't.</td></tr>
+      <tr><td>Are they going to stay here?</td><td class="teal">Yes, they are. / No, they aren't.</td></tr>
+    </table>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">WH- Questions</div>
+    <table class="grammar-table">
+      <tr><th>Question word</th><th>Example</th></tr>
+      <tr><td>Where</td><td>Where are you going to stay?</td></tr>
+      <tr><td>When</td><td>When are they going to travel?</td></tr>
+      <tr><td>How</td><td>How are you going to get to the airport?</td></tr>
+      <tr><td>How long</td><td>How long are you going to stay?</td></tr>
+      <tr><td>Who</td><td>Who is going to meet you?</td></tr>
+      <tr><td>What</td><td>What are you going to do after the flight?</td></tr>
+    </table>
+    <div class="tip-box"><strong>Common mistake:</strong> "Where you are going to stay?" is wrong. The verb <strong>are</strong> comes before the subject: "Where <strong>are you</strong> going to stay?"</div>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  WELCOME & STORAGE
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_preinter1b_airport';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const total = 21; // total exercises
+  const pct = Math.min(100, Math.round((totalChecked / total) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// Welcome screen
+const welcomeScreen = document.getElementById('welcome-screen');
+const helloBanner  = document.getElementById('hello-banner');
+const nameInput    = document.getElementById('student-name-input');
+const startBtn     = document.getElementById('welcome-start-btn');
+
+const savedName = localStorage.getItem('teachermari_studentname') || state.studentName || '';
+if (savedName) {
+  welcomeScreen.classList.add('hidden');
+  helloBanner.textContent = 'Hello, ' + savedName + '! Ready to practise?';
+  helloBanner.classList.add('show');
+}
+
+function startSession() {
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.borderColor = 'var(--red)'; return; }
+  localStorage.setItem('teachermari_studentname', name);
+  state.studentName = name;
+  saveState();
+  welcomeScreen.classList.add('hidden');
+  helloBanner.textContent = 'Hello, ' + name + '! Ready to practise?';
+  helloBanner.classList.add('show');
+}
+startBtn.addEventListener('click', startSession);
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') startSession(); });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "Every day you learn something new!",
+  "Great job! Keep up the good work!",
+  "Small steps, big results!",
+  "Mistakes are part of learning — try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practice every day and you will improve!",
+  "You are doing great! Keep going!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ══════════════════════════════════════════════
+//  CORE HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: 'Excellent! You got all ' + total + ' correct!', type: 'ok' };
+  if (correct >= Math.ceil(total * 0.7)) return { msg: correct + '/' + total + ' correct. Check the red items and try again!', type: 'partial' };
+  return { msg: correct + '/' + total + ' correct. Keep practising — you\'re getting there!', type: 'err' };
+}
+
+// ── MC ──
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o, j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(97+j) + ') ' + o + '</label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const old = itemDiv.querySelector('.mc-explain'); if (old) old.remove(); }
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) { correct++; }
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = 'Why: ' + item.why;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── FILL ──
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    let html = '<div class="fill-line">' + (i+1) + '. ' + parts[0];
+    for (let k = 1; k < parts.length; k++) {
+      html += '<input class="fill-input" id="' + prefix + '_' + i + '_' + (k-1) + '" placeholder="...">' + parts[k];
+    }
+    html += '</div>';
+    if (item.label) html = '<div class="fill-item"><div style="font-size:0.78rem;color:var(--gray);margin-bottom:4px;">' + item.label + '</div>' + html + '</div>';
+    div.innerHTML = html;
+    wrap.appendChild(div);
+  });
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((ans, k) => {
+      total++;
+      const inp = document.getElementById(prefix + '_' + i + '_' + k);
+      if (!inp) return;
+      inp.classList.remove('correct','wrong');
+      const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+      if (existingHint) existingHint.remove();
+      const val = inp.value.trim().toLowerCase();
+      const ok = Array.isArray(ans) ? ans.map(a => a.toLowerCase()).includes(val) : val === ans.toLowerCase();
+      if (ok) { inp.classList.add('correct'); correct++; }
+      else {
+        inp.classList.add('wrong');
+        const correctAns = Array.isArray(ans) ? ans[0] : ans;
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = '(Correct: ' + correctAns + ')';
+        inp.insertAdjacentElement('afterend', hint);
+      }
+    });
+  });
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((item, i) => {
+    const answers = Array.isArray(item.ans[0]) ? item.ans : [item.ans];
+    answers.forEach((_, k) => {
+      const inp = document.getElementById(prefix + '_' + i + '_' + k);
+      if (inp) {
+        inp.value = ''; inp.className = 'fill-input';
+        const hint = inp.parentElement && inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+        if (hint) hint.remove();
+      }
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── TF ──
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line">' + (i+1) + '. ' + item.s + ' <div class="tf-btns"><button class="tf-btn t" id="' + prefix + 't_' + i + '" data-val="T">True</button><button class="tf-btn f" id="' + prefix + 'f_' + i + '" data-val="F">False</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const raw = btn.id.replace(prefix + 't_', '').replace(prefix + 'f_', '');
+      const idx = raw;
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + idx); if (b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    if (sel[i] === item.ans) { correct++; }
+    else if (sel[i]) {
+      const wrongBtn = document.getElementById(prefix + sel[i].toLowerCase() + '_' + i);
+      if (wrongBtn) wrongBtn.classList.add('wrong-sel');
+      const rightBtn = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+      if (item.why) {
+        const lineDiv = document.getElementById(prefix + 't_' + i).closest('.tf-line');
+        const existingHint = document.getElementById(prefix + 'why_' + i);
+        if (!existingHint) {
+          const hint = document.createElement('div');
+          hint.id = prefix + 'why_' + i;
+          hint.style.cssText = 'width:100%;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;margin-top:4px;line-height:1.4;';
+          hint.textContent = 'Why: ' + item.why;
+          lineDiv.closest('.tf-item').appendChild(hint);
+        }
+      }
+    } else {
+      const rightBtn = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+    const hint = document.getElementById(prefix + 'why_' + i);
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── CLICK-MATCH ──
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]];
+  }
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.textContent = item.left; leftCol.appendChild(div);
+  });
+  rightShuffled.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex;
+    div.textContent = item.text; rightCol.appendChild(div);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+  const links = {};
+  let selectedLeft = null, pairCount = 0;
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      const num = pairCount;
+      selectedLeft.classList.remove('active'); selectedLeft.classList.add('linked');
+      item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const badgeL = document.createElement('span'); badgeL.className = 'cm-pair-num'; badgeL.textContent = num;
+      const badgeR = document.createElement('span'); badgeR.className = 'cm-pair-num'; badgeR.textContent = num;
+      selectedLeft.appendChild(badgeL); item.appendChild(badgeR);
+      selectedLeft.dataset.pairNum = num; item.dataset.pairNum = num;
+      selectedLeft = null;
+    }
+  });
+  return { links, leftCol, rightCol, data };
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  // Remove old why hints
+  leftCol.querySelectorAll('.cm-why').forEach(h => h.remove());
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    if (linkedRightIdx === undefined) {
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+      if (leftEl) leftEl.classList.add('wrong-link');
+      return;
+    }
+    if (parseInt(linkedRightIdx) === i) {
+      correct++;
+      if (leftEl) leftEl.classList.add('correct-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    } else {
+      if (leftEl) leftEl.classList.add('wrong-link');
+      const wrongRightEl = rightCol.querySelector('.cm-item[data-idx="' + linkedRightIdx + '"]');
+      if (wrongRightEl) wrongRightEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => {
+    col.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active','linked','correct-link','wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      delete el.dataset.pairNum;
+    });
+  });
+  leftCol.querySelectorAll('.cm-why').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── ODD ONE OUT ──
+function buildOddOneOut(containerId, data) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const label = item.label ? '<strong>' + item.label + '</strong> — ' : '';
+    const optsHtml = item.group.map((w, j) => '<button class="ctf-chip" data-item="' + i + '" data-opt="' + j + '" style="margin-right:6px;margin-bottom:6px;">' + w + '</button>').join('');
+    div.innerHTML = '<div class="fill-line" style="display:block;">' + (i+1) + '. ' + label + optsHtml + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    wrap.querySelectorAll('.ctf-chip[data-item="' + i + '"]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+}
+function checkOddOneOut(data, containerId, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    document.querySelectorAll('#' + containerId + ' .ctf-chip[data-item="' + i + '"]').forEach(c => { c.classList.remove('wrong-pick','correct-pick'); });
+    const sel = document.querySelector('#' + containerId + ' .ctf-chip[data-item="' + i + '"].active');
+    const correctChip = document.querySelector('#' + containerId + ' .ctf-chip[data-item="' + i + '"][data-opt="' + item.ans + '"]');
+    if (sel) {
+      if (parseInt(sel.dataset.opt) === item.ans) { sel.classList.add('correct-pick'); correct++; }
+      else {
+        sel.classList.add('wrong-pick');
+        if (correctChip) correctChip.classList.add('correct-pick');
+        // Show why
+        const lineDiv = sel.closest('.fill-line');
+        const existingHint = lineDiv ? lineDiv.querySelector('.oo-why') : null;
+        if (!existingHint && item.why && lineDiv) {
+          const hint = document.createElement('div');
+          hint.className = 'oo-why';
+          hint.style.cssText = 'font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;margin-top:6px;line-height:1.4;';
+          hint.textContent = 'Why: ' + item.why;
+          lineDiv.appendChild(hint);
+        }
+      }
+    } else {
+      if (correctChip) correctChip.classList.add('correct-pick');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetOddOneOut(containerId, fbId) {
+  document.querySelectorAll('#' + containerId + ' .ctf-chip').forEach(c => { c.classList.remove('active','wrong-pick','correct-pick'); });
+  document.querySelectorAll('#' + containerId + ' .oo-why').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ── CTF SENTENCES ──
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const list = document.createElement('div');
+  const startIndex = cfg.startIndex || 1;
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const html = item.line.replace(/___/g, () => '<span class="ctf-gap" data-ans="' + item.ans + '"></span>');
+    div.innerHTML = '<div class="fill-line">' + (i + startIndex) + '. ' + html + '</div>';
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + oldWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word;
+    gap.dataset.filled = selected.word;
+    gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existingHint = gap.parentElement ? gap.parentElement.querySelector('.ctf-correct-hint[data-gapid="' + gap.dataset.ans + gap.closest('.fill-item').textContent.slice(0,10) + '"]') : null;
+      // Remove previous hint for this gap
+      const allHints = gap.parentNode ? gap.parentNode.querySelectorAll('.ctf-correct-hint') : [];
+      allHints.forEach(h => { if (h.previousSibling === gap || h === gap.nextSibling) h.remove(); });
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span');
+        hint.className = 'ctf-correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:4px;';
+        hint.textContent = '(Correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+    });
+    list.querySelectorAll('.ctf-correct-hint').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// ── CTF DIALOGUE (with visible speaker lines) ──
+function buildCTFDialogue(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const dialogueWrap = document.createElement('div'); dialogueWrap.className = 'dialogue-wrap';
+  cfg.lines.forEach((line, i) => {
+    const div = document.createElement('div'); div.className = 'dialogue-line';
+    if (line.gap) {
+      const gapId = cfg.containerId + '_gap_' + i;
+      div.innerHTML = '<span class="speaker">' + line.speaker + ':</span> <span class="ctf-gap" id="' + gapId + '" data-ans="' + line.ans + '" data-gap-idx="' + i + '"></span>';
+    } else {
+      div.innerHTML = '<span class="speaker">' + line.speaker + ':</span> ' + line.text;
+    }
+    dialogueWrap.appendChild(div);
+  });
+  wrap.appendChild(dialogueWrap);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; dialogueWrap.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    dialogueWrap.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  dialogueWrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      dialogueWrap.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + oldWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word;
+    gap.dataset.filled = selected.word;
+    gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null;
+    dialogueWrap.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    dialogueWrap.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existing = gap.nextElementSibling;
+      if (existing && existing.classList.contains('ctf-correct-hint')) existing.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span');
+        hint.className = 'ctf-correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:4px;';
+        hint.textContent = '(Correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    dialogueWrap.querySelectorAll('.ctf-gap').forEach(gap => {
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existing = gap.nextElementSibling;
+      if (existing && existing.classList.contains('ctf-correct-hint')) existing.remove();
+    });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US'; utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = '<button onclick="speakWord(\'' + item.en.replace(/'/g,"\\'") + '\')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">&#128266;</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">' + item.en + '</div><div class="vc-pt">' + item.pt + '</div>';
+    wrap.appendChild(div);
+  });
+}
+const VOCAB_PLACES = [
+  {en:'arrivals', pt:'where people arrive'},
+  {en:'baggage reclaim', pt:'collect your suitcase here'},
+  {en:'bag drop', pt:'leave a large bag before the flight'},
+  {en:'customs', pt:'where officers check your bags'},
+  {en:'departures', pt:'where flights leave from'},
+  {en:'departure hall', pt:'the main hall before boarding'},
+  {en:'gate', pt:'where you board the plane'},
+  {en:'passport control', pt:'officer checks your passport'},
+  {en:'security check', pt:'your bags are X-rayed here'},
+  {en:'terminal', pt:'a building at the airport'}
+];
+const VOCAB_THINGS = [
+  {en:'boarding pass', pt:'your ticket to get on the plane'},
+  {en:'gate number', pt:'the number that shows where to board'},
+  {en:'hand luggage', pt:'a small bag you take on the plane'},
+  {en:'suitcase', pt:'a large bag you check in'},
+  {en:'trolley', pt:'a cart to carry heavy bags'},
+  {en:'lift', pt:'takes you to a different floor'}
+];
+const VOCAB_ACTIONS = [
+  {en:'board the plane', pt:'get on the plane'},
+  {en:'check in', pt:'confirm your flight at the airport'},
+  {en:'collect your suitcase', pt:'pick up your bag after the flight'},
+  {en:'go through security', pt:'have your bags checked by machine'},
+  {en:'leave your bag at the bag drop', pt:'hand in your suitcase before the flight'},
+  {en:'meet someone in arrivals', pt:'wait for someone who just landed'},
+  {en:'show your passport', pt:'let an officer see your passport'},
+  {en:'take the airport bus', pt:'travel by bus from/to the airport'}
+];
+renderVocabGrid('vocab-places', VOCAB_PLACES);
+renderVocabGrid('vocab-things', VOCAB_THINGS);
+renderVocabGrid('vocab-actions', VOCAB_ACTIONS);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7e3']
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_preinter1b_airport_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_preinter1b_airport_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_preinter1b_airport_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_preinter1b_airport_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:\'Poppins\',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(300, 400); showToast('Week complete! You are amazing!'); }
+
+// ══════════════════════════════════════════════
+//  DAY 1 — AT THE AIRPORT
+// ══════════════════════════════════════════════
+
+// D1E1 – Click Match: A + B → airport compound words
+const d1e1Data = [
+  {left:'baggage', right:'reclaim'},
+  {left:'passport', right:'control'},
+  {left:'bag', right:'drop'},
+  {left:'gate', right:'number'},
+  {left:'security', right:'check'},
+  {left:'hand', right:'luggage'},
+  {left:'departure', right:'hall'},
+  {left:'boarding', right:'pass'}
+];
+const d1e1state = buildClickMatch('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkClickMatch(d1e1state, 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetClickMatch(d1e1state, 'd1e1-fb'));
+
+// D1E2 – MC: Where at the airport?
+const d1e2Data = [
+  {q:'Your flight is over and you need to collect your suitcase. Go to ___.',
+   opts:['baggage reclaim','passport control','departures'], ans:0,
+   why:'"Baggage reclaim" is where you pick up your suitcase after you land.'},
+  {q:'You have your boarding pass, but you need to leave your suitcase before the flight. Go to the ___.',
+   opts:['gate number','bag drop','arrivals'], ans:1,
+   why:'"Bag drop" is where you leave a large suitcase before you go through security.'},
+  {q:'An officer needs to check your passport. You are at ___.',
+   opts:['customs','baggage reclaim','passport control'], ans:2,
+   why:'"Passport control" is where an officer checks that your passport is valid.'},
+  {q:'You have four heavy suitcases. You need a ___.',
+   opts:['trolley','lift','terminal'], ans:0,
+   why:'A "trolley" is the cart you use to push heavy bags at the airport.'},
+  {q:'You want to go from the ground floor to the first floor without using the stairs. Take the ___.',
+   opts:['gate','lift','trolley'], ans:1,
+   why:'A "lift" takes you up or down between floors without using the stairs.'},
+  {q:'Your friends are waiting for you after your flight. They are in ___.',
+   opts:['arrivals','departures','security'], ans:0,
+   why:'"Arrivals" is the area where people wait for passengers who have just landed.'},
+  {q:'Your boarding pass says "24". You need to find ___ 24.',
+   opts:['terminal','gate','customs'], ans:1,
+   why:'"Gate" is the specific boarding point. Your boarding pass shows which gate to go to.'},
+  {q:'You have a bottle of water in your hand luggage. You may have a problem at the ___.',
+   opts:['security check','baggage reclaim','bag drop'], ans:0,
+   why:'At the "security check", liquids over 100ml are not allowed in your hand luggage.'}
+];
+buildMC('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkMC(d1e2Data, 'd1e2', 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetMC('d1e2', 'd1e2', d1e2Data, 'd1e2-fb'));
+
+// D1E3 – Odd One Out
+const d1e3Data = [
+  {label:'Things you can have with you:', group:['suitcase','hand luggage','boarding pass','arrivals'], ans:3,
+   why:'"Arrivals" is a place at the airport, not something you carry. The others are things you have with you.'},
+  {label:'Places you may go before boarding:', group:['security check','passport control','gate','baggage reclaim'], ans:3,
+   why:'"Baggage reclaim" is used after the flight to collect your suitcase, not before boarding.'},
+  {label:'Things connected with your flight information:', group:['gate number','boarding pass','departure time','trolley'], ans:3,
+   why:'A "trolley" is a cart to carry bags. The others show information about your flight.'},
+  {label:'Things you can use to move around the airport:', group:['lift','stairs','trolley','customs'], ans:3,
+   why:'"Customs" is a place at the airport, not something you use to move between floors or areas.'},
+  {label:'Places connected with arriving after a flight:', group:['baggage reclaim','customs','arrivals','departures'], ans:3,
+   why:'"Departures" is for passengers leaving. The other three are places you visit after landing.'},
+  {label:'Things connected with your bags:', group:['bag drop','baggage reclaim','trolley','passport control'], ans:3,
+   why:'"Passport control" is about your documents, not your bags. The others are all connected with luggage.'}
+];
+buildOddOneOut('d1e3', d1e3Data);
+document.getElementById('d1e3-check').addEventListener('click', () => checkOddOneOut(d1e3Data, 'd1e3', 'd1e3-fb', 'd1e3'));
+document.getElementById('d1e3-reset').addEventListener('click', () => resetOddOneOut('d1e3', 'd1e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2 — AIRPORT JOURNEY
+// ══════════════════════════════════════════════
+
+// D2E1 – Categorize: Before or After the Flight?
+(function() {
+  const d2e1Items = [
+    {text:'bag drop',       cat:'before'},
+    {text:'baggage reclaim',cat:'after'},
+    {text:'gate',           cat:'before'},
+    {text:'arrivals',       cat:'after'},
+    {text:'security check', cat:'before'},
+    {text:'customs',        cat:'after'},
+    {text:'board the plane',cat:'before'},
+    {text:'pick up your suitcase', cat:'after'},
+    {text:'passport control (before boarding)', cat:'before'},
+    {text:'departure hall', cat:'before'}
+  ];
+  // Shuffle items for the bank
+  const shuffled = [...d2e1Items].sort(() => Math.random() - 0.5);
+  const bank = document.getElementById('d2e1-bank');
+  const dropBefore = document.getElementById('d2e1-drop-before');
+  const dropAfter  = document.getElementById('d2e1-drop-after');
+
+  shuffled.forEach((item, si) => {
+    const chip = document.createElement('button');
+    chip.className = 'cat-chip';
+    chip.dataset.cat = item.cat;
+    chip.dataset.si = si;
+    chip.textContent = item.text;
+    bank.appendChild(chip);
+  });
+
+  let selectedChip = null;
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.cat-chip');
+    if (!chip || chip.classList.contains('placed')) return;
+    if (selectedChip === chip) { chip.classList.remove('active'); selectedChip = null; return; }
+    bank.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active'); selectedChip = chip;
+  });
+
+  [document.getElementById('d2e1-cat-before'), document.getElementById('d2e1-cat-after')].forEach(catBox => {
+    catBox.addEventListener('click', () => {
+      if (!selectedChip) return;
+      selectedChip.classList.remove('active');
+      selectedChip.classList.add('placed');
+      catBox.appendChild(selectedChip);
+      selectedChip = null;
+    });
+  });
+
+  document.getElementById('d2e1-check').addEventListener('click', () => {
+    let correct = 0;
+    d2e1Items.forEach(item => {
+      const chips = document.querySelectorAll('#d2e1-cat-before .cat-chip, #d2e1-cat-after .cat-chip');
+      chips.forEach(chip => {
+        if (chip.textContent === item.text || chip.textContent.startsWith(item.text.split('(')[0].trim())) {
+          chip.classList.remove('correct-cat','wrong-cat');
+          const parent = chip.parentElement;
+          const inBefore = parent === dropBefore || parent === document.getElementById('d2e1-cat-before');
+          const inAfter  = parent === dropAfter  || parent === document.getElementById('d2e1-cat-after');
+          if ((item.cat === 'before' && (inBefore)) || (item.cat === 'after' && (inAfter))) {
+            chip.classList.add('correct-cat'); correct++;
+          } else {
+            chip.classList.add('wrong-cat');
+          }
+        }
+      });
+    });
+    // Check items still in the bank
+    bank.querySelectorAll('.cat-chip').forEach(chip => { chip.classList.add('wrong-cat'); });
+    const r = scoreText(correct, d2e1Items.length);
+    showFeedback('d2e1-fb', r.msg, r.type);
+    incrementChecked('d2e1');
+  });
+
+  document.getElementById('d2e1-reset').addEventListener('click', () => {
+    const allChips = document.querySelectorAll('#d2e1-cat-before .cat-chip, #d2e1-cat-after .cat-chip, #d2e1-bank .cat-chip');
+    allChips.forEach(chip => {
+      chip.classList.remove('placed','active','correct-cat','wrong-cat');
+      bank.appendChild(chip);
+    });
+    selectedChip = null;
+    document.getElementById('d2e1-fb').className = 'feedback';
+  });
+})();
+
+// D2E2 – Fill (ordering steps)
+const d2e2Data = [
+  {line:'___ She goes through security.', ans:['4']},
+  {line:'___ She boards the plane.', ans:['8']},
+  {line:'___ She arrives at the airport terminal.', ans:['1']},
+  {line:'___ She finds her gate.', ans:['7']},
+  {line:'___ She leaves her suitcase at the bag drop.', ans:['3']},
+  {line:'___ She takes the lift to departures.', ans:['2']},
+  {line:'___ She shows her passport at passport control.', ans:['5']},
+  {line:'___ She checks the big screen for her gate number.', ans:['6']}
+];
+(function(){
+  const wrap = document.getElementById('d2e2');
+  d2e2Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line">' + String.fromCharCode(65+i) + '. <input class="fill-input" id="d2e2_' + i + '_0" placeholder="..." style="min-width:48px;max-width:60px;"> ' + item.line.replace('___ ','') + '</div>';
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d2e2-check').addEventListener('click', () => {
+  let correct = 0;
+  d2e2Data.forEach((item, i) => {
+    const inp = document.getElementById('d2e2_' + i + '_0');
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span');
+      hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = '(Correct: ' + item.ans[0] + ')';
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d2e2Data.length);
+  showFeedback('d2e2-fb', r.msg, r.type);
+  incrementChecked('d2e2');
+});
+document.getElementById('d2e2-reset').addEventListener('click', () => {
+  d2e2Data.forEach((_, i) => {
+    const inp = document.getElementById('d2e2_' + i + '_0');
+    inp.value = ''; inp.className = 'fill-input';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d2e2-fb').className = 'feedback';
+});
+
+// D2E3 – CTF: Complete the Airport Story
+buildCTFSentences({
+  containerId: 'd2e3',
+  words: ['arrivals','bag drop','baggage reclaim','customs','departures','gate','security check','trolley'],
+  items: [
+    {line:'Nina is flying to Dublin today. At the airport, she goes upstairs to (1) ___. First, she leaves her suitcase at the (2) ___. Then she goes through the (3) ___. After that, she finds her (4) ___ and boards the plane.', ans:'departures'},
+    {line:'', ans:'bag drop'},
+    {line:'', ans:'security check'},
+    {line:'', ans:'gate'}
+  ],
+  startIndex: 1,
+  checkId: 'd2e3-check', resetId: 'd2e3-reset', fbId: 'd2e3-fb', exId: 'd2e3'
+});
+
+// The CTF above renders 4 blank items for the paragraph — but we need a single paragraph with 8 gaps.
+// We rebuild D2E3 properly:
+(function(){
+  const wrap = document.getElementById('d2e3');
+  wrap.innerHTML = '';
+  const para1 = document.createElement('div');
+  para1.className = 'fill-item';
+  para1.innerHTML = '<div class="fill-line" style="line-height:2.4;">Nina is flying to Dublin today. At the airport, she goes upstairs to <span class="ctf-gap" data-ans="departures"></span>. First, she leaves her suitcase at the <span class="ctf-gap" data-ans="bag drop"></span>. Then she goes through the <span class="ctf-gap" data-ans="security check"></span>. After that, she finds her <span class="ctf-gap" data-ans="gate"></span> and boards the plane.</div>';
+  const para2 = document.createElement('div');
+  para2.className = 'fill-item';
+  para2.innerHTML = '<div class="fill-line" style="line-height:2.4;">When she arrives in Dublin, she goes to <span class="ctf-gap" data-ans="baggage reclaim"></span> to collect her suitcase. The bag is very heavy, so she gets a <span class="ctf-gap" data-ans="trolley"></span>. Then she walks through <span class="ctf-gap" data-ans="customs"></span>. Finally, she goes to <span class="ctf-gap" data-ans="arrivals"></span>, where her sister is waiting for her.</div>';
+  wrap.appendChild(para1);
+  wrap.appendChild(para2);
+
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  const words = ['arrivals','bag drop','baggage reclaim','customs','departures','gate','security check','trolley'];
+  words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  let selected = null;
+  const allGaps = () => wrap.querySelectorAll('.ctf-gap');
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; allGaps().forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    allGaps().forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  wrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filledWi = '';
+      allGaps().forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + oldWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; allGaps().forEach(g => g.classList.remove('ready'));
+  });
+
+  document.getElementById('d2e3-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    allGaps().forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existing = gap.nextElementSibling;
+      if (existing && existing.classList.contains('ctf-correct-hint')) existing.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span'); hint.className = 'ctf-correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:4px;';
+        hint.textContent = '(Correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d2e3-fb', r.msg, r.type);
+    incrementChecked('d2e3');
+  });
+
+  document.getElementById('d2e3-reset').addEventListener('click', () => {
+    allGaps().forEach(gap => { gap.textContent = ''; gap.dataset.filledWi = ''; gap.classList.remove('correct-gap','wrong-gap','ready'); const e = gap.nextElementSibling; if (e && e.classList.contains('ctf-correct-hint')) e.remove(); });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById('d2e3-fb').className = 'feedback';
+  });
+})();
+
+// ══════════════════════════════════════════════
+//  DAY 3 — PLANS WITH GOING TO
+// ══════════════════════════════════════════════
+
+// D3E1 – CTF: Complete the plans with going to + verb
+(function(){
+  const wrap = document.getElementById('d3e1');
+  const sentences = [
+    {text:"I have tickets for Italy and Spain. I <span class='ctf-gap' data-ans='am going to travel'></span> around Europe in July."},
+    {text:"Emma has a reservation at the Park Hotel for three nights. She <span class='ctf-gap' data-ans='is going to stay'></span> there until Monday."},
+    {text:"We need something to read on the plane. We <span class='ctf-gap' data-ans='are going to buy'></span> a magazine at the airport."},
+    {text:"The bus leaves from outside the terminal. We <span class='ctf-gap' data-ans='are going to take'></span> the bus to the city centre."},
+    {text:"Leo is at baggage reclaim now. He <span class='ctf-gap' data-ans='is going to get'></span> a trolley for his three suitcases."},
+    {text:"My parents' flight lands at 8:15. I <span class='ctf-gap' data-ans='am going to meet'></span> them in arrivals."},
+    {text:"Our friends are still at passport control. We <span class='ctf-gap' data-ans='are going to wait'></span> for them near the café."},
+    {text:"Mia has tickets for the National Museum tomorrow. She <span class='ctf-gap' data-ans='is going to visit'></span> it in the morning."}
+  ];
+  sentences.forEach((s, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line" style="line-height:2.4;">' + (i+1) + '. ' + s.text + '</div>';
+    wrap.appendChild(div);
+  });
+
+  const words = ["am going to travel","is going to stay","are going to buy","are going to take","is going to get","am going to meet","are going to wait","is going to visit"];
+  const shuffled = [...words].sort(() => Math.random() - 0.5);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  shuffled.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  let selected = null;
+  const allGaps = () => wrap.querySelectorAll('.ctf-gap');
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; allGaps().forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    allGaps().forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  wrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filledWi = '';
+      allGaps().forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + gap.dataset.filledWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; allGaps().forEach(g => g.classList.remove('ready'));
+  });
+
+  document.getElementById('d3e1-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    allGaps().forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap');
+      const existing = gap.nextElementSibling;
+      if (existing && existing.classList.contains('ctf-correct-hint')) existing.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span'); hint.className = 'ctf-correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:4px;';
+        hint.textContent = '(Correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d3e1-fb', r.msg, r.type);
+    incrementChecked('d3e1');
+  });
+
+  document.getElementById('d3e1-reset').addEventListener('click', () => {
+    allGaps().forEach(gap => { gap.textContent = ''; gap.dataset.filledWi = ''; gap.classList.remove('correct-gap','wrong-gap','ready'); const e = gap.nextElementSibling; if (e && e.classList.contains('ctf-correct-hint')) e.remove(); });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById('d3e1-fb').className = 'feedback';
+  });
+})();
+
+// D3E2 – Click Match: situation → going to consequence
+const d3e2Data = [
+  {left:'The weather forecast says 5°C tomorrow.', right:"I'm going to take some warm clothes."},
+  {left:"Ben's passport is nearly out of date.",    right:"He's going to get a new one."},
+  {left:'We have four large suitcases.',            right:"We're going to get a trolley."},
+  {left:'There\'s a lot of traffic and our flight leaves soon.', right:"We're going to miss our flight."},
+  {left:'Julia has a hotel reservation for five nights.',        right:"She's going to stay there until Friday."},
+  {left:'Tom wants something to read during the flight.',        right:"He's going to buy a book."},
+  {left:"My sister's flight arrives at 6:30.",      right:"I'm going to meet her at the airport."},
+  {left:'The airport bus leaves in ten minutes.',   right:"We're going to take it."}
+];
+const d3e2state = buildClickMatch('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkClickMatch(d3e2state, 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetClickMatch(d3e2state, 'd3e2-fb'));
+
+// D3E3 – Fill: word order (type the full sentence)
+const d3e3Data = [
+  {line:"Type the correct sentence: going / I'm / travel / to / by plane", ans:["I'm going to travel by plane.","I'm going to travel by plane"]},
+  {line:"Type the correct sentence: to / she's / at the airport / meet / going / us", ans:["She's going to meet us at the airport.","She's going to meet us at the airport"]},
+  {line:"Type the correct sentence: are / a trolley / get / going / we / to", ans:["We are going to get a trolley.","We are going to get a trolley","We're going to get a trolley.","We're going to get a trolley"]},
+  {line:"Type the correct sentence: stay / going / they / are / in London / to", ans:["They are going to stay in London.","They are going to stay in London","They're going to stay in London.","They're going to stay in London"]},
+  {line:"Type the correct sentence: going / he / a new passport / get / is / to", ans:["He is going to get a new passport.","He is going to get a new passport","He's going to get a new passport.","He's going to get a new passport"]},
+  {line:"Type the correct sentence: the bus / going / take / you / are / to", ans:["You are going to take the bus.","You are going to take the bus","You're going to take the bus.","You're going to take the bus"]},
+  {line:"Type the correct sentence: going / visit / we're / New York / to", ans:["We're going to visit New York.","We're going to visit New York"]},
+  {line:"Type the correct sentence: at the gate / wait / I'm / to / going", ans:["I'm going to wait at the gate.","I'm going to wait at the gate"]}
+];
+(function(){
+  const wrap = document.getElementById('d3e3');
+  d3e3Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line" style="display:block;line-height:1.8;"><span style="font-size:0.78rem;color:var(--gray);">' + (i+1) + '. ' + item.line.replace('Type the correct sentence: ','Words: ') + '</span><br><input class="fill-input" id="d3e3_' + i + '_0" placeholder="Write the full sentence..." style="min-width:90%;max-width:100%;margin-top:4px;text-align:left;"></div>';
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d3e3-check').addEventListener('click', () => {
+  let correct = 0;
+  d3e3Data.forEach((item, i) => {
+    const inp = document.getElementById('d3e3_' + i + '_0');
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+    const ok = item.ans.map(a => a.toLowerCase().replace(/\s+/g,' ')).includes(val);
+    if (ok) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span'); hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;display:block;margin-top:2px;';
+      hint.textContent = 'Correct: ' + item.ans[0];
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d3e3Data.length);
+  showFeedback('d3e3-fb', r.msg, r.type);
+  incrementChecked('d3e3');
+});
+document.getElementById('d3e3-reset').addEventListener('click', () => {
+  d3e3Data.forEach((_, i) => {
+    const inp = document.getElementById('d3e3_' + i + '_0');
+    inp.value = ''; inp.className = 'fill-input'; inp.style.cssText = 'min-width:90%;max-width:100%;margin-top:4px;text-align:left;';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d3e3-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 4 — WHAT ARE THEY GOING TO DO?
+// ══════════════════════════════════════════════
+
+// D4E1 – Fill: negative going to
+const d4e1Data = [
+  {line:'The weather forecast says it will be sunny. It ___ (rain)', ans:["isn't going to rain","is not going to rain"]},
+  {line:'We have plenty of time before our flight. We ___ it. (miss)', ans:["aren't going to miss","are not going to miss"]},
+  {line:'Carla has a lift to the airport from her brother. She ___ a taxi. (take)', ans:["isn't going to take","is not going to take"]},
+  {line:'I only have hand luggage. I ___ a suitcase at the bag drop. (leave)', ans:["I'm not going to leave","am not going to leave","'m not going to leave"]},
+  {line:'They have a hotel in the city centre. They ___ at the airport hotel. (stay)', ans:["aren't going to stay","are not going to stay"]},
+  {line:'Mark has his boarding pass on his phone. He ___ it. (print)', ans:["isn't going to print","is not going to print"]},
+  {line:'The trip is only for two days. We ___ four suitcases. (take)', ans:["aren't going to take","are not going to take"]},
+  {line:'The restaurant is closed tonight. We ___ there. (eat)', ans:["aren't going to eat","are not going to eat"]}
+];
+(function(){
+  const wrap = document.getElementById('d4e1');
+  d4e1Data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const parts = item.line.split('___');
+    div.innerHTML = '<div class="fill-line">' + (i+1) + '. ' + parts[0] + '<input class="fill-input" id="d4e1_' + i + '_0" placeholder="..." style="min-width:160px;max-width:220px;">' + parts[1] + '</div>';
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d4e1-check').addEventListener('click', () => {
+  let correct = 0;
+  d4e1Data.forEach((item, i) => {
+    const inp = document.getElementById('d4e1_' + i + '_0');
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+    const ok = item.ans.map(a => a.toLowerCase().replace(/\s+/g,' ')).includes(val);
+    if (ok) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span'); hint.className = 'correct-hint'; hint.dataset.for = inp.id;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = '(Correct: ' + item.ans[0] + ')';
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d4e1Data.length);
+  showFeedback('d4e1-fb', r.msg, r.type);
+  incrementChecked('d4e1');
+});
+document.getElementById('d4e1-reset').addEventListener('click', () => {
+  d4e1Data.forEach((_, i) => {
+    const inp = document.getElementById('d4e1_' + i + '_0');
+    inp.value = ''; inp.className = 'fill-input'; inp.style.cssText = 'min-width:160px;max-width:220px;';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + inp.id + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d4e1-fb').className = 'feedback';
+});
+
+// D4E2 – MC: Choose the question
+const d4e2Data = [
+  {q:'A: ___ B: We\'re going to stay at the City Hotel.',
+   opts:['Where are you going to stay?','When are you going to leave?','Are you going to take a taxi?'], ans:0,
+   why:'"Where" asks about a place. The answer is a hotel — a place.'},
+  {q:'A: ___ B: On Friday morning.',
+   opts:['Where are they going to go?','When are they going to travel?','What are they going to buy?'], ans:1,
+   why:'"When" asks about time. The answer "On Friday morning" is a time expression.'},
+  {q:'A: ___ B: My brother is going to pick me up.',
+   opts:['Who is going to pick you up?','Where are you going to wait?','Are you going to get a trolley?'], ans:0,
+   why:'"Who" asks about a person. The answer names a person — brother.'},
+  {q:'A: ___ B: We\'re going to take the airport bus.',
+   opts:['What are you going to take?','Who are you going to meet?','Where are you going to stay?'], ans:0,
+   why:'"What" asks about a thing. The answer is a specific thing — the airport bus.'},
+  {q:'A: ___ B: Yes, she is.',
+   opts:['Is she going to fly to Rome?','Does she fly to Rome?','Are she going to fly to Rome?'], ans:0,
+   why:'Only option A is grammatically correct. "Are she" is wrong; "Does she" is wrong with "going to".'},
+  {q:'A: ___ B: No, they aren\'t.',
+   opts:["Is they going to stay here?","Are they going to stay here?","Do they going to stay here?"], ans:1,
+   why:'"They" uses "are", not "is" or "do". Only option B is correct.'},
+  {q:'A: ___ B: For five days.',
+   opts:['Where are you going to stay?','How long are you going to stay?','What are you going to do?'], ans:1,
+   why:'"How long" asks about duration. "For five days" is a duration answer.'},
+  {q:'A: ___ B: A new suitcase.',
+   opts:['What is Leo going to buy?','Where is Leo going to buy it?','When is Leo going to travel?'], ans:0,
+   why:'"What" asks about a thing. The answer is a thing — a new suitcase.'}
+];
+buildMC('d4e2', d4e2Data, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkMC(d4e2Data, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetMC('d4e2', 'd4e2', d4e2Data, 'd4e2-fb'));
+
+// D4E3 – Fill: complete the questions (2 inputs per item where needed)
+(function(){
+  const wrap = document.getElementById('d4e3');
+  const items = [
+    {display:'1. A: ___ you ___ going to travel? &nbsp; B: Next Saturday.', ids:['d4e3_0a','d4e3_0b'], ans:[['when','when are'],['are going to','going to']]},
+    {display:'2. A: ___ she going to ___? &nbsp; B: At the Airport Hotel.', ids:['d4e3_1a','d4e3_1b'], ans:[['where','where is'],['stay']]},
+    {display:'3. A: ___ they going to ___ to the airport? &nbsp; B: By bus.', ids:['d4e3_2a','d4e3_2b'], ans:[['how','how are'],['get']]},
+    {display:'4. A: ___ is going to pick you up? &nbsp; B: My sister.', ids:['d4e3_3a'], ans:[['who']]},
+    {display:'5. A: ___ you going to take a taxi? &nbsp; B: No, I\'m not.', ids:['d4e3_4a'], ans:[['are']]},
+    {display:"6. A: ___ Tom going to buy a new passport? &nbsp; B: Yes, he is.", ids:['d4e3_5a'], ans:[['is']]},
+    {display:'7. A: ___ long are you going to ___ in Madrid? &nbsp; B: For four days.', ids:['d4e3_6a','d4e3_6b'], ans:[['how'],['stay']]},
+    {display:'8. A: ___ are you going to ___ at the airport? &nbsp; B: My parents.', ids:['d4e3_7a','d4e3_7b'], ans:[['who'],['meet']]}
+  ];
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    let html = '<div class="fill-line">';
+    const parts = item.display.split('___');
+    parts.forEach((part, k) => {
+      html += part;
+      if (k < parts.length - 1 && item.ids[k]) {
+        html += '<input class="fill-input" id="' + item.ids[k] + '" placeholder="..." style="min-width:70px;max-width:120px;">';
+      }
+    });
+    html += '</div>';
+    div.innerHTML = html;
+    wrap.appendChild(div);
+  });
+
+  document.getElementById('d4e3-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    items.forEach(item => {
+      item.ids.forEach((id, k) => {
+        total++;
+        const inp = document.getElementById(id);
+        if (!inp) return;
+        inp.classList.remove('correct','wrong');
+        const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="' + id + '"]');
+        if (existingHint) existingHint.remove();
+        const val = inp.value.trim().toLowerCase();
+        const ok = item.ans[k].map(a => a.toLowerCase()).includes(val);
+        if (ok) { inp.classList.add('correct'); correct++; }
+        else {
+          inp.classList.add('wrong');
+          const hint = document.createElement('span'); hint.className = 'correct-hint'; hint.dataset.for = id;
+          hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+          hint.textContent = '(Correct: ' + item.ans[k][0] + ')';
+          inp.insertAdjacentElement('afterend', hint);
+        }
+      });
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d4e3-fb', r.msg, r.type);
+    incrementChecked('d4e3');
+  });
+
+  document.getElementById('d4e3-reset').addEventListener('click', () => {
+    items.forEach(item => {
+      item.ids.forEach(id => {
+        const inp = document.getElementById(id);
+        if (!inp) return;
+        inp.value = ''; inp.className = 'fill-input'; inp.style.cssText = 'min-width:70px;max-width:120px;';
+        const hint = inp.parentElement.querySelector('.correct-hint[data-for="' + id + '"]');
+        if (hint) hint.remove();
+      });
+    });
+    document.getElementById('d4e3-fb').className = 'feedback';
+  });
+})();
+
+// ══════════════════════════════════════════════
+//  DAY 5 — TRAVEL PLANS IN CONTEXT
+// ══════════════════════════════════════════════
+
+// D5E1 – MC: Read the message
+const d5e1Data = [
+  {q:'What time are Mia and Luke going to leave home?', opts:['6:00','9:30','18:00'], ans:0, why:'Mia writes "We\'re going to leave home at 6:00".'},
+  {q:'How are they going to get to the airport?', opts:["By taxi","Mia's dad is going to take them.","By airport bus"], ans:1, why:'Mia writes "Dad is going to take us to the airport, so we aren\'t going to take a taxi."'},
+  {q:'What is Mia going to take?', opts:['A big suitcase','A trolley','Hand luggage'], ans:2, why:'Mia writes "I\'m only going to take hand luggage."'},
+  {q:"What is Luke going to do with his suitcase?", opts:['Leave it at the bag drop','Take it to arrivals','Leave it at passport control'], ans:0, why:'Mia writes "He\'s going to leave it at the bag drop."'},
+  {q:'Where are they going to meet after security?', opts:['At Gate 18','At baggage reclaim','At the hotel'], ans:0, why:'Mia writes "After security, we\'re going to meet at Gate 18."'},
+  {q:'How are they going to get to their hotel in Madrid?', opts:['By taxi','By airport bus',"Mia's dad is going to take them."], ans:1, why:'Mia writes "we\'re going to take the airport bus to our hotel."'}
+];
+buildMC('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkMC(d5e1Data, 'd5e1', 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetMC('d5e1', 'd5e1', d5e1Data, 'd5e1-fb'));
+
+// D5E2 – MC: Mini-dialogues
+const d5e2Data = [
+  {q:'A: Your suitcase looks really heavy. B: ___', opts:["I'm going to get a trolley.","I'm going to get a passport.","I'm going to baggage reclaim yesterday."], ans:0, why:'If a suitcase is heavy, you get a trolley to carry it. Option B is wrong (passport = document). Option C uses "yesterday" with a future form, which is impossible.'},
+  {q:'A: The traffic is terrible and boarding starts in 20 minutes. B: ___', opts:["We're going to miss our flight!","We aren't going to travel last week.","We're going to stay at the gate number."], ans:0, why:"If there's traffic and time is short, you might miss your flight. Option B uses \"last week\" which is past. Option C doesn't make sense."},
+  {q:"A: Your passport is nearly out of date. B: ___", opts:["I'm going to get a new one.","I'm going to get a lift.","I'm not going to baggage reclaim."], ans:0, why:'A passport that is out of date needs to be replaced. "Get a new one" = get a new passport.'},
+  {q:"A: It's going to be very cold in Toronto. B: ___", opts:["I'm going to take some warm clothes.","I'm going to take passport control.","I'm going to leave my coat at baggage reclaim."], ans:0, why:'When it is cold, you take warm clothes. Option B confuses "take" with a process. Option C is not logical.'},
+  {q:"A: Do you want me to take you to the airport? B: ___", opts:["No, thanks. I'm going to take the bus.","No, thanks. I'm going to take a gate.","No, thanks. I'm at baggage reclaim."], ans:0, why:'You decline the offer politely and say how you are going to get there. "Take the bus" is the correct expression.'},
+  {q:'A: Where are your friends going to meet you? B: ___', opts:['In arrivals.','At 7:30.','For two hours.'], ans:0, why:'"Where" asks about a place. Only "In arrivals" is a place. "At 7:30" is a time and "For two hours" is a duration.'},
+  {q:'A: How long are you going to stay in Rome? B: ___', opts:['At a hotel.','For five days.','By plane.'], ans:1, why:'"How long" asks for duration. "For five days" is a duration. "At a hotel" is a place and "By plane" is a means of transport.'},
+  {q:'A: Are you going to take a taxi to the hotel? B: ___', opts:["No, we aren't. We're going to take the bus.","No, we don't going to.","No, we isn't."], ans:0, why:'The correct short answer to "Are you..." is "No, we aren\'t." Then you say what you are going to do instead. Options B and C have grammar mistakes.'}
+];
+buildMC('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkMC(d5e2Data, 'd5e2', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetMC('d5e2', 'd5e2', d5e2Data, 'd5e2-fb'));
+
+// D5E3 – Fill: reorder conversation lines (1-8)
+const d5e3Items = [
+  {letter:'A', text:'For a week. We\'re coming back next Sunday.', ans:['8']},
+  {letter:'B', text:"Yes, we are. Our flight leaves at 10:15.", ans:['2']},
+  {letter:'C', text:'How are you going to get to the airport?', ans:['5']},
+  {letter:'D', text:'Are you going to fly to Lisbon tomorrow?', ans:['1']},
+  {letter:'E', text:'My sister is going to take us.', ans:['6']},
+  {letter:'F', text:'Nice! How long are you going to stay there?', ans:['7']},
+  {letter:'G', text:'At about 7:00 in the morning.', ans:['4']},
+  {letter:'H', text:'What time are you going to leave home?', ans:['3']}
+];
+(function(){
+  const wrap = document.getElementById('d5e3');
+  const shuffled = [...d5e3Items].sort(() => Math.random() - 0.5);
+  shuffled.forEach(item => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line"><input class="fill-input" id="d5e3_' + item.letter + '" placeholder="..." style="min-width:48px;max-width:60px;"> <span style="color:var(--orange);font-weight:700;">' + item.letter + '.</span> ' + item.text + '</div>';
+    wrap.appendChild(div);
+  });
+})();
+document.getElementById('d5e3-check').addEventListener('click', () => {
+  let correct = 0;
+  d5e3Items.forEach(item => {
+    const inp = document.getElementById('d5e3_' + item.letter);
+    if (!inp) return;
+    inp.classList.remove('correct','wrong');
+    const existingHint = inp.parentElement.querySelector('.correct-hint[data-for="d5e3_' + item.letter + '"]');
+    if (existingHint) existingHint.remove();
+    const val = inp.value.trim();
+    if (item.ans.includes(val)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('span'); hint.className = 'correct-hint'; hint.dataset.for = 'd5e3_' + item.letter;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+      hint.textContent = '(Correct: ' + item.ans[0] + ')';
+      inp.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, d5e3Items.length);
+  showFeedback('d5e3-fb', r.msg, r.type);
+  incrementChecked('d5e3');
+});
+document.getElementById('d5e3-reset').addEventListener('click', () => {
+  d5e3Items.forEach(item => {
+    const inp = document.getElementById('d5e3_' + item.letter);
+    if (!inp) return;
+    inp.value = ''; inp.className = 'fill-input'; inp.style.cssText = 'min-width:48px;max-width:60px;';
+    const hint = inp.parentElement.querySelector('.correct-hint[data-for="d5e3_' + item.letter + '"]');
+    if (hint) hint.remove();
+  });
+  document.getElementById('d5e3-fb').className = 'feedback';
+});
+
+// ══════════════════════════════════════════════
+//  DAY 6 — THE WHOLE TRIP
+// ══════════════════════════════════════════════
+
+// D6E1 – TF: Sarah's Trip
+const d6e1Data = [
+  {s:'Sarah is going to travel on Friday.', ans:'T', why:'The text says "Sarah is going to fly from London to Barcelona on Friday."'},
+  {s:'Her flight leaves from Terminal 31.', ans:'F', why:'The text says "Terminal 2", not Terminal 31.'},
+  {s:"She's going to drive to the airport.", ans:'F', why:'The text says she is going to take the train, not drive.'},
+  {s:"She's going to leave her suitcase at the bag drop.", ans:'T', why:'The text says "she\'s going to leave it at the bag drop."'},
+  {s:"She's going to go through passport control before the flight.", ans:'T', why:'The text says she is going to go through security and passport control before boarding.'},
+  {s:"She's going to get a trolley in Barcelona.", ans:'F', why:'The text says "She isn\'t going to get a trolley because she only has one bag."'},
+  {s:"Carla is going to wait for Sarah in arrivals.", ans:'T', why:'The text says "After customs, she\'s going to meet her friend Carla in arrivals."'},
+  {s:"They're going to take a taxi to the hotel.", ans:'F', why:'The text says "Carla is going to drive them to the hotel", not a taxi.'}
+];
+const d6e1sel = buildTF('d6e1', d6e1Data, 'd6e1');
+document.getElementById('d6e1-check').addEventListener('click', () => checkTF(d6e1Data, d6e1sel, 'd6e1-fb', 'd6e1', 'd6e1'));
+document.getElementById('d6e1-reset').addEventListener('click', () => resetTF(d6e1Data, d6e1sel, 'd6e1', 'd6e1-fb'));
+
+// D6E2 – MC: Which passenger (Leo / Maya / Ben)
+const d6e2Data = [
+  {q:'Who is going to travel by taxi?', opts:['Leo','Maya','Ben'], ans:0, why:'Leo says "I\'m going to take a taxi to the airport."'},
+  {q:'Who is going to get a trolley?', opts:['Leo','Maya','Ben'], ans:1, why:"Maya says \"I'm going to get a trolley at the airport.\""},
+  {q:'Who is going to travel by train?', opts:['Leo','Maya','Ben'], ans:2, why:"Ben says \"I'm going to take the train to the airport.\""},
+  {q:"Who isn't going to use the bag drop?", opts:['Leo','Maya','Ben'], ans:0, why:"Leo says \"I only have hand luggage\" — he doesn't need to use the bag drop."},
+  {q:'Who is going to take a bus after the flight?', opts:['Leo','Maya','Ben'], ans:1, why:"Maya says \"I'm going to take the airport bus to my hotel.\""},
+  {q:'Who is going to travel on Sunday?', opts:['Leo','Maya','Ben'], ans:2, why:"Ben says \"I'm going to travel on Sunday afternoon.\""},
+  {q:'Who is going to meet a cousin after the flight?', opts:['Leo','Maya','Ben'], ans:0, why:"Leo says \"My cousin is going to meet me in arrivals after the flight.\""},
+  {q:'Who is going to be picked up by friends?', opts:['Leo','Maya','Ben'], ans:2, why:"Ben says \"my friends are going to pick me up at the airport.\""}
+];
+buildMC('d6e2', d6e2Data, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkMC(d6e2Data, 'd6e2', 'd6e2-fb', 'd6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetMC('d6e2', 'd6e2', d6e2Data, 'd6e2-fb'));
+
+// D6E3 – CTF Dialogue: At the Airport
+(function(){
+  const wrap = document.getElementById('d6e3');
+  const dialogueLines = [
+    {speaker:'Nina', text:'Is your flight to Dublin today?', gap:false},
+    {speaker:'Paul', ans:"Yes, it is.", gap:true},
+    {speaker:'Nina', text:'What time are you going to leave home?', gap:false},
+    {speaker:'Paul', ans:"At about 8:00.", gap:true},
+    {speaker:'Nina', text:'Where are you going to stay in Dublin?', gap:false},
+    {speaker:'Paul', ans:"We're going to stay at the Central Hotel.", gap:true},
+    {speaker:'Nina', text:'How long are you going to stay?', gap:false},
+    {speaker:'Paul', ans:"For four days.", gap:true},
+    {speaker:'Nina', text:'Is anyone going to meet you after the flight?', gap:false},
+    {speaker:'Paul', text:'Yes.', gap:false},
+    {speaker:'Paul', ans:"My sister is going to meet us in arrivals.", gap:true},
+    {speaker:'Nina', text:'Are you going to take a taxi from the airport?', gap:false},
+    {speaker:'Paul', ans:"No, we aren't.", gap:true},
+    {speaker:'Nina', text:"So how are you going to get to the hotel?", gap:false},
+    {speaker:'Paul', ans:"We're going to take the airport bus.", gap:true},
+    {speaker:'Nina', text:"Your suitcase looks heavy!", gap:false},
+    {speaker:'Paul', ans:"I'm going to get a trolley.", gap:true}
+  ];
+
+  const dialogueWrap = document.createElement('div'); dialogueWrap.className = 'dialogue-wrap';
+  let gapIdx = 0;
+  dialogueLines.forEach((line, i) => {
+    const div = document.createElement('div'); div.className = 'dialogue-line';
+    if (line.gap) {
+      div.innerHTML = '<span class="speaker">' + line.speaker + ':</span> <span class="ctf-gap" data-ans="' + line.ans.replace(/"/g,'&quot;') + '" data-gap-idx="' + (gapIdx++) + '"></span>';
+    } else {
+      div.innerHTML = '<span class="speaker">' + line.speaker + ':</span> ' + line.text;
+    }
+    dialogueWrap.appendChild(div);
+  });
+  wrap.appendChild(dialogueWrap);
+
+  // All 10 options (8 correct + 2 extra)
+  const allOptions = [
+    "Yes, it is.",
+    "At about 8:00.",
+    "We're going to stay at the Central Hotel.",
+    "For four days.",
+    "My sister is going to meet us in arrivals.",
+    "No, we aren't.",
+    "We're going to take the airport bus.",
+    "I'm going to get a trolley.",
+    "At Gate 12.",          // extra
+    "We're going to buy a new suitcase." // extra
+  ];
+  const shuffledOpts = [...allOptions].sort(() => Math.random() - 0.5);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  shuffledOpts.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  let selected = null;
+  const allGaps = () => dialogueWrap.querySelectorAll('.ctf-gap');
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; allGaps().forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    allGaps().forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  dialogueWrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filledWi = '';
+      allGaps().forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + gap.dataset.filledWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; allGaps().forEach(g => g.classList.remove('ready'));
+  });
+
+  document.getElementById('d6e3-check').addEventListener('click', () => {
+    let correct = 0, total = 0;
+    allGaps().forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap');
+      const existing = gap.nextElementSibling;
+      if (existing && existing.classList.contains('ctf-correct-hint')) existing.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span'); hint.className = 'ctf-correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.78rem;margin-left:4px;';
+        hint.textContent = '(Correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback('d6e3-fb', r.msg, r.type);
+    incrementChecked('d6e3');
+  });
+
+  document.getElementById('d6e3-reset').addEventListener('click', () => {
+    allGaps().forEach(gap => {
+      gap.textContent = ''; gap.dataset.filledWi = ''; gap.classList.remove('correct-gap','wrong-gap','ready');
+      const e = gap.nextElementSibling; if (e && e.classList.contains('ctf-correct-hint')) e.remove();
+    });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById('d6e3-fb').className = 'feedback';
+  });
+})();
+
+// ══════════════════════════════════════════════
+//  DAY 7 — WEEKLY CONSOLIDATION
+// ══════════════════════════════════════════════
+
+// D7E1 – MC: Complete review (15 items)
+const d7e1Data = [
+  {q:'After your flight, you go to ___ to collect your suitcase.', opts:['baggage reclaim','bag drop','departures'], ans:0, why:'"Baggage reclaim" is where you collect your suitcase after landing.'},
+  {q:'Before the flight, you can leave a large suitcase at the ___.', opts:['customs','bag drop','arrivals'], ans:1, why:'"Bag drop" is where you leave a large suitcase before going through security.'},
+  {q:'"Your suitcase is very heavy." "I know. I ___ a trolley."', opts:['am going to get','going to get','am get'], ans:0, why:'The correct structure is: subject + am/is/are + going to + verb. "Am going to get" is correct.'},
+  {q:'Our flight is at 8:00 and it\'s already 7:30. We ___ it!', opts:['are going to miss','is going to miss','going miss'], ans:0, why:'"We" uses "are". The correct form is "we are going to miss".'},
+  {q:'A: ___ are you going to stay in Paris? B: At the Grand Hotel.', opts:['When','Where','Who'], ans:1, why:'The answer is a place (a hotel), so the question word is "Where".'},
+  {q:'A: Are they going to take a taxi? B: No, ___.', opts:["they aren't","they don't","they isn't"], ans:0, why:'"Aren\'t" is the negative of "are". The short answer is "No, they aren\'t."'},
+  {q:'An officer checks your passport at ___.', opts:['passport control','baggage reclaim','arrivals'], ans:0, why:'"Passport control" is where an officer checks your passport.'},
+  {q:'A: ___ is going to meet you at the airport? B: My brother.', opts:['How','Who','Where'], ans:1, why:'The answer is a person (brother), so the question word is "Who".'},
+  {q:'The weather forecast says it will be sunny all day. It ___.', opts:["isn't going to rain","doesn't going to rain","not going to rain"], ans:0, why:'The correct negative is "isn\'t going to rain". Option B uses "doesn\'t" which is wrong with "going to". Option C has no verb.'},
+  {q:'A: How long are you going to stay? B: ___', opts:['At a hotel.','For six days.','By bus.'], ans:1, why:'"How long" asks for duration. "For six days" is a duration. "At a hotel" is a place; "By bus" is a means of transport.'},
+  {q:'We need to know where to board the plane, so let\'s check the ___.', opts:['gate number','trolley','customs'], ans:0, why:'The "gate number" tells you which gate to go to for boarding. You can check it on a screen.'},
+  {q:'A: What ___ you going to do after the flight? B: I\'m going to meet some friends.', opts:['is','are','do'], ans:1, why:'"You" uses "are". The correct form is "What are you going to do?"'},
+  {q:'After baggage reclaim, passengers may go through ___.', opts:['customs','bag drop','departures'], ans:0, why:'After collecting your bags, you go through "customs" before leaving the arrivals area.'},
+  {q:'A: Is Jack going to stay at the airport hotel? B: Yes, ___.', opts:['he does','he is','he\'s going'], ans:1, why:'The short answer to "Is he...?" is "Yes, he is." "He does" and "he\'s going" are wrong short answers.'},
+  {q:'A: How are you going to get to the airport? B: ___', opts:['At 6:00.','For two hours.',"I'm going to take the train."], ans:2, why:'"How" asks about the means of transport. Only "I\'m going to take the train" answers how. "At 6:00" is a time; "For two hours" is a duration.'}
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb'));
+
+// D7E2 – MC: Spot the mistake (8 groups × 4 options, choose the wrong one)
+const d7e2Data = [
+  {q:'Group 1 — Find the sentence with a mistake:', opts:["I'm going to take the bus.","She's going to stay in London.","They going to travel tomorrow.","We're going to meet at the airport."], ans:2, why:'"They going to travel tomorrow" is missing the verb "are". It should be "They are going to travel tomorrow."'},
+  {q:'Group 2 — Find the sentence with a mistake:', opts:["Are you going to fly to Madrid?","Is he going to take a taxi?","Are they going to stay at a hotel?","Does she going to get a trolley?"], ans:3, why:'"Does she going to get" is wrong. With "going to", you always use am/is/are, not do/does.'},
+  {q:'Group 3 — Find the sentence with a mistake:', opts:["We aren't going to miss the flight.","He isn't going to take a suitcase.","I'm not going to stay there.","She doesn't going to travel today."], ans:3, why:'"She doesn\'t going to travel" is wrong. The negative is "She isn\'t going to travel today."'},
+  {q:'Group 4 — Find the sentence with a mistake:', opts:["Where are you going to stay?","When are they going to leave?","Who is going to meet you?","Where you are going to stay?"], ans:3, why:'In questions with "going to", the auxiliary verb comes before the subject: "Where are you going to stay?" Option D has the wrong word order.'},
+  {q:'Group 5 — Find the sentence with a mistake:', opts:["We collect our suitcases at baggage reclaim.","We can leave a suitcase at the bag drop.","We board the plane at customs.","We can check the gate number on the screen."], ans:2, why:'You board the plane at the gate, not at customs. "Customs" is after the flight.'},
+  {q:'Group 6 — Find the sentence with a mistake:', opts:["Are you going to take a taxi? Yes, I am.","Is Maria going to travel? Yes, she is.","Are they going to stay here? No, they aren't.","Is your friends going to meet you? Yes, they are."], ans:3, why:'"Your friends" is plural, so the question should use "Are", not "Is". Correct: "Are your friends going to meet you?"'},
+  {q:'Group 7 — Find the sentence with a mistake:', opts:["I need a trolley for these suitcases.","My friends are waiting in arrivals.","We need to go through passport control.","I'm going to collect my suitcase at bag drop."], ans:3, why:'You collect your suitcase at "baggage reclaim", not at "bag drop". The bag drop is used before the flight.'},
+  {q:'Group 8 — Find the sentence with a mistake:', opts:["What are you going to do in Rome?","How long are you going to stay?","Who are going to pick you up?","How are you going to get to the hotel?"], ans:2, why:'"Who are going to pick you up?" is wrong. "Who" is singular in questions, so it should be "Who is going to pick you up?"'}
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data, 'd7e2', 'd7e2-fb', 'd7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2', 'd7e2', d7e2Data, 'd7e2-fb'));
+
+// D7E3 – Writing task (WhatsApp)
+document.getElementById('d7e3-wa').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_studentname') || state.studentName || 'Student';
+  const text = document.getElementById('d7e3-text').value.trim();
+  if (!text) { showFeedback('d7e3-fb','Please write your text before sending it!','err'); return; }
+  const msg = 'My Next Trip\n\nName: ' + name + '\n\n' + text + '\n\n(Pre-Intermediate 1B – Airport Week)';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  showFeedback('d7e3-fb','Sent! Teacher Mari will read your trip plans.','ok');
+  incrementChecked('d7e3');
+});
+
+// Weekly summary WhatsApp
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const name = localStorage.getItem('teachermari_studentname') || state.studentName || 'Student';
+  const msg = 'Week complete!\n\nHello, Teacher Mari! I finished all the exercises for Pre-Intermediate 1B – At the Airport.\n\nStudent: ' + name + '\nExercises checked: ' + totalChecked + '\n\n(Sent from the weekly practice file)';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+</script>
+</body>
+</html>
