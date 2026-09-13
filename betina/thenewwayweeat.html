@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The New Way We Eat – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card { background: var(--white); border-radius: 20px; padding: 36px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--purple); text-align: center; outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn { width: 100%; padding: 13px; background: var(--orange); color: var(--white); border: none; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s; }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a); color: var(--white); text-align: center; padding: 12px 16px; font-size: 1rem; font-weight: 700; }
+  #hello-banner.show { display: block; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%); padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,92,35,0.18); }
+  .header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,92,35,0.12); }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+  .motivation-bar span { opacity: 0.8; }
+
+  /* TABS */
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn { padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; letter-spacing: 0.3px; }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* CONTENT */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* DAY HEADER */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number { background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* WORD BOX */
+  .word-box { background: var(--cream); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; font-size: 0.85rem; font-weight: 600; color: var(--purple); text-align: center; letter-spacing: 0.5px; line-height: 1.8; }
+
+  /* MC */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white); }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line { display: inline; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .fill-input { border: none; border-bottom: 2px solid var(--purple-light); padding: 2px 6px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--purple); background: transparent; min-width: 100px; max-width: 160px; width: auto; text-align: center; outline: none; transition: border-color 0.2s; display: inline-block; }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Poppins', sans-serif; font-size: 0.88rem; color: var(--purple); resize: vertical; outline: none; min-height: 140px; transition: border-color 0.2s; margin-bottom: 8px; }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* FEEDBACK */
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* MATCH SELECT (dropdown) */
+  .match-select { border: 2px solid var(--gray-light); border-radius: 6px; padding: 5px 10px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--purple); outline: none; transition: border-color 0.2s; background: var(--white); max-width: min(100%, 280px); vertical-align: middle; }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* CLICK-MATCH */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item { padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 600; color: var(--purple); background: var(--white); text-align: left; user-select: none; word-break: break-word; hyphens: auto; line-height: 1.4; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--purple-light); color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
+  @media (max-width: 600px) { .cm-wrap { gap: 10px; } .cm-item { font-size: 0.75rem; padding: 8px 8px; } }
+  @media (max-width: 480px) {
+    .cm-wrap { flex-direction: column; gap: 0; }
+    .cm-col { width: 100%; }
+    .cm-col:first-child { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px dashed var(--gray-light); }
+    .cm-item { text-align: left; font-size: 0.80rem; }
+  }
+
+  /* READING TEXT */
+  .reading-text { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; font-size: 0.9rem; line-height: 1.75; color: var(--purple); font-weight: 500; border-left: 4px solid var(--teal); }
+
+  /* TRUE/FALSE */
+  .tf-item { margin-bottom: 10px; }
+  .tf-line { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn { padding: 4px 14px; border-radius: 99px; border: 2px solid var(--gray-light); font-family: 'Poppins', sans-serif; font-size: 0.80rem; font-weight: 700; cursor: pointer; background: var(--white); transition: all 0.2s; }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; outline: 2px solid var(--teal); }
+
+  /* CLICK-TO-FILL */
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); }
+  .ctf-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 5px 14px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .ctf-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-chip.correct-pick { background: var(--teal); opacity: 1; }
+  .ctf-chip.wrong-pick { background: var(--red); opacity: 1; }
+  .ctf-gap { display: inline-block; min-width: 72px; text-align: center; border-bottom: 2.5px solid var(--purple-light); color: var(--orange); font-weight: 700; font-size: 0.88rem; padding: 0 4px; cursor: pointer; margin: 0 2px; transition: border-color 0.2s, background 0.2s; border-radius: 4px 4px 0 0; vertical-align: middle; line-height: 1.8; }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* SENTENCE BUILDER */
+  .sb-words { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 38px; padding: 8px; background: var(--gray-light); border-radius: var(--radius-sm); }
+  .sb-zone { display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; padding: 8px 10px; background: var(--white); border: 2px dashed var(--purple-light); border-radius: var(--radius-sm); margin-bottom: 8px; transition: border-color 0.2s; }
+  .sb-zone.correct-zone { border-color: var(--teal); background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); background: #fef2f2; }
+  .sb-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 5px 12px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .sb-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-item { margin-bottom: 18px; }
+  .sb-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+
+  /* SORT (categorisation) */
+  .sort-wrap { display: flex; flex-direction: column; gap: 14px; }
+  .sort-items { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: var(--cream); border-radius: var(--radius-sm); margin-bottom: 10px; min-height: 48px; }
+  .sort-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 6px 14px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .sort-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.06); }
+  .sort-chip.placed { opacity: 0.38; cursor: default; pointer-events: none; }
+  .sort-cat { border: 2px dashed var(--purple-light); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; transition: border-color 0.2s; min-height: 60px; }
+  .sort-cat.ready { border-color: var(--orange); background: #fff5ee; }
+  .sort-cat-title { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-bottom: 8px; }
+  .sort-cat-items { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+  .sort-cat-items:empty::before { content: 'Click a category after selecting a word'; color: #bbb; font-size: 0.72rem; font-style: italic; align-self: center; }
+  .sort-placed { background: var(--purple-light); color: var(--white); border-radius: 6px; padding: 4px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; }
+  .sort-placed::after { content: " ×"; font-size: 0.70rem; opacity: 0.7; }
+  .sort-placed:hover { background: var(--red); }
+  .sort-placed:hover { background: var(--red); }
+  .sort-cat.correct-cat { border-color: var(--teal); background: #f0fdfa; }
+  .sort-cat.wrong-cat { border-color: var(--red); background: #fef2f2; }
+  .sort-placed.correct-placed { background: var(--teal); }
+  .sort-placed.wrong-placed { background: var(--red); }
+
+  /* DIALOGUE */
+  .dialogue-block { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; border-left: 4px solid #8b5cf6; }
+  .dialogue-line { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid rgba(0,0,0,0.06); flex-wrap: wrap; }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); flex-shrink: 0; }
+
+  /* LISTING */
+  .listing-box { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; border-left: 4px solid var(--teal); }
+  .listing-title { font-size: 1rem; font-weight: 800; color: var(--purple); margin-bottom: 12px; }
+  .listing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; font-size: 0.85rem; }
+  .listing-row { display: flex; gap: 6px; align-items: baseline; }
+  .listing-label { font-weight: 700; color: var(--purple); flex-shrink: 0; }
+  .listing-val { color: var(--green); font-weight: 600; }
+  @media (max-width: 520px) { .listing-grid { grid-template-columns: 1fr; } }
+
+  /* EXAMPLE BOX */
+  .example-box { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 16px; margin-top: 14px; font-size: 0.88rem; line-height: 1.8; color: var(--purple); font-weight: 500; border: 2px dashed var(--orange); }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  /* TIP BOX */
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+  /* SUMMARY / CONFETTI */
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--white); margin-top: 10px; }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* VOCAB / GRAMMAR BANK */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--purple); cursor: pointer; transition: all 0.2s; }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-bottom: 16px; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .writing-guide { background: var(--cream); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; font-size: 0.83rem; color: var(--purple); line-height: 1.8; }
+  .writing-guide li { margin-left: 18px; margin-bottom: 4px; }
+  .useful-lang { background: #f0fdfa; border-left: 3px solid var(--teal); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: var(--green); margin-bottom: 14px; line-height: 1.9; font-weight: 600; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .sort-chip { font-size: 0.80rem; padding: 5px 10px; }
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .btn-row { gap: 8px; }
+    .fill-input { min-width: 70px; max-width: 120px; font-size: 0.82rem; }
+    .writing-area { font-size: 0.85rem; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>The New Way We Eat</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's start!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>The New Way We Eat</h1>
+      <div class="subtitle">Weekly Practice</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════════════════ DAY 1 ═══════════════════════════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Restaurant Challenges</div>
+      <div class="day-desc">What's the Challenge · Sort the Business Language · Cause and Effect</div>
+    </div>
+  </div>
+
+  <!-- D1 E1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – What's the Challenge?</div>
+    <div class="ex-instruction">Choose the best phrase to complete each situation.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- D1 E2 – SORT -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Sort the Business Language</div>
+    <div class="ex-instruction">Click a word or phrase from the box, then click the correct category to place it there. Click a placed word to remove it.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- D1 E3 – CLICK MATCH -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Cause and Effect</div>
+    <div class="ex-instruction">Click a situation on the left, then click its most logical result on the right to connect them.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 2 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">How Delivery-Only Restaurants Work</div>
+      <div class="day-desc">Regular or Ghost Kitchen · Build the Definition · True or False</div>
+    </div>
+  </div>
+
+  <!-- D2 E1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Regular Restaurant or Ghost Kitchen?</div>
+    <div class="ex-instruction">Read each description and choose: A. Regular restaurant &nbsp; B. Ghost kitchen &nbsp; C. Both</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- D2 E2 – SENTENCE BUILDER -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Build the Definition</div>
+    <div class="ex-instruction">Click the word chips to arrange them into a correct sentence, then click them again to remove. The example is already done.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- D2 E3 – T/F -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – A New Food Business</div>
+    <div class="ex-instruction">Read the profile and choose True or False.</div>
+    <div class="reading-text">
+      <strong>Nora's Kitchen</strong><br><br>
+      Nora wants to start a small food business. She doesn't want customers to eat at the location, so she doesn't need tables, chairs or servers. Customers will order through a delivery app or her website. Nora still needs professional kitchen equipment and enough space to prepare approximately 80 meals a day. She thinks this model can reduce some running costs, but she is worried about delivery times and customer loyalty. Customers won't meet her team or see the kitchen, so she knows that the quality of the food and the delivery experience will be especially important.
+    </div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 3 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Setting Up a Food Business</div>
+      <div class="day-desc">Vocabulary in Context · Which Decision Makes Sense? · Two Entrepreneurs</div>
+    </div>
+  </div>
+
+  <!-- D3 E1 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Business Vocabulary in Context</div>
+    <div class="ex-instruction">Choose the correct expression to complete each sentence.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- D3 E2 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Which Business Decision Makes Sense?</div>
+    <div class="ex-instruction">Read each entrepreneur's situation and choose the best option for them.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- D3 E3 – MC (Jack/Priya/Both) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Two Entrepreneurs, Two Plans</div>
+    <div class="ex-instruction">Read the profiles, then choose Jack, Priya or Both.</div>
+    <div class="reading-text">
+      <strong>Jack</strong> wants to open his own kitchen. He has enough money for the upfront costs and wants complete control over the space. He plans to choose the location, buy his own equipment and organize the kitchen exactly the way he wants. He knows that setting up the business will take time.<br><br>
+      <strong>Priya</strong> wants to test a new delivery-only concept. She has a smaller budget and wants to start operating quickly. She is looking for a fully equipped kitchen that she can rent. She likes the lower initial investment, but she knows she will have less control over the space.
+    </div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 4 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Evaluating a Kitchen</div>
+      <div class="day-desc">Read the Listing · Advantage, Risk or Question? · Which Kitchen to Rent?</div>
+    </div>
+  </div>
+
+  <!-- D4 E1 – MC (listing) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read the Listing</div>
+    <div class="ex-instruction">Study the kitchen listing carefully, then answer the questions.</div>
+    <div class="listing-box">
+      <div class="listing-title">City Food Hub</div>
+      <div class="listing-grid">
+        <div class="listing-row"><span class="listing-label">Monthly rent:</span><span class="listing-val">$2,100</span></div>
+        <div class="listing-row"><span class="listing-label">Location:</span><span class="listing-val">10 min from city centre</span></div>
+        <div class="listing-row"><span class="listing-label">Capacity:</span><span class="listing-val">90 orders/day</span></div>
+        <div class="listing-row"><span class="listing-label">Contract:</span><span class="listing-val">6 months</span></div>
+        <div class="listing-row"><span class="listing-label">Maintenance:</span><span class="listing-val">Included</span></div>
+        <div class="listing-row"><span class="listing-label">Storage:</span><span class="listing-val">Large fridge + small dry-storage</span></div>
+        <div class="listing-row"><span class="listing-label">Dining space:</span><span class="listing-val">None</span></div>
+        <div class="listing-row"><span class="listing-label">Equipment:</span><span class="listing-val">2 ovens, refrigerator, freezer, prep tables</span></div>
+        <div class="listing-row"><span class="listing-label">Driver access:</span><span class="listing-val">Separate entrance</span></div>
+        <div class="listing-row"><span class="listing-label">Opening hours:</span><span class="listing-val">6 a.m. – 11 p.m.</span></div>
+      </div>
+    </div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- D4 E2 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Advantage, Risk or Question?</div>
+    <div class="ex-instruction">Classify each point as: A. Advantage &nbsp; B. Risk / disadvantage &nbsp; C. Information you should ask for</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- D4 E3 – MATCH (dropdown) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Which Kitchen Should They Rent?</div>
+    <div class="ex-instruction">Read the three kitchen offers below, then match each business to the best option: A, B or C.</div>
+    <div class="word-box">
+      <strong>Kitchen A:</strong> $1,600/month · 35 min from city · fully equipped · 70 orders/day · 6-month contract · limited storage<br>
+      <strong>Kitchen B:</strong> $2,900/month · city centre · fully equipped · 180 orders/day · 12-month contract · large storage<br>
+      <strong>Kitchen C:</strong> $2,000/month · 15 min from city · basic equipment · 110 orders/day · 3-month contract · medium storage
+    </div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 5 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">From Advantage to Hidden Problem</div>
+      <div class="day-desc">Every Advantage Has a Downside · What's the Real Problem? · The Manager's Inbox</div>
+    </div>
+  </div>
+
+  <!-- D5 E1 – CLICK MATCH -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Every Advantage Has a Downside</div>
+    <div class="ex-instruction">Click an advantage on the left, then click its most logical downside on the right to connect them.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- D5 E2 – MC -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What's the Real Problem?</div>
+    <div class="ex-instruction">Read each mini-situation and choose the main business problem.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- D5 E3 – CLICK MATCH -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – The Manager's Inbox</div>
+    <div class="ex-instruction">Click a message on the left, then click the action the manager should consider on the right.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 6 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Negotiating the Deal</div>
+      <div class="day-desc">Complete the Counteroffer · What Are They Negotiating? · Will They Sign?</div>
+    </div>
+  </div>
+
+  <!-- D6 E1 – CTF -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete the Counteroffer</div>
+    <div class="ex-instruction">Click a phrase from the box, then click the gap to complete each negotiation line.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- D6 E2 – CTF (topics) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Are They Negotiating?</div>
+    <div class="ex-instruction">Read each exchange and click the correct topic to complete the label.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- D6 E3 – MC (dialogue) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Will They Sign the Contract?</div>
+    <div class="ex-instruction">Read the negotiation and choose the correct answer.</div>
+    <div class="dialogue-block">
+      <div class="dialogue-line"><span class="speaker">Landlord:</span> The kitchen is $2,700 a month with a 12-month contract. Maintenance and equipment are included.</div>
+      <div class="dialogue-line"><span class="speaker">Maya:</span> We'd be interested in renting it, but our main concern is the storage. We need more room for ingredients and packaging.</div>
+      <div class="dialogue-line"><span class="speaker">Landlord:</span> There's an additional storage room next door. I could include it for another $200 a month.</div>
+      <div class="dialogue-line"><span class="speaker">Maya:</span> That would take the rent to $2,900, which is too high for us. Would you be willing to include the storage for $2,750 in total?</div>
+      <div class="dialogue-line"><span class="speaker">Landlord:</span> I could agree to $2,800 if you sign the 12-month contract.</div>
+      <div class="dialogue-line"><span class="speaker">Maya:</span> We could accept $2,800, but we would also need another freezer.</div>
+      <div class="dialogue-line"><span class="speaker">Landlord:</span> I can include a freezer, but you would be responsible for any repairs.</div>
+      <div class="dialogue-line"><span class="speaker">Maya:</span> Maintenance is important to us. If you include repairs for the freezer, we'd be prepared to sign today.</div>
+      <div class="dialogue-line"><span class="speaker">Landlord:</span> All right. $2,800, additional storage and the freezer, with maintenance included.</div>
+    </div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DAY 7 ═══════════════════════════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Complete Consolidation</div>
+      <div class="day-desc">Complete Review · Spot the Mistake · Writing Challenge</div>
+    </div>
+  </div>
+
+  <!-- D7 E1 – MC (15 items) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the best answer for each question.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- D7 E2 – MC (spot mistake) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Spot the Mistake</div>
+    <div class="ex-instruction">In each group, three sentences are correct. Click the sentence that contains a mistake.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- D7 E3 – WRITING -->
+  <div class="ex-card writing challenge">
+    <div class="ex-title">Exercise 3 – Writing Challenge</div>
+    <div class="ex-instruction">Imagine you are planning to start a delivery-only food business. Write 120–160 words describing your business and the type of kitchen you would need.</div>
+    <div class="writing-guide">
+      <strong>Include in your text:</strong>
+      <ul>
+        <li>The type of food you would sell</li>
+        <li>Whether you would open your own kitchen or rent a ready-to-use kitchen</li>
+        <li>At least two pieces of kitchen equipment you would need</li>
+        <li>One important requirement about location, capacity, storage or opening hours</li>
+        <li>One possible running cost</li>
+        <li>One possible problem related to food quality, delivery drivers or customer loyalty</li>
+        <li>One thing you would try to negotiate before signing a contract</li>
+        <li>At least two negotiation/business expressions from the unit</li>
+      </ul>
+    </div>
+    <div class="useful-lang">
+      <strong>Useful language:</strong><br>
+      I'd like to set up... &nbsp;|&nbsp; I would choose to... &nbsp;|&nbsp; A fully equipped kitchen would...<br>
+      One of the main advantages is... &nbsp;|&nbsp; One possible problem is...<br>
+      Our main concern would be... &nbsp;|&nbsp; We would need...<br>
+      Would you be willing to...? &nbsp;|&nbsp; If you could..., we'd be prepared to...<br>
+      That would make the offer more attractive to us.
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="Write your business proposal here... (120–160 words)"></textarea>
+    <div style="font-size:0.78rem;color:var(--gray);margin-bottom:10px;">Word count: <span id="d7e3-count">0</span></div>
+    <div class="example-box">
+      <div class="ex-label">Model text</div>
+      I'd like to set up a delivery-only business selling fresh pasta and Italian meals. I would choose to rent a ready-to-use kitchen because the upfront costs would be lower and I could start operating quickly.<br><br>
+      The kitchen would need to be fully equipped with ovens, refrigerators and large prep tables. I would also need enough storage for fresh ingredients and packaging. A location near the city centre would be important because long delivery times could affect food quality.<br><br>
+      One of my main running costs would be ingredients, so I would need to control food costs carefully. Customer loyalty could also be challenging because customers wouldn't visit a dining space.<br><br>
+      Before signing the contract, my main concern would be the monthly rent. I would ask, "Would you be willing to reduce the rent?" If the owner could offer a better price and include maintenance, I'd be prepared to sign a 12-month contract.
+    </div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-whatsapp" id="d7e3-whatsapp">Send to Teacher Mari</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div id="weekly-summary" style="display:none;">
+    <div class="summary-card">
+      <h3>Week Complete!</h3>
+      <p>Excellent work this week. You finished all seven days!</p>
+      <div class="score-big" id="final-score">0</div>
+      <div style="font-size:0.82rem;opacity:0.7;margin-bottom:18px;">exercises checked</div>
+      <button class="btn btn-whatsapp" id="summary-whatsapp">Tell Teacher Mari!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VOCAB BANK ═══════════════════════════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.9rem;">V</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Key words and phrases from this unit. Click to listen.</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Business Problems</div>
+    <div class="vocab-grid" id="vocab-problems"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Kitchen and Operations</div>
+    <div class="vocab-grid" id="vocab-kitchen"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Setting Up a Business</div>
+    <div class="vocab-grid" id="vocab-setup"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Negotiation Expressions</div>
+    <div class="vocab-grid" id="vocab-nego"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ GRAMMAR BANK ═══════════════════════════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.9rem;">G</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Negotiation expressions and business language from this unit.</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Polite Negotiation Requests</div>
+    <table class="grammar-table">
+      <tr><th>Expression</th><th>Use</th></tr>
+      <tr><td><span class="orange">Would you be willing to</span> reduce the rent?</td><td>Asking politely for a change</td></tr>
+      <tr><td><span class="orange">Could you include</span> another freezer?</td><td>Requesting something extra</td></tr>
+      <tr><td><span class="orange">We'd be interested in</span> renting the kitchen, but...</td><td>Showing interest + adding a condition</td></tr>
+      <tr><td><span class="orange">Our main concern is</span> the storage space.</td><td>Explaining your priority</td></tr>
+      <tr><td><span class="orange">We would need</span> more storage space.</td><td>Stating a requirement</td></tr>
+    </table>
+    <div class="tip-box">These expressions are <strong>polite</strong>. Use them to ask for changes without sounding rude or aggressive.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Conditional Offers</div>
+    <table class="grammar-table">
+      <tr><th>Structure</th><th>Example</th></tr>
+      <tr><td><span class="orange">If you could</span> + base verb...</td><td>If you could reduce the rent,</td></tr>
+      <tr><td>...<span class="teal">we'd be prepared to</span> + base verb</td><td>...we'd be prepared to sign today.</td></tr>
+      <tr><td><span class="teal">That would make</span> the offer...</td><td>That would make the offer more attractive to us.</td></tr>
+    </table>
+    <div class="tip-box"><strong>Pattern:</strong> <em>If you could [do X], we'd be prepared to [do Y].</em> — Both sides give something. This makes the negotiation fair.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Key Business Vocabulary</div>
+    <table class="grammar-table">
+      <tr><th>Word / Phrase</th><th>Meaning</th></tr>
+      <tr><td><span class="orange">running costs</span></td><td>Regular expenses to keep the business going (rent, electricity, staff)</td></tr>
+      <tr><td><span class="orange">upfront costs</span></td><td>Money paid at the beginning before the business starts</td></tr>
+      <tr><td><span class="orange">fully equipped</span></td><td>Already has all the equipment needed to work</td></tr>
+      <tr><td><span class="orange">ghost kitchen</span></td><td>A delivery-only restaurant with no dining space for customers</td></tr>
+      <tr><td><span class="orange">customer loyalty</span></td><td>When customers keep coming back to the same business</td></tr>
+      <tr><td><span class="orange">set up a business</span></td><td>Start and organize a new company</td></tr>
+      <tr><td><span class="orange">rent a kitchen</span></td><td>Pay to use a professional kitchen that belongs to someone else</td></tr>
+      <tr><td><span class="orange">move into a space</span></td><td>Begin using a new location after signing a contract</td></tr>
+      <tr><td><span class="orange">operate a restaurant</span></td><td>Manage and run a restaurant on a daily basis</td></tr>
+    </table>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Negotiation Topics</div>
+    <table class="grammar-table">
+      <tr><th>Topic</th><th>What it means in context</th></tr>
+      <tr><td>monthly rent</td><td>The price paid every month to use the kitchen</td></tr>
+      <tr><td>contract length</td><td>How long the rental agreement lasts (e.g. 6 or 12 months)</td></tr>
+      <tr><td>storage</td><td>Space to keep ingredients and packaging</td></tr>
+      <tr><td>additional equipment</td><td>Extra machines or tools added to the agreement</td></tr>
+      <tr><td>maintenance</td><td>Who is responsible for repairs when equipment breaks</td></tr>
+      <tr><td>opening hours</td><td>The times when the kitchen is available to use</td></tr>
+      <tr><td>delivery-driver access</td><td>How and where drivers can collect orders</td></tr>
+      <tr><td>payment conditions</td><td>When and how the rent is paid each month</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ════════════════════════════════════════════
+//  WELCOME + NAME
+// ════════════════════════════════════════════
+const FILE_KEY = 'thenewwayweeat';
+let studentName = localStorage.getItem(FILE_KEY + '_name') || '';
+if (studentName) showMainApp();
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) { document.getElementById('student-name-input').focus(); return; }
+  studentName = val;
+  localStorage.setItem(FILE_KEY + '_name', studentName);
+  showMainApp();
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('welcome-start-btn').click();
+});
+
+function showMainApp() {
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + studentName + '! Good luck this week!';
+  banner.classList.add('show');
+}
+
+// ════════════════════════════════════════════
+//  PROGRESS & STORAGE
+// ════════════════════════════════════════════
+let state = JSON.parse(localStorage.getItem(FILE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+
+const completedExercises = new Set(JSON.parse(localStorage.getItem(FILE_KEY + '_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem(FILE_KEY + '_days') || '[]'));
+
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2'],
+};
+const TOTAL_DAYS = 7;
+const TOTAL_EXERCISES = 20;
+
+function saveState() { localStorage.setItem(FILE_KEY, JSON.stringify(state)); }
+
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EXERCISES) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem(FILE_KEY + '_done', JSON.stringify([...completedExercises]));
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      if (exList.every(e => completedExercises.has(e))) {
+        completedDays.add(day);
+        localStorage.setItem(FILE_KEY + '_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+
+// ════════════════════════════════════════════
+//  MOTIVATION
+// ════════════════════════════════════════════
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes are part of learning. Try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practice every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `All ${total} correct! Excellent work!`, type: 'ok' };
+  if (correct >= Math.ceil(total * 0.7)) return { msg: `${correct}/${total} correct. Good effort — check the ones in red and try again!`, type: 'partial' };
+  return { msg: `${correct}/${total} correct. Keep practising — you can do it!`, type: 'err' };
+}
+
+// buildMC
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">` +
+      item.opts.map((o,j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"> ${String.fromCharCode(97+j)}) ${o}</label>`).join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const old = itemDiv.querySelector('.mc-explain'); if (old) old.remove(); }
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = 'Why: ' + item.why;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildTF
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = `<div class="tf-line">${i+1}. ${item.s} <div class="tf-btns"><button class="tf-btn t" id="${prefix}t_${i}" data-val="T">True</button><button class="tf-btn f" id="${prefix}f_${i}" data-val="F">False</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(prefix+'t_','').replace(prefix+'f_','');
+      sel[idx] = btn.dataset.val;
+      ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${idx}`); if(b) b.classList.remove('selected-t','selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if (b) b.classList.remove('wrong-sel','right-answer'); });
+    const itemWrap = document.getElementById(`${prefix}t_${i}`) ? document.getElementById(`${prefix}t_${i}`).closest('.tf-item') : null;
+    if (itemWrap) { const old = itemWrap.querySelector('.tf-explain'); if (old) old.remove(); }
+    if (sel[i] === item.ans) {
+      correct++;
+    } else {
+      if (sel[i]) {
+        const wrongBtn = document.getElementById(`${prefix}${sel[i].toLowerCase()}_${i}`);
+        if (wrongBtn) wrongBtn.classList.add('wrong-sel');
+      }
+      const rightBtn = document.getElementById(`${prefix}${item.ans.toLowerCase()}_${i}`);
+      if (rightBtn) rightBtn.classList.add('right-answer');
+      if (item.why && itemWrap) {
+        const hint = document.createElement('div');
+        hint.className = 'tf-explain';
+        hint.style.cssText = 'margin-top:6px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+        hint.textContent = 'Why: ' + item.why;
+        itemWrap.appendChild(hint);
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_,i) => {
+    ['t','f'].forEach(x => { const b = document.getElementById(`${prefix}${x}_${i}`); if(b) b.classList.remove('selected-t','selected-f','wrong-sel','right-answer'); });
+    const itemWrap = document.getElementById(`${prefix}t_${i}`) ? document.getElementById(`${prefix}t_${i}`).closest('.tf-item') : null;
+    if (itemWrap) { const old = itemWrap.querySelector('.tf-explain'); if (old) old.remove(); }
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildClickMatch
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]];
+  }
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.textContent = item.left; leftCol.appendChild(div);
+  });
+  rightShuffled.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex;
+    div.textContent = item.text; rightCol.appendChild(div);
+  });
+
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+
+  const links = {};
+  let selectedLeft = null;
+  let pairCount = 0;
+
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      selectedLeft.classList.remove('active'); selectedLeft.classList.add('linked'); item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const bL = document.createElement('span'); bL.className = 'cm-pair-num'; bL.textContent = pairCount;
+      const bR = document.createElement('span'); bR.className = 'cm-pair-num'; bR.textContent = pairCount;
+      selectedLeft.appendChild(bL); item.appendChild(bR);
+      selectedLeft.dataset.pairNum = pairCount; item.dataset.pairNum = pairCount;
+      selectedLeft = null;
+    }
+  });
+  return { links, leftCol, rightCol, data };
+}
+
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector(`.cm-item[data-idx="${i}"]`);
+    if (linkedRightIdx === undefined) {
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+      if (leftEl) leftEl.classList.add('wrong-link'); return;
+    }
+    if (parseInt(linkedRightIdx) === i) {
+      correct++;
+      leftEl.classList.add('correct-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    } else {
+      leftEl.classList.add('wrong-link');
+      const wrongRightEl = rightCol.querySelector(`.cm-item[data-idx="${linkedRightIdx}"]`);
+      if (wrongRightEl) wrongRightEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => {
+    col.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active','linked','correct-link','wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      delete el.dataset.pairNum;
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildSentenceBuilder
+function buildSentenceBuilder(containerId, items, prefix, startLabel) {
+  startLabel = startLabel || 1;
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = `
+      <div class="sb-label">${i+startLabel}.</div>
+      <div class="sb-words" id="${prefix}-words-${i}">
+        ${shuffled.map(w => `<button class="sb-chip" data-word="${w}" data-item="${i}">${w}</button>`).join('')}
+      </div>
+      <div class="sb-label">Your sentence:</div>
+      <div class="sb-zone" id="${prefix}-zone-${i}"></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if (chip.parentElement === words) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else { chip.classList.remove('in-zone'); words.appendChild(chip); }
+  });
+}
+
+function checkSentenceBuilder(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const zone = document.getElementById(`${prefix}-zone-${i}`);
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    const existingHint = document.getElementById(`${prefix}-hint-${i}`);
+    if (existingHint) existingHint.remove();
+    if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      const hint = document.createElement('div');
+      hint.id = `${prefix}-hint-${i}`;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = 'Correct: ' + item.ans;
+      zone.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+
+function resetSentenceBuilder(items, prefix, fbId) {
+  items.forEach((item, i) => {
+    const zone  = document.getElementById(`${prefix}-zone-${i}`);
+    const words = document.getElementById(`${prefix}-words-${i}`);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    const hint = document.getElementById(`${prefix}-hint-${i}`);
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildMatch (dropdown)
+function buildMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const optsHtml = `<option value="">...</option>` + item.options.map((o,j) => `<option value="${j}">${o}</option>`).join('');
+    div.innerHTML = `<div class="fill-line" style="display:block;line-height:1.8;">${i+1}. ${item.left}&nbsp;&nbsp;<select class="match-select" id="${prefix}_${i}">${optsHtml}</select></div>`;
+    wrap.appendChild(div);
+  });
+}
+
+function checkMatch(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    sel.classList.remove('correct','wrong');
+    const existing = sel.parentElement.querySelector(`.correct-hint[data-for="${sel.id}"]`);
+    if (existing) existing.remove();
+    if (parseInt(sel.value) === item.ans) { sel.classList.add('correct'); correct++; }
+    else {
+      sel.classList.add('wrong');
+      const hint = document.createElement('div');
+      hint.className = 'correct-hint'; hint.dataset.for = sel.id;
+      hint.style.cssText = 'margin-top:6px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+      hint.innerHTML = '<strong>Correct: ' + item.options[item.ans] + '</strong>' + (item.why ? '<br>Why: ' + item.why : '');
+      sel.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+
+function resetMatch(data, prefix, fbId) {
+  data.forEach((_, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    sel.value = ''; sel.className = 'match-select';
+    const hint = sel.parentElement.querySelector(`.correct-hint[data-for="${sel.id}"]`);
+    if (hint) hint.remove();
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildCTFSentences (click-to-fill with word bank)
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const list = document.createElement('div');
+  const startIndex = cfg.startIndex || 1;
+
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const html = item.line.replace(/___/g, () => `<span class="ctf-gap" data-ans="${item.ans}"></span>`);
+    div.innerHTML = `<div class="fill-line">${i+startIndex}. ${html}</div>`;
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.insertBefore(bank, list);
+
+  let selected = null;
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) {
+      chip.classList.remove('active'); selected = null;
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${returnWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector(`.ctf-chip[data-wi="${oldWi}"]`);
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word;
+    gap.dataset.filled = selected.word;
+    gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active');
+    selected.chipEl.classList.add('used');
+    selected = null;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++;
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existing = gap.parentElement.querySelector('.correct-hint');
+      if (existing) existing.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:4px;';
+        hint.textContent = `(✔ ${gap.dataset.ans})`;
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      gap.classList.remove('correct-gap','wrong-gap','ready');
+    });
+    list.querySelectorAll('.correct-hint').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// buildSort (categorisation exercise)
+function buildSort(containerId, items, categories, correctMap, checkId, resetId, fbId, exId) {
+  // correctMap: { itemText: categoryIndex }
+  const wrap = document.getElementById(containerId);
+
+  const itemBank = document.createElement('div'); itemBank.className = 'sort-items';
+  items.forEach(w => {
+    const btn = document.createElement('button');
+    btn.className = 'sort-chip'; btn.textContent = w; btn.dataset.word = w;
+    itemBank.appendChild(btn);
+  });
+  wrap.appendChild(itemBank);
+
+  const catsWrap = document.createElement('div'); catsWrap.className = 'sort-wrap';
+  categories.forEach((cat, ci) => {
+    const catDiv = document.createElement('div'); catDiv.className = 'sort-cat'; catDiv.dataset.catIdx = ci;
+    catDiv.innerHTML = `<div class="sort-cat-title">${cat}</div><div class="sort-cat-items" id="${containerId}-cat-${ci}"></div>`;
+    catsWrap.appendChild(catDiv);
+  });
+  wrap.appendChild(catsWrap);
+
+  let selectedChip = null;
+
+  itemBank.addEventListener('click', e => {
+    const chip = e.target.closest('.sort-chip');
+    if (!chip || chip.classList.contains('placed')) return;
+    if (selectedChip === chip) {
+      chip.classList.remove('active'); selectedChip = null;
+      catsWrap.querySelectorAll('.sort-cat').forEach(c => c.classList.remove('ready'));
+      return;
+    }
+    if (selectedChip) selectedChip.classList.remove('active');
+    chip.classList.add('active'); selectedChip = chip;
+    catsWrap.querySelectorAll('.sort-cat').forEach(c => c.classList.add('ready'));
+  });
+
+  catsWrap.addEventListener('click', e => {
+    const catEl = e.target.closest('.sort-cat');
+    const placedEl = e.target.closest('.sort-placed');
+    if (placedEl) {
+      const word = placedEl.dataset.word;
+      const sourceChip = itemBank.querySelector(`.sort-chip[data-word="${word}"]`);
+      if (sourceChip) sourceChip.classList.remove('placed');
+      placedEl.remove();
+      catsWrap.querySelectorAll('.sort-cat').forEach(c => c.classList.remove('correct-cat','wrong-cat'));
+      return;
+    }
+    if (!catEl || !selectedChip) return;
+    const word = selectedChip.dataset.word;
+    const catItemsEl = catEl.querySelector('.sort-cat-items');
+    const placed = document.createElement('span');
+    placed.className = 'sort-placed'; placed.dataset.word = word; placed.textContent = word;
+    catItemsEl.appendChild(placed);
+    selectedChip.classList.remove('active'); selectedChip.classList.add('placed');
+    catsWrap.querySelectorAll('.sort-cat').forEach(c => c.classList.remove('ready'));
+    selectedChip = null;
+  });
+
+  document.getElementById(checkId).addEventListener('click', () => {
+    let correct = 0;
+    const total = items.length;
+    catsWrap.querySelectorAll('.sort-correct-hint').forEach(h => h.remove());
+    catsWrap.querySelectorAll('.sort-cat').forEach(catEl => {
+      catEl.classList.remove('correct-cat','wrong-cat');
+      const ci = parseInt(catEl.dataset.catIdx);
+      catEl.querySelectorAll('.sort-placed').forEach(p => {
+        p.classList.remove('correct-placed','wrong-placed');
+        const expectedCat = correctMap[p.dataset.word];
+        if (expectedCat === ci) { p.classList.add('correct-placed'); correct++; }
+        else {
+          p.classList.add('wrong-placed');
+          const hint = document.createElement('span');
+          hint.className = 'sort-correct-hint';
+          hint.style.cssText = 'font-size:0.70rem;color:var(--teal);display:block;margin-top:3px;font-weight:600;';
+          hint.textContent = '\u2192 ' + categories[expectedCat];
+          p.insertAdjacentElement('afterend', hint);
+        }
+      });
+    });
+    const r = scoreText(correct, total);
+    showFeedback(fbId, r.msg, r.type);
+    incrementChecked(exId);
+  });
+
+  document.getElementById(resetId).addEventListener('click', () => {
+    catsWrap.querySelectorAll('.sort-placed').forEach(p => p.remove());
+    catsWrap.querySelectorAll('.sort-cat').forEach(c => c.classList.remove('correct-cat','wrong-cat','ready'));
+    catsWrap.querySelectorAll('.sort-correct-hint').forEach(h => h.remove());
+    itemBank.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('placed','active'));
+    if (selectedChip) { selectedChip = null; }
+    document.getElementById(fbId).className = 'feedback';
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  DAY 1 — RESTAURANT CHALLENGES
+// ════════════════════════════════════════════════════════════
+
+// D1 E1 – What's the Challenge? (MC, 8 items)
+const d1e1Data = [
+  {q:'Customers say the meals arrive cold and don\'t taste fresh. The restaurant has a problem with:', opts:['customer loyalty','food quality','dining space'], ans:1, why:'"Food quality" refers to how good the food is — freshness and taste are part of food quality.'},
+  {q:'The oven stops working twice a week and the refrigerator needs to be repaired again. The problem is:', opts:['kitchen equipment','online orders','running costs'], ans:0, why:'Ovens and refrigerators are kitchen equipment. When they break, this is a kitchen equipment problem.'},
+  {q:'Customers order through the app, but their meals often arrive late because the people transporting the food get stuck in traffic. The problem involves:', opts:['dining space','delivery drivers','customer loyalty'], ans:1, why:'The people transporting the food are delivery drivers. Traffic problems affect their performance.'},
+  {q:'Rent, electricity and ingredient prices have increased significantly. The restaurant is worried about:', opts:['running costs','food quality','online orders'], ans:0, why:'Rent, electricity and ingredient prices are all running costs — regular expenses to keep the business going.'},
+  {q:'Many regular customers are now ordering from a cheaper restaurant nearby. The restaurant is losing:', opts:['kitchen equipment','customer loyalty','dining space'], ans:1, why:'When regular customers stop coming, the business is losing customer loyalty.'},
+  {q:'Customers say the tables are too close together and the chairs are uncomfortable. The problem is the:', opts:['dining space','food quality','delivery drivers'], ans:0, why:'Tables and chairs are part of the dining space — the area where customers sit and eat.'},
+  {q:'At 8 p.m., twenty-five customers order through the restaurant\'s website at almost the same time. The kitchen has too many:', opts:['running costs','online orders','delivery drivers'], ans:1, why:'Orders placed through a website or app are online orders. Too many at once is an online orders problem.'},
+  {q:'A restaurant offers discounts to regular customers because it wants to improve:', opts:['customer loyalty','kitchen equipment','dining space'], ans:0, why:'Discounts for regular customers are a strategy to build customer loyalty — to keep them coming back.'},
+];
+buildMC('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb'));
+
+// D1 E2 – Sort the Business Language
+// correctMap: 0 = Kitchen equipment, 1 = Running costs, 2 = People / dining space
+const d1e2Items = ['oven','refrigerator','blender','freezer','electricity bill','rent','cleaning products','ingredient prices','utilities','delivery driver','tables and chairs','customer seating'];
+const d1e2Categories = ['A. Kitchen equipment','B. Running costs','C. People / dining space'];
+const d1e2Map = {
+  'oven': 0, 'refrigerator': 0, 'blender': 0, 'freezer': 0,
+  'electricity bill': 1, 'rent': 1, 'cleaning products': 1, 'utilities': 1, 'ingredient prices': 1,
+  'delivery driver': 2, 'tables and chairs': 2, 'customer seating': 2
+};
+buildSort('d1e2', d1e2Items, d1e2Categories, d1e2Map, 'd1e2-check', 'd1e2-reset', 'd1e2-fb', 'd1e2');
+
+// D1 E3 – Cause and Effect (click match, 8 pairs)
+const d1e3Data = [
+  {left:'1. Fresh ingredients + checks every dish', right:'E. Food quality is easier to maintain.'},
+  {left:'2. Several delivery drivers stuck in traffic', right:'C. Customers may have to wait longer.'},
+  {left:'3. Rent and electricity prices increase', right:'B. Running costs go up.'},
+  {left:'4. Restaurant receives too many online orders at once', right:'F. Kitchen may have difficulty preparing all meals.'},
+  {left:'5. Chairs in the dining space are very uncomfortable', right:'H. Customers may not want to stay for a long meal.'},
+  {left:'6. Restaurant gives regular customers special discounts', right:'D. Customer loyalty may improve.'},
+  {left:'7. Main oven breaks down during dinner service', right:'G. Restaurant may not be able to prepare some dishes.'},
+  {left:'8. Competitor starts selling similar meals for much lower prices', right:'A. Some customers may choose another restaurant.'},
+];
+const d1e3state = buildClickMatch('d1e3', d1e3Data, 'd1e3');
+document.getElementById('d1e3-check').addEventListener('click', () => checkClickMatch(d1e3state, 'd1e3-fb', 'd1e3'));
+document.getElementById('d1e3-reset').addEventListener('click', () => resetClickMatch(d1e3state, 'd1e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 2 — HOW DELIVERY-ONLY RESTAURANTS WORK
+// ════════════════════════════════════════════════════════════
+
+// D2 E1 – Regular Restaurant or Ghost Kitchen? (MC, 10 items)
+const d2e1Data = [
+  {q:'Customers can sit down and eat their meals there.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:0, why:'Only a regular restaurant has a dining space where customers can sit and eat.'},
+  {q:'It needs kitchen equipment to prepare food.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'Both types of business need kitchen equipment — they both prepare food.'},
+  {q:'It prepares meals specifically for delivery but has no dining space.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:1, why:'This is the definition of a ghost kitchen — delivery only, no space for customers to sit.'},
+  {q:'It has running costs.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'All businesses have running costs — rent, electricity, staff, ingredients.'},
+  {q:'Delivery apps can be an important source of orders.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'Both types of restaurant can receive orders through delivery apps.'},
+  {q:'Customers may never visit the physical location.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:1, why:'Ghost kitchen customers order online and receive delivery — they never visit the kitchen.'},
+  {q:'Food quality is important for the business.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'Food quality matters for both — it directly affects customer satisfaction and loyalty.'},
+  {q:'It may employ servers to look after customers at tables.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:0, why:'Only a regular restaurant has tables and customers who need servers.'},
+  {q:'It can receive online orders.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'Both types can receive online orders through apps or websites.'},
+  {q:'It needs a space where chefs can prepare food.', opts:['Regular restaurant','Ghost kitchen','Both'], ans:2, why:'Both need a kitchen space to prepare food, even if only the regular restaurant has a dining space.'},
+];
+buildMC('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1', 'd2e1', d2e1Data, 'd2e1-fb'));
+
+// D2 E2 – Build the Definition (sentence builder, 8 sentences)
+// Item 1 is an example — pre-built and locked
+const d2e2Items = [
+  {words:['They','prepare','food','for','delivery.'], ans:'They prepare food for delivery.'},
+  {words:['They','usually','don\'t','have','a','dining','space.'], ans:'They usually don\'t have a dining space.'},
+  {words:['Customers','order','their','food','online.'], ans:'Customers order their food online.'},
+  {words:['Some','running','costs','can','be','lower','in','this','business','model.'], ans:'Some running costs can be lower in this business model.'},
+  {words:['The','business','still','needs','good','kitchen','equipment.'], ans:'The business still needs good kitchen equipment.'},
+  {words:['Delivery','drivers','are','important','to','the','operation.'], ans:'Delivery drivers are important to the operation.'},
+  {words:['Businesses','need','to','build','customer','loyalty','without','a','dining','space.'], ans:'Businesses need to build customer loyalty without a dining space.'},
+];
+// Show example (item 1) pre-built
+(function(){
+  const exWrap = document.getElementById('d2e2');
+  const exDiv = document.createElement('div'); exDiv.className = 'sb-item';
+  exDiv.innerHTML = `<div class="sb-label">1. <span style="color:var(--orange);font-size:0.78rem;">(example)</span></div>
+    <div class="sb-zone correct-zone" style="pointer-events:none;">
+      <button class="sb-chip in-zone" style="pointer-events:none;">Ghost</button>
+      <button class="sb-chip in-zone" style="pointer-events:none;">kitchens</button>
+      <button class="sb-chip in-zone" style="pointer-events:none;">are</button>
+      <button class="sb-chip in-zone" style="pointer-events:none;">delivery-only</button>
+      <button class="sb-chip in-zone" style="pointer-events:none;">restaurants.</button>
+    </div>`;
+  exWrap.appendChild(exDiv);
+})();
+buildSentenceBuilder('d2e2', d2e2Items, 'd2e2', 2);
+document.getElementById('d2e2-check').addEventListener('click', () => checkSentenceBuilder(d2e2Items, 'd2e2', 'd2e2-fb', 'd2e2'));
+document.getElementById('d2e2-reset').addEventListener('click', () => resetSentenceBuilder(d2e2Items, 'd2e2', 'd2e2-fb'));
+
+// D2 E3 – True or False (Nora's Kitchen)
+const d2e3Data = [
+  {s:'Nora plans to open a traditional restaurant with a dining space.', ans:'F', why:'The text says she does NOT want customers to eat at the location — no dining space.'},
+  {s:'Customers will be able to order online.', ans:'T', why:'The text says customers will order through a delivery app or her website.'},
+  {s:'Nora doesn\'t need any kitchen equipment.', ans:'F', why:'The text says she still needs professional kitchen equipment.'},
+  {s:'She wants to prepare around 80 meals per day.', ans:'T', why:'The text says "approximately 80 meals a day".'},
+  {s:'She believes this model may reduce some costs.', ans:'T', why:'The text says she thinks this model can reduce some running costs.'},
+  {s:'Delivery time is one of her concerns.', ans:'T', why:'The text says she is worried about delivery times.'},
+  {s:'She thinks customer loyalty is automatically easier with this model.', ans:'F', why:'The opposite — she is worried about customer loyalty because customers won\'t visit the kitchen.'},
+  {s:'Food quality will be important to her business.', ans:'T', why:'The text says the quality of the food will be especially important.'},
+];
+const d2e3sel = buildTF('d2e3', d2e3Data, 'd2e3');
+document.getElementById('d2e3-check').addEventListener('click', () => checkTF(d2e3Data, d2e3sel, 'd2e3-fb', 'd2e3', 'd2e3'));
+document.getElementById('d2e3-reset').addEventListener('click', () => resetTF(d2e3Data, d2e3sel, 'd2e3', 'd2e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 3 — SETTING UP A FOOD BUSINESS
+// ════════════════════════════════════════════════════════════
+
+// D3 E1 – Business Vocabulary in Context (MC, 8 items)
+const d3e1Data = [
+  {q:'Leo wants to start and organize his first company. He wants to ___.',
+   opts:['set up a business','move into a space','operate a restaurant'], ans:0,
+   why:'"Set up a business" means to start and organize a new company from the beginning.'},
+  {q:'Instead of buying a commercial kitchen, Maya pays $1,800 a month to use one. She decided to ___.',
+   opts:['set up a business','rent a kitchen','move into a space'], ans:1,
+   why:'"Rent a kitchen" means to pay to use a kitchen that belongs to someone else.'},
+  {q:'The kitchen already has ovens, refrigerators, freezers and prep tables. It is ___.',
+   opts:['fully equipped','delivery-only','upfront'], ans:0,
+   why:'"Fully equipped" means the kitchen already has all the equipment needed to operate.'},
+  {q:'Before opening, the owners have to pay for licences, equipment and other initial expenses. These are ___.',
+   opts:['online orders','running costs','upfront costs'], ans:2,
+   why:'"Upfront costs" are expenses paid at the beginning, before the business starts operating.'},
+  {q:'The company has signed the contract and will start using the new location next Monday. It will ___ next week.',
+   opts:['move into the space','rent the equipment','set up the order'], ans:0,
+   why:'"Move into the space" means to begin using a new location after agreeing the contract.'},
+  {q:'Carlos manages the staff, controls costs and makes the main business decisions. He helps ___.',
+   opts:['operate the restaurant','move the restaurant','equip the customer'], ans:0,
+   why:'"Operate the restaurant" means to manage and run the restaurant on a daily basis.'},
+  {q:'A chef wants to avoid buying expensive ovens at the beginning. A ___ kitchen might be attractive.',
+   opts:['fully equipped','customer loyalty','dining space'], ans:0,
+   why:'A "fully equipped" kitchen already has the equipment — the chef doesn\'t need to buy it.'},
+  {q:'Before ___, an entrepreneur needs to understand the market and the costs.',
+   opts:['setting up a business','moving an order','operating an equipment'], ans:0,
+   why:'"Setting up a business" is the correct collocation here. The other options are incorrect combinations.'},
+];
+buildMC('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data, 'd3e1', 'd3e1-fb', 'd3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMC('d3e1', 'd3e1', d3e1Data, 'd3e1-fb'));
+
+// D3 E2 – Which Business Decision Makes Sense? (MC, 6 items)
+const d3e2Data = [
+  {q:'Ben: "I have limited money and want to start selling food as quickly as possible. I don\'t want to buy ovens and refrigerators now."',
+   opts:['Rent a fully equipped kitchen.','Buy an empty building and all the equipment.'], ans:0,
+   why:'Renting a fully equipped kitchen avoids the high upfront cost of buying equipment — perfect for a limited budget.'},
+  {q:'Sofia: "The design of my kitchen is extremely important. I want to choose every piece of equipment and have complete control."',
+   opts:['Rent a shared ready-to-use kitchen.','Open her own kitchen.'], ans:1,
+   why:'Her own kitchen gives Sofia complete control over the space, equipment and design.'},
+  {q:'Mark: "I want to test my new food concept for a short period before making a large investment."',
+   opts:['Start with a rented kitchen.','Make a large upfront investment immediately.'], ans:0,
+   why:'A rented kitchen lets Mark test his concept with lower initial risk before committing more money.'},
+  {q:'Olivia: "My business needs unusual equipment that most professional kitchens don\'t have."',
+   opts:['Check what equipment is included before signing a rental contract.','Assume every fully equipped kitchen has exactly what she needs.'], ans:0,
+   why:'Olivia should always check first — "fully equipped" is a general term and may not include her specific equipment.'},
+  {q:'Daniel: "I have enough money, and I want to control the location, equipment and organization."',
+   opts:['His own kitchen may suit him better.','A rented kitchen is automatically his only option.'], ans:0,
+   why:'Daniel has money and wants full control — his own kitchen is the better fit.'},
+  {q:'Emma: "I found a ready-to-use kitchen, but the contract is for three years."',
+   opts:['She should consider the contract length before deciding.','Contract length is irrelevant.'], ans:0,
+   why:'Contract length matters — three years is a long commitment. Emma should think carefully before signing.'},
+];
+buildMC('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkMC(d3e2Data, 'd3e2', 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetMC('d3e2', 'd3e2', d3e2Data, 'd3e2-fb'));
+
+// D3 E3 – Two Entrepreneurs (MC: Jack/Priya/Both, 8 items)
+const d3e3Data = [
+  {q:'Who wants to rent a kitchen?', opts:['Jack','Priya','Both'], ans:1, why:'Priya is looking for a fully equipped kitchen to rent. Jack plans to open his own kitchen.'},
+  {q:'Who wants complete control over the kitchen space?', opts:['Jack','Priya','Both'], ans:0, why:'Jack specifically wants complete control over the space, location and equipment.'},
+  {q:'Who is starting a food business?', opts:['Jack','Priya','Both'], ans:2, why:'Both Jack and Priya are starting a food business — they just have different approaches.'},
+  {q:'Who wants a lower initial investment?', opts:['Jack','Priya','Both'], ans:1, why:'Priya likes the lower initial investment of renting a kitchen. Jack has money for upfront costs.'},
+  {q:'Who plans to buy kitchen equipment?', opts:['Jack','Priya','Both'], ans:0, why:'Jack plans to buy his own equipment. Priya will rent a kitchen that is already fully equipped.'},
+  {q:'Who wants to start operating quickly?', opts:['Jack','Priya','Both'], ans:1, why:'Priya wants to start quickly. Jack knows that setting up the business will take time.'},
+  {q:'Who needs a kitchen for the business?', opts:['Jack','Priya','Both'], ans:2, why:'Both need a kitchen — Jack will open his own, Priya will rent one.'},
+  {q:'Who accepts that their chosen option has disadvantages?', opts:['Jack','Priya','Both'], ans:2, why:'Jack knows it will take time; Priya knows she will have less control. Both accept trade-offs.'},
+];
+buildMC('d3e3', d3e3Data, 'd3e3');
+document.getElementById('d3e3-check').addEventListener('click', () => checkMC(d3e3Data, 'd3e3', 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetMC('d3e3', 'd3e3', d3e3Data, 'd3e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 4 — EVALUATING A KITCHEN
+// ════════════════════════════════════════════════════════════
+
+// D4 E1 – Read the Listing (MC, 8 items)
+const d4e1Data = [
+  {q:'How much is the monthly rent?', opts:['$2,100','$6,000','$900'], ans:0, why:'The listing clearly states: Monthly rent $2,100.'},
+  {q:'How long is the contract?', opts:['10 months','6 months','12 months'], ans:1, why:'The listing says: Contract 6 months.'},
+  {q:'Which cost is included in the rent?', opts:['food delivery','maintenance','ingredients'], ans:1, why:'The listing states: Maintenance Included.'},
+  {q:'What could be a problem for a business that needs to store many dry ingredients?', opts:['the ovens','the dry-storage area','the separate entrance'], ans:1, why:'The listing says the dry-storage area is small — a business needing large dry storage would have a problem.'},
+  {q:'Which feature may help delivery operations?', opts:['a separate entrance for drivers','a dining space','a bar'], ans:0, why:'A separate entrance for drivers means they don\'t have to enter the main kitchen area — it helps the delivery process.'},
+  {q:'A business needs to produce 150 orders every day. What is the main problem?', opts:['location','capacity','opening hours'], ans:1, why:'The kitchen capacity is 90 orders/day. A business needing 150 orders has a capacity problem.'},
+  {q:'Which statement is correct?', opts:['The kitchen is empty.','Customers can eat at the location.','Some important kitchen equipment is already included.'], ans:2, why:'The listing shows 2 ovens, refrigerator, freezer and prep tables — equipment is included. There is no dining space.'},
+  {q:'A business needs to operate until 2 a.m. What would it probably need to negotiate?', opts:['storage','opening hours','maintenance'], ans:1, why:'The kitchen closes at 11 p.m. A business needing to work until 2 a.m. would need to negotiate the opening hours.'},
+];
+buildMC('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data, 'd4e1', 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetMC('d4e1', 'd4e1', d4e1Data, 'd4e1-fb'));
+
+// D4 E2 – Advantage, Risk or Question? (MC, 10 items)
+const d4e2Data = [
+  {q:'Maintenance is included in the rent.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:0, why:'When maintenance is included, you don\'t pay extra if equipment breaks — this is an advantage.'},
+  {q:'The storage area may be too small for the business.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:1, why:'If you need more storage than the kitchen offers, this is a risk — it could limit your operations.'},
+  {q:'"Are electricity and water included in the monthly rent?"', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:2, why:'This is a question you should ask before signing — it affects your running costs.'},
+  {q:'Delivery drivers have a separate entrance.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:0, why:'A separate entrance for drivers helps operations run smoothly — this is an advantage.'},
+  {q:'The contract is longer than the owner wants.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:1, why:'A long contract can be a risk — it limits flexibility and commits the business for a long time.'},
+  {q:'"Can we install an additional freezer?"', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:2, why:'This is a question you should ask before signing — the answer affects whether the space meets your needs.'},
+  {q:'The kitchen is already fully equipped.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:0, why:'A fully equipped kitchen means you don\'t need to buy equipment — lower upfront costs.'},
+  {q:'The location is far from most customers.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:1, why:'A distant location can increase delivery times and affect food quality — this is a risk.'},
+  {q:'"Who is responsible if an oven breaks down?"', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:2, why:'You should clarify responsibility for repairs before signing — it affects your running costs.'},
+  {q:'The business can start operating without buying all the equipment.', opts:['Advantage','Risk / disadvantage','Information you should ask for'], ans:0, why:'Starting without buying equipment means lower upfront costs — a clear advantage.'},
+];
+buildMC('d4e2', d4e2Data, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkMC(d4e2Data, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetMC('d4e2', 'd4e2', d4e2Data, 'd4e2-fb'));
+
+// D4 E3 – Which Kitchen to Rent? (dropdown match, 6 items)
+const d4e3Options = ['Kitchen A','Kitchen B','Kitchen C'];
+const d4e3Data = [
+  {left:'A new business wants to test its concept for only three months.', options: d4e3Options, ans:2,
+   why:'Kitchen C has a 3-month contract — the shortest option, perfect for a short test.'},
+  {left:'A busy delivery brand expects about 160 orders every day.', options: d4e3Options, ans:1,
+   why:'Kitchen B has 180 orders/day capacity — the only one that can handle 160 orders.'},
+  {left:'A small company has a low budget and only expects 50 orders a day.', options: d4e3Options, ans:0,
+   why:'Kitchen A is the cheapest ($1,600) and 70-order capacity easily covers 50 orders.'},
+  {left:'A business needs a lot of storage and wants to be in the city centre.', options: d4e3Options, ans:1,
+   why:'Kitchen B is in the city centre and has large storage — the only option that matches both needs.'},
+  {left:'A company wants a fully equipped kitchen but cannot pay more than $2,000 a month.', options: d4e3Options, ans:0,
+   why:'Kitchen A ($1,600) is fully equipped and under $2,000. Kitchen B is too expensive.'},
+  {left:'An entrepreneur wants a short contract and expects around 100 orders a day.', options: d4e3Options, ans:2,
+   why:'Kitchen C has a 3-month contract and 110 orders/day capacity — matches both requirements.'},
+];
+buildMatch('d4e3', d4e3Data, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkMatch(d4e3Data, 'd4e3', 'd4e3-fb', 'd4e3'));
+document.getElementById('d4e3-reset').addEventListener('click', () => resetMatch(d4e3Data, 'd4e3', 'd4e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 5 — FROM ADVANTAGE TO HIDDEN PROBLEM
+// ════════════════════════════════════════════════════════════
+
+// D5 E1 – Every Advantage Has a Downside (click match, 8 pairs)
+const d5e1Data = [
+  {left:'1. The kitchen equipment is included.', right:'F. The equipment may not be exactly what your business needs.'},
+  {left:'2. You don\'t need a dining space.', right:'B. Customers cannot experience your restaurant in person.'},
+  {left:'3. It\'s faster to start the business.', right:'E. You can start quickly but may have less time to prepare every part of the operation.'},
+  {left:'4. Initial costs are lower.', right:'G. A low initial investment doesn\'t mean the business will have low running costs.'},
+  {left:'5. You rent instead of buying the space.', right:'A. You may have less control over the property.'},
+  {left:'6. It\'s easy to test a new food concept.', right:'H. If the concept doesn\'t work, you may need to change the menu or brand.'},
+  {left:'7. Customers order everything online.', right:'D. You might depend heavily on apps and technology.'},
+  {left:'8. Delivery allows you to reach customers in different areas.', right:'C. Delivery times may affect food quality.'},
+];
+const d5e1state = buildClickMatch('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkClickMatch(d5e1state, 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetClickMatch(d5e1state, 'd5e1-fb'));
+
+// D5 E2 – What's the Real Problem? (MC, 8 items)
+const d5e2Data = [
+  {q:'A burger arrives 45 minutes after it leaves the kitchen. The fries are cold and soft.',
+   opts:['food quality during delivery','kitchen equipment','dining space'], ans:0,
+   why:'The food quality changed because of the long delivery time — cold, soft fries are a delivery quality problem.'},
+  {q:'A ghost kitchen receives many first-time orders, but very few customers order again.',
+   opts:['storage','customer loyalty','kitchen equipment'], ans:1,
+   why:'When customers don\'t return, the business has a customer loyalty problem.'},
+  {q:'A company pays reasonable rent, but electricity, ingredients and staff salaries are much higher than expected.',
+   opts:['running costs','dining space','delivery-driver access'], ans:0,
+   why:'Electricity, ingredients and salaries are all running costs. High running costs are the main problem here.'},
+  {q:'A bakery rents a professional kitchen, but there is no large mixer.',
+   opts:['online orders','unsuitable equipment','customer loyalty'], ans:1,
+   why:'The kitchen doesn\'t have the right equipment for a bakery. This is an unsuitable equipment problem.'},
+  {q:'Drivers have to use the same small entrance as kitchen staff, creating delays at busy times.',
+   opts:['delivery-driver access','food concept','upfront costs'], ans:0,
+   why:'Drivers sharing a small entrance with staff creates operational delays — this is a delivery-driver access problem.'},
+  {q:'The business is growing, but there isn\'t enough room to keep ingredients and packaging.',
+   opts:['customer loyalty','storage','food quality'], ans:1,
+   why:'Not having enough room for ingredients and packaging is a storage problem.'},
+  {q:'The kitchen can prepare only 80 meals a day, but the company regularly receives 120 orders.',
+   opts:['capacity','maintenance','dining space'], ans:0,
+   why:'The kitchen cannot produce enough meals to meet demand — this is a capacity problem.'},
+  {q:'Customers love the food, but the delivery app charges the restaurant high fees on every order.',
+   opts:['running costs','kitchen equipment','food quality'], ans:0,
+   why:'High fees charged by the delivery app increase the restaurant\'s running costs.'},
+];
+buildMC('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkMC(d5e2Data, 'd5e2', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetMC('d5e2', 'd5e2', d5e2Data, 'd5e2-fb'));
+
+// D5 E3 – The Manager's Inbox (click match, 7 pairs)
+const d5e3Data = [
+  {left:'Chef: "Our freezer stopped working again this morning."', right:'E. Repair or replace kitchen equipment.'},
+  {left:'Customer: "My last three deliveries arrived late."', right:'G. Investigate the delivery process and waiting times.'},
+  {left:'Accountant: "Ingredient prices increased again this month."', right:'A. Review running costs and ingredient purchasing.'},
+  {left:'Chef: "We have nowhere to put tomorrow\'s large ingredient delivery."', right:'D. Improve or expand storage.'},
+  {left:'Customer: "Another restaurant now gives me a 15% discount."', right:'F. Consider a loyalty offer for regular customers.'},
+  {left:'Ops manager: "We receive more orders than we can prepare between 7–9 p.m."', right:'C. Consider increasing kitchen capacity at peak times.'},
+  {left:'Driver: "It takes ten minutes to collect an order — the entrance is always crowded."', right:'B. Improve delivery-driver access.'},
+];
+const d5e3state = buildClickMatch('d5e3', d5e3Data, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkClickMatch(d5e3state, 'd5e3-fb', 'd5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetClickMatch(d5e3state, 'd5e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 6 — NEGOTIATING THE DEAL
+// ════════════════════════════════════════════════════════════
+
+// D6 E1 – Complete the Counteroffer (CTF, 7 items)
+buildCTFSentences({
+  containerId: 'd6e1',
+  checkId: 'd6e1-check',
+  resetId: 'd6e1-reset',
+  fbId: 'd6e1-fb',
+  exId: 'd6e1',
+  words: [
+    'Our main concern is',
+    'Would you be willing to',
+    'We would need',
+    'Could you include',
+    "we'd be prepared to",
+    "That would make the offer more attractive to us.",
+    "We'd be interested in renting the kitchen, but",
+    "We'd be interested in renting the kitchen, but"
+  ],
+  items: [
+    {line:'"___ the current monthly rent is above our budget."', ans:"We'd be interested in renting the kitchen, but"},
+    {line:'"___ reduce it from $2,800 to $2,500?"', ans:'Would you be willing to'},
+    {line:'"___ more storage space because we use a lot of fresh ingredients."', ans:'We would need'},
+    {line:'"___ an additional freezer in the monthly rent?"', ans:'Could you include'},
+    {line:'"If you could reduce the rent, ___ sign a 12-month contract."', ans:"we'd be prepared to"},
+    {line:'"___ we would need some changes to the current offer."', ans:"We'd be interested in renting the kitchen, but"},
+    {line:'"A separate entrance for delivery drivers would solve one of our main operational problems. ___"', ans:"That would make the offer more attractive to us."},
+  ]
+});
+
+// D6 E2 – What Are They Negotiating? (CTF with topics, 8 items)
+buildCTFSentences({
+  containerId: 'd6e2',
+  checkId: 'd6e2-check',
+  resetId: 'd6e2-reset',
+  fbId: 'd6e2-fb',
+  exId: 'd6e2',
+  words: [
+    'monthly rent',
+    'opening hours',
+    'additional equipment',
+    'contract length',
+    'storage',
+    'maintenance',
+    'delivery-driver access',
+    'payment conditions'
+  ],
+  items: [
+    {line:'"Would you be willing to reduce the price to $2,300 per month?" / "We could offer $2,400."  —  Topic: ___', ans:'monthly rent'},
+    {line:'"We need to operate until midnight on Fridays." / "We can extend access until 1 a.m."  —  Topic: ___', ans:'opening hours'},
+    {line:'"Could you include another freezer?" / "Yes, we can install one before you move in."  —  Topic: ___', ans:'additional equipment'},
+    {line:'"A year is too long for us. Would you accept six months?" / "The minimum is nine months."  —  Topic: ___', ans:'contract length'},
+    {line:'"We need more room for dry ingredients and packaging." / "There is another small room you could use."  —  Topic: ___', ans:'storage'},
+    {line:'"Who pays if the oven needs to be repaired?" / "We cover all repairs."  —  Topic: ___', ans:'maintenance'},
+    {line:'"Could the drivers use the entrance at the back?" / "Yes, that entrance can be reserved for deliveries."  —  Topic: ___', ans:'delivery-driver access'},
+    {line:'"Could we pay on the 10th instead of the 1st of each month?" / "Yes, we can change that."  —  Topic: ___', ans:'payment conditions'},
+  ]
+});
+
+// D6 E3 – Will They Sign? (MC, 8 items from dialogue)
+const d6e3Data = [
+  {q:"What is Maya's first concern?", opts:['equipment','storage','opening hours'], ans:1, why:"Maya says 'our main concern is the storage' — she needs more room for ingredients and packaging."},
+  {q:"What is the landlord's first offer for the additional storage?", opts:['$200 extra per month','free storage','$50 extra per month'], ans:0, why:"The landlord says 'I could include it for another $200 a month'."},
+  {q:"Why doesn't Maya accept $2,900?", opts:['The kitchen is too small.','The price is too high.','The contract is too short.'], ans:1, why:"Maya says 'that would take the rent to $2,900, which is too high for us'."},
+  {q:'What monthly rent does the landlord finally accept?', opts:['$2,700','$2,750','$2,800'], ans:2, why:"The landlord agrees to '$2,800 if you sign the 12-month contract'."},
+  {q:'What additional equipment does Maya request?', opts:['an oven','a freezer','a refrigerator'], ans:1, why:"Maya says 'we would also need another freezer'."},
+  {q:'What does Maya want included for that equipment?', opts:['maintenance','delivery','storage'], ans:0, why:"Maya says 'if you include repairs for the freezer' — she wants maintenance included."},
+  {q:'What is the final agreement?', opts:['$2,800 with additional storage, a freezer and maintenance','$2,900 with storage but no freezer','$2,750 with a freezer but no maintenance'], ans:0, why:"The landlord says '$2,800, additional storage and the freezer, with maintenance included'."},
+  {q:'Which sentence best describes the negotiation?', opts:['Maya accepts the original offer without changes.','Both sides make changes before reaching an agreement.','They decide not to do business together.'], ans:1, why:"Both sides give something: Maya accepts $2,800 (not her ideal), the landlord includes storage, freezer and maintenance."},
+];
+buildMC('d6e3', d6e3Data, 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkMC(d6e3Data, 'd6e3', 'd6e3-fb', 'd6e3'));
+document.getElementById('d6e3-reset').addEventListener('click', () => resetMC('d6e3', 'd6e3', d6e3Data, 'd6e3-fb'));
+
+// ════════════════════════════════════════════════════════════
+//  DAY 7 — COMPLETE CONSOLIDATION
+// ════════════════════════════════════════════════════════════
+
+// D7 E1 – Complete Review (MC, 15 items)
+const d7e1Data = [
+  {q:'The restaurant has excellent food, but many meals arrive cold. This can affect its ___.',
+   opts:['food quality','dining space','kitchen equipment'], ans:0, why:'"Food quality" includes how the food tastes and its condition when it arrives — cold food is a food quality problem.'},
+  {q:'Rent, staff salaries and utilities are examples of:',
+   opts:['customer loyalty','running costs','online orders'], ans:1, why:'Rent, salaries and utilities are ongoing expenses — they are running costs.'},
+  {q:'A restaurant that prepares food only for delivery and has no dining space is commonly called a:',
+   opts:['delivery driver','ghost kitchen','dining restaurant'], ans:1, why:'A ghost kitchen is a delivery-only restaurant with no space for customers to sit and eat.'},
+  {q:'A kitchen that already contains the equipment necessary to operate is:',
+   opts:['fully equipped','upfront','loyal'], ans:0, why:'"Fully equipped" means all the necessary equipment is already in place.'},
+  {q:'Money you need to pay at the beginning of a business project can be described as:',
+   opts:['delivery costs','upfront costs','customer costs'], ans:1, why:'"Upfront costs" are costs paid before the business starts — licences, equipment, initial expenses.'},
+  {q:'A chef who pays to use a professional kitchen belonging to another company ___.',
+   opts:['rents a kitchen','moves an order','rents a customer'], ans:0, why:'"Rents a kitchen" is the correct collocation — paying to use a kitchen that belongs to someone else.'},
+  {q:'Which option means "start and organize a new company"?',
+   opts:['move into a space','set up a business','place an order'], ans:1, why:'"Set up a business" specifically means to start and organize a new company from scratch.'},
+  {q:'Which is a possible advantage of renting a ready-to-use kitchen?',
+   opts:['You always have complete control over the space.','You may have lower initial costs.','You never have running costs.'], ans:1, why:'Renting avoids buying expensive equipment — this reduces initial costs. Control and running costs are not eliminated.'},
+  {q:'Which is a possible disadvantage of renting a fully equipped kitchen?',
+   opts:['The equipment may not be exactly what you need.','You have to build the kitchen yourself.','You cannot prepare food there.'], ans:0, why:'"Fully equipped" is general — the equipment may not match your specific needs. This is a known risk.'},
+  {q:'A business receives more orders than the kitchen can prepare. The main issue is:',
+   opts:['capacity','customer loyalty','dining space'], ans:0, why:'When a kitchen cannot produce enough to meet demand, the problem is capacity.'},
+  {q:'A restaurant offers discounts to encourage customers to order again. It wants to improve:',
+   opts:['customer loyalty','kitchen equipment','storage'], ans:0, why:'Discounts that bring customers back are a customer loyalty strategy.'},
+  {q:'Which is the most appropriate way to make a polite request during a negotiation?',
+   opts:['You reduce the rent.','Would you be willing to reduce the rent?','You must reduce rent?'], ans:1, why:'"Would you be willing to...?" is polite and indirect — it shows respect and opens a conversation.'},
+  {q:'"If you could include another freezer, ___ sign a 12-month contract."',
+   opts:["we'd be prepared to","our main concern is","would you be willing to"], ans:0, why:'"We\'d be prepared to" completes the conditional offer correctly: If you could [X], we\'d be prepared to [Y].'},
+  {q:'A delivery-only business has no place to keep enough ingredients. It needs to negotiate:',
+   opts:['customer loyalty','storage','food quality'], ans:1, why:'Not having enough room for ingredients is a storage problem — the business needs to negotiate more storage space.'},
+  {q:'Which question is most useful before renting a professional kitchen?',
+   opts:['What colour do customers like?','What equipment is included in the rent?','How many chairs are in the dining space if there is no dining space?'], ans:1, why:'Knowing what equipment is included helps you decide if the kitchen meets your operational needs.'},
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb'));
+
+// D7 E2 – Spot the Mistake (MC, 8 groups — find the wrong sentence)
+const d7e2Data = [
+  {q:'Group 1 — Choose the sentence with a mistake:',
+   opts:['The kitchen is fully equipped.','We need to reduce our running costs.','They place a lot of online orders.','We need to improve our customer loyal.'],
+   ans:3, why:'"Customer loyal" is wrong. The noun is "customer loyalty" — you can\'t use an adjective alone as a noun here.'},
+  {q:'Group 2 — Choose the sentence with a mistake:',
+   opts:['We decided to rent a kitchen.','She wants to set up a business.','They operate a successful restaurant.','We need to rent a kitchen equipment.'],
+   ans:3, why:'"Kitchen equipment" is uncountable — you cannot say "a kitchen equipment". The correct form is "kitchen equipment" without the article.'},
+  {q:'Group 3 — Choose the sentence with a mistake:',
+   opts:['The restaurant has a beautiful dining space.','The delivery driver was late.','Food quality is important for customer loyalty.','Our running cost are very high.'],
+   ans:3, why:'"Running costs" is always plural — you must say "running costs are", not "running cost are".'},
+  {q:'Group 4 — Choose the sentence with a mistake:',
+   opts:['The kitchen is fully equipped.','The upfront costs are lower.','We moved into the new space last week.','The kitchen is fully equipment.'],
+   ans:3, why:'"Fully equipment" is wrong. "Equipped" is an adjective; "equipment" is a noun. The correct form is "fully equipped".'},
+  {q:'Group 5 — Choose the sentence with a mistake:',
+   opts:['Would you be willing to reduce the rent?','Our main concern is the contract length.','Could you include another freezer?','Would you willing to change the opening hours?'],
+   ans:3, why:'"Would you willing to" is missing the verb "be". The correct form is "Would you be willing to...?"'},
+  {q:'Group 6 — Choose the sentence with a mistake:',
+   opts:['We would need more storage.','That would make the offer more attractive to us.','We\'d be interested in renting the kitchen.','We would need to more storage.'],
+   ans:3, why:'"Need to more storage" is incorrect. You cannot use "to" between "need" and a noun. The correct form is "need more storage".'},
+  {q:'Group 7 — Choose the sentence with a mistake:',
+   opts:['The business prepares food for delivery.','Customers can place orders online.','The company rents fully equipped kitchens.','The restaurant have a separate entrance for drivers.'],
+   ans:3, why:'"The restaurant have" is wrong. "Restaurant" is a singular noun — the correct form is "The restaurant has".'},
+  {q:'Group 8 — Choose the sentence with a mistake:',
+   opts:["If you could reduce the rent, we'd be prepared to sign today.",'Maintenance is included in the monthly rent.','The business has lower upfront costs.','If you could include maintenance, we prepared to sign today.'],
+   ans:3, why:'"We prepared to sign" is missing the auxiliary verb. The correct form is "we\'d be prepared to sign today".'},
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data, 'd7e2', 'd7e2-fb', 'd7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2', 'd7e2', d7e2Data, 'd7e2-fb'));
+
+// D7 E3 – Writing task: word count + WhatsApp
+document.getElementById('d7e3-text').addEventListener('input', function() {
+  const words = this.value.trim().split(/\s+/).filter(w => w.length > 0);
+  document.getElementById('d7e3-count').textContent = words.length;
+});
+document.getElementById('d7e3-whatsapp').addEventListener('click', () => {
+  const text = document.getElementById('d7e3-text').value.trim();
+  if (!text) { alert('Please write your business proposal before sending!'); return; }
+  const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 100) { alert('Your text is too short ('+wordCount+' words). Try to write at least 120 words!'); return; }
+  const name = studentName || 'Student';
+  const msg = `*The New Way We Eat — Writing Challenge*\n\nHello, Teacher Mari! My name is ${name}.\n\nWord count: ${wordCount} words\n\n${text}\n\n_Sent from the weekly exercise_`;
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// Summary WhatsApp
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const name = studentName || 'Student';
+  const msg = `*The New Way We Eat — Week Complete!*\n\nHello, Teacher Mari! My name is ${name} and I finished all the exercises this week!\n\nTotal checks: ${totalChecked}\n\n_Sent from the weekly exercise_`;
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ════════════════════════════════════════════════════════════
+//  VOCAB BANK
+// ════════════════════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.onclick = () => speakWord(item.en);
+    div.innerHTML = `<button onclick="event.stopPropagation();speakWord('${item.en.replace(/'/g,"&#39;")}')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button>
+      <div style="font-weight:700;font-size:0.88rem;color:var(--purple);">${item.en}</div>
+      <div class="vc-pt">${item.pt}</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+const VOCAB_PROBLEMS = [
+  {en:'food quality', pt:'quality of the food'},
+  {en:'running costs', pt:'ongoing expenses'},
+  {en:'kitchen equipment', pt:'machines/tools in kitchen'},
+  {en:'dining space', pt:'area for customers to eat'},
+  {en:'online orders', pt:'orders placed online'},
+  {en:'delivery drivers', pt:'people who deliver food'},
+  {en:'customer loyalty', pt:'customers who keep returning'},
+  {en:'storage', pt:'space to keep ingredients'},
+  {en:'capacity', pt:'max. number of orders'},
+  {en:'maintenance', pt:'repairs and upkeep'},
+];
+const VOCAB_KITCHEN = [
+  {en:'oven', pt:'forno'},
+  {en:'refrigerator', pt:'geladeira'},
+  {en:'freezer', pt:'freezer'},
+  {en:'blender', pt:'liquidificador'},
+  {en:'prep tables', pt:'bancadas'},
+  {en:'fully equipped', pt:'totalmente equipada'},
+  {en:'ghost kitchen', pt:'cozinha fantasma'},
+  {en:'delivery-only', pt:'apenas para entrega'},
+  {en:'separate entrance', pt:'entrada separada'},
+  {en:'opening hours', pt:'horário de funcionamento'},
+];
+const VOCAB_SETUP = [
+  {en:'set up a business', pt:'abrir um negócio'},
+  {en:'rent a kitchen', pt:'alugar uma cozinha'},
+  {en:'move into a space', pt:'ocupar um espaço'},
+  {en:'operate a restaurant', pt:'operar um restaurante'},
+  {en:'upfront costs', pt:'custos iniciais'},
+  {en:'contract length', pt:'duração do contrato'},
+  {en:'payment conditions', pt:'condições de pagamento'},
+  {en:'ingredient prices', pt:'preços dos ingredientes'},
+];
+const VOCAB_NEGO = [
+  {en:'Would you be willing to...?', pt:'Você estaria disposto a...?'},
+  {en:'Could you include...?', pt:'Você poderia incluir...?'},
+  {en:'Our main concern is...', pt:'Nossa principal preocupação é...'},
+  {en:'We would need...', pt:'Precisaríamos de...'},
+  {en:"We'd be interested in...", pt:'Teríamos interesse em...'},
+  {en:"we'd be prepared to...", pt:'estaríamos preparados para...'},
+  {en:'If you could...', pt:'Se você pudesse...'},
+  {en:'That would make the offer more attractive.', pt:'Isso tornaria a oferta mais atraente.'},
+];
+renderVocabGrid('vocab-problems', VOCAB_PROBLEMS);
+renderVocabGrid('vocab-kitchen', VOCAB_KITCHEN);
+renderVocabGrid('vocab-setup', VOCAB_SETUP);
+renderVocabGrid('vocab-nego', VOCAB_NEGO);
+
+// ════════════════════════════════════════════════════════════
+//  CONFETTI
+// ════════════════════════════════════════════════════════════
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1, drift: (Math.random()-0.5)*3,
+    angle: Math.random()*360, spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+let toast = null;
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:\'Poppins\',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform='translateX(-50%) translateY(0)'; toast.style.opacity='1'; });
+  setTimeout(() => { toast.style.transform='translateX(-50%) translateY(80px)'; toast.style.opacity='0'; }, 3200);
+}
+
+function celebrateDay() { launchConfetti(140, 200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('Week complete! You are amazing!'); }
+</script>
+</body>
+</html>
