@@ -192,7 +192,7 @@ const statusConfig = {
   reposicaoAgendada: { cor: "#FFC49B", texto: "#7A3B00", label: "Reposição agendada" },
   realizada: { cor: palette.lightGreen, texto: palette.green, label: "Realizada" },
   aRepor: { cor: "#F5D547", texto: "#6B5A00", label: "A repor" },
-  perdida: { cor: "#F7C1C1", texto: "#791F1F", label: "Perdida" },
+  perdida: { cor: "#3B1F6E", texto: "#DDD6FE", label: "Expirada" },
   cancelada: { cor: "transparent", texto: "transparent", label: "Cancelada" },
 };
 
@@ -576,7 +576,7 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
   const corDoStatus = (status) => {
     if (status === "realizada") return { bg: palette.lightGreen, fg: palette.green, label: "✓" };
     if (status === "aRepor") return { bg: "#FFDDB5", fg: palette.orange, label: "A repor" };
-    if (status === "perdida") return { bg: "#F7C1C1", fg: "#791F1F", label: "Perdida" };
+    if (status === "perdida") return { bg: "#3B1F6E", fg: "#DDD6FE", label: "Expirada" };
     if (status === "reposicaoAgendada") return { bg: palette.lavender, fg: palette.purple, label: "Repos." };
     return null; // agendada = sem badge
   };
@@ -2561,7 +2561,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {avisos.map((a) => {
                 const nomes = a.turmas && a.turmas.students ? a.turmas.students.map((s) => s.nome).join(", ") : "Aluno";
-                const statusLabel = a.status === "aRepor" ? "vai repor" : "faltou (perdida)";
+                const statusLabel = a.status === "aRepor" ? "vai repor" : "faltou (expirada)";
                 return (
                   <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FFF", borderRadius: "8px", padding: "10px 12px", gap: "10px", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "12px", color: palette.purple }}>
@@ -2660,7 +2660,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                       if (pendente) { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "⚠️ SEM ENTRADA"; }
                       else if (a.status === "realizada") { corBadge = palette.lightGreen; textoBadge = palette.green; labelStatus = "✓ Realizada"; }
                       else if (a.status === "aRepor") { corBadge = "#FFDDB5"; textoBadge = palette.orange; labelStatus = "A repor"; }
-                      else if (a.status === "perdida") { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "Perdida"; }
+                      else if (a.status === "perdida") { corBadge = "#3B1F6E"; textoBadge = "#DDD6FE"; labelStatus = "Expirada"; }
                       else if (a.status === "reposicaoAgendada") { corBadge = palette.lavender; textoBadge = palette.purple; labelStatus = "Reposição"; }
                       return (
                         <button key={i} onClick={() => onSelectStudent(a.representante)}
@@ -3219,7 +3219,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{r.nomes}</p>
                         <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>
-                          Aula perdida em {r.dataAula}{r.prazoBR ? ` · prazo pra repor: ${r.prazoBR}` : ""}
+                          Aula a repor desde {r.dataAula}{r.prazoBR ? ` · prazo pra repor: ${r.prazoBR}` : ""}
                         </p>
                       </div>
                       <span style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "10px", background: prazoExpirado ? "#F7C1C1" : "#FFDDB5", color: prazoExpirado ? "#791F1F" : palette.orange, whiteSpace: "nowrap", flexShrink: 0 }}>
@@ -3426,6 +3426,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "" });
   const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
+  const [feriadoPopup, setFeriadoPopup] = useState(null); // { dia, motivo }
   const [rascunho, setRascunho] = useState({ status: "realizada" });
   const [carregandoDados, setCarregandoDados] = useState(true);
   const [loadKey, setLoadKey] = useState(0);
@@ -3655,8 +3656,11 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
       // Carrega feriados / dias sem aula (globais, marcados por Mari no Calendário Geral do admin)
       // Sobrescreve visualmente qualquer status daquele dia no calendário do aluno
-      const { data: diasSemAulaData } = await supabase.from("dias_sem_aula").select("*");
+      const { data: diasSemAulaData, error: diasSemAulaError } = await supabase.from("dias_sem_aula").select("data, motivo");
       if (!ativo) return;
+      if (diasSemAulaError) {
+        console.error("[StudentDashboard] Erro ao carregar dias_sem_aula — verifique a policy RLS da tabela no Supabase:", diasSemAulaError);
+      }
       const diasSemAulaObj = {};
       (diasSemAulaData || []).forEach((d) => { diasSemAulaObj[d.data] = d.motivo || "Sem aula"; });
       setDiasSemAula(diasSemAulaObj);
@@ -5755,11 +5759,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
             <div style={{ maxWidth: "420px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
                 <button onClick={() => {
+                  setFeriadoPopup(null);
                   if (mesAtual === 0) { setMesAtual(11); setAnoAtual((a) => a - 1); }
                   else setMesAtual((m) => m - 1);
                 }} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>‹</button>
                 <p style={{ fontSize: "15px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{meses[mesAtual]} {anoAtual}</p>
                 <button onClick={() => {
+                  setFeriadoPopup(null);
                   if (mesAtual === 11) { setMesAtual(0); setAnoAtual((a) => a + 1); }
                   else setMesAtual((m) => m + 1);
                 }} style={{ border: "none", background: "transparent", cursor: "pointer", color: dark ? "#FFF" : palette.purple, fontSize: "18px" }}>›</button>
@@ -5780,8 +5786,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   // Feriado tem prioridade visual sobre qualquer status de aula
                   if (motivoFeriado) {
                     return (
-                      <div key={i} title={motivoFeriado}
-                        style={{ aspectRatio: "1", borderRadius: "8px", border: "none", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}>
+                      <div key={i} onClick={() => setFeriadoPopup({ dia, motivo: motivoFeriado })}
+                        style={{ aspectRatio: "1", borderRadius: "8px", border: "none", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                         {dia}
                       </div>
                     );
@@ -5813,6 +5819,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                 <p style={{ marginTop: "10px", fontSize: "11px", color: textSecondary }}>
                   Clique numa aula agendada ou reposição pra avisar que não vai comparecer.
                 </p>
+              )}
+
+              {feriadoPopup && (
+                <div style={{ marginTop: "12px", padding: "12px 16px", borderRadius: "10px", background: "#FCF0F0", border: "1px solid #F7C1C1", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: "12px", fontWeight: 700, color: "#791F1F", textTransform: "uppercase", letterSpacing: "0.05em" }}>Sem aula — dia {feriadoPopup.dia}</p>
+                    <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#791F1F" }}>{feriadoPopup.motivo}</p>
+                  </div>
+                  <button onClick={() => setFeriadoPopup(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#791F1F", fontSize: "16px", fontWeight: 700, padding: "0 2px", lineHeight: 1 }}>×</button>
+                </div>
               )}
 
               {diaSelecionado && role === "admin" && (
