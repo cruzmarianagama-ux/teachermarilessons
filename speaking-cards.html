@@ -636,6 +636,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <button class="btn btn-ghost" id="newFolderBtn">📁 New folder</button>
     <input type="text" id="searchSetsInput" placeholder="🔍 Search sets…" style="width:200px;border-radius:10px;">
     <button class="btn btn-ghost" id="fixImagesBtn" title="Re-upload all external images to permanent storage">🔧 Fix images</button>
+    <button class="btn btn-ghost" id="refetchImagesBtn" title="Re-search broken images on Pixabay using card prompts">🔄 Rebuscar imagens</button>
     <p class="tiny-note" id="storageUsageNote" style="margin-left:auto;"></p>
   </div>
 
@@ -2526,6 +2527,120 @@ document.getElementById('fixImagesBtn').onclick = async ()=>{
   try{ await refreshSetsFromDb(true); }catch(_){}
   await fixAllImages();
   btn.textContent = '🔧 Fix images';
+};
+
+/* ---------------- REFETCH BROKEN IMAGES ---------------- */
+async function testImageUrl(url){
+  return new Promise(resolve=>{
+    if(!url){ resolve(false); return; }
+    const img = new Image();
+    const timer = setTimeout(()=>{ img.src=''; resolve(false); }, 6000);
+    img.onload  = ()=>{ clearTimeout(timer); resolve(true); };
+    img.onerror = ()=>{ clearTimeout(timer); resolve(false); };
+    img.src = url;
+  });
+}
+
+async function refetchBrokenImages(){
+  const btn  = document.getElementById('refetchImagesBtn');
+  const note = document.getElementById('storageUsageNote');
+  const SUPABASE_HOST = 'udvhausytibegxxrjfuw.supabase.co';
+  const PIXABAY_KEY_LOCAL = '56893076-e007c6a0cdf738da2aeabb494';
+
+  let totalBroken = 0, totalFixed = 0, totalFailed = 0;
+
+  for(const set of sets){
+    const newCards = [];
+    let changed = false;
+
+    for(let i = 0; i < set.cards.length; i++){
+      const card = set.cards[i];
+
+      // No image or already on Supabase Storage and loads fine — skip test for Supabase URLs
+      if(!card.image){
+        newCards.push(card);
+        continue;
+      }
+
+      // Test if image loads
+      note.textContent = `Testando "${set.name}" (${i+1}/${set.cards.length})…`;
+      const ok = await testImageUrl(card.image);
+      if(ok){
+        newCards.push(card);
+        continue;
+      }
+
+      // Image is broken — try to find a replacement on Pixabay using the prompt
+      totalBroken++;
+      const keyword = (card.prompt || '').replace(/[^\w\s]/g,'').trim();
+      if(!keyword){
+        // No prompt to search with — keep broken card as-is
+        newCards.push(card);
+        totalFailed++;
+        continue;
+      }
+
+      note.textContent = `Rebuscando "${keyword}" para "${set.name}"…`;
+      try{
+        const px = await fetch(
+          \`https://pixabay.com/api/?key=\${PIXABAY_KEY_LOCAL}&q=\${encodeURIComponent(keyword)}&per_page=3&page=1&safesearch=true&orientation=horizontal&image_type=photo\`
+        );
+        if(!px.ok) throw new Error('pixabay ' + px.status);
+        const pxData = await px.json();
+        if(!pxData.hits || pxData.hits.length === 0) throw new Error('no results');
+
+        // Download and re-host permanently
+        const imgUrl = pxData.hits[0].webformatURL;
+        const res = await fetch(imgUrl);
+        if(!res.ok) throw new Error('fetch image failed');
+        const blob = await res.blob();
+        const ext  = blob.type.includes('png') ? 'png'
+                   : blob.type.includes('gif') ? 'gif'
+                   : blob.type.includes('webp') ? 'webp' : 'jpg';
+        const file = new File([blob], 'upload.' + ext, { type: blob.type || 'image/jpeg' });
+        const permanentUrl = await uploadImageToStorage(file);
+
+        newCards.push(Object.assign({}, card, { image: permanentUrl }));
+        totalFixed++;
+        changed = true;
+      }catch(_){
+        newCards.push(card);
+        totalFailed++;
+      }
+    }
+
+    if(changed){
+      try{
+        await updateSetInDb(set.id, set.name, newCards);
+        set.cards = newCards;
+      }catch(_){
+        totalFailed++;
+      }
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔄 Rebuscar imagens';
+
+  if(totalBroken === 0){
+    note.textContent = '✅ Nenhuma imagem quebrada encontrada.';
+  } else if(totalFailed === 0){
+    note.textContent = \`✅ \${totalFixed} imagem\${totalFixed===1?'':'s'} recuperada\${totalFixed===1?'':'s'} e salva\${totalFixed===1?'':'s'} com sucesso!\`;
+  } else {
+    note.textContent = \`⚠ \${totalFixed} recuperada\${totalFixed===1?'':'s'}, \${totalFailed} não encontrada\${totalFailed===1?'':'s'} (sem resultado no Pixabay).\`;
+  }
+  setTimeout(()=>{ note.textContent=''; note.className='tiny-note'; }, 8000);
+}
+
+document.getElementById('refetchImagesBtn').onclick = async ()=>{
+  const btn  = document.getElementById('refetchImagesBtn');
+  const note = document.getElementById('storageUsageNote');
+  if(!confirm('Isso vai testar todas as imagens e rebuscar automaticamente as que estiverem quebradas, usando o prompt do card como busca no Pixabay. Pode demorar alguns minutos. Continuar?')) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Buscando…';
+  note.textContent = 'Carregando sets…';
+  try{ await refreshSetsFromDb(true); }catch(_){}
+  await refetchBrokenImages();
 };
 
 /* ---------------- INIT ---------------- */
