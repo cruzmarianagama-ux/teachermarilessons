@@ -255,6 +255,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   /* ── PRESENT / CLASS MODE ── */
   /* ── CLASS MODE OVERLAY ── */
+  /* ── PRESENT / CLASS VIEW ── */
   #presentView{
     position:fixed;inset:0;
     background:var(--green);
@@ -262,11 +263,18 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     z-index:400;
   }
   #presentView.active{display:flex;}
+  /* fullscreen — fundo verde, não preto */
+  #presentView:-webkit-full-screen,
+  #presentView:fullscreen,
+  .present-stage-wrap:-webkit-full-screen,
+  .present-stage-wrap:fullscreen{
+    background:var(--green);
+  }
   .class-overlay-bar{
-    background:rgba(4,57,47,.85);
+    background:rgba(4,57,47,.9);
     backdrop-filter:blur(10px);
     display:flex;align-items:center;padding:0 20px;height:52px;
-    gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);
+    gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.1);
   }
   .class-set-info{
     font-size:14px;font-weight:800;color:var(--cream);
@@ -274,7 +282,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   }
   .class-bar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
   .class-close-btn{
-    background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);
     color:var(--cream);border-radius:8px;padding:6px 14px;
     font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;
     cursor:pointer;transition:.15s;
@@ -282,78 +290,142 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   .class-close-btn:hover{background:rgba(255,92,35,.3);border-color:var(--orange);}
   .present-topbar .mode-pills{display:flex;gap:6px;flex-wrap:wrap;}
   .mode-btn{
-    background:transparent;border:1.5px solid rgba(250,234,211,.25);
-    color:rgba(250,234,211,.65);border-radius:999px;
+    background:transparent;border:1.5px solid rgba(250,234,211,.3);
+    color:rgba(250,234,211,.7);border-radius:999px;
     padding:6px 16px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;
     cursor:pointer;transition:.15s;
   }
   .mode-btn:hover{border-color:var(--orange);color:var(--orange);}
   .mode-btn.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+
+  /* ── STAGE WRAP — área principal ── */
   .present-stage-wrap{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:24px;position:relative;overflow:hidden;
+    padding:16px 20px 20px;gap:16px;overflow:hidden;background:var(--green);
   }
+  .present-stage-wrap:fullscreen,
+  .present-stage-wrap:-webkit-full-screen{
+    background:var(--green);
+  }
+
+  /* ── CARD STAGE (random / in order) ── */
   .stage{
-    background:#fff;border-radius:24px;width:100%;max-width:820px;
-    min-height:380px;padding:36px 40px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-    box-shadow:0 12px 60px rgba(0,0,0,.35);position:relative;
+    background:#fff;border-radius:20px;
+    width:100%;max-width:900px;
+    flex:1;max-height:calc(100vh - 140px);
+    display:flex;flex-direction:column;align-items:center;
+    gap:0;box-shadow:0 8px 40px rgba(0,0,0,.4);
+    position:relative;overflow:hidden;
   }
-  .stage img{max-height:240px;max-width:100%;border-radius:14px;object-fit:contain;}
-  .prompt-text{font-size:22px;font-weight:800;color:var(--purple);text-align:center;line-height:1.35;max-width:600px;}
-  .stage-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;}
+  /* áudio — canto superior esquerdo, pequeno, discreto */
+  .audio-overlay{
+    position:absolute;top:10px;left:12px;
+    z-index:10;
+  }
+  .speak-btn{
+    background:rgba(29,16,80,.08);color:var(--purple);
+    border:1.5px solid rgba(29,16,80,.12);
+    border-radius:999px;
+    width:30px;height:30px;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s;
+  }
+  .speak-btn:hover{background:var(--orange);color:#fff;border-color:var(--orange);}
+
+  /* imagem — toma o máximo de espaço disponível */
+  .media-frame{
+    width:100%;flex:1;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:16px 20px 8px;overflow:hidden;
+  }
+  .media-frame img{
+    max-width:100%;max-height:100%;
+    border-radius:12px;object-fit:contain;
+    display:block;
+  }
+
+  /* prompt — parte inferior do card */
+  .prompt-text{
+    font-size:26px;font-weight:800;color:var(--purple);
+    text-align:center;line-height:1.3;
+    padding:16px 32px 20px;width:100%;
+    border-top:1px solid rgba(29,16,80,.06);
+  }
+  /* sem imagem — prompt centralizado maior */
+  .stage.no-image .prompt-text{
+    font-size:32px;padding:40px 32px;border-top:none;
+  }
+
+  /* controles e contador */
+  .stage-controls{
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;
+    padding:0 20px 16px;
+  }
   .stage-controls .btn:disabled{opacity:.35;cursor:default;}
   .stage-controls .btn{font-size:15px;padding:10px 24px;}
   .counter-pill{
-    background:rgba(29,16,80,.12);color:var(--purple);
-    border-radius:999px;padding:5px 16px;font-size:13px;font-weight:700;
+    background:rgba(29,16,80,.1);color:var(--purple);
+    border-radius:999px;padding:4px 14px;font-size:12px;font-weight:700;
   }
-  .progress-bar-wrap{width:100%;max-width:820px;height:4px;background:rgba(255,255,255,.2);border-radius:999px;margin-top:-10px;}
+  .progress-bar-wrap{
+    width:100%;max-width:900px;height:4px;
+    background:rgba(255,255,255,.15);border-radius:999px;
+  }
   .progress-bar-fill{height:100%;background:var(--orange);border-radius:999px;transition:width .3s;}
-  .audio-overlay{position:relative;top:auto;right:auto;display:flex;justify-content:flex-end;width:100%;}
-  .speak-btn{
-    background:var(--orange);color:#fff;border:none;border-radius:999px;
-    width:36px;height:36px;font-size:18px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:opacity .15s;
-  }
-  .speak-btn:hover{opacity:.8;}
+  .kbd-hint{font-size:11px;color:rgba(250,234,211,.4);text-align:center;}
+
+  /* fullscreen-btn */
   .fullscreen-btn{
-    position:absolute;bottom:14px;right:14px;
-    background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);
-    color:var(--cream);border-radius:10px;width:36px;height:36px;
-    font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:background .15s;z-index:5;
+    position:absolute;bottom:12px;right:12px;
+    background:rgba(29,16,80,.08);border:1.5px solid rgba(29,16,80,.12);
+    color:var(--purple);border-radius:8px;width:32px;height:32px;
+    font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:.15s;z-index:5;
   }
-  .fullscreen-btn:hover{background:rgba(255,255,255,.16);}
-  .present-stage-wrap:fullscreen{border-radius:0;}
-  .present-stage-wrap:fullscreen .stage{max-width:none;}
+  .fullscreen-btn:hover{background:rgba(29,16,80,.15);}
   .leitner-info{color:var(--cream);font-size:13px;font-weight:600;text-align:center;opacity:.7;padding:4px 0;}
-  .box-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:480px;}
+  /* ── OPEN THE BOX ── */
+  /* stage em modo box: layout diferente */
+  .stage.box-mode{
+    justify-content:flex-start;padding-top:20px;
+  }
+  .big-card{
+    width:100%;flex:1;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:12px;
+    border-radius:16px;background:rgba(29,16,80,.04);
+    border:1.5px solid rgba(29,16,80,.08);
+    padding:20px;overflow:hidden;
+  }
+  .big-card img{
+    max-width:100%;max-height:calc(100% - 80px);
+    border-radius:12px;object-fit:contain;
+  }
+  .big-card .prompt-text{
+    font-size:24px;padding:0;border-top:none;
+    width:auto;
+  }
+  .card-deck{width:100%;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0;}
+  .placeholder{color:rgba(29,16,80,.35);font-size:16px;font-weight:600;text-align:center;}
+  .box-grid{
+    display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+    padding:12px 8px;width:100%;max-width:600px;
+  }
   .box{
-    width:52px;height:52px;border-radius:12px;border:none;cursor:pointer;
-    font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;
+    width:56px;height:56px;border-radius:12px;border:none;cursor:pointer;
+    font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;
     display:flex;align-items:center;justify-content:center;
     transition:transform .12s,opacity .2s,filter .2s;
-    color:#fff;
   }
   .box:nth-child(5n+1){background:var(--lavender);color:var(--purple);}
   .box:nth-child(5n+2){background:var(--lime);color:var(--purple);}
-  .box:nth-child(5n+3){background:var(--orange);}
+  .box:nth-child(5n+3){background:var(--orange);color:#fff;}
   .box:nth-child(5n+4){background:var(--cream);color:var(--purple);border:1.5px solid rgba(29,16,80,.15);}
   .box:nth-child(5n+5){background:var(--green);color:var(--cream);}
-  .box:hover{transform:scale(1.08);}
-  .box.opened{opacity:.4;filter:saturate(.5);cursor:default;}
-  .box-instruction{font-size:13px;color:rgba(29,16,80,.5);font-weight:600;text-align:center;}
-  .counter{font-size:12px;color:rgba(29,16,80,.45);font-weight:600;text-align:center;}
-  .big-card{
-    min-height:160px;width:100%;max-width:600px;
-    display:flex;align-items:center;justify-content:center;
-    border-radius:16px;background:rgba(29,16,80,.04);
-    border:1.5px solid rgba(29,16,80,.08);
-    padding:24px;
-  }
-  .card-deck{width:100%;display:flex;justify-content:center;}
-  .placeholder{color:rgba(29,16,80,.35);font-size:15px;font-weight:600;text-align:center;}
+  .box:hover:not(.opened){transform:scale(1.1);}
+  .box.opened{opacity:.4;filter:saturate(.4);cursor:default;}
+  .box-instruction{font-size:13px;color:rgba(250,234,211,.6);font-weight:600;text-align:center;}
+  .counter{font-size:12px;color:rgba(250,234,211,.5);font-weight:600;text-align:center;}
   .stage .box-badge{
     position:absolute;top:12px;left:14px;
     background:var(--lavender);color:var(--purple);
@@ -1691,21 +1763,21 @@ function setMode(mode){
 
 function renderRandomOrOrderStage(){
   const stageArea = document.getElementById('stageArea');
-  stageArea.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+  stageArea.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;gap:12px;';
   stageArea.innerHTML = `
-    <div class="stage">
-      <div class="card-deck">
-        <div class="big-card" id="bigCard">
-          <p class="placeholder">Click "Next card" to begin</p>
-        </div>
+    <div class="stage" id="mainStage">
+      <div class="big-card" id="bigCard">
+        <p class="placeholder">Click "Next card" to begin</p>
       </div>
       <div class="stage-controls">
         <button class="btn btn-ghost-dark" id="prevBtn">◀ Prev</button>
         <button class="btn btn-primary" id="nextBtn">Next card ▶</button>
         <button class="btn btn-ghost-dark" id="resetBtn">↺ Restart</button>
       </div>
-      <div class="counter" id="counterText"></div>
-      <div class="kbd-hint">Space = next card · ← = previous</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;width:100%;max-width:900px;">
+      <div class="counter" id="counterText" style="flex:1;text-align:left;"></div>
+      <div class="kbd-hint" style="flex:1;text-align:right;">Space = next · ← = prev</div>
     </div>
   `;
   document.getElementById('nextBtn').onclick = showNextCard;
@@ -1769,57 +1841,71 @@ function showPrevCard(){
 }
 
 function renderCardOnStage(card, finished){
+  const stage = document.querySelector('#stageArea .stage');
   const bigCard = document.getElementById('bigCard');
   if(!bigCard) return;
   if(finished){
-    bigCard.innerHTML = `<p class="placeholder">🎉 All cards have been shown! Click "Restart" to go again.</p>`;
+    bigCard.innerHTML = '<p class="placeholder">🎉 All cards shown! Click Restart to go again.</p>';
+    if(stage) stage.classList.remove('no-image');
     return;
   }
   bigCard.innerHTML = '';
-  let mediaFrame = null;
-  if(card.image){
-    mediaFrame = document.createElement('div');
+
+  const hasImage  = !!card.image;
+  const hasPrompt = !!card.prompt;
+  const hasAudio  = !!(card.audioFile || card.audioText);
+
+  // Classe no stage para ajustar layout
+  if(stage) stage.classList.toggle('no-image', !hasImage);
+
+  // Áudio — canto superior esquerdo, fora do fluxo normal
+  if(hasAudio || hasPrompt){
+    const audioWrap = document.createElement('div');
+    audioWrap.className = 'audio-overlay';
+    const speakBtn = document.createElement('button');
+    speakBtn.className = 'speak-btn';
+    speakBtn.textContent = '🔊';
+    speakBtn.title = 'Play audio';
+    speakBtn.onclick = ()=> playCardAudio(card);
+    audioWrap.appendChild(speakBtn);
+    bigCard.appendChild(audioWrap);
+  }
+
+  // Imagem — ocupa o espaço disponível
+  if(hasImage){
+    const mediaFrame = document.createElement('div');
     mediaFrame.className = 'media-frame';
     const img = document.createElement('img');
     let settled = false;
     const failTimeout = setTimeout(()=>{
-      if(settled) return;
-      settled = true;
-      img.remove();
-      showStageImageError(mediaFrame, card);
+      if(settled) return; settled = true;
+      img.remove(); showStageImageError(mediaFrame, card);
     }, 8000);
-    img.onload = ()=>{ settled = true; clearTimeout(failTimeout); };
+    img.onload  = ()=>{ settled = true; clearTimeout(failTimeout); };
     img.onerror = ()=>{
-      if(settled) return;
-      settled = true;
-      clearTimeout(failTimeout);
-      img.remove();
+      if(settled) return; settled = true;
+      clearTimeout(failTimeout); img.remove();
       showStageImageError(mediaFrame, card);
     };
     img.src = card.image;
     mediaFrame.appendChild(img);
     bigCard.appendChild(mediaFrame);
   }
-  if(card.prompt){
+
+  // Prompt — sempre em baixo
+  if(hasPrompt){
     const p = document.createElement('p');
     p.className = 'prompt-text';
     p.textContent = card.prompt;
     bigCard.appendChild(p);
   }
-  if(!card.image && !card.prompt){
-    if(card.audioFile || card.audioText){
-      bigCard.innerHTML = '<p class="placeholder">🔊 Audio-only card — press play below</p>';
-    }else{
-      bigCard.innerHTML = '<p class="placeholder">(empty card)</p>';
-    }
-  }
-  if(card.audioFile || card.audioText || card.prompt){
-    const speakBtn = document.createElement('button');
-    speakBtn.className = 'speak-btn';
-    speakBtn.textContent = '🔊';
-    speakBtn.title = 'Play audio';
-    speakBtn.onclick = ()=> playCardAudio(card);
-    bigCard.appendChild(speakBtn);
+
+  // Card vazio
+  if(!hasImage && !hasPrompt){
+    const msg = hasAudio
+      ? '<p class="placeholder">🔊 Audio-only card — press play</p>'
+      : '<p class="placeholder">(empty card)</p>';
+    bigCard.innerHTML = msg;
   }
 }
 
@@ -1855,24 +1941,28 @@ function shuffleArray(arr){
 
 function renderBoxStage(){
   const stageArea = document.getElementById('stageArea');
-  stageArea.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+  stageArea.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;gap:10px;';
   boxOrder = shuffleArray(currentSet.cards);
   boxOpenCounts = new Array(boxOrder.length).fill(0);
   boxHistory = [];
   boxPosition = -1;
   stageArea.innerHTML = `
-    <div class="stage">
+    <div class="stage box-mode" id="mainStage">
       <div class="card-deck">
         <div class="big-card" id="bigCard">
-          <p class="placeholder">Pick a number to open a box</p>
+          <p class="placeholder">Escolha um número para abrir a caixa</p>
         </div>
       </div>
-      <p class="box-instruction">🔀 Shuffled — tap a box · keys 1–9 also work</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:900px;">
+      <p class="box-instruction">🔀 Embaralhado — toque em um número · teclas 1–9 também funcionam</p>
       <div class="box-grid" id="boxGrid"></div>
-      <div class="counter" id="boxCounterText"></div>
-      <div class="stage-controls">
-        <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Prev</button>
-        <button class="btn btn-ghost-dark" id="resetBoxBtn">↺ Restart</button>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div class="counter" id="boxCounterText"></div>
+        <div class="stage-controls" style="padding:0;">
+          <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Prev</button>
+          <button class="btn btn-ghost-dark" id="resetBoxBtn">↺ Restart</button>
+        </div>
       </div>
     </div>
   `;
