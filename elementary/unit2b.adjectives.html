@@ -97,12 +97,12 @@
   .mc-item { margin-bottom:18px; }
   .mc-question { font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:10px;line-height:1.4; }
   .mc-options { display:flex;flex-direction:column;gap:8px; }
-  .mc-option { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:500;background:var(--white); }
-  .mc-option:hover { border-color:var(--purple-light);background:#f5f3ff; }
-  .mc-option.selected { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option { display:block;width:100%;text-align:left;padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:500;background:var(--white);font-family:'Poppins',sans-serif;color:var(--purple); }
+  .mc-option:hover:not(:disabled) { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light);background:#f5f3ff;color:var(--purple); }
   .mc-option.correct { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
   .mc-option.wrong { border-color:var(--red);background:#fef2f2;color:var(--red); }
-  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+  .mc-option:disabled { cursor:default; }
 
   /* FILL */
   .fill-item { margin-bottom:14px; }
@@ -927,28 +927,29 @@ function buildMC(containerId, data, exId) {
   wrap.innerHTML = '';
   data.forEach((item, i) => {
     const div = document.createElement('div'); div.className = 'mc-item';
-    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
-      item.opts.map((o,j) => '<label class="mc-option" data-q="' + exId + '_' + i + '" data-j="' + j + '"><input type="radio" name="' + exId + '_' + i + '" value="' + j + '"/> ' + o + '</label>').join('') +
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options" data-grp="' + exId + '_' + i + '">' +
+      item.opts.map((o,j) => '<button type="button" class="mc-option" data-q="' + exId + '_' + i + '" data-j="' + j + '">' + o + '</button>').join('') +
       '</div>';
     wrap.appendChild(div);
   });
-  wrap.querySelectorAll('.mc-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      const q = opt.dataset.q;
-      wrap.querySelectorAll('[data-q="' + q + '"]').forEach(o => { o.classList.remove('selected'); o.querySelector('input').checked = false; });
-      opt.classList.add('selected'); opt.querySelector('input').checked = true;
-    });
+  // Single delegated listener on the container
+  wrap.addEventListener('click', function(e) {
+    const opt = e.target.closest('.mc-option');
+    if (!opt || opt.disabled) return;
+    const q = opt.dataset.q;
+    wrap.querySelectorAll('[data-q="' + q + '"]').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
   });
 }
 
 function checkMC(data, containerId, fbId, exId) {
   const wrap = document.getElementById(containerId);
   const fb = document.getElementById(fbId);
-  let correct = 0; let total = data.length;
+  let correct = 0; const total = data.length;
   data.forEach((item, i) => {
     const opts = wrap.querySelectorAll('[data-q="' + exId + '_' + i + '"]');
-    const sel = [...opts].find(o => o.querySelector('input').checked);
-    opts.forEach(o => o.style.pointerEvents = 'none');
+    const sel = [...opts].find(o => o.classList.contains('selected'));
+    opts.forEach(o => { o.disabled = true; o.style.pointerEvents = 'none'; });
     if (!sel) return;
     const chosen = parseInt(sel.dataset.j);
     if (chosen === item.ans) {
@@ -958,8 +959,8 @@ function checkMC(data, containerId, fbId, exId) {
       opts[item.ans].classList.add('correct');
       if (item.why) {
         const why = document.createElement('div');
-        why.style.cssText = 'font-size:0.78rem;color:var(--red);margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:4px;';
-        why.innerHTML = '<strong>Correct answer:</strong> ' + item.opts[item.ans] + ' — ' + item.why;
+        why.style.cssText = 'font-size:0.78rem;color:var(--red);margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:4px;line-height:1.5;';
+        why.innerHTML = '<strong>Correct answer:</strong> ' + item.opts[item.ans] + '<br>' + item.why;
         opts[item.ans].parentElement.appendChild(why);
       }
     }
@@ -1159,23 +1160,45 @@ function checkCTF(sentences, containerId, fbId, exId) {
   const fb = document.getElementById(fbId);
   let correct = 0; let total = 0;
   sentences.forEach((s, si) => {
-    const answers = Array.isArray(s.ans[0]) ? s.ans : s.ans.map(a => [a]);
-    answers.forEach((accepted, gi) => {
-      total++;
+    // Collect all gap values for this sentence
+    const gapCount = s.ans.length;
+    const studentVals = [];
+    for (let gi = 0; gi < gapCount; gi++) {
       const gap = document.getElementById(exId + '_g_' + si + '_' + gi);
-      if (!gap) return;
-      const val = (gap.dataset.filled || '').toLowerCase().trim();
-      const ok = accepted.map(a => a.toLowerCase()).includes(val);
-      gap.style.pointerEvents = 'none';
-      if (ok) { gap.classList.add('correct-gap'); gap.classList.remove('wrong-gap'); correct++; }
-      else {
-        gap.classList.add('wrong-gap'); gap.classList.remove('correct-gap');
-        const hint = document.createElement('span');
-        hint.style.cssText = 'font-size:0.75rem;color:var(--red);margin-left:4px;';
-        hint.textContent = '(' + accepted.join('/') + ')';
-        gap.parentElement.insertBefore(hint, gap.nextSibling);
+      studentVals.push(gap ? (gap.dataset.filled || '').toLowerCase().trim() : '');
+    }
+    // Build correct answer pool (flat list of accepted values per gap)
+    const correctPool = s.ans.map(a => (Array.isArray(a) ? a : [a]).map(x => x.toLowerCase()));
+    // Try to match student answers to correct answers (order-independent)
+    // Use a greedy assignment: for each student answer, find a matching correct slot
+    const used = new Array(gapCount).fill(false);
+    const matched = new Array(gapCount).fill(false);
+    studentVals.forEach((val, gi) => {
+      if (!val) return;
+      for (let ci = 0; ci < gapCount; ci++) {
+        if (!used[ci] && correctPool[ci].includes(val)) {
+          used[ci] = true; matched[gi] = true; break;
+        }
       }
     });
+    // Mark each gap
+    for (let gi = 0; gi < gapCount; gi++) {
+      total++;
+      const gap = document.getElementById(exId + '_g_' + si + '_' + gi);
+      if (!gap) continue;
+      gap.style.pointerEvents = 'none';
+      if (matched[gi]) {
+        gap.classList.add('correct-gap'); gap.classList.remove('wrong-gap'); correct++;
+      } else {
+        gap.classList.add('wrong-gap'); gap.classList.remove('correct-gap');
+        // Show all acceptable answers for this sentence
+        const allAns = correctPool.flat().filter((v,i,a) => a.indexOf(v)===i).join(' / ');
+        const hint = document.createElement('span');
+        hint.style.cssText = 'font-size:0.75rem;color:var(--red);margin-left:4px;font-weight:600;';
+        hint.textContent = studentVals[gi] ? '✗ Correct: ' + allAns : '(empty — correct: ' + allAns + ')';
+        gap.parentElement.insertBefore(hint, gap.nextSibling);
+      }
+    }
   });
   totalChecked++;
   localStorage.setItem(STORAGE_KEY + '_checked', totalChecked);
@@ -1345,12 +1368,12 @@ document.getElementById('d2e3-reset').addEventListener('click', () => resetMC('d
 
 // D3E1 – MC: Read the label
 const d3e1Data = [
-  {q:'<strong>Phone A:</strong> black, new, $900. Which description is correct?', opts:['It\'s a new black phone.','It\'s an old white phone.','It\'s a cheap red phone.'], ans:0, why:'Black + new + $900 = a new black phone. $900 is not cheap.'},
-  {q:'<strong>Bag B:</strong> brown, small, $20.', opts:['It\'s a big black bag.','It\'s a small brown bag.','It\'s a blue expensive bag.'], ans:1, why:'Brown + small = a small brown bag.'},
-  {q:'<strong>Car C:</strong> red, old, $3,000.', opts:['It\'s a new blue car.','It\'s an old red car.','It\'s a small green car.'], ans:1, why:'Red + old = an old red car.'},
-  {q:'<strong>Laptop D:</strong> grey, new, $1,800.', opts:['It\'s an old black laptop.','It\'s a new grey laptop.','It\'s a cheap white laptop.'], ans:1, why:'Grey + new = a new grey laptop. $1,800 is not cheap.'},
-  {q:'<strong>Watch E:</strong> silver, old, $500.', opts:['It\'s an old expensive watch.','It\'s a new cheap watch.','It\'s a big red watch.'], ans:0, why:'Old + $500 = an old expensive watch.'},
-  {q:'<strong>Umbrella F:</strong> yellow, new, $10.', opts:['It\'s an old brown umbrella.','It\'s a new yellow umbrella.','It\'s an expensive black umbrella.'], ans:1, why:'Yellow + new = a new yellow umbrella. $10 is not expensive.'},
+  {q:'<strong>Phone A:</strong> black, new, $900. Which description is correct?', opts:["It's an old white phone.","It's a cheap red phone.","It's a new black phone."], ans:2, why:'Black + new + $900 = a new black phone. $900 is not cheap, and the phone is not white or old.'},
+  {q:'<strong>Bag B:</strong> brown, small, $20.', opts:["It's a small brown bag.","It's a big black bag.","It's a blue expensive bag."], ans:0, why:'Brown + small = a small brown bag. The bag is not big, black, blue, or expensive.'},
+  {q:'<strong>Car C:</strong> red, old, $3,000.', opts:["It's a new blue car.","It's a small green car.","It's an old red car."], ans:2, why:'Red + old = an old red car. The car is not new, blue, small, or green.'},
+  {q:'<strong>Laptop D:</strong> grey, new, $1,800.', opts:["It's an old black laptop.","It's a new grey laptop.","It's a cheap white laptop."], ans:1, why:'Grey + new = a new grey laptop. $1,800 is not cheap, and the laptop is not black or old.'},
+  {q:'<strong>Watch E:</strong> silver, old, $500.', opts:["It's a new cheap watch.","It's an old expensive watch.","It's a big red watch."], ans:1, why:'Old + $500 = an old expensive watch. The watch is not new, cheap, big, or red.'},
+  {q:'<strong>Umbrella F:</strong> yellow, new, $10.', opts:["It's an old brown umbrella.","It's an expensive black umbrella.","It's a new yellow umbrella."], ans:2, why:'Yellow + new = a new yellow umbrella. $10 is not expensive, and the umbrella is not old or brown.'},
 ];
 buildMC('d3e1', d3e1Data, 'd3e1');
 document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data,'d3e1','d3e1-fb','d3e1'));
@@ -1390,14 +1413,14 @@ document.getElementById('d3e3-reset').addEventListener('click', () => resetTF(d3
 
 // D4E1 – MC: One adjective doesn't fit
 const d4e1Data = [
-  {q:'<strong>a road</strong> — Which adjective does NOT fit?', opts:['long','dangerous','delicious'], ans:2, why:'Roads can be long or dangerous, but "delicious" is for food — it does not describe a road.'},
-  {q:'<strong>coffee</strong> — Which adjective does NOT fit?', opts:['hot','cold','tall'], ans:2, why:'Coffee can be hot or cold, but "tall" describes height — we do not say "tall coffee".'},
-  {q:'<strong>a building</strong> — Which adjective does NOT fit?', opts:['high','old','hungry'], ans:2, why:'Buildings can be high or old, but "hungry" describes a person or animal, not a building.'},
-  {q:'<strong>a suitcase</strong> — Which adjective does NOT fit?', opts:['full','empty','delicious'], ans:2, why:'Suitcases can be full or empty, but "delicious" is for food or drinks.'},
-  {q:'<strong>an exercise</strong> — Which adjective does NOT fit?', opts:['easy','difficult','tall'], ans:2, why:'Exercises can be easy or difficult, but "tall" describes height — not exercises.'},
-  {q:'<strong>a car</strong> — Which adjective does NOT fit?', opts:['fast','slow','hungry'], ans:2, why:'Cars can be fast or slow, but "hungry" describes a living thing, not a car.'},
-  {q:'<strong>a hotel room</strong> — Which adjective does NOT fit?', opts:['clean','dirty','delicious'], ans:2, why:'Rooms can be clean or dirty, but "delicious" is for food — not rooms.'},
-  {q:'<strong>a person</strong> — Which adjective does NOT fit?', opts:['tall','short','empty'], ans:2, why:'People can be tall or short, but "empty" describes a container — not a person.'},
+  {q:'<strong>a road</strong> — Which adjective does NOT fit?', opts:['delicious','long','dangerous'], ans:0, why:'"Delicious" is for food — it does not describe a road. Roads can be long or dangerous.'},
+  {q:'<strong>coffee</strong> — Which adjective does NOT fit?', opts:['hot','tall','cold'], ans:1, why:'"Tall" describes height — we do not say "tall coffee". Coffee can be hot or cold.'},
+  {q:'<strong>a building</strong> — Which adjective does NOT fit?', opts:['high','hungry','old'], ans:1, why:'"Hungry" describes a person or animal, not a building. Buildings can be high or old.'},
+  {q:'<strong>a suitcase</strong> — Which adjective does NOT fit?', opts:['full','empty','delicious'], ans:2, why:'"Delicious" is for food or drinks — not suitcases. Suitcases can be full or empty.'},
+  {q:'<strong>an exercise</strong> — Which adjective does NOT fit?', opts:['tall','easy','difficult'], ans:0, why:'"Tall" describes height — not exercises. Exercises can be easy or difficult.'},
+  {q:'<strong>a car</strong> — Which adjective does NOT fit?', opts:['fast','slow','hungry'], ans:2, why:'"Hungry" describes a living thing, not a car. Cars can be fast or slow.'},
+  {q:'<strong>a hotel room</strong> — Which adjective does NOT fit?', opts:['delicious','clean','dirty'], ans:0, why:'"Delicious" is for food — not rooms. Rooms can be clean or dirty.'},
+  {q:'<strong>a person</strong> — Which adjective does NOT fit?', opts:['tall','empty','short'], ans:1, why:'"Empty" describes a container — not a person. People can be tall or short.'},
 ];
 buildMC('d4e1', d4e1Data, 'd4e1');
 document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data,'d4e1','d4e1-fb','d4e1'));
@@ -1536,21 +1559,21 @@ document.getElementById('d6e3-reset').addEventListener('click', () => resetMC('d
 
 // D7E1 – MC: Complete review (15 items)
 const d7e1Data = [
-  {q:'The opposite of <strong>big</strong> is ___.',opts:['small','short','low'],ans:0,why:'"Small" is the direct opposite of "big". "Short" and "low" are different opposites.'},
-  {q:'This coffee is 80°C. It is ___.',opts:['cold','hot','dark'],ans:1,why:'80°C = very hot temperature.'},
-  {q:'There is nothing in the bag. It is ___.',opts:['full','empty','light'],ans:1,why:'Nothing inside = empty. "Full" means the opposite.'},
+  {q:'The opposite of <strong>big</strong> is ___.',opts:['short','low','small'],ans:2,why:'"Small" is the direct opposite of "big". "Short" and "low" are not opposites of "big".'},
+  {q:'This coffee is 80°C. It is ___.',opts:['cold','dark','hot'],ans:2,why:'80°C = very hot temperature. "Cold" is the opposite, and "dark" describes light, not temperature.'},
+  {q:'There is nothing in the bag. It is ___.',opts:['full','empty','light'],ans:1,why:'Nothing inside = empty. "Full" is the opposite, and "light" describes weight, not contents.'},
   {q:'The opposite of <strong>dangerous</strong> is ___.',opts:['clean','safe','easy'],ans:1,why:'"Safe" is the opposite of "dangerous". "Clean" and "easy" are not opposites of "dangerous".'},
-  {q:'A car goes from 0 to 100 km/h in four seconds. It is ___.',opts:['slow','fast','high'],ans:1,why:'0–100 in four seconds = very fast, not slow.'},
-  {q:'The answer is 15. Jack writes 15. His answer is ___.',opts:['wrong','right','different'],ans:1,why:'He wrote the correct number — his answer is right, not wrong.'},
-  {q:'Which description makes sense?',opts:['The coffee is tall.','The road is long.','The building is hungry.'],ans:1,why:'Roads can be long. Coffee cannot be tall, and buildings cannot be hungry.'},
-  {q:'Car A is red. Car B is also red. The cars are the same ___.',opts:['colour','hot','high'],ans:0,why:'Both cars are red, so they are the same colour.'},
-  {q:'This laptop costs $2,000. It is ___.',opts:['cheap','expensive','empty'],ans:1,why:'$2,000 is a high price — the laptop is expensive, not cheap.'},
-  {q:'The hotel has dirty rooms and bad food.',opts:['I think it\'s good.','I think it\'s bad.','I think it\'s beautiful.'],ans:1,why:'Dirty rooms and bad food = a bad hotel. There is no evidence it is good or beautiful.'},
-  {q:'A building with 50 floors is very ___.',opts:['long','high','hungry'],ans:1,why:'We say a building is "high" (or tall). "Long" is for roads or distances. "Hungry" describes a person, not a building.'},
-  {q:'A: What do you think about the new cafe?<br>B: ___',opts:['I think it\'s beautiful.','It\'s at 25 King Street.','It\'s Monday.'],ans:0,why:'The question asks for an opinion about the cafe. Only "I think it\'s beautiful" is an opinion.'},
-  {q:'Which pair contains opposites?',opts:['clean / dirty','clean / safe','cheap / small'],ans:0,why:'"Clean" and "dirty" are opposites. "Clean" and "safe" are not opposites, and "cheap" and "small" are not opposites.'},
-  {q:'The two phones are black, new, and the same size. They are ___.',opts:['different','the same','wrong'],ans:1,why:'All three adjectives match — the phones are the same.'},
-  {q:'A room has white walls, a clean floor, and a clean bathroom.',opts:['The room is dirty.','The room is clean.','The room is dangerous.'],ans:1,why:'White walls, clean floor, clean bathroom = a clean room, not dirty or dangerous.'},
+  {q:'A car goes from 0 to 100 km/h in four seconds. It is ___.',opts:['slow','high','fast'],ans:2,why:'0–100 in four seconds = very fast, not slow. "High" describes height, not speed.'},
+  {q:'The answer is 15. Jack writes 15. His answer is ___.',opts:['wrong','different','right'],ans:2,why:'He wrote the correct number — his answer is right. "Wrong" and "different" would mean he made a mistake.'},
+  {q:'Which description makes sense?',opts:['The coffee is tall.','The building is hungry.','The road is long.'],ans:2,why:'Roads can be long. Coffee cannot be tall, and buildings cannot be hungry.'},
+  {q:'Car A is red. Car B is also red. The cars are the same ___.',opts:['hot','high','colour'],ans:2,why:'Both cars are red, so they are the same colour. "Hot" and "high" do not describe colour.'},
+  {q:'This laptop costs $2,000. It is ___.',opts:['cheap','empty','expensive'],ans:2,why:'$2,000 is a high price — the laptop is expensive. "Cheap" is the opposite, and "empty" is not about price.'},
+  {q:'The hotel has dirty rooms and bad food.',opts:["I think it's good.","I think it's beautiful.","I think it's bad."],ans:2,why:'Dirty rooms and bad food = a bad hotel. There is no evidence it is good or beautiful.'},
+  {q:'A building with 50 floors is very ___.',opts:['long','hungry','high'],ans:2,why:'We say a building is "high". "Long" is for roads or distances. "Hungry" describes a person, not a building.'},
+  {q:'A: What do you think about the new cafe?<br>B: ___',opts:["I think it is beautiful.","It is at 25 King Street.","It is Monday."],ans:0,why:'The question asks for an opinion about the cafe. Only "I think it is beautiful" is an opinion.'},
+  {q:'Which pair contains opposites?',opts:['clean / safe','cheap / small','clean / dirty'],ans:2,why:'"Clean" and "dirty" are opposites. "Clean / safe" and "cheap / small" are not opposite pairs.'},
+  {q:'The two phones are black, new, and the same size. They are ___.',opts:['wrong','different','the same'],ans:2,why:'All three adjectives match — the phones are the same. "Wrong" and "different" would mean they do not match.'},
+  {q:'A room has white walls, a clean floor, and a clean bathroom.',opts:['The room is dirty.','The room is dangerous.','The room is clean.'],ans:2,why:'White walls, clean floor, clean bathroom = a clean room, not dirty or dangerous.'},
 ];
 buildMC('d7e1', d7e1Data, 'd7e1');
 document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data,'d7e1','d7e1-fb','d7e1'));
