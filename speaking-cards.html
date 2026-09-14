@@ -313,6 +313,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   #presentInner{
     width:100%;flex:1;min-height:0;
     display:flex;flex-direction:column;align-items:center;
+    gap:0;overflow:hidden;
+  }
+  #stageArea{
+    width:100%;flex:1;min-height:0;
+    display:flex;flex-direction:column;align-items:center;
     gap:10px;overflow:hidden;
   }
   .stage{
@@ -395,16 +400,30 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   .stage.box-mode{
     justify-content:flex-start;
     height:100%;
+    max-width:none;
+    border-radius:0;
+  }
+  /* No box mode, remover padding lateral do wrap para stage ir de borda a borda */
+  #presentView.active:has(.stage.box-mode) .present-stage-wrap{
+    padding-left:0;
+    padding-right:0;
+    gap:0;
   }
   /* área inferior do box mode: instruction + grid + controls */
   .box-bottom{
     width:100%;display:flex;flex-direction:column;align-items:center;
     gap:6px;padding:8px 12px 12px;flex-shrink:0;
-    background:rgba(4,57,47,.5);
-    border-top:1px solid rgba(255,255,255,.1);
+    background:#fff;
+    border-top:1px solid rgba(29,16,80,.08);
   }
   .box-controls-row{
     display:flex;gap:12px;align-items:center;justify-content:center;
+  }
+  .box-bottom .btn-ghost-dark{
+    border-color:rgba(29,16,80,.3);color:var(--purple);
+  }
+  .box-bottom .btn-ghost-dark:hover{
+    background:var(--purple);color:#fff;
   }
   .big-card{
     width:100%;flex:1;min-height:0;
@@ -419,11 +438,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     border-radius:12px;object-fit:contain;
   }
   .big-card .prompt-text{
-    font-size:28px;padding:0;border-top:none;
-    width:auto;
+    font-size:28px;padding:8px 24px 0;border-top:none;
+    width:100%;color:var(--purple);
   }
   .card-deck{width:100%;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0;}
-  .placeholder{color:rgba(29,16,80,.35);font-size:16px;font-weight:600;text-align:center;}
+  .placeholder{color:rgba(29,16,80,.4);font-size:18px;font-weight:600;text-align:center;}
   .box-grid{
     display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
     padding:14px 12px;width:100%;max-width:640px;
@@ -451,9 +470,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   .box:nth-child(6n+4){background:#fff;color:var(--purple);border:2px solid rgba(255,255,255,.4);}
   .box:nth-child(6n+5){background:var(--purple);color:var(--cream);}
   .box:nth-child(6n+6){background:#e8a020;color:#fff;}
-  .box.opened{opacity:.35;filter:saturate(.3);cursor:default;transform:none !important;box-shadow:none !important;}
-  .box-instruction{font-size:13px;color:rgba(250,234,211,.65);font-weight:600;text-align:center;}
-  .counter{font-size:12px;color:rgba(250,234,211,.55);font-weight:600;text-align:center;}
+  .box.opened{opacity:.3;cursor:default;transform:none !important;box-shadow:none !important;}
+  .box-instruction{font-size:13px;color:rgba(29,16,80,.5);font-weight:600;text-align:center;}
+  .counter{font-size:12px;color:rgba(29,16,80,.4);font-weight:600;text-align:center;}
   .stage .box-badge{
     position:absolute;top:12px;left:14px;
     background:var(--lavender);color:var(--purple);
@@ -1714,12 +1733,18 @@ fullscreenBtn.onclick = ()=>{
     (document.exitFullscreen || document.webkitExitFullscreen).call(document);
   }
 };
-document.addEventListener('fullscreenchange', ()=>{
-  fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
-});
-document.addEventListener('webkitfullscreenchange', ()=>{
-  fullscreenBtn.textContent = document.webkitFullscreenElement ? '✕' : '⛶';
-});
+function onFullscreenChange(){
+  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  fullscreenBtn.textContent = isFS ? '✕' : '⛶';
+  // Garantir que o stage não ultrapasse a viewport em fullscreen
+  const wrap = document.getElementById('presentWrap');
+  if(wrap){
+    wrap.style.maxHeight = isFS ? '100vh' : '';
+    wrap.style.height    = isFS ? '100vh' : '';
+  }
+}
+document.addEventListener('fullscreenchange', onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
 async function renderPresentSetSelect(){
   const CACHE_MS = 10000;
@@ -1776,7 +1801,7 @@ function buildModeUI(){
     btn.onclick = ()=> setMode(btn.dataset.mode);
   });
   // Stage area inside the present-stage-wrap
-  presentInner.innerHTML = `<div id="stageArea" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>`;
+  presentInner.innerHTML = '<div id="stageArea"></div>';
   setMode(currentMode);
 }
 
@@ -1998,7 +2023,6 @@ function renderBoxStage(){
         </div>
       </div>
       <div class="box-bottom">
-        <p class="box-instruction">🔀 Embaralhado — toque em um número · teclas 1–9 também funcionam</p>
         <div class="box-grid" id="boxGrid"></div>
         <div class="box-controls-row">
           <div class="counter" id="boxCounterText"></div>
