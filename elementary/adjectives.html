@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Adjectives – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position:fixed;inset:0;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px; }
+  #welcome-screen.hidden { display:none; }
+  .welcome-card { background:var(--white);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .welcome-logo { height:48px;object-fit:contain;margin-bottom:16px; }
+  .welcome-hi { font-size:1.5rem;font-weight:800;color:var(--purple);margin-bottom:6px; }
+  .welcome-sub { font-size:0.82rem;color:var(--gray);margin-bottom:24px;line-height:1.5; }
+  .welcome-input { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:600;color:var(--purple);text-align:center;outline:none;margin-bottom:16px;transition:border-color 0.2s; }
+  .welcome-input:focus { border-color:var(--purple-light); }
+  .welcome-btn { width:100%;padding:13px;background:var(--orange);color:var(--white);border:none;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,92,35,0.35);transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18;transform:translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display:none;background:linear-gradient(90deg,var(--orange),#ff8c5a);color:var(--white);text-align:center;padding:12px 16px;font-size:1rem;font-weight:700; }
+  #hello-banner.show { display:block; }
+
+  /* HEADER */
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);padding:28px 24px 22px;text-align:center;position:relative;overflow:hidden; }
+  .header::before { content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,92,35,0.18); }
+  .header::after { content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem;font-weight:800;color:var(--white);letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.70);margin-top:4px;text-transform:uppercase;letter-spacing:1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background:var(--white);padding:16px 20px;box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;color:var(--purple);margin-bottom:8px; }
+  .progress-track { height:10px;background:var(--gray-light);border-radius:99px;overflow:hidden; }
+  .progress-fill { height:100%;background:linear-gradient(90deg,var(--orange),#ff8c5a);border-radius:99px;transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655);color:var(--white);text-align:center;padding:10px 16px;font-size:0.82rem;font-weight:500; }
+  .motivation-bar span { opacity:0.8; }
+
+  /* TABS */
+  .tabs-wrap { background:var(--white);overflow-x:auto;border-bottom:2px solid var(--gray-light);position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm); }
+  .tabs { display:flex;min-width:max-content;padding:0 8px; }
+  .tab-btn { padding:14px 16px;font-size:0.78rem;font-weight:600;color:var(--gray);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;letter-spacing:0.3px; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange);border-bottom-color:var(--orange); }
+
+  /* CONTENT */
+  .content { max-width:780px;margin:0 auto;padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  /* DAY HEADER */
+  .day-header { display:flex;align-items:center;gap:14px;margin-bottom:24px; }
+  .day-number { background:var(--orange);color:var(--white);font-size:1.1rem;font-weight:800;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem;font-weight:700;color:var(--purple); }
+  .day-desc { font-size:0.82rem;color:var(--gray);margin-top:2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { background:var(--white);border-radius:var(--radius);padding:22px;margin-bottom:20px;box-shadow:var(--shadow);border-left:4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color:var(--orange); }
+  .ex-card.reading { border-left-color:var(--teal); }
+  .ex-card.writing { border-left-color:var(--green); }
+  .ex-title { font-size:0.98rem;font-weight:700;color:var(--purple);margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem;color:var(--gray);margin-bottom:18px;line-height:1.5; }
+
+  /* WORD BOX */
+  .word-box { background:var(--cream);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:0.85rem;font-weight:600;color:var(--purple);text-align:center;letter-spacing:0.5px; }
+
+  /* READING TEXT */
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:18px;margin-bottom:18px;font-size:0.9rem;line-height:1.75;color:var(--purple);font-weight:500;border-left:4px solid var(--teal); }
+  .reading-text h4 { color:var(--orange);font-size:0.88rem;margin-bottom:6px; }
+
+  /* MULTIPLE CHOICE */
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:10px;line-height:1.4; }
+  .mc-options { display:flex;flex-direction:column;gap:8px; }
+  .mc-option { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:500;background:var(--white); }
+  .mc-option:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.correct { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
+  .mc-option.wrong { border-color:var(--red);background:#fef2f2;color:var(--red); }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom:14px; }
+  .fill-line { display:inline;font-size:0.88rem;font-weight:500;color:var(--purple);line-height:2; }
+  .fill-input { border:none;border-bottom:2px solid var(--purple-light);padding:2px 6px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:600;color:var(--purple);background:transparent;min-width:100px;max-width:min(160px,100%);text-align:center;outline:none;transition:border-color 0.2s;display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal);color:var(--teal); }
+  .fill-input.wrong { border-bottom-color:var(--red);color:var(--red); }
+
+  /* T/F */
+  .tf-item { margin-bottom:10px; }
+  .tf-line { display:flex;align-items:center;gap:10px;font-size:0.88rem;font-weight:500;color:var(--purple);flex-wrap:wrap; }
+  .tf-btns { display:flex;gap:6px; }
+  .tf-btn { padding:4px 14px;border-radius:99px;border:2px solid var(--gray-light);font-family:'Poppins',sans-serif;font-size:0.80rem;font-weight:700;cursor:pointer;background:var(--white);transition:all 0.2s; }
+  .tf-btn.t:hover { border-color:var(--teal);color:var(--teal); }
+  .tf-btn.f:hover { border-color:var(--purple-light);color:var(--purple-light); }
+  .tf-btn.selected-t { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
+  .tf-btn.selected-f { border-color:var(--red);background:#fef2f2;color:var(--red); }
+  .tf-btn.correct-t { border-color:var(--teal);background:var(--teal);color:#fff; }
+  .tf-btn.correct-f { border-color:var(--red);background:var(--red);color:#fff; }
+  .tf-btn.wrong-sel { border-color:var(--red);background:var(--red);color:#fff; }
+  .tf-btn.right-answer { border-color:var(--teal);background:var(--teal);color:#fff;outline:2px solid var(--teal); }
+
+  /* CTF */
+  .ctf-wordbank { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--cream);border-radius:var(--radius-sm); }
+  .ctf-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 14px;font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none; }
+  .ctf-chip:hover { background:var(--purple-light);transform:translateY(-1px); }
+  .ctf-chip.active { background:var(--orange);outline:3px solid #ffb347;transform:scale(1.08); }
+  .ctf-chip.used { background:var(--gray);cursor:default;opacity:0.45; }
+  .ctf-chip.wrong-pick { background:var(--red);outline:2px solid var(--red);opacity:1; }
+  .ctf-chip.correct-pick { background:var(--teal);outline:2px solid var(--teal);opacity:1; }
+  .ctf-gap { display:inline-block;min-width:72px;text-align:center;border-bottom:2.5px solid var(--purple-light);color:var(--orange);font-weight:700;font-size:0.88rem;padding:0 4px;cursor:pointer;margin:0 2px;transition:border-color 0.2s,background 0.2s;border-radius:4px 4px 0 0;vertical-align:middle;line-height:1.8; }
+  .ctf-gap:empty::before { content:'_ _ _';color:#bbb;font-weight:400;font-size:0.78rem; }
+  .ctf-gap.ready { border-bottom-color:var(--orange);background:#fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color:var(--teal);color:var(--teal);background:#f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color:var(--red);color:var(--red);background:#fef2f2; }
+  .ctf-sentence { font-size:0.88rem;font-weight:500;color:var(--purple);line-height:2.2;margin-bottom:12px; }
+
+  /* BUTTONS */
+  .btn { display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none; }
+  .btn-primary { background:var(--orange);color:var(--white);box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18;transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light);color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp { background:#25D366;color:var(--white);box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855;transform:translateY(-1px); }
+  .btn-row { display:flex;gap:10px;flex-wrap:wrap;margin-top:14px; }
+
+  /* FEEDBACK */
+  .feedback { display:none;padding:12px 16px;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;margin-top:14px;line-height:1.5; }
+  .feedback.show { display:block; }
+  .feedback.ok { background:#f0fdfa;color:var(--teal);border:1px solid #99f6e4; }
+  .feedback.err { background:#fef2f2;color:var(--red);border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb;color:#b45309;border:1px solid #fde68a; }
+
+  /* TEXTAREA */
+  .writing-area { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Poppins',sans-serif;font-size:0.88rem;color:var(--purple);resize:vertical;outline:none;min-height:120px;transition:border-color 0.2s;margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+
+  /* EXAMPLE BOX */
+  .example-box { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:16px;margin-bottom:14px;font-size:0.88rem;line-height:1.8;color:var(--purple);font-weight:500;border:2px dashed var(--orange); }
+  .example-box .ex-label { font-size:0.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px; }
+
+  /* VOCAB / GRAMMAR BANK */
+  .bank-section { margin-bottom:28px; }
+  .bank-title { font-size:0.9rem;font-weight:700;color:var(--purple);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gray-light); }
+  .vocab-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px; }
+  .vocab-chip { background:var(--white);border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:10px 12px;text-align:center;font-size:0.82rem;font-weight:600;color:var(--purple);cursor:pointer;transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem;color:var(--gray);font-weight:500;margin-top:2px; }
+  .grammar-table { width:100%;border-collapse:collapse;font-size:0.83rem; }
+  .grammar-table th { background:var(--purple);color:var(--white);padding:8px 12px;text-align:left;font-weight:600; }
+  .grammar-table td { padding:8px 12px;border-bottom:1px solid var(--gray-light);color:var(--purple);font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange);font-weight:700; }
+  .tip-box { background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;font-size:0.82rem;color:#92400e;margin-top:12px;line-height:1.6; }
+
+  /* SUMMARY */
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light));border-radius:var(--radius);padding:24px;text-align:center;color:var(--white);margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem;font-weight:800;margin-bottom:6px; }
+  .summary-card p { font-size:0.82rem;opacity:0.8;margin-bottom:16px; }
+  .score-big { font-size:2.8rem;font-weight:800;color:var(--orange); }
+  #confetti-canvas { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999; }
+
+  /* RESPONSIVE */
+  @media (max-width:600px) {
+    .header h1 { font-size:1.1rem; }
+    .header { padding:20px 16px 16px; }
+    .content { padding:14px 10px 50px; }
+    .ex-card { padding:14px 12px; }
+    .day-header { gap:10px;margin-bottom:16px; }
+    .day-number { width:42px;height:42px;font-size:0.95rem; }
+    .day-title { font-size:1rem; }
+    .tab-btn { padding:12px 10px;font-size:0.72rem; }
+    .mc-option { font-size:0.82rem;padding:8px 10px; }
+    .btn { font-size:0.78rem;padding:9px 16px; }
+    .btn-row { gap:8px; }
+    .fill-input { min-width:70px;max-width:120px;font-size:0.82rem; }
+    .grammar-table { font-size:0.75rem; }
+    .grammar-table th,.grammar-table td { padding:6px 8px; }
+    .vocab-grid { grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:8px; }
+    .vocab-chip { padding:8px 8px;font-size:0.78rem; }
+    .reading-text { font-size:0.85rem;padding:14px; }
+    .tf-line { font-size:0.82rem; }
+    .writing-area { font-size:0.85rem; }
+    .summary-card { padding:18px; }
+    .score-big { font-size:2.2rem; }
+    .progress-section { padding:12px 14px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice.<br><strong>Adjectives</strong>.<br>What is your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Adjectives – Weekly Practice</h1>
+      <div class="subtitle">Vocabulary &amp; Grammar</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════ DAY 1 ═══════════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Opposites</div>
+      <div class="day-desc">Reviews · Logic · Reading comprehension</div>
+    </div>
+  </div>
+
+  <!-- D1 E1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – What Does the Review Tell You?</div>
+    <div class="ex-instruction">Read the short reviews. Click a word from the box, then click a gap to fill it in. Choose two adjectives that describe each place.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- D1 E2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Which Description Makes Sense?</div>
+    <div class="ex-instruction">Choose the description that logically matches the information.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <!-- D1 E3 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Three People, Three Experiences</div>
+    <div class="ex-instruction">Read the three messages. Then choose who each statement refers to.</div>
+    <div class="reading-text">
+      <h4>EMMA</h4>
+      <p>My new apartment is near my office. It has two bedrooms and a big living room. The kitchen and bathroom are new. I like the area because I can walk home at night without a problem.</p>
+      <h4 style="margin-top:12px;">JACK</h4>
+      <p>I bought a laptop last week. It was $1,800, but I like it. I can open programs and download files in seconds. My old laptop took a long time to do everything.</p>
+      <h4 style="margin-top:12px;">OLIVIA</h4>
+      <p>I am staying in a hotel near the beach. My room has one small window, so there is not much light. The bathroom is not clean, and my room is only $35 a night.</p>
+    </div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 2 ═══════════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Describing Things</div>
+      <div class="day-desc">Riddles · Word order · Situations</div>
+    </div>
+  </div>
+
+  <!-- D2 E1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – What Are They Describing?</div>
+    <div class="ex-instruction">Read the description and choose the most logical option.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- D2 E2 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Build the Description</div>
+    <div class="ex-instruction">Put the words in the correct order to make a sentence. Write your answer in the box.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- D2 E3 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Which Description Matches?</div>
+    <div class="ex-instruction">Read the situation and choose the correct description.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 3 ═══════════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Colours + Adjectives</div>
+      <div class="day-desc">Product labels · Logic puzzles · Same or different</div>
+    </div>
+  </div>
+
+  <!-- D3 E1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Read the Label</div>
+    <div class="ex-instruction">Read each product description and choose the correct option.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- D3 E2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Which One?</div>
+    <div class="ex-instruction">Read the information and identify the correct object.</div>
+    <div class="word-box">A. a small blue bag &nbsp;|&nbsp; B. a big black bag &nbsp;|&nbsp; C. a small black bag &nbsp;|&nbsp; D. a big blue bag</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- D3 E3 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Same or Different?</div>
+    <div class="ex-instruction">Read the pairs and choose SAME or DIFFERENT.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 4 ═══════════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Describing People, Places and Things</div>
+      <div class="day-desc">Odd one out · Click-to-fill · Reading comprehension</div>
+    </div>
+  </div>
+
+  <!-- D4 E1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – One Adjective Doesn't Fit</div>
+    <div class="ex-instruction">Choose the adjective that does NOT logically describe the noun in the context.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- D4 E2 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Who or What Is It?</div>
+    <div class="ex-instruction">Click a word from the box, then click a gap to fill it in.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <!-- D4 E3 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Read and Identify</div>
+    <div class="ex-instruction">Read the descriptions and choose which place each statement refers to.</div>
+    <div class="reading-text">
+      <h4>A – Green Park</h4><p>It is big, clean, and beautiful. It is safe during the day.</p>
+      <h4 style="margin-top:10px;">B – Central Road</h4><p>It is long and busy. There are a lot of cars. Some parts are dangerous.</p>
+      <h4 style="margin-top:10px;">C – Park Hotel</h4><p>It is old, but clean. The rooms are small. The hotel is cheap.</p>
+      <h4 style="margin-top:10px;">D – Tower Hotel</h4><p>It is new and expensive. The building is high and the rooms are big.</p>
+    </div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 5 ═══════════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Giving Simple Opinions</div>
+      <div class="day-desc">Fact or opinion · Reading opinions · Matching opinions to evidence</div>
+    </div>
+  </div>
+
+  <!-- D5 E1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Fact or Opinion?</div>
+    <div class="ex-instruction">Read each sentence and choose FACT or OPINION.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- D5 E2 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – What Do They Think?</div>
+    <div class="ex-instruction">Read the comments and choose the correct answer.</div>
+    <div class="reading-text">
+      <p><span style="color:var(--orange);font-weight:700;">Amy:</span> "The new cafe is clean and beautiful. I think it is good."</p>
+      <p style="margin-top:8px;"><span style="color:var(--orange);font-weight:700;">Daniel:</span> "I do not like the cafe. I think it is small and ugly."</p>
+      <p style="margin-top:8px;"><span style="color:var(--orange);font-weight:700;">Kate:</span> "The cafe is small, but I think it is beautiful."</p>
+    </div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- D5 E3 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Choose the Opinion That Fits</div>
+    <div class="ex-instruction">Read the information and choose the opinion that is supported by it.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 6 ═══════════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Descriptions in Context</div>
+      <div class="day-desc">Hotel choices · Product table · Two reviews</div>
+    </div>
+  </div>
+
+  <!-- D6 E1 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Choose the Best Place</div>
+    <div class="ex-instruction">Three friends are choosing a hotel. Choose the best hotel for each person.</div>
+    <div class="reading-text" style="font-size:0.82rem;">
+      <strong style="color:var(--orange);">CITY HOTEL</strong> — $60/night · small rooms · clean · city centre<br>
+      <strong style="color:var(--orange);">BEACH HOTEL</strong> — $120/night · big rooms · new · near the beach<br>
+      <strong style="color:var(--orange);">OLD TOWN HOTEL</strong> — $80/night · old building · beautiful rooms · quiet area
+    </div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- D6 E2 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Which Product?</div>
+    <div class="ex-instruction">Read the table and choose the correct product (A, B, C or D).</div>
+    <div style="overflow-x:auto;margin-bottom:16px;">
+      <table class="grammar-table">
+        <tr><th>Product</th><th>Colour</th><th>Size</th><th>Condition</th><th>Price</th></tr>
+        <tr><td>A</td><td>black</td><td>small</td><td>new</td><td>$50</td></tr>
+        <tr><td>B</td><td>blue</td><td>big</td><td>old</td><td>$20</td></tr>
+        <tr><td>C</td><td>red</td><td>small</td><td>old</td><td>$15</td></tr>
+        <tr><td>D</td><td>black</td><td>big</td><td>new</td><td>$80</td></tr>
+      </table>
+    </div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- D6 E3 -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Two Reviews</div>
+    <div class="ex-instruction">Read the reviews and choose MAYA, RYAN, BOTH or NEITHER.</div>
+    <div class="reading-text">
+      <p><span style="color:var(--orange);font-weight:700;">MAYA:</span> "I am at the Sun Hotel. The building is old, but I think it is beautiful. My room is small and clean. The hotel restaurant is good. The hotel is cheap, too. I like this place."</p>
+      <p style="margin-top:10px;"><span style="color:var(--orange);font-weight:700;">RYAN:</span> "I am at the City Hotel. The building is new and high. My room is big, but it is not clean. The restaurant is expensive. I do not think this hotel is good."</p>
+    </div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ DAY 7 ═══════════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Consolidation</div>
+      <div class="day-desc">Complete review · Spot the mistake · Writing challenge</div>
+    </div>
+  </div>
+
+  <!-- D7 E1 -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the correct answer for each question.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- D7 E2 -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Spot the Mistake</div>
+    <div class="ex-instruction">In each group, three sentences are correct. Choose the sentence with a mistake.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- D7 E3 – Writing -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Writing Challenge</div>
+    <div class="ex-instruction">Choose one: a place, a hotel, a restaurant, a car, a phone, or another object. Write 5–7 sentences. Include: the name or type; its colour (when appropriate); at least four adjectives; one contrasting idea using <em>but</em>; and <em>I think...</em> to give your opinion.</div>
+    <div class="example-box">
+      <div class="ex-label">Model Text</div>
+      My phone is black and new. It is small, but the screen is big. The phone is fast and the camera is good. It is expensive. I think it is a good phone.
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="Write your sentences here..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-wa">Send to Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d7e3-fb"></div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div id="weekly-summary" style="display:none;">
+    <div class="summary-card">
+      <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+      <h3>Week complete! Amazing work!</h3>
+      <p>You finished all 7 days of adjective practice.</p>
+      <div class="score-big" id="final-score">0</div>
+      <div style="font-size:0.82rem;opacity:0.7;margin-bottom:20px;">exercises checked</div>
+      <button class="btn btn-whatsapp" id="summary-whatsapp">Send results to Teacher Mari</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ VOCAB BANK ═══════════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.8rem;">VB</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">All adjectives from this week – click to listen</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Opposites</div>
+    <div class="vocab-grid" id="vocab-opposites"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Size &amp; Shape</div>
+    <div class="vocab-grid" id="vocab-size"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Colours</div>
+    <div class="vocab-grid" id="vocab-colours"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Quality &amp; Condition</div>
+    <div class="vocab-grid" id="vocab-quality"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ GRAMMAR BANK ═══════════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="font-size:0.8rem;">GB</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Adjective rules &amp; useful patterns</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Adjective Position</div>
+    <table class="grammar-table">
+      <tr><th>Position</th><th>Pattern</th><th>Example</th></tr>
+      <tr><td>Before noun</td><td>adjective + noun</td><td class="orange">a new phone</td></tr>
+      <tr><td>After be</td><td>subject + be + adjective</td><td class="orange">The phone is new.</td></tr>
+    </table>
+    <div class="tip-box">Both positions are correct in English. "A new phone" and "The phone is new" mean the same thing.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Giving Opinions – I think...</div>
+    <table class="grammar-table">
+      <tr><th>Pattern</th><th>Example</th></tr>
+      <tr><td>I think + subject + be + adjective.</td><td class="orange">I think the hotel is good.</td></tr>
+      <tr><td>I think + subject + be + adjective.</td><td class="orange">I think the road is dangerous.</td></tr>
+    </table>
+    <div class="tip-box">Use <strong>I think...</strong> to give your opinion. It is NOT a fact – it is what YOU believe.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Fact vs Opinion</div>
+    <table class="grammar-table">
+      <tr><th>Type</th><th>Signal</th><th>Example</th></tr>
+      <tr><td>Fact</td><td>no signal word</td><td class="orange">The car is red.</td></tr>
+      <tr><td>Opinion</td><td>I think...</td><td class="orange">I think the car is beautiful.</td></tr>
+    </table>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Contrasting with BUT</div>
+    <table class="grammar-table">
+      <tr><th>Pattern</th><th>Example</th></tr>
+      <tr><td>adjective, but adjective</td><td class="orange">The room is small, but clean.</td></tr>
+      <tr><td>adjective, but adjective</td><td class="orange">The building is old, but beautiful.</td></tr>
+    </table>
+    <div class="tip-box">Use <strong>but</strong> to connect two contrasting ideas about the same thing.</div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Common Opposite Pairs</div>
+    <table class="grammar-table">
+      <tr><th>Adjective</th><th>Opposite</th></tr>
+      <tr><td class="orange">big</td><td>small</td></tr>
+      <tr><td class="orange">old</td><td>new</td></tr>
+      <tr><td class="orange">clean</td><td>dirty</td></tr>
+      <tr><td class="orange">expensive</td><td>cheap</td></tr>
+      <tr><td class="orange">fast</td><td>slow</td></tr>
+      <tr><td class="orange">safe</td><td>dangerous</td></tr>
+      <tr><td class="orange">easy</td><td>difficult</td></tr>
+      <tr><td class="orange">full</td><td>empty</td></tr>
+      <tr><td class="orange">hot</td><td>cold</td></tr>
+      <tr><td class="orange">tall / high</td><td>short / low</td></tr>
+      <tr><td class="orange">light</td><td>dark</td></tr>
+      <tr><td class="orange">good</td><td>bad</td></tr>
+      <tr><td class="orange">right</td><td>wrong</td></tr>
+      <tr><td class="orange">beautiful</td><td>ugly</td></tr>
+      <tr><td class="orange">strong</td><td>weak</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════
+// WELCOME & STUDENT NAME
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_adjectives';
+let studentName = localStorage.getItem(STORAGE_KEY + '_name') || '';
+let totalChecked = parseInt(localStorage.getItem(STORAGE_KEY + '_checked') || '0');
+
+function startSession(name) {
+  studentName = name.trim() || 'Student';
+  localStorage.setItem(STORAGE_KEY + '_name', studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const hb = document.getElementById('hello-banner');
+  hb.textContent = 'Hello, ' + studentName + '! Good luck this week!';
+  hb.classList.add('show');
+  updateProgress();
+}
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value;
+  if (val.trim()) startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = document.getElementById('student-name-input').value;
+    if (val.trim()) startSession(val);
+  }
+});
+
+if (studentName) {
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const hb = document.getElementById('hello-banner');
+  hb.textContent = 'Hello, ' + studentName + '! Good luck this week!';
+  hb.classList.add('show');
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════
+// MOTIVATION
+// ══════════════════════════════════════════
+const MOTIVATIONS = [
+  'Every adjective you learn helps you describe the world better!',
+  'Practice makes progress. Keep going!',
+  'You are doing great. One step at a time!',
+  'Describing things well is a real skill. You are building it today.',
+  'Small steps every day lead to big results!',
+  'Language learning takes time. Be patient with yourself.',
+  'Every exercise you complete makes you a better speaker!'
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7e3'],
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY + '_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY + '_days') || '[]'));
+
+function updateProgress() {
+  const allEx = Object.values(DAY_EXERCISES).flat();
+  const done = allEx.filter(e => completedExercises.has(e)).length;
+  const pct = Math.round((done / allEx.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem(STORAGE_KEY + '_done', JSON.stringify([...completedExercises]));
+  updateProgress();
+  checkDayCompletion(exId);
+}
+
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem(STORAGE_KEY + '_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = Array.from({length: count}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed: Math.random() * 4 + 1,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toastEl = null;
+function showToast(msg) {
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:Poppins,sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  requestAnimationFrame(() => { toastEl.style.transform='translateX(-50%) translateY(0)'; toastEl.style.opacity='1'; });
+  setTimeout(() => { toastEl.style.transform='translateX(-50%) translateY(80px)'; toastEl.style.opacity='0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); showToast('Week complete! You are amazing!'); }
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+
+// ─── buildMC ───
+function buildMC(containerId, data, exId) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o,j) => '<label class="mc-option" data-q="' + exId + '_' + i + '" data-j="' + j + '"><input type="radio" name="' + exId + '_' + i + '" value="' + j + '"/> ' + o + '</label>').join('') +
+      '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const q = opt.dataset.q;
+      wrap.querySelectorAll('[data-q="' + q + '"]').forEach(o => { o.classList.remove('selected'); o.querySelector('input').checked = false; });
+      opt.classList.add('selected'); opt.querySelector('input').checked = true;
+    });
+  });
+}
+
+function checkMC(data, containerId, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  const fb = document.getElementById(fbId);
+  let correct = 0; let total = data.length;
+  data.forEach((item, i) => {
+    const opts = wrap.querySelectorAll('[data-q="' + exId + '_' + i + '"]');
+    const sel = [...opts].find(o => o.querySelector('input').checked);
+    opts.forEach(o => o.style.pointerEvents = 'none');
+    if (!sel) return;
+    const chosen = parseInt(sel.dataset.j);
+    if (chosen === item.ans) {
+      sel.classList.add('correct'); sel.classList.remove('selected'); correct++;
+    } else {
+      sel.classList.add('wrong'); sel.classList.remove('selected');
+      opts[item.ans].classList.add('correct');
+      if (item.why) {
+        const why = document.createElement('div');
+        why.style.cssText = 'font-size:0.78rem;color:var(--red);margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:4px;';
+        why.innerHTML = '<strong>Correct answer:</strong> ' + item.opts[item.ans] + ' — ' + item.why;
+        opts[item.ans].parentElement.appendChild(why);
+      }
+    }
+  });
+  totalChecked++;
+  localStorage.setItem(STORAGE_KEY + '_checked', totalChecked);
+  fb.className = 'feedback show ' + (correct === total ? 'ok' : correct === 0 ? 'err' : 'partial');
+  fb.textContent = correct + ' / ' + total + ' correct.';
+  markExerciseDone(exId);
+}
+
+function resetMC(containerId, exId, data, fbId) {
+  buildMC(containerId, data, exId);
+  const fb = document.getElementById(fbId);
+  fb.className = 'feedback'; fb.textContent = '';
+}
+
+// ─── buildFill ───
+function buildFill(containerId, data, exId) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = '<div class="fill-line"><span style="font-weight:600;color:var(--purple);">' + (i+1) + '. ' + item.prompt + '</span><br><input class="fill-input" id="' + exId + '_fill_' + i + '" type="text" placeholder="..." autocomplete="off" spellcheck="false"/></div>';
+    wrap.appendChild(div);
+  });
+}
+
+function checkFill(data, containerId, fbId, exId) {
+  const fb = document.getElementById(fbId);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const inp = document.getElementById(exId + '_fill_' + i);
+    if (!inp) return;
+    inp.disabled = true;
+    // Normalize: lowercase + strip trailing punctuation so missing period doesn't mark wrong
+    const normalize = s => s.trim().toLowerCase().replace(/[.,!?]+$/, '').replace(/^[.,!?]+/, '');
+    const val = normalize(inp.value);
+    const ans = (Array.isArray(item.ans) ? item.ans : [item.ans]).map(a => normalize(a));
+    if (ans.includes(val)) {
+      inp.classList.add('correct'); correct++;
+    } else {
+      inp.classList.add('wrong');
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:0.78rem;color:var(--red);margin-top:2px;';
+      hint.innerHTML = '<strong>Correct:</strong> ' + (Array.isArray(item.ans) ? item.ans.join(' / ') : item.ans) + (item.why ? ' — ' + item.why : '');
+      inp.parentElement.appendChild(hint);
+    }
+  });
+  totalChecked++;
+  localStorage.setItem(STORAGE_KEY + '_checked', totalChecked);
+  fb.className = 'feedback show ' + (correct === data.length ? 'ok' : correct === 0 ? 'err' : 'partial');
+  fb.textContent = correct + ' / ' + data.length + ' correct.';
+  markExerciseDone(exId);
+}
+
+function resetFill(data, containerId, fbId, exId) {
+  buildFill(containerId, data, exId);
+  const fb = document.getElementById(fbId);
+  fb.className = 'feedback'; fb.textContent = '';
+}
+
+// ─── buildTF with custom labels ───
+function buildTF(containerId, data, exId, labelT, labelF) {
+  labelT = labelT || 'TRUE'; labelF = labelF || 'FALSE';
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line"><span style="flex:1;">' + (i+1) + '. ' + item.q + '</span><div class="tf-btns"><button class="tf-btn t" data-id="' + exId + '_tf_' + i + '" data-v="1">' + labelT + '</button><button class="tf-btn f" data-id="' + exId + '_tf_' + i + '" data-v="0">' + labelF + '</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      wrap.querySelectorAll('[data-id="' + id + '"]').forEach(b => b.classList.remove('selected-t','selected-f'));
+      btn.classList.add(btn.dataset.v === '1' ? 'selected-t' : 'selected-f');
+    });
+  });
+}
+
+function checkTF(data, containerId, fbId, exId, labelT, labelF) {
+  labelT = labelT || 'TRUE'; labelF = labelF || 'FALSE';
+  const wrap = document.getElementById(containerId);
+  const fb = document.getElementById(fbId);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const btns = wrap.querySelectorAll('[data-id="' + exId + '_tf_' + i + '"]');
+    btns.forEach(b => b.disabled = true);
+    const sel = [...btns].find(b => b.classList.contains('selected-t') || b.classList.contains('selected-f'));
+    if (!sel) return;
+    const chosen = sel.dataset.v === '1';
+    const correct_ans = item.ans === true || item.ans === 1;
+    if (chosen === correct_ans) {
+      sel.classList.remove('selected-t','selected-f');
+      sel.classList.add(correct_ans ? 'correct-t' : 'correct-f');
+      correct++;
+    } else {
+      sel.classList.remove('selected-t','selected-f'); sel.classList.add('wrong-sel');
+      const rightBtn = [...btns].find(b => b.dataset.v === (correct_ans ? '1' : '0'));
+      if (rightBtn) rightBtn.classList.add('right-answer');
+      if (item.why) {
+        const why = document.createElement('div');
+        why.style.cssText = 'font-size:0.78rem;color:var(--red);margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:4px;';
+        why.innerHTML = '<strong>Correct answer:</strong> ' + (correct_ans ? labelT : labelF) + (item.why ? ' — ' + item.why : '');
+        btns[0].closest('.tf-item').appendChild(why);
+      }
+    }
+  });
+  totalChecked++;
+  localStorage.setItem(STORAGE_KEY + '_checked', totalChecked);
+  fb.className = 'feedback show ' + (correct === data.length ? 'ok' : correct === 0 ? 'err' : 'partial');
+  fb.textContent = correct + ' / ' + data.length + ' correct.';
+  markExerciseDone(exId);
+}
+
+function resetTF(data, containerId, fbId, exId, labelT, labelF) {
+  buildTF(containerId, data, exId, labelT, labelF);
+  const fb = document.getElementById(fbId);
+  fb.className = 'feedback'; fb.textContent = '';
+}
+
+// ─── buildCTF (Click-to-Fill) ───
+function buildCTF(containerId, sentences, bank, exId) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  // Word bank
+  const bankDiv = document.createElement('div'); bankDiv.className = 'ctf-wordbank'; bankDiv.id = exId + '-bank';
+  // Fisher-Yates shuffle
+  const shuffled = [...bank];
+  for (let i = shuffled.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]; }
+  shuffled.forEach((w,wi) => {
+    const chip = document.createElement('button');
+    chip.className = 'ctf-chip'; chip.textContent = w;
+    chip.dataset.word = w; chip.dataset.idx = wi;
+    bankDiv.appendChild(chip);
+  });
+  wrap.appendChild(bankDiv);
+  // Sentences
+  const sentWrap = document.createElement('div'); sentWrap.id = exId + '-sentences';
+  sentences.forEach((s, si) => {
+    const sd = document.createElement('div'); sd.className = 'ctf-sentence';
+    // Replace ___ with gap spans
+    let html = (si+1) + '. ' + s.text;
+    let gapIdx = 0;
+    html = html.replace(/___/g, () => {
+      const gid = exId + '_g_' + si + '_' + gapIdx++;
+      return '<span class="ctf-gap" id="' + gid + '" data-si="' + si + '" data-gi="' + (gapIdx-1) + '"></span>';
+    });
+    sd.innerHTML = html;
+    sentWrap.appendChild(sd);
+  });
+  wrap.appendChild(sentWrap);
+
+  let activeChip = null;
+
+  // Event delegation on bank
+  bankDiv.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (activeChip) activeChip.classList.remove('active');
+    if (activeChip === chip) { activeChip = null; return; }
+    activeChip = chip; chip.classList.add('active');
+  });
+
+  // Event delegation on sentences
+  sentWrap.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    if (activeChip) {
+      // place word
+      const oldWord = gap.textContent;
+      gap.textContent = activeChip.dataset.word;
+      gap.dataset.filled = activeChip.dataset.word;
+      gap.classList.add('ready');
+      // re-enable old chip if gap had a word
+      if (oldWord) {
+        bankDiv.querySelectorAll('.ctf-chip').forEach(c => {
+          if (c.classList.contains('used') && c.dataset.word === oldWord) { c.classList.remove('used'); return; }
+        });
+      }
+      activeChip.classList.add('used'); activeChip.classList.remove('active');
+      activeChip = null;
+    } else if (gap.dataset.filled) {
+      // remove word from gap
+      const word = gap.dataset.filled;
+      gap.textContent = ''; gap.dataset.filled = ''; gap.classList.remove('ready','correct-gap','wrong-gap');
+      bankDiv.querySelectorAll('.ctf-chip').forEach(c => {
+        if (c.classList.contains('used') && c.dataset.word === word) { c.classList.remove('used'); return; }
+      });
+    }
+  });
+}
+
+function checkCTF(sentences, containerId, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  const fb = document.getElementById(fbId);
+  let correct = 0; let total = 0;
+  sentences.forEach((s, si) => {
+    const answers = Array.isArray(s.ans[0]) ? s.ans : s.ans.map(a => [a]);
+    answers.forEach((accepted, gi) => {
+      total++;
+      const gap = document.getElementById(exId + '_g_' + si + '_' + gi);
+      if (!gap) return;
+      const val = (gap.dataset.filled || '').toLowerCase().trim();
+      const ok = accepted.map(a => a.toLowerCase()).includes(val);
+      gap.style.pointerEvents = 'none';
+      if (ok) { gap.classList.add('correct-gap'); gap.classList.remove('wrong-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap'); gap.classList.remove('correct-gap');
+        const hint = document.createElement('span');
+        hint.style.cssText = 'font-size:0.75rem;color:var(--red);margin-left:4px;';
+        hint.textContent = '(' + accepted.join('/') + ')';
+        gap.parentElement.insertBefore(hint, gap.nextSibling);
+      }
+    });
+  });
+  totalChecked++;
+  localStorage.setItem(STORAGE_KEY + '_checked', totalChecked);
+  fb.className = 'feedback show ' + (correct === total ? 'ok' : correct === 0 ? 'err' : 'partial');
+  fb.textContent = correct + ' / ' + total + ' correct.';
+  markExerciseDone(exId);
+}
+
+function resetCTF(sentences, bank, containerId, fbId, exId) {
+  buildCTF(containerId, sentences, bank, exId);
+  const fb = document.getElementById(fbId);
+  fb.className = 'feedback'; fb.textContent = '';
+}
+
+// ══════════════════════════════════════════
+// VOCAB BANK
+// ══════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word); u.lang='en-US'; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = '<button onclick="event.stopPropagation();speakWord(\''+item.en+'\')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;">🔊</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">'+item.en+'</div><div class="vc-pt">'+item.ex+'</div>';
+    div.addEventListener('click', () => speakWord(item.en));
+    wrap.appendChild(div);
+  });
+}
+
+const VOCAB_OPPOSITES = [
+  {en:'big',ex:'a big room'},{en:'small',ex:'a small bag'},{en:'old',ex:'an old building'},
+  {en:'new',ex:'a new phone'},{en:'clean',ex:'a clean bathroom'},{en:'dirty',ex:'a dirty floor'},
+  {en:'expensive',ex:'an expensive car'},{en:'cheap',ex:'a cheap hotel'},{en:'fast',ex:'a fast car'},
+  {en:'slow',ex:'a slow laptop'},{en:'safe',ex:'a safe area'},{en:'dangerous',ex:'a dangerous road'},
+  {en:'easy',ex:'an easy exercise'},{en:'difficult',ex:'a difficult test'},{en:'full',ex:'a full bag'},
+  {en:'empty',ex:'an empty room'},{en:'hot',ex:'a hot coffee'},{en:'cold',ex:'a cold drink'},
+  {en:'good',ex:'a good hotel'},{en:'bad',ex:'a bad restaurant'}
+];
+const VOCAB_SIZE = [
+  {en:'tall',ex:'a tall person'},{en:'short',ex:'a short person'},{en:'high',ex:'a high building'},
+  {en:'low',ex:'a low table'},{en:'long',ex:'a long road'},{en:'light',ex:'a light room'},
+  {en:'dark',ex:'a dark room'},{en:'heavy',ex:'a heavy bag'},{en:'weak',ex:'a weak signal'},
+  {en:'strong',ex:'a strong person'}
+];
+const VOCAB_COLOURS = [
+  {en:'black',ex:'a black phone'},{en:'white',ex:'a white wall'},{en:'red',ex:'a red car'},
+  {en:'blue',ex:'a blue bag'},{en:'grey',ex:'a grey laptop'},{en:'yellow',ex:'a yellow umbrella'},
+  {en:'brown',ex:'a brown bag'},{en:'silver',ex:'a silver watch'},{en:'green',ex:'a green park'}
+];
+const VOCAB_QUALITY = [
+  {en:'beautiful',ex:'a beautiful view'},{en:'ugly',ex:'an ugly building'},{en:'right',ex:'a right answer'},
+  {en:'wrong',ex:'a wrong answer'},{en:'same',ex:'the same colour'},{en:'different',ex:'a different size'},
+  {en:'round',ex:'a round table'},{en:'quiet',ex:'a quiet area'},{en:'busy',ex:'a busy road'}
+];
+renderVocabGrid('vocab-opposites', VOCAB_OPPOSITES);
+renderVocabGrid('vocab-size', VOCAB_SIZE);
+renderVocabGrid('vocab-colours', VOCAB_COLOURS);
+renderVocabGrid('vocab-quality', VOCAB_QUALITY);
+
+// ══════════════════════════════════════════
+// DAY 1
+// ══════════════════════════════════════════
+
+// D1E1 – CTF: reviews with 2 gaps each
+// Bank: cheap, small, expensive, clean, old, beautiful, fast, dangerous  (8 words, one per gap)
+const d1e1Bank = ['cheap','small','expensive','clean','old','beautiful','fast','dangerous'];
+const d1e1Sentences = [
+  {text:'THE CORNER CAFE — A sandwich is $4. There are only six tables inside.<br>The cafe is ___ and ___.',
+   ans:['cheap','small']},
+  {text:'PARK HOTEL — The room was $250 a night. The towels and bed were perfect. Everything looked fresh.<br>The hotel is ___ and ___.',
+   ans:['expensive','clean']},
+  {text:'OLD MARKET STREET — The buildings are more than 100 years old. I love walking here and taking photos. The street looks fantastic.<br>The area is ___ and ___.',
+   ans:['old','beautiful']},
+  {text:'NORTH ROAD — Cars drive at 100 km/h. There are a lot of accidents, especially at night.<br>The road is ___ and ___.',
+   ans:['fast','dangerous']},
+];
+buildCTF('d1e1', d1e1Sentences, d1e1Bank, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkCTF(d1e1Sentences,'d1e1','d1e1-fb','d1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetCTF(d1e1Sentences,d1e1Bank,'d1e1','d1e1-fb','d1e1'));
+
+// D1E2 – MC: Which description makes sense?
+const d1e2Data = [
+  {q:'The hotel opened last month.', opts:['The hotel is old.','The hotel is new.','The hotel is dirty.'], ans:1, why:'If it opened last month, it is new, not old.'},
+  {q:'This road has good lighting and very few accidents.', opts:['The road is safe.','The road is dangerous.','The road is empty.'], ans:0, why:'Good lighting and few accidents = safe.'},
+  {q:'The restaurant charges $3 for lunch.', opts:['The restaurant is expensive.','The restaurant is cheap.','The restaurant is full.'], ans:1, why:'$3 for lunch is a very low price, so it is cheap.'},
+  {q:'The box has 30 books inside.', opts:['The box is empty.','The box is full.','The box is small.'], ans:1, why:'30 books inside = the box is full, not empty.'},
+  {q:'Helen cannot carry the heavy suitcase.', opts:['Helen is strong.','Helen is weak.','Helen is tall.'], ans:1, why:'She cannot carry a heavy thing, so she is weak (not strong).'},
+  {q:'The test has 50 complex questions.', opts:['The test is difficult.','The test is easy.','The test is wrong.'], ans:0, why:'50 complex questions = the test is difficult.'},
+  {q:'The internet downloads a film in one minute.', opts:['The internet is slow.','The internet is fast.','The internet is long.'], ans:1, why:'One minute for a film = very fast, not slow.'},
+  {q:'The kitchen floor has food and trash on it.', opts:['The kitchen is clean.','The kitchen is dirty.','The kitchen is old.'], ans:1, why:'Food and trash on the floor = dirty, not clean.'},
+];
+buildMC('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkMC(d1e2Data,'d1e2','d1e2-fb','d1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetMC('d1e2','d1e2',d1e2Data,'d1e2-fb'));
+
+// D1E3 – MC: Three people (EMMA / JACK / OLIVIA)
+const d1e3Data = [
+  {q:'Who has something <strong>expensive</strong>?', opts:['EMMA','JACK','OLIVIA'], ans:1, why:'Jack\'s laptop cost $1,800 — that is expensive.'},
+  {q:'Who is in a <strong>safe</strong> area?', opts:['EMMA','JACK','OLIVIA'], ans:0, why:'Emma says she can walk home at night without a problem — that is safe.'},
+  {q:'Who has something <strong>fast</strong>?', opts:['EMMA','JACK','OLIVIA'], ans:1, why:'Jack\'s laptop opens programs and downloads files in seconds — that is fast.'},
+  {q:'Who is staying somewhere <strong>cheap</strong>?', opts:['EMMA','JACK','OLIVIA'], ans:2, why:'Olivia\'s room is only $35 a night — that is cheap.'},
+  {q:'Who has a <strong>dirty</strong> bathroom?', opts:['EMMA','JACK','OLIVIA'], ans:2, why:'Olivia says "the bathroom is not clean" — so it is dirty.'},
+  {q:'Who has a <strong>big</strong> living room?', opts:['EMMA','JACK','OLIVIA'], ans:0, why:'Emma says her apartment has a big living room.'},
+  {q:'Who has a <strong>dark</strong> room?', opts:['EMMA','JACK','OLIVIA'], ans:2, why:'Olivia\'s room has one small window, so there is not much light — it is dark.'},
+  {q:'Who has a <strong>new</strong> kitchen and bathroom?', opts:['EMMA','JACK','OLIVIA'], ans:0, why:'Emma says her kitchen and bathroom are new. Jack has a new laptop, but the question asks specifically about the kitchen and bathroom.'},
+];
+buildMC('d1e3', d1e3Data, 'd1e3');
+document.getElementById('d1e3-check').addEventListener('click', () => checkMC(d1e3Data,'d1e3','d1e3-fb','d1e3'));
+document.getElementById('d1e3-reset').addEventListener('click', () => resetMC('d1e3','d1e3',d1e3Data,'d1e3-fb'));
+
+// ══════════════════════════════════════════
+// DAY 2
+// ══════════════════════════════════════════
+
+// D2E1 – MC: What are they describing?
+const d2e1Data = [
+  {q:'"It\'s small, black, and new. I use it to call people."', opts:['a building','a phone','a road'], ans:1, why:'Small, black, new, and used to call — that is a phone, not a building or road.'},
+  {q:'"It\'s long and dangerous. There are a lot of accidents."', opts:['a watch','a coffee','a road'], ans:2, why:'Long, dangerous, and with accidents — that is a road. A watch is not long or dangerous.'},
+  {q:'"It\'s old, big, and beautiful. A lot of tourists visit it."', opts:['a wallet','a historic building','a laptop'], ans:1, why:'Old, big, beautiful, and visited by tourists — that is a historic building, not a wallet or laptop.'},
+  {q:'"It\'s small and cheap. I use it to write."', opts:['a pencil','a car','a hotel'], ans:0, why:'Small, cheap, and used to write — that is a pencil. Cars and hotels are not small or cheap writing tools.'},
+  {q:'"It\'s fast, new, and expensive."', opts:['a table','a notebook','a sports car'], ans:2, why:'Fast, new, and expensive — that is most likely a sports car. Tables and notebooks are not fast.'},
+  {q:'"It\'s blue, full, and heavy. My laptop and books are inside."', opts:['a watch','a bag','a phone'], ans:1, why:'Blue, full, heavy, and containing a laptop and books — that is a bag. Watches and phones are not full of books.'},
+  {q:'"It\'s small, round, and expensive. It\'s on my finger."', opts:['a road','a ring','a building'], ans:1, why:'Small, round, expensive, and worn on a finger — that is a ring. Roads and buildings are not on fingers.'},
+  {q:'"It\'s clean, safe, and beautiful. A lot of people go there on holiday."', opts:['a pencil','a wallet','a beach'], ans:2, why:'Clean, safe, beautiful, and a holiday destination — that is a beach. Pencils and wallets are not holiday destinations.'},
+];
+buildMC('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data,'d2e1','d2e1-fb','d2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1','d2e1',d2e1Data,'d2e1-fb'));
+
+// D2E2 – Fill: word order sentences
+const d2e2Data = [
+  {prompt:'car / is / the / red / new →', ans:['The red car is new.','The car is red and new.'], why:'Adjective before noun: "the red car". Then verb "is new".'},
+  {prompt:'apartment / small / is / my →', ans:['My apartment is small.'], why:'"My apartment is small." — subject + be + adjective.'},
+  {prompt:'building / that / high / is →', ans:['That building is high.'], why:'"That building is high." — subject + be + adjective.'},
+  {prompt:'phone / black / is / your →', ans:['Your phone is black.'], why:'"Your phone is black." — subject + be + adjective.'},
+  {prompt:'street / safe / this / is →', ans:['This street is safe.'], why:'"This street is safe." — subject + be + adjective.'},
+  {prompt:'coffee / hot / the / is →', ans:['The coffee is hot.'], why:'"The coffee is hot." — subject + be + adjective.'},
+  {prompt:'hotel / clean / this / is →', ans:['This hotel is clean.'], why:'"This hotel is clean." — subject + be + adjective.'},
+  {prompt:'exercise / easy / the / is →', ans:['The exercise is easy.'], why:'"The exercise is easy." — subject + be + adjective.'},
+];
+buildFill('d2e2', d2e2Data, 'd2e2');
+document.getElementById('d2e2-check').addEventListener('click', () => checkFill(d2e2Data,'d2e2','d2e2-fb','d2e2'));
+document.getElementById('d2e2-reset').addEventListener('click', () => resetFill(d2e2Data,'d2e2','d2e2-fb','d2e2'));
+
+// D2E3 – MC: Which description matches?
+const d2e3Data = [
+  {q:'A hotel room has clean towels, a clean bathroom, and a clean bed.', opts:['The room is clean.','The room is dirty.','The room is empty.'], ans:0, why:'Clean towels, bathroom, and bed = a clean room.'},
+  {q:'A cafe charges $2 for a coffee and $4 for a sandwich.', opts:['The cafe is expensive.','The cafe is cheap.','The cafe is dangerous.'], ans:1, why:'$2 and $4 are very low prices — that is cheap.'},
+  {q:'A suitcase has no clothes or objects inside.', opts:['The suitcase is full.','The suitcase is empty.','The suitcase is old.'], ans:1, why:'Nothing inside = empty, not full.'},
+  {q:'A woman is 1.85 m.', opts:['She is tall.','She is short.','She is low.'], ans:0, why:'1.85 m is above average height — she is tall.'},
+  {q:'A car can go from 0 to 100 km/h in four seconds.', opts:['The car is slow.','The car is fast.','The car is long.'], ans:1, why:'0–100 in four seconds is very fast, not slow.'},
+  {q:'A house was built last month.', opts:['The house is old.','The house is new.','The house is young.'], ans:1, why:'Built last month = brand new, not old.'},
+  {q:'A computer task takes two minutes and has simple instructions.', opts:['The task is easy.','The task is difficult.','The task is wrong.'], ans:0, why:'Short time and simple instructions = easy, not difficult.'},
+  {q:'A neighbourhood has good lighting and little crime.', opts:['The neighbourhood is dangerous.','The neighbourhood is safe.','The neighbourhood is dirty.'], ans:1, why:'Good lighting and little crime = safe, not dangerous.'},
+];
+buildMC('d2e3', d2e3Data, 'd2e3');
+document.getElementById('d2e3-check').addEventListener('click', () => checkMC(d2e3Data,'d2e3','d2e3-fb','d2e3'));
+document.getElementById('d2e3-reset').addEventListener('click', () => resetMC('d2e3','d2e3',d2e3Data,'d2e3-fb'));
+
+// ══════════════════════════════════════════
+// DAY 3
+// ══════════════════════════════════════════
+
+// D3E1 – MC: Read the label
+const d3e1Data = [
+  {q:'<strong>Phone A:</strong> black, new, $900. Which description is correct?', opts:['It\'s a new black phone.','It\'s an old white phone.','It\'s a cheap red phone.'], ans:0, why:'Black + new + $900 = a new black phone. $900 is not cheap.'},
+  {q:'<strong>Bag B:</strong> brown, small, $20.', opts:['It\'s a big black bag.','It\'s a small brown bag.','It\'s a blue expensive bag.'], ans:1, why:'Brown + small = a small brown bag.'},
+  {q:'<strong>Car C:</strong> red, old, $3,000.', opts:['It\'s a new blue car.','It\'s an old red car.','It\'s a small green car.'], ans:1, why:'Red + old = an old red car.'},
+  {q:'<strong>Laptop D:</strong> grey, new, $1,800.', opts:['It\'s an old black laptop.','It\'s a new grey laptop.','It\'s a cheap white laptop.'], ans:1, why:'Grey + new = a new grey laptop. $1,800 is not cheap.'},
+  {q:'<strong>Watch E:</strong> silver, old, $500.', opts:['It\'s an old expensive watch.','It\'s a new cheap watch.','It\'s a big red watch.'], ans:0, why:'Old + $500 = an old expensive watch.'},
+  {q:'<strong>Umbrella F:</strong> yellow, new, $10.', opts:['It\'s an old brown umbrella.','It\'s a new yellow umbrella.','It\'s an expensive black umbrella.'], ans:1, why:'Yellow + new = a new yellow umbrella. $10 is not expensive.'},
+];
+buildMC('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data,'d3e1','d3e1-fb','d3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMC('d3e1','d3e1',d3e1Data,'d3e1-fb'));
+
+// D3E2 – MC: Which one? (A=small blue, B=big black, C=small black, D=big blue)
+const d3e2Data = [
+  {q:'It\'s blue, but it isn\'t big.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:0, why:'Blue but not big = A (small blue bag).'},
+  {q:'It\'s black and big.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:1, why:'Black and big = B (big black bag).'},
+  {q:'It\'s small, but it isn\'t blue.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:2, why:'Small but not blue = C (small black bag).'},
+  {q:'It\'s big, but it isn\'t black.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:3, why:'Big but not black = D (big blue bag).'},
+  {q:'It\'s the same colour as A, but a different size.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:3, why:'A is blue and small. Same colour (blue) but different size (big) = D.'},
+  {q:'It\'s the same size as A, but a different colour.', opts:['A (small blue bag)','B (big black bag)','C (small black bag)','D (big blue bag)'], ans:2, why:'A is small and blue. Same size (small) but different colour (black) = C.'},
+];
+buildMC('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkMC(d3e2Data,'d3e2','d3e2-fb','d3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetMC('d3e2','d3e2',d3e2Data,'d3e2-fb'));
+
+// D3E3 – TF SAME/DIFFERENT
+const d3e3Data = [
+  {q:'Car A: red, new, small &nbsp;|&nbsp; Car B: red, new, small', ans:1, why:'All three adjectives are the same — SAME.'},
+  {q:'Phone A: black, old &nbsp;|&nbsp; Phone B: white, old', ans:0, why:'The colour is different (black vs white) — DIFFERENT.'},
+  {q:'Bag A: blue, big &nbsp;|&nbsp; Bag B: blue, small', ans:0, why:'The size is different (big vs small) — DIFFERENT.'},
+  {q:'Laptop A: grey, new &nbsp;|&nbsp; Laptop B: grey, new', ans:1, why:'Both adjectives are the same — SAME.'},
+  {q:'Hotel A: clean, cheap &nbsp;|&nbsp; Hotel B: dirty, expensive', ans:0, why:'Both adjectives are opposites — DIFFERENT.'},
+  {q:'Watch A: black, expensive &nbsp;|&nbsp; Watch B: black, expensive', ans:1, why:'Both adjectives are the same — SAME.'},
+  {q:'Room A: small, light &nbsp;|&nbsp; Room B: big, dark', ans:0, why:'Both adjectives are opposites — DIFFERENT.'},
+  {q:'Umbrella A: yellow, new &nbsp;|&nbsp; Umbrella B: yellow, old', ans:0, why:'The condition is different (new vs old) — DIFFERENT.'},
+];
+buildTF('d3e3', d3e3Data, 'd3e3', 'SAME', 'DIFFERENT');
+document.getElementById('d3e3-check').addEventListener('click', () => checkTF(d3e3Data,'d3e3','d3e3-fb','d3e3','SAME','DIFFERENT'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetTF(d3e3Data,'d3e3','d3e3-fb','d3e3','SAME','DIFFERENT'));
+
+// ══════════════════════════════════════════
+// DAY 4
+// ══════════════════════════════════════════
+
+// D4E1 – MC: One adjective doesn't fit
+const d4e1Data = [
+  {q:'<strong>a road</strong> — Which adjective does NOT fit?', opts:['long','dangerous','delicious'], ans:2, why:'Roads can be long or dangerous, but "delicious" is for food — it does not describe a road.'},
+  {q:'<strong>coffee</strong> — Which adjective does NOT fit?', opts:['hot','cold','tall'], ans:2, why:'Coffee can be hot or cold, but "tall" describes height — we do not say "tall coffee".'},
+  {q:'<strong>a building</strong> — Which adjective does NOT fit?', opts:['high','old','hungry'], ans:2, why:'Buildings can be high or old, but "hungry" describes a person or animal, not a building.'},
+  {q:'<strong>a suitcase</strong> — Which adjective does NOT fit?', opts:['full','empty','delicious'], ans:2, why:'Suitcases can be full or empty, but "delicious" is for food or drinks.'},
+  {q:'<strong>an exercise</strong> — Which adjective does NOT fit?', opts:['easy','difficult','tall'], ans:2, why:'Exercises can be easy or difficult, but "tall" describes height — not exercises.'},
+  {q:'<strong>a car</strong> — Which adjective does NOT fit?', opts:['fast','slow','hungry'], ans:2, why:'Cars can be fast or slow, but "hungry" describes a living thing, not a car.'},
+  {q:'<strong>a hotel room</strong> — Which adjective does NOT fit?', opts:['clean','dirty','delicious'], ans:2, why:'Rooms can be clean or dirty, but "delicious" is for food — not rooms.'},
+  {q:'<strong>a person</strong> — Which adjective does NOT fit?', opts:['tall','short','empty'], ans:2, why:'People can be tall or short, but "empty" describes a container — not a person.'},
+];
+buildMC('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data,'d4e1','d4e1-fb','d4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetMC('d4e1','d4e1',d4e1Data,'d4e1-fb'));
+
+// D4E2 – CTF: Who or What Is It?
+const d4e2Bank = ['a building','coffee','a room','a car','a person','an exercise','a bag','a road'];
+const d4e2Sentences = [
+  {text:'It can be high or low. → ___', ans:['a building']},
+  {text:'It can be hot or cold. → ___', ans:['coffee']},
+  {text:'It can be clean or dirty. → ___', ans:['a room']},
+  {text:'It can be fast or slow. → ___', ans:['a car']},
+  {text:'It can be tall or short. → ___', ans:['a person']},
+  {text:'It can be easy or difficult. → ___', ans:['an exercise']},
+  {text:'It can be full or empty. → ___', ans:['a bag']},
+  {text:'It can be long or short, and safe or dangerous. → ___', ans:['a road']},
+];
+buildCTF('d4e2', d4e2Sentences, d4e2Bank, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkCTF(d4e2Sentences,'d4e2','d4e2-fb','d4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetCTF(d4e2Sentences,d4e2Bank,'d4e2','d4e2-fb','d4e2'));
+
+// D4E3 – MC: Read and Identify (A/B/C/D places)
+const d4e3Data = [
+  {q:'It has small rooms.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:2, why:'The text says Park Hotel has small rooms.'},
+  {q:'It is new and expensive.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:3, why:'The text says Tower Hotel is new and expensive.'},
+  {q:'It is beautiful and safe during the day.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:0, why:'Green Park is big, clean, beautiful, and safe during the day.'},
+  {q:'It has a high building.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:3, why:'Tower Hotel has a high building.'},
+  {q:'It is long and has a lot of cars.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:1, why:'Central Road is long and busy with a lot of cars.'},
+  {q:'It is old and cheap.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:2, why:'Park Hotel is old but clean, and cheap.'},
+  {q:'Some parts of this place are dangerous.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:1, why:'Some parts of Central Road are dangerous.'},
+  {q:'It has big rooms.', opts:['A – Green Park','B – Central Road','C – Park Hotel','D – Tower Hotel'], ans:3, why:'Tower Hotel has big rooms.'},
+];
+buildMC('d4e3', d4e3Data, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkMC(d4e3Data,'d4e3','d4e3-fb','d4e3'));
+document.getElementById('d4e3-reset').addEventListener('click', () => resetMC('d4e3','d4e3',d4e3Data,'d4e3-fb'));
+
+// ══════════════════════════════════════════
+// DAY 5
+// ══════════════════════════════════════════
+
+// D5E1 – TF FACT/OPINION
+const d5e1Data = [
+  {q:'The car is red.', ans:1, why:'"The car is red" is a fact — it is observable information, not an opinion.'},
+  {q:'I think the car is beautiful.', ans:0, why:'"I think..." = opinion. Beauty is subjective.'},
+  {q:'The hotel has 50 rooms.', ans:1, why:'The number of rooms is a fact — it can be counted.'},
+  {q:'I think the hotel is good.', ans:0, why:'"I think..." = opinion. "Good" is a personal judgement.'},
+  {q:'The phone is black.', ans:1, why:'The colour is a fact — it is observable.'},
+  {q:'I think the phone is ugly.', ans:0, why:'"I think..." = opinion. "Ugly" is a personal judgement.'},
+  {q:'The building has 30 floors.', ans:1, why:'The number of floors is a fact — it can be counted.'},
+  {q:'I think the building is beautiful.', ans:0, why:'"I think..." = opinion. Beauty is personal.'},
+  {q:'The bag costs $20.', ans:1, why:'The price is a fact — it is a fixed, measurable number.'},
+  {q:'I think the bag is cheap.', ans:0, why:'"I think..." = opinion. "Cheap" is a personal judgement about value.'},
+];
+buildTF('d5e1', d5e1Data, 'd5e1', 'FACT', 'OPINION');
+document.getElementById('d5e1-check').addEventListener('click', () => checkTF(d5e1Data,'d5e1','d5e1-fb','d5e1','FACT','OPINION'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetTF(d5e1Data,'d5e1','d5e1-fb','d5e1','FACT','OPINION'));
+
+// D5E2 – MC: What do they think?
+const d5e2Data = [
+  {q:'Who thinks the cafe is good?', opts:['Amy','Daniel','Kate'], ans:0, why:'Amy says "I think it\'s good."'},
+  {q:'Who thinks the cafe is ugly?', opts:['Amy','Daniel','Kate'], ans:1, why:'Daniel says "I think it\'s small and ugly."'},
+  {q:'Who says the cafe is clean?', opts:['Amy','Daniel','Kate'], ans:0, why:'Amy says "The new cafe is clean and beautiful."'},
+  {q:'Who describes the cafe as <strong>beautiful</strong>?', opts:['Amy and Kate','Daniel and Kate','Amy and Daniel'], ans:0, why:'Amy says "The new cafe is clean and beautiful." Kate says "I think it is beautiful." Both describe it as beautiful. Daniel only says it is small and ugly.'},
+  {q:'Who says the cafe is small?', opts:['Amy only','Daniel and Kate','Kate only'], ans:1, why:'Daniel says "small and ugly" and Kate says "the cafe is small."'},
+  {q:'Who has the most negative opinion?', opts:['Amy','Daniel','Kate'], ans:1, why:'Daniel says he does not like it and thinks it is small and ugly — the most negative.'},
+];
+buildMC('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkMC(d5e2Data,'d5e2','d5e2-fb','d5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetMC('d5e2','d5e2',d5e2Data,'d5e2-fb'));
+
+// D5E3 – MC: Choose the opinion that fits
+const d5e3Data = [
+  {q:'<strong>Hotel Blue:</strong> clean rooms, comfortable beds, $70 a night.', opts:['I think Hotel Blue is good.','I think Hotel Blue is dirty.'], ans:0, why:'Clean rooms and comfortable beds = a good hotel. There is no evidence it is dirty.'},
+  {q:'<strong>Car X:</strong> $80,000.', opts:['I think Car X is cheap.','I think Car X is expensive.'], ans:1, why:'$80,000 is a very high price — the car is expensive, not cheap.'},
+  {q:'<strong>Beach A:</strong> clean water, beautiful sand, safe area.', opts:['I think Beach A is beautiful.','I think Beach A is dangerous.'], ans:0, why:'Clean water, beautiful sand = beautiful. There is no danger mentioned.'},
+  {q:'<strong>Internet A:</strong> one page takes five minutes to open.', opts:['I think the internet is fast.','I think the internet is slow.'], ans:1, why:'Five minutes to open one page = very slow, not fast.'},
+  {q:'<strong>Exercise A:</strong> two simple questions.', opts:['I think the exercise is easy.','I think the exercise is difficult.'], ans:0, why:'Two simple questions = easy. There is no evidence it is difficult.'},
+  {q:'<strong>Street A:</strong> no lights at night, many accidents.', opts:['I think the street is dangerous.','I think the street is safe.'], ans:0, why:'No lights and many accidents = dangerous, not safe.'},
+  {q:'<strong>Restaurant A:</strong> dirty tables, bad food.', opts:['I think the restaurant is good.','I think the restaurant is bad.'], ans:1, why:'Dirty tables and bad food = a bad restaurant, not good.'},
+  {q:'<strong>Apartment A:</strong> new kitchen, clean rooms, beautiful view.', opts:['I think the apartment is beautiful.','I think the apartment is ugly.'], ans:0, why:'New kitchen, clean rooms, beautiful view = beautiful, not ugly.'},
+];
+buildMC('d5e3', d5e3Data, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkMC(d5e3Data,'d5e3','d5e3-fb','d5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetMC('d5e3','d5e3',d5e3Data,'d5e3-fb'));
+
+// ══════════════════════════════════════════
+// DAY 6
+// ══════════════════════════════════════════
+
+// D6E1 – MC: Choose the best hotel
+const d6e1Data = [
+  {q:'Lucy wants a cheap hotel in the city centre.', opts:['City Hotel ($60, city centre)','Beach Hotel ($120, near beach)','Old Town Hotel ($80, quiet area)'], ans:0, why:'City Hotel is the cheapest option and is in the city centre — perfect for Lucy.'},
+  {q:'Mike wants a new hotel with big rooms.', opts:['City Hotel','Beach Hotel','Old Town Hotel'], ans:1, why:'Beach Hotel is new and has big rooms — exactly what Mike wants.'},
+  {q:'Anna likes old buildings and beautiful rooms.', opts:['City Hotel','Beach Hotel','Old Town Hotel'], ans:2, why:'Old Town Hotel has an old building and beautiful rooms — perfect for Anna.'},
+  {q:'Paul wants the cheapest option.', opts:['City Hotel ($60)','Beach Hotel ($120)','Old Town Hotel ($80)'], ans:0, why:'$60 is the cheapest of the three options.'},
+  {q:'Sara wants to stay near the beach.', opts:['City Hotel','Beach Hotel','Old Town Hotel'], ans:1, why:'Beach Hotel is near the beach — that is what Sara wants.'},
+  {q:'Ben wants a quiet area and does not want a new building.', opts:['City Hotel','Beach Hotel','Old Town Hotel'], ans:2, why:'Old Town Hotel is in a quiet area and has an old building.'},
+];
+buildMC('d6e1', d6e1Data, 'd6e1');
+document.getElementById('d6e1-check').addEventListener('click', () => checkMC(d6e1Data,'d6e1','d6e1-fb','d6e1'));
+document.getElementById('d6e1-reset').addEventListener('click', () => resetMC('d6e1','d6e1',d6e1Data,'d6e1-fb'));
+
+// D6E2 – MC: Which product? (A=black,small,new,$50 / B=blue,big,old,$20 / C=red,small,old,$15 / D=black,big,new,$80)
+const d6e2Data = [
+  {q:'It\'s black, small, and new.', opts:['A','B','C','D'], ans:0, why:'Black + small + new = A.'},
+  {q:'It\'s blue, big, and old.', opts:['A','B','C','D'], ans:1, why:'Blue + big + old = B.'},
+  {q:'It\'s red and small.', opts:['A','B','C','D'], ans:2, why:'Red + small = C. (C is also old, but A is black.)'},
+  {q:'It\'s black and big.', opts:['A','B','C','D'], ans:3, why:'Black + big = D.'},
+  {q:'It\'s the cheapest product.', opts:['A ($50)','B ($20)','C ($15)','D ($80)'], ans:2, why:'$15 is the lowest price — C is the cheapest.'},
+  {q:'It\'s the most expensive product.', opts:['A ($50)','B ($20)','C ($15)','D ($80)'], ans:3, why:'$80 is the highest price — D is the most expensive.'},
+  {q:'It\'s new, but it isn\'t big.', opts:['A','B','C','D'], ans:0, why:'New and not big = A (new + small).'},
+  {q:'It\'s old, but it isn\'t blue.', opts:['A','B','C','D'], ans:2, why:'Old and not blue = C (old + red). B is old but blue.'},
+];
+buildMC('d6e2', d6e2Data, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkMC(d6e2Data,'d6e2','d6e2-fb','d6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetMC('d6e2','d6e2',d6e2Data,'d6e2-fb'));
+
+// D6E3 – MC: MAYA / RYAN / BOTH / NEITHER
+const d6e3Data = [
+  {q:'Who is in an old building?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:0, why:'Maya says "the building is old." Ryan\'s building is new.'},
+  {q:'Who has a big room?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:1, why:'Ryan says "my room is big." Maya\'s room is small.'},
+  {q:'Who says the room is clean?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:0, why:'Maya says "my room is small and clean." Ryan says his room is not clean.'},
+  {q:'Who is in a new building?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:1, why:'Ryan says "the building is new and high." Maya\'s building is old.'},
+  {q:'Who has a positive opinion about the hotel?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:0, why:'Maya says "I like this place." Ryan says he does not think the hotel is good.'},
+  {q:'Who has a negative opinion about the hotel?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:1, why:'Ryan says "I do not think this hotel is good."'},
+  {q:'Who describes the restaurant as expensive?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:1, why:'Ryan says "the restaurant is expensive." Maya says the hotel restaurant is good.'},
+  {q:'Who says the hotel is dangerous?', opts:['MAYA','RYAN','BOTH','NEITHER'], ans:3, why:'Neither Maya nor Ryan mentions danger — NEITHER.'},
+];
+buildMC('d6e3', d6e3Data, 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkMC(d6e3Data,'d6e3','d6e3-fb','d6e3'));
+document.getElementById('d6e3-reset').addEventListener('click', () => resetMC('d6e3','d6e3',d6e3Data,'d6e3-fb'));
+
+// ══════════════════════════════════════════
+// DAY 7
+// ══════════════════════════════════════════
+
+// D7E1 – MC: Complete review (15 items)
+const d7e1Data = [
+  {q:'The opposite of <strong>big</strong> is ___.',opts:['small','short','low'],ans:0,why:'"Small" is the direct opposite of "big". "Short" and "low" are different opposites.'},
+  {q:'This coffee is 80°C. It is ___.',opts:['cold','hot','dark'],ans:1,why:'80°C = very hot temperature.'},
+  {q:'There is nothing in the bag. It is ___.',opts:['full','empty','light'],ans:1,why:'Nothing inside = empty. "Full" means the opposite.'},
+  {q:'The opposite of <strong>dangerous</strong> is ___.',opts:['clean','safe','easy'],ans:1,why:'"Safe" is the opposite of "dangerous". "Clean" and "easy" are not opposites of "dangerous".'},
+  {q:'A car goes from 0 to 100 km/h in four seconds. It is ___.',opts:['slow','fast','high'],ans:1,why:'0–100 in four seconds = very fast, not slow.'},
+  {q:'The answer is 15. Jack writes 15. His answer is ___.',opts:['wrong','right','different'],ans:1,why:'He wrote the correct number — his answer is right, not wrong.'},
+  {q:'Which description makes sense?',opts:['The coffee is tall.','The road is long.','The building is hungry.'],ans:1,why:'Roads can be long. Coffee cannot be tall, and buildings cannot be hungry.'},
+  {q:'Car A is red. Car B is also red. The cars are the same ___.',opts:['colour','hot','high'],ans:0,why:'Both cars are red, so they are the same colour.'},
+  {q:'This laptop costs $2,000. It is ___.',opts:['cheap','expensive','empty'],ans:1,why:'$2,000 is a high price — the laptop is expensive, not cheap.'},
+  {q:'The hotel has dirty rooms and bad food.',opts:['I think it\'s good.','I think it\'s bad.','I think it\'s beautiful.'],ans:1,why:'Dirty rooms and bad food = a bad hotel. There is no evidence it is good or beautiful.'},
+  {q:'A building with 50 floors is very ___.',opts:['long','high','hungry'],ans:1,why:'We say a building is "high" (or tall). "Long" is for roads or distances. "Hungry" describes a person, not a building.'},
+  {q:'A: What do you think about the new cafe?<br>B: ___',opts:['I think it\'s beautiful.','It\'s at 25 King Street.','It\'s Monday.'],ans:0,why:'The question asks for an opinion about the cafe. Only "I think it\'s beautiful" is an opinion.'},
+  {q:'Which pair contains opposites?',opts:['clean / dirty','clean / safe','cheap / small'],ans:0,why:'"Clean" and "dirty" are opposites. "Clean" and "safe" are not opposites, and "cheap" and "small" are not opposites.'},
+  {q:'The two phones are black, new, and the same size. They are ___.',opts:['different','the same','wrong'],ans:1,why:'All three adjectives match — the phones are the same.'},
+  {q:'A room has white walls, a clean floor, and a clean bathroom.',opts:['The room is dirty.','The room is clean.','The room is dangerous.'],ans:1,why:'White walls, clean floor, clean bathroom = a clean room, not dirty or dangerous.'},
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data,'d7e1','d7e1-fb','d7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1','d7e1',d7e1Data,'d7e1-fb'));
+
+// D7E2 – MC: Spot the mistake (choose the wrong sentence)
+const d7e2Data = [
+  {q:'Group 1: Choose the sentence with a mistake.',opts:['A. The car is red.','B. The car red is.','C. The car is new.','D. The car is expensive.'],ans:1,why:'"The car red is." is wrong. Adjectives go AFTER "be": "The car IS red." The verb "is" must come between the subject and the adjective.'},
+  {q:'Group 2: Choose the sentence with a mistake.',opts:['A. My room is clean.','B. My room is small.','C. My room are clean.','D. My room is beautiful.'],ans:2,why:'"My room are clean." is wrong. "Room" is singular, so we use "is", not "are".'},
+  {q:'Group 3: Choose the sentence with a mistake.',opts:['A. The bags are black.','B. The bags is black.','C. The bags are new.','D. The bags are expensive.'],ans:1,why:'"The bags is black." is wrong. "Bags" is plural, so we use "are", not "is".'},
+  {q:'Group 4: Choose the sentence with a mistake.',opts:['A. This building is high.','B. This road is long.','C. This coffee is tall.','D. This exercise is easy.'],ans:2,why:'"This coffee is tall." is wrong. We do not say coffee is "tall". Coffee can be "hot" or "cold", not "tall".'},
+  {q:'Group 5: Choose the sentence with a mistake.',opts:['A. The opposite of hot is cold.','B. The opposite of full is empty.','C. The opposite of cheap is expensive.','D. The opposite of clean is safe.'],ans:3,why:'"The opposite of clean is safe." is wrong. The opposite of "clean" is "dirty", not "safe".'},
+  {q:'Group 6: Choose the sentence with a mistake.',opts:['A. I think the hotel is good.','B. I think the hotel is beautiful.','C. I think is the hotel good.','D. I think the hotel is expensive.'],ans:2,why:'"I think is the hotel good." is wrong. The correct order is: I think + the hotel + is + good.'},
+  {q:'Group 7: Choose the sentence with a mistake.',opts:['A. The room is big and clean.','B. The room is small and dirty.','C. The room is red and new.','D. The room are old and dark.'],ans:3,why:'"The room are old and dark." is wrong. "Room" is singular — we use "is", not "are".'},
+  {q:'Group 8: Choose the sentence with a mistake.',opts:['A. The two bags are the same colour.','B. The two cars are different.','C. The phones is the same colour.','D. The two hotels are different.'],ans:2,why:'"The phones is the same colour." is wrong. "Phones" is plural — we use "are", not "is".'},
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data,'d7e2','d7e2-fb','d7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2','d7e2',d7e2Data,'d7e2-fb'));
+
+// D7E3 – Writing + WhatsApp
+document.getElementById('d7e3-wa').addEventListener('click', () => {
+  const text = document.getElementById('d7e3-text').value.trim();
+  if (!text) { const fb = document.getElementById('d7e3-fb'); fb.className='feedback show err'; fb.textContent='Please write your sentences before sending.'; return; }
+  const msg = 'Hello, Teacher Mari!\n\nAdjectives – Day 7 Writing Challenge\nStudent: ' + studentName + '\n\n' + text + '\n\n_Sent from the weekly exercise_';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  markExerciseDone('d7e3');
+  const fb = document.getElementById('d7e3-fb'); fb.className='feedback show ok'; fb.textContent='Sent to Teacher Mari!';
+});
+
+// WhatsApp summary
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = 'Hello, Teacher Mari!\n\nI finished all 7 days of the Adjectives weekly practice!\n\nStudent: ' + studentName + '\nExercises checked: ' + totalChecked + '\n\n_Sent from the weekly exercise_';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+
+</script>
+</body>
+</html>
