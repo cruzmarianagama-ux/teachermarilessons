@@ -5787,8 +5787,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   if (motivoFeriado) {
                     return (
                       <div key={i} onClick={() => setFeriadoPopup({ dia, motivo: motivoFeriado })}
-                        style={{ aspectRatio: "1", borderRadius: "8px", border: "none", background: "#F7C1C1", color: "#791F1F", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                        {dia}
+                        style={{ aspectRatio: "1", borderRadius: "8px", border: "none", background: "#F7C1C1", color: "#791F1F", fontSize: "11px", fontWeight: 600, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", gap: "1px" }}>
+                        <span>{dia}</span>
+                        <span style={{ fontSize: "7px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1 }}>Feriado</span>
                       </div>
                     );
                   }
@@ -5805,11 +5806,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     if (ehDiaDaTurma && iso >= hojeISO && !encerrada) status = "agendada";
                   }
                   const cfg = status ? statusConfig[status] : null;
+                  const calLabel = status === "reposicaoAgendada" ? "Reposição" : cfg ? cfg.label : null;
                   const clicavel = role === "admin" || status === "agendada" || status === "reposicaoAgendada";
                   return (
                     <div key={i} onClick={() => { if (role === "admin") abrirDia(chave); else if (status === "agendada" || status === "reposicaoAgendada") avisarNaoComparecimento(chave); }}
-                      style={{ aspectRatio: "1", borderRadius: "8px", border: status ? "none" : `0.5px solid ${dark ? "#3A2B7A" : "#EEE"}`, background: cfg ? cfg.cor : "transparent", color: cfg ? cfg.texto : textSecondary, fontSize: "12px", fontWeight: status ? 600 : 400, display: "flex", alignItems: "center", justifyContent: "center", cursor: clicavel ? "pointer" : "default" }}>
-                      {dia}
+                      style={{ aspectRatio: "1", borderRadius: "8px", border: status ? "none" : `0.5px solid ${dark ? "#3A2B7A" : "#EEE"}`, background: cfg ? cfg.cor : "transparent", color: cfg ? cfg.texto : textSecondary, fontSize: status ? "11px" : "12px", fontWeight: status ? 600 : 400, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: clicavel ? "pointer" : "default", gap: "1px" }}>
+                      <span>{dia}</span>
+                      {calLabel && <span style={{ fontSize: "7px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1 }}>{calLabel}</span>}
                     </div>
                   );
                 })}
