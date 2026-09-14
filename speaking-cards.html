@@ -635,6 +635,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     <button class="btn btn-primary" id="newSetBtn">+ New set</button>
     <button class="btn btn-ghost" id="newFolderBtn">📁 New folder</button>
     <input type="text" id="searchSetsInput" placeholder="🔍 Search sets…" style="width:200px;border-radius:10px;">
+    <button class="btn btn-ghost" id="fixImagesBtn" title="Re-upload all external images to permanent storage">🔧 Fix images</button>
     <p class="tiny-note" id="storageUsageNote" style="margin-left:auto;"></p>
   </div>
 
@@ -2436,6 +2437,96 @@ Rules:
     aiGenerateBtn.disabled = false;
   }
 }
+
+/* ---------------- FIX ALL IMAGES ---------------- */
+async function fixAllImages(){
+  const btn = document.getElementById('fixImagesBtn');
+  const note = document.getElementById('storageUsageNote');
+  const SUPABASE_HOST = 'udvhausytibegxxrjfuw.supabase.co';
+
+  // Collect all sets that have at least one external image
+  const setsToFix = sets.filter(s =>
+    s.cards.some(c => c.image && !c.image.includes(SUPABASE_HOST))
+  );
+
+  if(setsToFix.length === 0){
+    note.textContent = '✅ All images are already hosted permanently.';
+    note.className = 'tiny-note';
+    setTimeout(()=>{ note.textContent=''; note.className='tiny-note'; }, 4000);
+    return;
+  }
+
+  btn.disabled = true;
+  let fixedSets = 0;
+  let fixedImgs = 0;
+  let failedImgs = 0;
+
+  for(const set of setsToFix){
+    let changed = false;
+    const newCards = [];
+
+    for(const card of set.cards){
+      if(!card.image || card.image.includes(SUPABASE_HOST)){
+        newCards.push(card);
+        continue;
+      }
+      // External URL — try to re-host
+      const imgIdx = set.cards.indexOf(card) + 1;
+      const total  = set.cards.length;
+      note.textContent = `Fixing "${set.name}" (${imgIdx}/${total})…`;
+      try{
+        const res = await fetch(card.image);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        const ext  = blob.type.includes('png') ? 'png'
+                   : blob.type.includes('gif') ? 'gif'
+                   : blob.type.includes('webp') ? 'webp' : 'jpg';
+        const file = new File([blob], 'upload.' + ext, { type: blob.type || 'image/jpeg' });
+        const url  = await uploadImageToStorage(file);
+        newCards.push(Object.assign({}, card, { image: url }));
+        fixedImgs++;
+        changed = true;
+      }catch(_){
+        // Keep original — will show error when displayed
+        newCards.push(card);
+        failedImgs++;
+      }
+    }
+
+    if(changed){
+      try{
+        await updateSetInDb(set.id, set.name, newCards);
+        // Update local cache immediately
+        set.cards = newCards;
+        fixedSets++;
+      }catch(_){
+        failedImgs++;
+      }
+    }
+  }
+
+  btn.disabled = false;
+  if(failedImgs === 0){
+    note.textContent = `✅ Done! Fixed ${fixedImgs} image${fixedImgs===1?'':'s'} across ${fixedSets} set${fixedSets===1?'':'s'}.`;
+  } else {
+    note.textContent = `⚠ Fixed ${fixedImgs} image${fixedImgs===1?'':'s'}, ${failedImgs} could not be reached (link may be expired).`;
+  }
+  note.className = 'tiny-note';
+  setTimeout(()=>{ note.textContent=''; note.className='tiny-note'; }, 7000);
+}
+
+document.getElementById('fixImagesBtn').onclick = async ()=>{
+  const btn = document.getElementById('fixImagesBtn');
+  const note = document.getElementById('storageUsageNote');
+  if(!confirm('This will scan all your sets and permanently re-upload any external images (Pixabay, etc.) to your Supabase Storage. This may take a minute. Continue?')) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Fixing…';
+  note.textContent = 'Scanning sets…';
+  // Refresh sets first to make sure cache is current
+  try{ await refreshSetsFromDb(true); }catch(_){}
+  await fixAllImages();
+  btn.textContent = '🔧 Fix images';
+};
 
 /* ---------------- INIT ---------------- */
 /* ══════════════════════════════════════════════
