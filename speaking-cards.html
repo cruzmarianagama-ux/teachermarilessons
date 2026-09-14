@@ -303,16 +303,22 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   /* ── STAGE WRAP — área principal ── */
   .present-stage-wrap{
-    flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:16px 20px 20px;gap:12px;overflow:hidden;background:var(--green);
+    flex:1;min-height:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:16px 20px 16px;gap:10px;
+    overflow:hidden;background:var(--green);
   }
-  /* Em fullscreen: ocupar 100% sem overflow */
+  /* Fullscreen: o browser dá ao elemento 100vw x 100vh
+     — forçamos box-sizing e overflow para que nada vaze */
   .present-stage-wrap:fullscreen,
   .present-stage-wrap:-webkit-full-screen{
     background:var(--green);
-    height:100vh;width:100vw;
-    padding:12px 16px 16px;
+    width:100vw;height:100vh;
+    padding:10px 16px 12px;
     box-sizing:border-box;
+    overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;
   }
 
   /* ── CARD STAGE (random / in order) ── */
@@ -392,17 +398,28 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   .fullscreen-btn:hover{background:rgba(29,16,80,.15);}
   .leitner-info{color:var(--cream);font-size:13px;font-weight:600;text-align:center;opacity:.7;padding:4px 0;}
   /* ── OPEN THE BOX ── */
-  /* stage em modo box: layout diferente */
+  /* stage em modo box: tudo dentro, altura controlada */
   .stage.box-mode{
-    justify-content:flex-start;padding-top:20px;
+    justify-content:flex-start;
+    height:100%;
+  }
+  /* área inferior do box mode: instruction + grid + controls */
+  .box-bottom{
+    width:100%;display:flex;flex-direction:column;align-items:center;
+    gap:6px;padding:8px 12px 12px;flex-shrink:0;
+    background:rgba(4,57,47,.5);
+    border-top:1px solid rgba(255,255,255,.1);
+  }
+  .box-controls-row{
+    display:flex;gap:12px;align-items:center;justify-content:center;
   }
   .big-card{
     width:100%;flex:1;min-height:0;
     display:flex;align-items:center;justify-content:center;
     flex-direction:column;gap:12px;
-    border-radius:16px;background:rgba(29,16,80,.04);
-    border:1.5px solid rgba(29,16,80,.08);
-    padding:20px;overflow:hidden;
+    border-radius:0;background:transparent;
+    border:none;
+    padding:16px 20px;overflow:hidden;
   }
   .big-card img{
     max-width:100%;max-height:calc(100% - 80px);
@@ -1916,7 +1933,7 @@ function renderCardOnStage(card, finished){
   if(hasPrompt){
     const p = document.createElement('p');
     p.className = 'prompt-text';
-    p.textContent = card.prompt;
+    p.innerHTML = card.prompt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     bigCard.appendChild(p);
   }
 
@@ -1983,15 +2000,15 @@ function renderBoxStage(){
           <p class="placeholder">Escolha um número para abrir a caixa</p>
         </div>
       </div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:900px;">
-      <p class="box-instruction">🔀 Embaralhado — toque em um número · teclas 1–9 também funcionam</p>
-      <div class="box-grid" id="boxGrid"></div>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div class="counter" id="boxCounterText"></div>
-        <div class="stage-controls" style="padding:0;">
-          <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Prev</button>
-          <button class="btn btn-ghost-dark" id="resetBoxBtn">↺ Restart</button>
+      <div class="box-bottom">
+        <p class="box-instruction">🔀 Embaralhado — toque em um número · teclas 1–9 também funcionam</p>
+        <div class="box-grid" id="boxGrid"></div>
+        <div class="box-controls-row">
+          <div class="counter" id="boxCounterText"></div>
+          <div class="stage-controls" style="padding:0;">
+            <button class="btn btn-ghost-dark" id="prevBoxBtn">◀ Prev</button>
+            <button class="btn btn-ghost-dark" id="resetBoxBtn">↺ Restart</button>
+          </div>
         </div>
       </div>
     </div>
