@@ -346,14 +346,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
   /* prompt — parte inferior do card */
   .prompt-text{
-    font-size:26px;font-weight:800;color:var(--purple);
+    font-size:30px;font-weight:800;color:var(--purple);
     text-align:center;line-height:1.3;
-    padding:16px 32px 20px;width:100%;
+    padding:18px 32px 22px;width:100%;
     border-top:1px solid rgba(29,16,80,.06);
   }
   /* sem imagem — prompt centralizado maior */
   .stage.no-image .prompt-text{
-    font-size:32px;padding:40px 32px;border-top:none;
+    font-size:38px;padding:48px 32px;border-top:none;
   }
 
   /* controles e contador */
@@ -402,30 +402,41 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     border-radius:12px;object-fit:contain;
   }
   .big-card .prompt-text{
-    font-size:24px;padding:0;border-top:none;
+    font-size:28px;padding:0;border-top:none;
     width:auto;
   }
   .card-deck{width:100%;display:flex;flex-direction:column;align-items:center;flex:1;min-height:0;}
   .placeholder{color:rgba(29,16,80,.35);font-size:16px;font-weight:600;text-align:center;}
   .box-grid{
-    display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
-    padding:12px 8px;width:100%;max-width:600px;
+    display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
+    padding:14px 12px;width:100%;max-width:640px;
   }
   .box{
-    width:56px;height:56px;border-radius:12px;border:none;cursor:pointer;
+    width:60px;height:60px;border-radius:14px;cursor:pointer;
     font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;
     display:flex;align-items:center;justify-content:center;
-    transition:transform .12s,opacity .2s,filter .2s;
+    transition:transform .15s,box-shadow .15s,opacity .2s,filter .2s;
+    box-shadow:0 3px 0 rgba(0,0,0,.25), 0 4px 12px rgba(0,0,0,.2);
+    border:none;position:relative;
   }
-  .box:nth-child(5n+1){background:var(--lavender);color:var(--purple);}
-  .box:nth-child(5n+2){background:var(--lime);color:var(--purple);}
-  .box:nth-child(5n+3){background:var(--orange);color:#fff;}
-  .box:nth-child(5n+4){background:var(--cream);color:var(--purple);border:1.5px solid rgba(29,16,80,.15);}
-  .box:nth-child(5n+5){background:var(--green);color:var(--cream);}
-  .box:hover:not(.opened){transform:scale(1.1);}
-  .box.opened{opacity:.4;filter:saturate(.4);cursor:default;}
-  .box-instruction{font-size:13px;color:rgba(250,234,211,.6);font-weight:600;text-align:center;}
-  .counter{font-size:12px;color:rgba(250,234,211,.5);font-weight:600;text-align:center;}
+  .box:hover:not(.opened){
+    transform:translateY(-3px);
+    box-shadow:0 6px 0 rgba(0,0,0,.25), 0 8px 20px rgba(0,0,0,.25);
+  }
+  .box:active:not(.opened){
+    transform:translateY(1px);
+    box-shadow:0 2px 0 rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.2);
+  }
+  /* Paleta: 6 cores que nunca se confundem com o fundo verde */
+  .box:nth-child(6n+1){background:var(--lavender);color:var(--purple);}
+  .box:nth-child(6n+2){background:var(--orange);color:#fff;}
+  .box:nth-child(6n+3){background:var(--lime);color:var(--purple);}
+  .box:nth-child(6n+4){background:#fff;color:var(--purple);border:2px solid rgba(255,255,255,.4);}
+  .box:nth-child(6n+5){background:var(--purple);color:var(--cream);}
+  .box:nth-child(6n+6){background:#e8a020;color:#fff;}
+  .box.opened{opacity:.35;filter:saturate(.3);cursor:default;transform:none !important;box-shadow:none !important;}
+  .box-instruction{font-size:13px;color:rgba(250,234,211,.65);font-weight:600;text-align:center;}
+  .counter{font-size:12px;color:rgba(250,234,211,.55);font-weight:600;text-align:center;}
   .stage .box-badge{
     position:absolute;top:12px;left:14px;
     background:var(--lavender);color:var(--purple);
@@ -1228,6 +1239,7 @@ async function useSetInClass(id){
   openClassMode();
   // populate set name in overlay bar
   const _s = sets.find(s=>String(s.id)===String(id));
+  if(_s) preloadSetImages(_s.cards); // pré-carrega imagens imediatamente
   const _info = document.getElementById('classSetInfo');
   if(_info && _s) _info.textContent = _s.name;
   // reuse in-memory cache if fresh enough, otherwise fetch
@@ -1727,6 +1739,7 @@ function startPresentation(setId){
   // (from our own JS) — compare as strings so both cases match correctly.
   currentSet = sets.find(s => String(s.id) === String(setId));
   if(!currentSet) return;
+  preloadSetImages(currentSet.cards); // pré-carrega todas as imagens do set
   buildModeUI();
 }
 
@@ -1929,6 +1942,16 @@ let boxOrder = [];
 let boxOpenCounts = [];
 let boxHistory = [];
 let boxPosition = -1;
+
+function preloadSetImages(cards){
+  // Silently preload all card images so they appear instantly in class mode
+  (cards || []).forEach(card=>{
+    if(card.image){
+      const img = new Image();
+      img.src = card.image;
+    }
+  });
+}
 
 function shuffleArray(arr){
   const a = arr.slice();
