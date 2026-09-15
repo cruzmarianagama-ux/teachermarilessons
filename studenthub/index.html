@@ -192,7 +192,8 @@ const statusConfig = {
   reposicaoAgendada: { cor: "#FFC49B", texto: "#7A3B00", label: "Reposição agendada" },
   realizada: { cor: palette.lightGreen, texto: palette.green, label: "Realizada" },
   aRepor: { cor: "#F5D547", texto: "#6B5A00", label: "A repor" },
-  perdida: { cor: "#3B1F6E", texto: "#DDD6FE", label: "Expirada" },
+  perdida: { cor: "#CC2222", texto: "#FFFFFF", label: "Perdida" },
+  expirada: { cor: "#3B1F6E", texto: "#DDD6FE", label: "Expirada" },
   cancelada: { cor: "transparent", texto: "transparent", label: "Cancelada" },
 };
 
@@ -576,7 +577,8 @@ function PlanejadorSemanalEnxuto({ students, onSelectStudent }) {
   const corDoStatus = (status) => {
     if (status === "realizada") return { bg: palette.lightGreen, fg: palette.green, label: "✓" };
     if (status === "aRepor") return { bg: "#FFDDB5", fg: palette.orange, label: "A repor" };
-    if (status === "perdida") return { bg: "#3B1F6E", fg: "#DDD6FE", label: "Expirada" };
+    if (status === "perdida") return { bg: "#CC2222", fg: "#FFFFFF", label: "Perdida" };
+    if (status === "expirada") return { bg: "#3B1F6E", fg: "#DDD6FE", label: "Expirada" };
     if (status === "reposicaoAgendada") return { bg: palette.lavender, fg: palette.purple, label: "Repos." };
     return null; // agendada = sem badge
   };
@@ -2561,7 +2563,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {avisos.map((a) => {
                 const nomes = a.turmas && a.turmas.students ? a.turmas.students.map((s) => s.nome).join(", ") : "Aluno";
-                const statusLabel = a.status === "aRepor" ? "vai repor" : "faltou (expirada)";
+                const statusLabel = a.status === "aRepor" ? "vai repor" : a.status === "perdida" ? "faltou (perdida)" : "faltou (expirada)";
                 return (
                   <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FFF", borderRadius: "8px", padding: "10px 12px", gap: "10px", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "12px", color: palette.purple }}>
@@ -2660,7 +2662,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                       if (pendente) { corBadge = "#F7C1C1"; textoBadge = "#791F1F"; labelStatus = "⚠️ SEM ENTRADA"; }
                       else if (a.status === "realizada") { corBadge = palette.lightGreen; textoBadge = palette.green; labelStatus = "✓ Realizada"; }
                       else if (a.status === "aRepor") { corBadge = "#FFDDB5"; textoBadge = palette.orange; labelStatus = "A repor"; }
-                      else if (a.status === "perdida") { corBadge = "#3B1F6E"; textoBadge = "#DDD6FE"; labelStatus = "Expirada"; }
+                      else if (a.status === "perdida") { corBadge = "#CC2222"; textoBadge = "#FFFFFF"; labelStatus = "Perdida"; }
+                      else if (a.status === "expirada") { corBadge = "#3B1F6E"; textoBadge = "#DDD6FE"; labelStatus = "Expirada"; }
                       else if (a.status === "reposicaoAgendada") { corBadge = palette.lavender; textoBadge = palette.purple; labelStatus = "Reposição"; }
                       return (
                         <button key={i} onClick={() => onSelectStudent(a.representante)}
@@ -3643,9 +3646,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       const hojeISO = new Date().toISOString().slice(0, 10);
       const expiradas = (lessonsData || []).filter((l) => l.status === "aRepor" && l.prazo_reposicao && l.prazo_reposicao < hojeISO);
       if (expiradas.length > 0) {
-        await supabase.from("lessons").update({ status: "perdida" }).in("id", expiradas.map((l) => l.id));
+        await supabase.from("lessons").update({ status: "expirada" }).in("id", expiradas.map((l) => l.id));
         if (!ativo) return;
-        expiradas.forEach((l) => { l.status = "perdida"; });
+        expiradas.forEach((l) => { l.status = "expirada"; });
       }
       const aulasObj = {};
       (lessonsData || []).forEach((l) => {
@@ -4687,7 +4690,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   } else {
     // Individual — usa calendário como antes
     const diasComStatus = Object.entries(aulas)
-      .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida")
+      .filter(([, r]) => statusDe(r) === "realizada" || statusDe(r) === "perdida" || statusDe(r) === "expirada")
       .map(([chave, r]) => {
         const [y, m, d] = chave.split("-").map(Number);
         return { ordem: y * 10000 + m * 100 + d, status: statusDe(r) };
