@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verb Be – Is or Are? | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+
+  /* ── WELCOME ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white); border-radius: 20px; padding: 36px 28px;
+    max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm);
+    padding: 12px 16px; font-family: 'Poppins', sans-serif; font-size: 1rem;
+    font-weight: 600; color: var(--purple); text-align: center; outline: none;
+    margin-bottom: 16px; transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%; padding: 13px; background: var(--orange); color: var(--white);
+    border: none; border-radius: 99px; font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white); text-align: center; padding: 12px 16px;
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.2px;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70);
+    margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+  .motivation-bar span { opacity: 0.8; }
+
+  /* ── TABS ── */
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray);
+    background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* ── DAY HEADER ── */
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.review { border-left-color: var(--purple); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── READING TEXT ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px;
+    font-size: 0.9rem; line-height: 1.75; color: var(--purple); font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 18px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.4; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border-radius: var(--radius-sm); border: 2px solid var(--gray-light);
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white);
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); }
+
+  /* ── FILL / INLINE ── */
+  .fill-item { margin-bottom: 14px; }
+  .fill-line { display: inline; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-item { margin-bottom: 10px; }
+  .tf-line { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; }
+  .tf-btns { display: flex; gap: 6px; }
+  .tf-btn {
+    padding: 4px 14px; border-radius: 99px; border: 2px solid var(--gray-light);
+    font-family: 'Poppins', sans-serif; font-size: 0.80rem; font-weight: 700;
+    cursor: pointer; background: var(--white); transition: all 0.2s;
+  }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.correct-t { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.correct-f { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; outline: 2px solid var(--teal); }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light);
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 600;
+    color: var(--purple); background: var(--white); text-align: center; user-select: none;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; opacity: 0.7; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); opacity: 1; }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); opacity: 1; }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--purple-light); color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 6px; }
+  @media (max-width: 600px) {
+    .cm-wrap { gap: 12px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 10px; }
+  }
+
+  /* ── CTF (click-to-fill) ── */
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); }
+  .ctf-chip {
+    background: var(--purple); color: var(--white); border: none; border-radius: 6px;
+    padding: 5px 14px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .ctf-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.08); }
+  .ctf-chip.used { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-gap {
+    display: inline-block; min-width: 72px; text-align: center;
+    border-bottom: 2.5px solid var(--purple-light); color: var(--orange); font-weight: 700;
+    font-size: 0.88rem; padding: 0 4px; cursor: pointer; margin: 0 2px;
+    transition: border-color 0.2s, background 0.2s; border-radius: 4px 4px 0 0;
+    vertical-align: middle; line-height: 1.8;
+  }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── WORD ORDER (sentence builder) ── */
+  .wo-item { margin-bottom: 20px; }
+  .wo-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+  .wo-pool { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: var(--gray-light); border-radius: var(--radius-sm); min-height: 38px; margin-bottom: 8px; }
+  .wo-zone { display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; padding: 8px 10px; background: var(--white); border: 2px dashed var(--purple-light); border-radius: var(--radius-sm); transition: border-color 0.2s; }
+  .wo-zone.correct-zone { border-color: var(--teal); background: #f0fdfa; }
+  .wo-zone.wrong-zone { border-color: var(--red); background: #fef2f2; }
+  .wo-chip {
+    background: var(--purple); color: var(--white); border: none; border-radius: 6px;
+    padding: 5px 12px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .wo-chip:hover { background: var(--purple-light); transform: translateY(-1px); }
+  .wo-chip.in-zone { background: var(--orange); }
+
+  /* ── TEXTAREA / WRITING ── */
+  .writing-area {
+    width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-family: 'Poppins', sans-serif; font-size: 0.88rem;
+    color: var(--purple); resize: vertical; outline: none; min-height: 120px;
+    transition: border-color 0.2s; margin-bottom: 8px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* ── EXAMPLE BOX ── */
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm);
+    padding: 16px; margin-bottom: 18px; font-size: 0.88rem; line-height: 1.8;
+    color: var(--purple); font-weight: 500; border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; margin: 14px 0; }
+  .checklist li { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-size: 1rem; }
+
+  /* ── BUTTONS ── */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── VOCAB BANK ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--purple); cursor: pointer; transition: all 0.2s; }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-pt { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+
+  /* ── GRAMMAR BANK ── */
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--white); margin-top: 10px; }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .btn-row { gap: 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 8px; }
+    .vocab-chip { padding: 8px 8px; font-size: 0.78rem; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .tf-line { font-size: 0.82rem; }
+    .writing-area { font-size: 0.85rem; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+    .tip-box { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly English practice.<br><strong>Verb Be – Is or Are?</strong><br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's go!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Verb Be – Is or Are?</h1>
+      <div class="subtitle">Weekly Practice</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar" id="motivation-bar">
+  <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════ DAY 1 ════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">One or More Than One?</div>
+      <div class="day-desc">Is or Are? · Match the Sentences · Read and Choose</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Is or Are?</div>
+    <div class="ex-instruction">Choose the correct answer to complete each sentence.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – One or Two?</div>
+    <div class="ex-instruction">Match the beginning on the left to the correct ending on the right. Click a sentence on the left, then click its ending on the right.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Read and Choose</div>
+    <div class="ex-instruction">Read the information. Then choose the correct sentence.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Ben:</strong> British, 32, at work<br>
+      <strong style="color:var(--orange);">Emma:</strong> British, 30, at home<br>
+      <strong style="color:var(--orange);">Ben and Emma:</strong> brother and sister
+    </div>
+    <div id="d1e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e3-check">Check</button>
+      <button class="btn btn-secondary" id="d1e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 2 ════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">We, You and They Are</div>
+      <div class="day-desc">Who Are They? · Change the Subject · Not True!</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Who Are They?</div>
+    <div class="ex-instruction">Choose the correct pronoun for each group of people or things.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Change the Subject</div>
+    <div class="ex-instruction">Click a word from the box, then click the gap. Replace the subject with WE or THEY.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Not True!</div>
+    <div class="ex-instruction">Read the information. Click a word from the box, then click the gap. Use ARE or AREN'T.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Daniel and Lucas:</strong> Brazilian, at work<br>
+      <strong style="color:var(--orange);">Sophie and Emma:</strong> French, at home<br>
+      <strong style="color:var(--orange);">The two bags:</strong> new, black
+    </div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 3 ════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">People and Things in the Plural</div>
+      <div class="day-desc">Plural Sentences · This, That, These or Those? · True or False?</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – From One to More Than One</div>
+    <div class="ex-instruction">Choose the correct plural sentence for each singular sentence.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – This, That, These or Those?</div>
+    <div class="ex-instruction">Read the clue and choose the correct demonstrative.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – At the Souvenir Shop</div>
+    <div class="ex-instruction">Read the shop information. Choose True or False for each sentence.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Near the customer:</strong><br>
+      &nbsp;&nbsp;Two mugs: blue, £6 &nbsp;·&nbsp; One T-shirt: white, £15<br><br>
+      <strong style="color:var(--orange);">Far from the customer:</strong><br>
+      &nbsp;&nbsp;Three key rings: red, £4 &nbsp;·&nbsp; One football shirt: black, £25
+    </div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 4 ════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Are They...? Yes, They Are!</div>
+      <div class="day-desc">Match Q&amp;A · Build the Question · Ask the Right Question</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Question + Answer</div>
+    <div class="ex-instruction">Match each question to the correct answer. Click a question on the left, then click its answer on the right.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Build the Question</div>
+    <div class="ex-instruction">Click the words in the correct order to build each question. Click a word in your answer zone to move it back.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Ask the Right Question</div>
+    <div class="ex-instruction">Read the answer. Choose the question that matches it.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 5 ════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Where Are They?</div>
+      <div class="day-desc">Question Words · Build the WH-Question · Meet the Martins</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – What, Where, Who or What Color?</div>
+    <div class="ex-instruction">Read the answer first. Then choose the correct question word.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Build the WH-Question</div>
+    <div class="ex-instruction">Click the words in the correct order to build each question. Click a word in the answer zone to move it back.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – Meet the Martins</div>
+    <div class="ex-instruction">Read the profile. Then choose the correct answer.</div>
+    <div class="reading-text">
+      David and Helen are British. They are husband and wife. David is 40 and Helen is 38. Their children are Lucy and Ben. Lucy is 12 and Ben is 9. David and Helen are at work today. Lucy and Ben are at school.
+    </div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 6 ════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Am, Is or Are?</div>
+      <div class="day-desc">Complete the Text · Choose the True Sentence · Complete the Conversations</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – A New Team</div>
+    <div class="ex-instruction">Click a word from the box, then click the gap to complete the text.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – What Do You Know?</div>
+    <div class="ex-instruction">Read the information. Choose the sentence that is true.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Anna:</strong> Polish, 28, at work<br>
+      <strong style="color:var(--orange);">Marco:</strong> Italian, 31, at work<br>
+      <strong style="color:var(--orange);">Yuki and Emi:</strong> Japanese, 25 and 27, at home
+    </div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Complete the Conversations</div>
+    <div class="ex-instruction">Choose the correct option (am, is or are) to complete each conversation.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ════ DAY 7 ════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Complete Review</div>
+      <div class="day-desc">Full Review · Spot the Mistake · Writing Challenge</div>
+    </div>
+  </div>
+
+  <div class="ex-card review">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the correct answer for each sentence or conversation.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <div class="ex-card review">
+    <div class="ex-title">Exercise 2 – Spot the Mistake</div>
+    <div class="ex-instruction">Three sentences are correct. One has a mistake. Choose the incorrect sentence.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Writing Challenge</div>
+    <div class="ex-instruction">Write a short text about you and people in your life. Write 6–8 sentences.</div>
+    <ul class="checklist">
+      <li><span class="check-icon">✔</span> Your name and nationality</li>
+      <li><span class="check-icon">✔</span> One sentence with <strong>I am</strong></li>
+      <li><span class="check-icon">✔</span> One person using <strong>is</strong></li>
+      <li><span class="check-icon">✔</span> At least two sentences using <strong>are</strong></li>
+      <li><span class="check-icon">✔</span> One negative sentence with <strong>isn't</strong> or <strong>aren't</strong></li>
+      <li><span class="check-icon">✔</span> One adjective or colour</li>
+    </ul>
+    <div class="example-box">
+      <div class="ex-label">Model text</div>
+      I'm Olivia. I'm American. My sister is 30 years old. She is very nice. My parents are at home today. My two brothers are at work. They are my best friends too. My brothers aren't American. They're Brazilian.
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="Write your text here..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-wa">Send to Teacher Mari</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">&#127942;</div>
+    <h3>Week complete! Amazing!</h3>
+    <p>You finished all seven days of practice. Great work!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.7;margin-top:4px;margin-bottom:18px;">exercises checked</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">Send to Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ════ VOCAB BANK ════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);font-size:1.3rem;">V</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Pronouns · To Be forms · Irregular Plurals · Demonstratives · Key Words</div>
+    </div>
+  </div>
+
+  <div class="bank-section">
+    <div class="bank-title">Subject Pronouns</div>
+    <div class="vocab-grid" id="vocab-pronouns"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Irregular Plurals</div>
+    <div class="vocab-grid" id="vocab-plurals"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Demonstratives</div>
+    <div class="vocab-grid" id="vocab-demo"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Key Words</div>
+    <div class="vocab-grid" id="vocab-key"></div>
+  </div>
+</div>
+
+<!-- ════ GRAMMAR BANK ════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);font-size:1.3rem;">G</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Am / Is / Are · Negative · Questions · Demonstratives · Plurals</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Verb Be – Positive</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Verb be</th><th>Short form</th><th>Example</th></tr>
+      <tr><td>I</td><td class="orange">am</td><td class="orange">'m</td><td>I'm Brazilian.</td></tr>
+      <tr><td>he / she / it</td><td class="orange">is</td><td class="orange">'s</td><td>She's at home.</td></tr>
+      <tr><td>you / we / they</td><td class="orange">are</td><td class="orange">'re</td><td>They're British.</td></tr>
+    </table>
+    <div class="tip-box">Use <strong>is</strong> with singular subjects (one person or thing). Use <strong>are</strong> with plural subjects (more than one) and with you / we / they.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Verb Be – Negative</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Negative</th><th>Short form</th><th>Example</th></tr>
+      <tr><td>I</td><td class="red">am not</td><td class="red">'m not</td><td>I'm not French.</td></tr>
+      <tr><td>he / she / it</td><td class="red">is not</td><td class="red">isn't</td><td>He isn't at work.</td></tr>
+      <tr><td>you / we / they</td><td class="red">are not</td><td class="red">aren't</td><td>They aren't old.</td></tr>
+    </table>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Verb Be – Questions &amp; Short Answers</div>
+    <table class="grammar-table">
+      <tr><th>Question</th><th>Short Answer (Yes)</th><th>Short Answer (No)</th></tr>
+      <tr><td>Are they British?</td><td class="teal">Yes, they are.</td><td class="red">No, they aren't.</td></tr>
+      <tr><td>Is she at home?</td><td class="teal">Yes, she is.</td><td class="red">No, she isn't.</td></tr>
+      <tr><td>Are you friends?</td><td class="teal">Yes, we are.</td><td class="red">No, we aren't.</td></tr>
+    </table>
+    <div class="tip-box">In short answers, never use a short form for YES: say <strong>Yes, they are.</strong> NOT "Yes, they're."</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">WH-Questions with Are</div>
+    <table class="grammar-table">
+      <tr><th>Question word</th><th>Are</th><th>Subject</th><th>Example answer</th></tr>
+      <tr><td class="orange">Where</td><td>are</td><td>your parents?</td><td>They're at home.</td></tr>
+      <tr><td class="orange">Who</td><td>are</td><td>those people?</td><td>They're my friends.</td></tr>
+      <tr><td class="orange">What</td><td>are</td><td>these?</td><td>They're key rings.</td></tr>
+      <tr><td class="orange">What color</td><td>are</td><td>the bags?</td><td>They're black.</td></tr>
+    </table>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">This / That / These / Those</div>
+    <table class="grammar-table">
+      <tr><th></th><th>Near</th><th>Far</th></tr>
+      <tr><td>Singular</td><td class="orange">This</td><td class="orange">That</td></tr>
+      <tr><td>Plural</td><td class="orange">These</td><td class="orange">Those</td></tr>
+    </table>
+    <div class="tip-box"><strong>This/These</strong> = near you. <strong>That/Those</strong> = far from you. Use <strong>is</strong> with this/that. Use <strong>are</strong> with these/those.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Common Irregular Plurals</div>
+    <table class="grammar-table">
+      <tr><th>Singular</th><th>Plural</th></tr>
+      <tr><td>woman</td><td class="teal">women</td></tr>
+      <tr><td>man</td><td class="teal">men</td></tr>
+      <tr><td>child</td><td class="teal">children</td></tr>
+      <tr><td>person</td><td class="teal">people</td></tr>
+    </table>
+    <div class="tip-box">Remember: <strong>the woman is</strong> → <strong>the women are</strong>. The verb changes too!</div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════════
+const STUDENT_KEY = 'teachermari_verbbe_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + studentName + '! Let\'s practise English together!';
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) {
+    document.getElementById('student-name-input').focus();
+    document.getElementById('student-name-input').style.borderColor = 'var(--red)';
+    return;
+  }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+document.getElementById('student-name-input').addEventListener('input', () => { document.getElementById('student-name-input').style.borderColor = ''; });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  'Every mistake helps you learn. Keep going!',
+  'You are doing great! One day at a time!',
+  'Small steps every day add up to big progress!',
+  'Practise makes progress. You can do it!',
+  'Teacher Mari believes in you!',
+  'Great job! Stay curious and keep learning!',
+  'You are getting better every day!'
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS & STORAGE
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_verbbe';
+let appState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(appState.totalChecked || 0);
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  appState.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const total = 20; // 3 exercises × 6 days + 2 checkable on day 7 (d7e3 is WhatsApp only)
+  const pct = Math.min(100, Math.round((totalChecked / total) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// ══════════════════════════════════════════════
+//  CONFETTI & CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2'],
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_verbbe_done') || '[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_verbbe_days') || '[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_verbbe_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_verbbe_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: ['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#3b82f6'][Math.floor(Math.random() * 6)],
+    speed: Math.random() * 4 + 1, drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360, spin: (Math.random() - 0.5) * 6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:\'Poppins\',sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform = 'translateX(-50%) translateY(0)'; toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; toast.style.opacity = '0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280, 360); launchConfetti(280, 360); showToast('Week complete! You are amazing!'); }
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = msg; el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: 'Perfect! You got all ' + total + ' correct!', type: 'ok' };
+  if (correct >= total * 0.7) return { msg: 'Well done! ' + correct + '/' + total + ' correct. Check your mistakes and try again!', type: 'partial' };
+  return { msg: correct + '/' + total + ' correct. Keep practising — you\'re getting there!', type: 'err' };
+}
+
+// buildMC
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i + 1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o, j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(97 + j) + ') ' + o + '</label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct', 'wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const old = itemDiv.querySelector('.mc-explain'); if (old) old.remove(); }
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.innerHTML = 'Why: ' + item.why;
+          itemDiv.querySelector('.mc-options').insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildTF
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item';
+    div.innerHTML = '<div class="tf-line">' + (i + 1) + '. ' + item.s + ' <div class="tf-btns"><button class="tf-btn t" id="' + prefix + 't_' + i + '" data-val="T">True</button><button class="tf-btn f" id="' + prefix + 'f_' + i + '" data-val="F">False</button></div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.id.replace(prefix + 't_', '').replace(prefix + 'f_', '');
+      sel[idx] = btn.dataset.val;
+      ['t', 'f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + idx); if (b) b.classList.remove('selected-t', 'selected-f'); });
+      btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+    });
+  });
+  return sel;
+}
+function checkTF(data, sel, fbId, exId, prefix) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    ['t', 'f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('wrong-sel', 'right-answer'); });
+    if (sel[i] === item.ans) { correct++; }
+    else if (sel[i]) {
+      const wb = document.getElementById(prefix + sel[i].toLowerCase() + '_' + i);
+      if (wb) wb.classList.add('wrong-sel');
+      const rb = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rb) rb.classList.add('right-answer');
+    } else {
+      const rb = document.getElementById(prefix + item.ans.toLowerCase() + '_' + i);
+      if (rb) rb.classList.add('right-answer');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetTF(data, sel, prefix, fbId) {
+  Object.keys(sel).forEach(k => delete sel[k]);
+  data.forEach((_, i) => {
+    ['t', 'f'].forEach(x => { const b = document.getElementById(prefix + x + '_' + i); if (b) b.classList.remove('selected-t', 'selected-f', 'wrong-sel', 'right-answer'); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildClickMatch
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item, i) => ({ text: item.right, originalIndex: i }));
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rightShuffled[i], rightShuffled[j]] = [rightShuffled[j], rightShuffled[i]];
+  }
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.textContent = item.left; leftCol.appendChild(div);
+  });
+  rightShuffled.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = item.originalIndex;
+    div.textContent = item.text; rightCol.appendChild(div);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+  const links = {};
+  let selectedLeft = null, pairCount = 0;
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('linked')) return;
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      pairCount++;
+      const leftIdx = selectedLeft.dataset.idx;
+      links[leftIdx] = item.dataset.idx;
+      selectedLeft.classList.remove('active'); selectedLeft.classList.add('linked'); item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      item.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      const bL = document.createElement('span'); bL.className = 'cm-pair-num'; bL.textContent = pairCount;
+      const bR = document.createElement('span'); bR.className = 'cm-pair-num'; bR.textContent = pairCount;
+      selectedLeft.appendChild(bL); item.appendChild(bR);
+      selectedLeft.dataset.pairNum = pairCount; item.dataset.pairNum = pairCount;
+      selectedLeft = null;
+    }
+  });
+  return { links, leftCol, rightCol, data };
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct = 0;
+  const { links, leftCol, rightCol, data } = state;
+  leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link', 'wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link', 'wrong-link'));
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    const linkedRightIdx = links[i];
+    const correctRightEl = rightCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    if (linkedRightIdx === undefined) {
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+      if (leftEl) leftEl.classList.add('wrong-link');
+      return;
+    }
+    if (parseInt(linkedRightIdx) === i) {
+      correct++; leftEl.classList.add('correct-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    } else {
+      leftEl.classList.add('wrong-link');
+      const wrongRightEl = rightCol.querySelector('.cm-item[data-idx="' + linkedRightIdx + '"]');
+      if (wrongRightEl) wrongRightEl.classList.add('wrong-link');
+      if (correctRightEl) correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const { links, leftCol, rightCol } = state;
+  Object.keys(links).forEach(k => delete links[k]);
+  [leftCol, rightCol].forEach(col => {
+    col.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active', 'linked', 'correct-link', 'wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+      delete el.dataset.pairNum;
+    });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildCTFSentences
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const list = document.createElement('div');
+  const startIndex = cfg.startIndex || 1;
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const html = item.line.replace(/___/g, () => '<span class="ctf-gap" data-ans="' + item.ans + '"></span>');
+    div.innerHTML = '<div class="fill-line">' + (i + startIndex) + '. ' + html + '</div>';
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.className = 'ctf-chip'; btn.dataset.word = w; btn.dataset.wi = wi;
+    btn.textContent = w; bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected && selected.chipEl === chip) { chip.classList.remove('active'); selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    if (selected) selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected = { chipEl: chip, word: chip.dataset.word, wi: chip.dataset.wi };
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    gap.classList.remove('correct-gap', 'wrong-gap', 'ready');
+    if (gap.textContent && !selected) {
+      const returnWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + returnWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+      gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = '';
+      list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const oldWi = gap.dataset.filledWi;
+      const chipBack = bank.querySelector('.ctf-chip[data-wi="' + oldWi + '"]');
+      if (chipBack) chipBack.classList.remove('used');
+    }
+    gap.textContent = selected.word; gap.dataset.filled = selected.word; gap.dataset.filledWi = selected.wi;
+    selected.chipEl.classList.remove('active'); selected.chipEl.classList.add('used');
+    selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0, total = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      total++; gap.classList.remove('correct-gap', 'wrong-gap', 'ready');
+      const old = gap.parentElement.querySelector('.correct-hint'); if (old) old.remove();
+      const filled = (gap.textContent || '').trim().toLowerCase();
+      const ans = (gap.dataset.ans || '').toLowerCase();
+      if (filled === ans) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        const hint = document.createElement('span'); hint.className = 'correct-hint';
+        hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent = '(correct: ' + gap.dataset.ans + ')';
+        gap.insertAdjacentElement('afterend', hint);
+      }
+    });
+    const r = scoreText(correct, total);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => { gap.textContent = ''; gap.dataset.filled = ''; gap.dataset.filledWi = ''; gap.classList.remove('correct-gap', 'wrong-gap', 'ready'); });
+    list.querySelectorAll('.correct-hint').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used', 'active'));
+    selected = null; document.getElementById(cfg.fbId).className = 'feedback';
+  });
+}
+
+// buildWordOrder
+function buildWordOrder(containerId, items, prefix) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'wo-item';
+    const shuffled = [...item.words].sort(() => Math.random() - 0.5);
+    div.innerHTML = '<div class="wo-label">' + (i + 1) + '.</div>' +
+      '<div class="wo-pool" id="' + prefix + '-pool-' + i + '">' +
+      shuffled.map(w => '<button class="wo-chip" data-word="' + w + '" data-item="' + i + '">' + w + '</button>').join('') +
+      '</div>' +
+      '<div class="wo-label">Your question:</div>' +
+      '<div class="wo-zone" id="' + prefix + '-zone-' + i + '"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.wo-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const pool = document.getElementById(prefix + '-pool-' + i);
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const existHint = document.getElementById(prefix + '-hint-' + i);
+    if (existHint) existHint.remove();
+    if (chip.parentElement === pool) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else { chip.classList.remove('in-zone'); pool.appendChild(chip); }
+  });
+}
+function checkWordOrder(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    const built = Array.from(zone.querySelectorAll('.wo-chip')).map(c => c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const old = document.getElementById(prefix + '-hint-' + i); if (old) old.remove();
+    if (built.toLowerCase() === item.ans.toLowerCase()) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      const hint = document.createElement('div');
+      hint.id = prefix + '-hint-' + i;
+      hint.style.cssText = 'color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent = 'Correct: ' + item.ans;
+      zone.insertAdjacentElement('afterend', hint);
+    }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetWordOrder(items, prefix, fbId) {
+  items.forEach((item, i) => {
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    const pool = document.getElementById(prefix + '-pool-' + i);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const old = document.getElementById(prefix + '-hint-' + i); if (old) old.remove();
+    Array.from(zone.querySelectorAll('.wo-chip')).forEach(c => { c.classList.remove('in-zone'); pool.appendChild(c); });
+  });
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1
+// ══════════════════════════════════════════════
+// D1E1 – Is or Are? (MC)
+const d1e1Data = [
+  { q: 'My sister ___ from Brazil.', opts: ['is', 'are'], ans: 0, why: '"My sister" is one person (she), so we use <strong>is</strong>.' },
+  { q: 'My parents ___ at home.', opts: ['is', 'are'], ans: 1, why: '"My parents" means more than one person (they), so we use <strong>are</strong>.' },
+  { q: 'The bags ___ black.', opts: ['is', 'are'], ans: 1, why: '"The bags" is plural (more than one), so we use <strong>are</strong>.' },
+  { q: 'My brother ___ at work.', opts: ['is', 'are'], ans: 0, why: '"My brother" is one person (he), so we use <strong>is</strong>.' },
+  { q: 'Tom and Lisa ___ American.', opts: ['is', 'are'], ans: 1, why: '"Tom and Lisa" = two people (they), so we use <strong>are</strong>.' },
+  { q: 'The phone ___ new.', opts: ['is', 'are'], ans: 0, why: '"The phone" is one thing (it), so we use <strong>is</strong>.' },
+  { q: 'The children ___ at school.', opts: ['is', 'are'], ans: 1, why: '"The children" is plural (they), so we use <strong>are</strong>.' },
+  { q: 'My friends ___ from Mexico.', opts: ['is', 'are'], ans: 1, why: '"My friends" is plural (they), so we use <strong>are</strong>.' },
+];
+buildMC('d1e1', d1e1Data, 'd1e1');
+document.getElementById('d1e1-check').addEventListener('click', () => checkMC(d1e1Data, 'd1e1', 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetMC('d1e1', 'd1e1', d1e1Data, 'd1e1-fb'));
+
+// D1E2 – One or Two? (Click-Match)
+const d1e2State = buildClickMatch('d1e2', [
+  { left: 'The woman', right: 'is my sister.' },
+  { left: 'The women', right: 'are my sisters.' },
+  { left: 'My friend', right: 'is my colleague.' },
+  { left: 'My friends', right: 'are my colleagues.' },
+  { left: 'The boy', right: 'is from Japan.' },
+  { left: 'The boys', right: 'are from Japan.' },
+  { left: 'The child', right: 'is at school.' },
+  { left: 'The children', right: 'are at school.' },
+], 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkClickMatch(d1e2State, 'd1e2-fb', 'd1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetClickMatch(d1e2State, 'd1e2-fb'));
+
+// D1E3 – Read and Choose (MC)
+const d1e3Data = [
+  { q: 'Which sentence is correct?', opts: ['Ben are British.', 'Ben is British.'], ans: 1, why: '"Ben" is one person (he), so we use <strong>is</strong>, not "are".' },
+  { q: 'Which sentence is correct?', opts: ['Emma is 30.', 'Emma are 30.'], ans: 0, why: '"Emma" is one person (she), so we use <strong>is</strong>.' },
+  { q: 'Which sentence is correct?', opts: ['Ben and Emma is British.', 'Ben and Emma are British.'], ans: 1, why: '"Ben and Emma" = two people (they), so we use <strong>are</strong>.' },
+  { q: 'Which sentence is correct?', opts: ['They are brother and sister.', 'They is brother and sister.'], ans: 0, why: '"They" always takes <strong>are</strong>, never "is".' },
+  { q: 'Which sentence is correct?', opts: ['Ben is at work.', 'Ben are at work.'], ans: 0, why: '"Ben" is one person (he), so we use <strong>is</strong>.' },
+  { q: 'Which sentence is correct?', opts: ['Ben and Emma are at home.', 'Emma is at home.'], ans: 1, why: 'The information says Emma is at home. "Ben and Emma are at home" is wrong because Ben is at work.' },
+];
+buildMC('d1e3', d1e3Data, 'd1e3');
+document.getElementById('d1e3-check').addEventListener('click', () => checkMC(d1e3Data, 'd1e3', 'd1e3-fb', 'd1e3'));
+document.getElementById('d1e3-reset').addEventListener('click', () => resetMC('d1e3', 'd1e3', d1e3Data, 'd1e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2
+// ══════════════════════════════════════════════
+// D2E1 – Who Are They? (MC)
+const d2e1Data = [
+  { q: 'Sarah and Kate →', opts: ['she', 'they'], ans: 1, why: 'Two people = <strong>they</strong>.' },
+  { q: 'My parents →', opts: ['they', 'he'], ans: 0, why: '"My parents" means more than one person, so we use <strong>they</strong>.' },
+  { q: 'John and I →', opts: ['we', 'they'], ans: 0, why: 'I + another person = <strong>we</strong>.' },
+  { q: 'The two women →', opts: ['she', 'they'], ans: 1, why: 'Two women = <strong>they</strong>.' },
+  { q: 'My brother and sister →', opts: ['it', 'they'], ans: 1, why: 'Two people = <strong>they</strong>.' },
+  { q: 'Anna and I →', opts: ['we', 'they'], ans: 0, why: 'I + another person = <strong>we</strong>.' },
+  { q: 'The children →', opts: ['they', 'he'], ans: 0, why: '"The children" is plural, so we use <strong>they</strong>.' },
+  { q: 'The two bags →', opts: ['it', 'they'], ans: 1, why: 'Two bags = more than one thing = <strong>they</strong>.' },
+];
+buildMC('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1', 'd2e1', d2e1Data, 'd2e1-fb'));
+
+// D2E2 – Change the Subject (CTF: WE / THEY)
+buildCTFSentences({
+  containerId: 'd2e2', checkId: 'd2e2-check', resetId: 'd2e2-reset', fbId: 'd2e2-fb', exId: 'd2e2',
+  words: ['WE', 'THEY'],
+  items: [
+    { line: 'Jack and Mia are American. → ___ are American.', ans: 'THEY' },
+    { line: 'My parents are at home. → ___ are at home.', ans: 'THEY' },
+    { line: 'Laura and I are colleagues. → ___ are colleagues.', ans: 'WE' },
+    { line: 'The boys are at school. → ___ are at school.', ans: 'THEY' },
+    { line: 'My sister and I are Brazilian. → ___ are Brazilian.', ans: 'WE' },
+    { line: 'The bags are new. → ___ are new.', ans: 'THEY' },
+    { line: 'The women are from Italy. → ___ are from Italy.', ans: 'THEY' },
+    { line: 'My friends are at work. → ___ are at work.', ans: 'THEY' },
+  ]
+});
+
+// D2E3 – Not True! (CTF: ARE / AREN'T)
+buildCTFSentences({
+  containerId: 'd2e3', checkId: 'd2e3-check', resetId: 'd2e3-reset', fbId: 'd2e3-fb', exId: 'd2e3',
+  words: ['ARE', "AREN'T"],
+  items: [
+    { line: "Daniel and Lucas ___ Brazilian.", ans: 'ARE' },
+    { line: "Daniel and Lucas ___ French.", ans: "AREN'T" },
+    { line: "Sophie and Emma ___ at home.", ans: 'ARE' },
+    { line: "Sophie and Emma ___ at work.", ans: "AREN'T" },
+    { line: "The bags ___ new.", ans: 'ARE' },
+    { line: "The bags ___ old.", ans: "AREN'T" },
+    { line: "Daniel and Lucas ___ at work.", ans: 'ARE' },
+    { line: "Sophie and Emma ___ French.", ans: 'ARE' },
+  ]
+});
+
+// ══════════════════════════════════════════════
+//  DAY 3
+// ══════════════════════════════════════════════
+// D3E1 – Plural Sentences (MC)
+const d3e1Data = [
+  { q: 'The bag is black. →', opts: ['The bags are black.', 'The bags is black.'], ans: 0, why: '"Bags" is plural, so we use <strong>are</strong>. "Is" is only for singular subjects.' },
+  { q: 'The woman is Spanish. →', opts: ['The women is Spanish.', 'The women are Spanish.'], ans: 1, why: '"Women" is plural, so we use <strong>are</strong>. Remember: woman → women (irregular).' },
+  { q: 'The child is at home. →', opts: ['The children are at home.', 'The children is at home.'], ans: 0, why: '"Children" is plural, so we use <strong>are</strong>. Remember: child → children (irregular).' },
+  { q: 'My friend is Brazilian. →', opts: ['My friends are Brazilian.', 'My friends is Brazilian.'], ans: 0, why: '"Friends" is plural, so we use <strong>are</strong>.' },
+  { q: 'The key is new. →', opts: ['The keys are new.', 'The keys is new.'], ans: 0, why: '"Keys" is plural, so we use <strong>are</strong>.' },
+  { q: 'The man is at work. →', opts: ['The men is at work.', 'The men are at work.'], ans: 1, why: '"Men" is plural, so we use <strong>are</strong>. Remember: man → men (irregular).' },
+  { q: 'The boy is my brother. →', opts: ['The boys are my brothers.', 'The boys is my brothers.'], ans: 0, why: '"Boys" is plural, so we use <strong>are</strong>.' },
+  { q: 'The girl is my friend. →', opts: ['The girls is my friends.', 'The girls are my friends.'], ans: 1, why: '"Girls" is plural, so we use <strong>are</strong>.' },
+];
+buildMC('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkMC(d3e1Data, 'd3e1', 'd3e1-fb', 'd3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMC('d3e1', 'd3e1', d3e1Data, 'd3e1-fb'));
+
+// D3E2 – This, That, These, Those (MC)
+const d3e2Data = [
+  { q: 'One key here: ___ is my key.', opts: ['This', 'These'], ans: 0, why: 'One key = singular → <strong>This</strong>. Near you = This/These.' },
+  { q: 'Two bags here: ___ are my bags.', opts: ['This', 'These'], ans: 1, why: 'Two bags = plural → <strong>These</strong>. Near you = This/These.' },
+  { q: 'One T-shirt over there: ___ is my T-shirt.', opts: ['That', 'Those'], ans: 0, why: 'One T-shirt = singular → <strong>That</strong>. Far from you = That/Those.' },
+  { q: 'Three mugs over there: ___ are new.', opts: ['That', 'Those'], ans: 1, why: 'Three mugs = plural → <strong>Those</strong>. Far from you = That/Those.' },
+  { q: 'Two photos here: ___ are my photos.', opts: ['These', 'This'], ans: 0, why: 'Two photos = plural → <strong>These</strong>. Near you = This/These.' },
+  { q: 'One umbrella over there: ___ is black.', opts: ['Those', 'That'], ans: 1, why: 'One umbrella = singular → <strong>That</strong>. Far from you = That/Those.' },
+  { q: 'Two key rings over there: ___ are cheap.', opts: ['Those', 'That'], ans: 0, why: 'Two key rings = plural → <strong>Those</strong>. Far from you = That/Those.' },
+  { q: 'One cap here: ___ is new.', opts: ['This', 'These'], ans: 0, why: 'One cap = singular → <strong>This</strong>. Near you = This/These.' },
+];
+buildMC('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkMC(d3e2Data, 'd3e2', 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetMC('d3e2', 'd3e2', d3e2Data, 'd3e2-fb'));
+
+// D3E3 – At the Souvenir Shop (TF)
+const d3e3Data = [
+  { s: 'These mugs are blue.', ans: 'T' },
+  { s: 'These mugs are £15.', ans: 'F' },
+  { s: 'This T-shirt is white.', ans: 'T' },
+  { s: 'Those key rings are red.', ans: 'T' },
+  { s: 'Those key rings are £25.', ans: 'F' },
+  { s: 'That football shirt is black.', ans: 'T' },
+  { s: 'The mugs are blue.', ans: 'T' },
+  { s: 'The football shirt is red.', ans: 'F' },
+];
+const d3e3Sel = buildTF('d3e3', d3e3Data, 'd3e3_');
+document.getElementById('d3e3-check').addEventListener('click', () => checkTF(d3e3Data, d3e3Sel, 'd3e3-fb', 'd3e3', 'd3e3_'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetTF(d3e3Data, d3e3Sel, 'd3e3_', 'd3e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 4
+// ══════════════════════════════════════════════
+// D4E1 – Question + Answer (Click-Match)
+const d4e1State = buildClickMatch('d4e1', [
+  { left: 'Are Tom and Ben brothers?', right: 'Yes, they are. They\'re brothers.' },
+  { left: 'Are the bags black?', right: 'No, they aren\'t. They\'re blue.' },
+  { left: 'Are Mia and Sara at work?', right: 'No, they aren\'t. They\'re at home.' },
+  { left: 'Are the children at school?', right: 'Yes, they are. They\'re at school.' },
+  { left: 'Are these your keys?', right: 'Yes, they are. They\'re my keys.' },
+  { left: 'Are those T-shirts expensive?', right: 'No, they aren\'t. They\'re cheap.' },
+], 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkClickMatch(d4e1State, 'd4e1-fb', 'd4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetClickMatch(d4e1State, 'd4e1-fb'));
+
+// D4E2 – Build the Question (Word Order)
+const d4e2Items = [
+  { words: ['Are', 'they', 'Brazilian', '?'], ans: 'Are they Brazilian ?' },
+  { words: ['Are', 'your', 'parents', 'at', 'home', '?'], ans: 'Are your parents at home ?' },
+  { words: ['Are', 'these', 'your', 'glasses', '?'], ans: 'Are these your glasses ?' },
+  { words: ['Are', 'those', 'bags', 'expensive', '?'], ans: 'Are those bags expensive ?' },
+  { words: ['Are', 'the', 'children', 'at', 'school', '?'], ans: 'Are the children at school ?' },
+  { words: ['Are', 'you', 'and', 'Mia', 'friends', '?'], ans: 'Are you and Mia friends ?' },
+  { words: ['Are', 'your', 'brothers', 'American', '?'], ans: 'Are your brothers American ?' },
+  { words: ['Are', 'the', 'keys', 'new', '?'], ans: 'Are the keys new ?' },
+];
+buildWordOrder('d4e2', d4e2Items, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkWordOrder(d4e2Items, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetWordOrder(d4e2Items, 'd4e2', 'd4e2-fb'));
+
+// D4E3 – Ask the Right Question (MC)
+const d4e3Data = [
+  { q: 'Answer: Yes, they are. They\'re sisters.', opts: ['Is she your sister?', 'Are they sisters?', 'Are they at home?'], ans: 1, why: 'The answer uses "they are", so the question must use <strong>Are they</strong>. "Sisters" matches "they".' },
+  { q: 'Answer: No, they aren\'t. They\'re Mexican.', opts: ['Are they Brazilian?', 'Is he Mexican?', 'Are they at work?'], ans: 0, why: 'The answer corrects a nationality, so the question asks if they are Brazilian. They = plural → <strong>Are they</strong>.' },
+  { q: 'Answer: Yes, they are. They\'re my parents.', opts: ['Are they your parents?', 'Is she your mother?', 'Are your parents British?'], ans: 0, why: 'The answer is "Yes, they are. They\'re my parents." The question must be <strong>Are they your parents?</strong>' },
+  { q: 'Answer: No, they aren\'t. They\'re old.', opts: ['Are the bags black?', 'Are the bags new?', 'Is the bag old?'], ans: 1, why: 'The answer says "they aren\'t new" = they are old. The question asks about newness: <strong>Are the bags new?</strong>' },
+  { q: 'Answer: Yes, they are. They\'re at school.', opts: ['Is the boy at school?', 'Are the children at school?', 'Are the children at home?'], ans: 1, why: 'The answer uses "they are", so the question must use "Are" + plural subject: <strong>Are the children at school?</strong>' },
+  { q: 'Answer: No, they aren\'t. They\'re cheap.', opts: ['Are those mugs expensive?', 'Are those mugs cheap?', 'Is that mug expensive?'], ans: 0, why: 'The answer says they aren\'t expensive → the question asks if they ARE expensive: <strong>Are those mugs expensive?</strong>' },
+];
+buildMC('d4e3', d4e3Data, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkMC(d4e3Data, 'd4e3', 'd4e3-fb', 'd4e3'));
+document.getElementById('d4e3-reset').addEventListener('click', () => resetMC('d4e3', 'd4e3', d4e3Data, 'd4e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 5
+// ══════════════════════════════════════════════
+// D5E1 – Question Words (MC)
+const d5e1Data = [
+  { q: '___ are your parents? — They\'re at home.', opts: ['Who', 'Where', 'What color'], ans: 1, why: '"At home" is a place, so we use <strong>Where</strong>.' },
+  { q: '___ are those people? — They\'re my colleagues.', opts: ['Who', 'Where', 'What'], ans: 0, why: '"My colleagues" identifies people, so we use <strong>Who</strong>.' },
+  { q: '___ are the bags? — They\'re black.', opts: ['Where', 'Who', 'What color'], ans: 2, why: '"Black" is a colour, so we use <strong>What color</strong>.' },
+  { q: '___ are these? — They\'re key rings.', opts: ['What', 'Where', 'Who'], ans: 0, why: '"Key rings" identifies things (not people, not a place, not a colour), so we use <strong>What</strong>.' },
+  { q: '___ are Tom and Lisa? — They\'re at work.', opts: ['Where', 'What color', 'Who'], ans: 0, why: '"At work" is a place, so we use <strong>Where</strong>.' },
+  { q: '___ are those women? — They\'re Anna and Kate.', opts: ['What', 'Who', 'Where'], ans: 1, why: 'The answer gives names (people), so we use <strong>Who</strong>.' },
+  { q: '___ are the T-shirts? — They\'re blue and white.', opts: ['What color', 'Where', 'Who'], ans: 0, why: '"Blue and white" are colours, so we use <strong>What color</strong>.' },
+  { q: '___ are those? — They\'re my glasses.', opts: ['Who', 'What', 'Where'], ans: 1, why: '"My glasses" identifies things, so we use <strong>What</strong>.' },
+];
+buildMC('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkMC(d5e1Data, 'd5e1', 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetMC('d5e1', 'd5e1', d5e1Data, 'd5e1-fb'));
+
+// D5E2 – Build WH-Question (Word Order)
+const d5e2Items = [
+  { words: ['Where', 'are', 'your', 'parents', '?'], ans: 'Where are your parents ?' },
+  { words: ['Who', 'are', 'those', 'men', '?'], ans: 'Who are those men ?' },
+  { words: ['What', 'color', 'are', 'the', 'bags', '?'], ans: 'What color are the bags ?' },
+  { words: ['What', 'are', 'these', '?'], ans: 'What are these ?' },
+  { words: ['Where', 'are', 'your', 'friends', '?'], ans: 'Where are your friends ?' },
+  { words: ['Who', 'are', 'those', 'women', '?'], ans: 'Who are those women ?' },
+  { words: ['What', 'color', 'are', 'the', 'key', 'rings', '?'], ans: 'What color are the key rings ?' },
+  { words: ['Where', 'are', 'the', 'children', '?'], ans: 'Where are the children ?' },
+];
+buildWordOrder('d5e2', d5e2Items, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkWordOrder(d5e2Items, 'd5e2', 'd5e2-fb', 'd5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetWordOrder(d5e2Items, 'd5e2', 'd5e2-fb'));
+
+// D5E3 – Meet the Martins (MC)
+const d5e3Data = [
+  { q: 'Where are David and Helen?', opts: ['At school.', 'At work.', 'At home.'], ans: 1, why: 'The text says "David and Helen are at work today."' },
+  { q: 'Who are Lucy and Ben?', opts: ['David and Helen\'s children.', 'David and Helen\'s parents.', 'David and Helen\'s friends.'], ans: 0, why: 'The text says "Their children are Lucy and Ben."' },
+  { q: 'Are David and Helen British?', opts: ['Yes, they are.', 'No, they aren\'t.'], ans: 0, why: 'The text says "David and Helen are British."' },
+  { q: 'Are Lucy and Ben at home?', opts: ['Yes, they are.', 'No, they aren\'t.'], ans: 1, why: 'The text says Lucy and Ben are at school, not at home.' },
+  { q: 'How old are Lucy and Ben?', opts: ['12 and 9.', '40 and 38.', '12 and 38.'], ans: 0, why: 'The text says "Lucy is 12 and Ben is 9."' },
+  { q: 'Are David and Helen husband and wife?', opts: ['Yes, they are.', 'No, they aren\'t.'], ans: 0, why: 'The text says "They are husband and wife."' },
+];
+buildMC('d5e3', d5e3Data, 'd5e3');
+document.getElementById('d5e3-check').addEventListener('click', () => checkMC(d5e3Data, 'd5e3', 'd5e3-fb', 'd5e3'));
+document.getElementById('d5e3-reset').addEventListener('click', () => resetMC('d5e3', 'd5e3', d5e3Data, 'd5e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 6
+// ══════════════════════════════════════════════
+// D6E1 – A New Team (CTF: AM / IS / ARE)
+buildCTFSentences({
+  containerId: 'd6e1', checkId: 'd6e1-check', resetId: 'd6e1-reset', fbId: 'd6e1-fb', exId: 'd6e1',
+  words: ['AM', 'IS', 'ARE'],
+  items: [
+    { line: 'Hi! I ___ Rachel.', ans: 'AM' },
+    { line: 'I ___ American.', ans: 'AM' },
+    { line: 'This ___ my new team.', ans: 'IS' },
+    { line: 'Carlos and Sofia ___ from Mexico.', ans: 'ARE' },
+    { line: 'They ___ very nice.', ans: 'ARE' },
+    { line: 'Ken ___ from Japan.', ans: 'IS' },
+    { line: 'He ___ new here too.', ans: 'IS' },
+    { line: 'Carlos, Sofia, Ken and I ___ colleagues.', ans: 'ARE' },
+    { line: 'We ___ at work today.', ans: 'ARE' },
+    { line: 'Our office ___ small, but it ___ very nice.', ans: 'IS' },
+  ]
+});
+
+// D6E2 – What Do You Know? (MC)
+const d6e2Data = [
+  { q: 'Choose the true sentence.', opts: ['Anna are Polish.', 'Anna is Polish.', 'Anna am Polish.'], ans: 1, why: '"Anna" is one person (she) → <strong>is</strong>. "Are" is for plural or you/we/they. "Am" is only for I.' },
+  { q: 'Choose the true sentence.', opts: ['Marco and Anna are at work.', 'Marco and Anna is at work.', 'Marco and Anna am at work.'], ans: 0, why: '"Marco and Anna" = two people (they) → <strong>are</strong>. Also, both are at work according to the information.' },
+  { q: 'Choose the true sentence.', opts: ['Yuki and Emi is Japanese.', 'Yuki and Emi are Japanese.', 'Yuki and Emi am Japanese.'], ans: 1, why: '"Yuki and Emi" = two people (they) → <strong>are</strong>.' },
+  { q: 'Choose the true sentence. (They = Yuki and Emi)', opts: ['They are at home.', 'They is at home.', 'They am at home.'], ans: 0, why: '"They" always takes <strong>are</strong>. Yuki and Emi are at home.' },
+  { q: 'Choose the true sentence.', opts: ['Anna and Marco are Italian.', 'Marco is Italian.', 'Marco are Italian.'], ans: 1, why: 'Marco is Italian (one person, he → <strong>is</strong>). Anna is Polish, not Italian, so option a is wrong.' },
+  { q: 'Choose the true sentence.', opts: ['Yuki and Emi aren\'t at work.', 'Yuki and Emi isn\'t at work.', 'Yuki and Emi am not at work.'], ans: 0, why: 'Yuki and Emi are at home (plural → <strong>aren\'t</strong>). "Isn\'t" is for he/she/it. "Am not" is only for I.' },
+];
+buildMC('d6e2', d6e2Data, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkMC(d6e2Data, 'd6e2', 'd6e2-fb', 'd6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetMC('d6e2', 'd6e2', d6e2Data, 'd6e2-fb'));
+
+// D6E3 – Complete the Conversations (MC) — dialogue format
+const d6e3Data = [
+  { q: 'A: ___ those your bags?  B: Yes, they are.', opts: ['Is', 'Are', 'Am'], ans: 1, why: '"Those" refers to more than one thing (plural) → <strong>Are</strong>.' },
+  { q: 'A: Where ___ your parents?  B: They\'re at home.', opts: ['is', 'am', 'are'], ans: 2, why: '"Your parents" = plural (they) → <strong>are</strong>.' },
+  { q: 'A: ___ this your phone?  B: No, it isn\'t.', opts: ['Is', 'Are', 'Am'], ans: 0, why: '"This" = singular (one thing) → <strong>Is</strong>.' },
+  { q: 'A: Who ___ those women?  B: They\'re my sisters.', opts: ['am', 'is', 'are'], ans: 2, why: '"Those women" = plural (they) → <strong>are</strong>.' },
+  { q: 'A: ___ Jack and Ben American?  B: No, they aren\'t. They\'re British.', opts: ['Is', 'Are', 'Am'], ans: 1, why: '"Jack and Ben" = two people (they) → <strong>Are</strong>.' },
+  { q: 'A: What color ___ your glasses?  B: They\'re black.', opts: ['are', 'is', 'am'], ans: 0, why: '"Your glasses" = plural (they) → <strong>are</strong>.' },
+  { q: 'A: Where ___ your sister?  B: She\'s at work.', opts: ['are', 'is', 'am'], ans: 1, why: '"Your sister" = one person (she) → <strong>is</strong>.' },
+  { q: 'A: ___ you and Laura colleagues?  B: Yes, we are.', opts: ['Is', 'Are', 'Am'], ans: 1, why: '"You and Laura" = more than one person (we/they) → <strong>Are</strong>.' },
+];
+buildMC('d6e3', d6e3Data, 'd6e3');
+document.getElementById('d6e3-check').addEventListener('click', () => checkMC(d6e3Data, 'd6e3', 'd6e3-fb', 'd6e3'));
+document.getElementById('d6e3-reset').addEventListener('click', () => resetMC('d6e3', 'd6e3', d6e3Data, 'd6e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 7
+// ══════════════════════════════════════════════
+// D7E1 – Complete Review (MC)
+const d7e1Data = [
+  { q: 'My father ___ Brazilian.', opts: ['am', 'is', 'are'], ans: 1, why: '"My father" = one person (he) → <strong>is</strong>.' },
+  { q: 'My parents ___ at home.', opts: ['is', 'are', 'am'], ans: 1, why: '"My parents" = plural (they) → <strong>are</strong>.' },
+  { q: 'Sarah and I ___ friends.', opts: ['are', 'is', 'am'], ans: 0, why: '"Sarah and I" = we → <strong>are</strong>.' },
+  { q: 'The two men ___ from Italy.', opts: ['is', 'am', 'are'], ans: 2, why: '"The two men" = plural (they) → <strong>are</strong>.' },
+  { q: '___ those your keys?', opts: ['Is', 'Are', 'Am'], ans: 1, why: '"Those" = plural → <strong>Are</strong>.' },
+  { q: 'A: Are Emma and Lucy sisters?  B: Yes, ___.', opts: ['she is', 'they are', 'they is'], ans: 1, why: 'Emma and Lucy = they → "Yes, <strong>they are</strong>." Short answer never uses a short form.' },
+  { q: 'A: Are the bags expensive?  B: No, ___. They\'re cheap.', opts: ['they aren\'t', 'it isn\'t', 'they isn\'t'], ans: 0, why: 'Bags = they. Negative plural → <strong>they aren\'t</strong>. "They isn\'t" is wrong.' },
+  { q: '___ are those people? — They\'re my parents.', opts: ['Where', 'Who', 'What color'], ans: 1, why: '"My parents" identifies people → <strong>Who</strong>.' },
+  { q: '___ are your friends? — They\'re at work.', opts: ['Where', 'Who', 'What color'], ans: 0, why: '"At work" is a place → <strong>Where</strong>.' },
+  { q: 'One mug near you: ___ is blue.', opts: ['These', 'Those', 'This'], ans: 2, why: 'One mug = singular. Near = This/These. Singular → <strong>This</strong>.' },
+  { q: 'Three T-shirts far from you: ___ are new.', opts: ['That', 'Those', 'This'], ans: 1, why: 'Three T-shirts = plural. Far = That/Those. Plural → <strong>Those</strong>.' },
+  { q: 'The woman ___ my boss. The two men ___ my colleagues.', opts: ['is / are', 'are / is', 'is / is'], ans: 0, why: '"Woman" = singular → <strong>is</strong>. "The two men" = plural → <strong>are</strong>.' },
+  { q: 'A: What color ___ the bags?  B: They\'re black.', opts: ['is', 'are', 'am'], ans: 1, why: '"The bags" = plural → <strong>are</strong>.' },
+  { q: 'A: ___ the children at school?  B: Yes, they are.', opts: ['Is', 'Am', 'Are'], ans: 2, why: '"The children" = plural → <strong>Are</strong>.' },
+  { q: 'My brother and sister ___ at home today.', opts: ['are', 'is', 'am'], ans: 0, why: '"My brother and sister" = two people (they) → <strong>are</strong>.' },
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data, 'd7e1', 'd7e1-fb', 'd7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1', 'd7e1', d7e1Data, 'd7e1-fb'));
+
+// D7E2 – Spot the Mistake (MC — find the wrong sentence)
+const d7e2Data = [
+  { q: 'Which sentence has a mistake?', opts: ['My sister is Brazilian.', 'My parents are Brazilian.', 'My brothers are at home.', 'My friends is at work.'], ans: 3, why: '"My friends" is plural (they) → it should be <strong>My friends are at work.</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['The woman is my boss.', 'The women are my colleagues.', 'The children are at school.', 'The men is American.'], ans: 3, why: '"The men" is plural → it should be <strong>The men are American.</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['These are my keys.', 'Those are my bags.', 'This is my phone.', 'These is my glasses.'], ans: 3, why: '"These" is plural → it needs <strong>are</strong>: <strong>These are my glasses.</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['Are they British?', 'Are your parents at home?', 'Is your sister at work?', 'Is the children at school?'], ans: 3, why: '"The children" is plural → it should be <strong>Are the children at school?</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['Where are your friends?', 'Who are those people?', 'What color are the bags?', 'Where is your parents?'], ans: 3, why: '"Your parents" is plural → it should be <strong>Where are your parents?</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['Yes, they are.', 'No, they aren\'t.', 'Yes, she is.', 'Yes, they is.'], ans: 3, why: '"They" always takes <strong>are</strong>: the correct short answer is <strong>Yes, they are.</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['Tom and Lisa are friends.', 'My mother and father are at home.', 'The two bags are black.', 'Sarah and Emma is British.'], ans: 3, why: '"Sarah and Emma" = two people (they) → it should be <strong>Sarah and Emma are British.</strong>' },
+  { q: 'Which sentence has a mistake?', opts: ['The child is at school.', 'The children are at school.', 'The man is at work.', 'The men is at work.'], ans: 3, why: '"The men" is plural → it should be <strong>The men are at work.</strong>' },
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data, 'd7e2', 'd7e2-fb', 'd7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2', 'd7e2', d7e2Data, 'd7e2-fb'));
+
+// D7E3 – Writing Challenge (WhatsApp)
+document.getElementById('d7e3-wa').addEventListener('click', () => {
+  const text = document.getElementById('d7e3-text').value.trim();
+  const name = studentName || 'Student';
+  const msg = 'Writing Challenge – Verb Be\n\nHello, Teacher Mari! Here is my writing:\n\nStudent: ' + name + '\n\n' + (text || '(no text written)') + '\n\n_Sent from the weekly practice file._';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// Summary WhatsApp button
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const name = studentName || 'Student';
+  const msg = 'Week Complete! – Verb Be: Is or Are?\n\nHello, Teacher Mari! I finished all the exercises this week.\n\nStudent: ' + name + '\nExercises checked: ' + totalChecked + '\n\n_Sent from the weekly practice file._';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'en-US'; utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = '<button onclick="speakWord(\'' + item.en.replace(/'/g, "\\'") + '\')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">&#128266;</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">' + item.en + '</div><div class="vc-pt">' + item.pt + '</div>';
+    wrap.appendChild(div);
+  });
+}
+
+const VOCAB_PRONOUNS = [
+  { en: 'I', pt: 'am' }, { en: 'you', pt: 'are' }, { en: 'he', pt: 'is' },
+  { en: 'she', pt: 'is' }, { en: 'it', pt: 'is' }, { en: 'we', pt: 'are' }, { en: 'they', pt: 'are' }
+];
+const VOCAB_PLURALS = [
+  { en: 'woman → women', pt: 'irregular plural' }, { en: 'man → men', pt: 'irregular plural' },
+  { en: 'child → children', pt: 'irregular plural' }, { en: 'person → people', pt: 'irregular plural' },
+  { en: 'bag → bags', pt: 'regular (-s)' }, { en: 'key → keys', pt: 'regular (-s)' },
+  { en: 'friend → friends', pt: 'regular (-s)' }, { en: 'colleague → colleagues', pt: 'regular (-s)' }
+];
+const VOCAB_DEMO = [
+  { en: 'this', pt: 'singular, near' }, { en: 'that', pt: 'singular, far' },
+  { en: 'these', pt: 'plural, near' }, { en: 'those', pt: 'plural, far' }
+];
+const VOCAB_KEY = [
+  { en: 'at home', pt: 'place' }, { en: 'at work', pt: 'place' }, { en: 'at school', pt: 'place' },
+  { en: 'British', pt: 'nationality' }, { en: 'Brazilian', pt: 'nationality' }, { en: 'American', pt: 'nationality' },
+  { en: 'husband and wife', pt: 'relationship' }, { en: 'brother and sister', pt: 'relationship' },
+  { en: 'colleague', pt: 'person' }, { en: 'expensive', pt: 'adjective' }, { en: 'cheap', pt: 'adjective' },
+  { en: 'new', pt: 'adjective' }, { en: 'old', pt: 'adjective' }, { en: 'black', pt: 'colour' }
+];
+
+renderVocabGrid('vocab-pronouns', VOCAB_PRONOUNS);
+renderVocabGrid('vocab-plurals', VOCAB_PLURALS);
+renderVocabGrid('vocab-demo', VOCAB_DEMO);
+renderVocabGrid('vocab-key', VOCAB_KEY);
+
+</script>
+</body>
+</html>
