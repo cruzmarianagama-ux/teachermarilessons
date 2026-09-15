@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Simple Past – She Was Born in 1991 | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: var(--cream-light); color: var(--purple); min-height: 100vh; }
+
+  /* WELCOME */
+  #welcome-screen { position:fixed;inset:0;background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px; }
+  #welcome-screen.hidden { display:none; }
+  .welcome-card { background:var(--white);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .welcome-logo { height:48px;object-fit:contain;margin-bottom:16px; }
+  .welcome-hi { font-size:1.5rem;font-weight:800;color:var(--purple);margin-bottom:6px; }
+  .welcome-sub { font-size:0.82rem;color:var(--gray);margin-bottom:24px;line-height:1.5; }
+  .welcome-input { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 16px;font-family:'Poppins',sans-serif;font-size:1rem;font-weight:600;color:var(--purple);text-align:center;outline:none;margin-bottom:16px;transition:border-color 0.2s; }
+  .welcome-input:focus { border-color:var(--purple-light); }
+  .welcome-btn { width:100%;padding:13px;background:var(--orange);color:var(--white);border:none;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(255,92,35,0.35);transition:all 0.2s; }
+  .welcome-btn:hover { background:#e84d18;transform:translateY(-1px); }
+
+  /* HELLO BANNER */
+  #hello-banner { display:none;background:linear-gradient(90deg,var(--orange),#ff8c5a);color:var(--white);text-align:center;padding:12px 16px;font-size:1rem;font-weight:700;letter-spacing:0.2px; }
+  #hello-banner.show { display:block; }
+
+  /* HEADER */
+  .header { background:linear-gradient(135deg,var(--purple) 0%,var(--purple-light) 100%);padding:28px 24px 22px;text-align:center;position:relative;overflow:hidden; }
+  .header::before { content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,92,35,0.18); }
+  .header::after { content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,92,35,0.12); }
+  .header h1 { font-size:1.5rem;font-weight:800;color:var(--white);letter-spacing:-0.5px; }
+  .header .subtitle { font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.70);margin-top:4px;text-transform:uppercase;letter-spacing:1.2px; }
+
+  /* PROGRESS */
+  .progress-section { background:var(--white);padding:16px 20px;box-shadow:var(--shadow-sm); }
+  .progress-label { display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;color:var(--purple);margin-bottom:8px; }
+  .progress-track { height:10px;background:var(--gray-light);border-radius:99px;overflow:hidden; }
+  .progress-fill { height:100%;background:linear-gradient(90deg,var(--orange),#ff8c5a);border-radius:99px;transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* MOTIVATION */
+  .motivation-bar { background:linear-gradient(90deg,var(--green),#0a6655);color:var(--white);text-align:center;padding:10px 16px;font-size:0.82rem;font-weight:500; }
+
+  /* TABS */
+  .tabs-wrap { background:var(--white);overflow-x:auto;border-bottom:2px solid var(--gray-light);position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm); }
+  .tabs { display:flex;min-width:max-content;padding:0 8px; }
+  .tab-btn { padding:14px 16px;font-size:0.78rem;font-weight:600;color:var(--gray);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;letter-spacing:0.3px; }
+  .tab-btn:hover { color:var(--purple-light); }
+  .tab-btn.active { color:var(--orange);border-bottom-color:var(--orange); }
+
+  /* CONTENT */
+  .content { max-width:780px;margin:0 auto;padding:24px 16px 60px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  /* DAY HEADER */
+  .day-header { display:flex;align-items:center;gap:14px;margin-bottom:24px; }
+  .day-number { background:var(--orange);color:var(--white);font-size:1.1rem;font-weight:800;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size:1.2rem;font-weight:700;color:var(--purple); }
+  .day-desc { font-size:0.82rem;color:var(--gray);margin-top:2px; }
+
+  /* EX CARD */
+  .ex-card { background:var(--white);border-radius:var(--radius);padding:22px;margin-bottom:20px;box-shadow:var(--shadow);border-left:4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color:var(--orange); }
+  .ex-card.reading { border-left-color:var(--teal); }
+  .ex-card.writing { border-left-color:var(--green); }
+  .ex-title { font-size:0.98rem;font-weight:700;color:var(--purple);margin-bottom:4px; }
+  .ex-instruction { font-size:0.82rem;color:var(--gray);margin-bottom:18px;line-height:1.5; }
+
+  /* WORD BOX */
+  .word-box { background:var(--cream);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:0.85rem;font-weight:600;color:var(--purple);text-align:center;letter-spacing:0.5px; }
+
+  /* MC */
+  .mc-item { margin-bottom:18px; }
+  .mc-question { font-size:0.88rem;font-weight:600;color:var(--purple);margin-bottom:10px;line-height:1.4; }
+  .mc-options { display:flex;flex-direction:column;gap:8px; }
+  .mc-option { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:500;background:var(--white); }
+  .mc-option:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.selected { border-color:var(--purple-light);background:#f5f3ff; }
+  .mc-option.correct { border-color:var(--teal);background:#f0fdfa;color:var(--teal); }
+  .mc-option.wrong { border-color:var(--red);background:#fef2f2;color:var(--red); }
+  .mc-option input[type=radio] { accent-color:var(--purple-light); }
+
+  /* FILL */
+  .fill-item { margin-bottom:14px; }
+  .fill-line { display:inline;align-items:center;flex-wrap:wrap;gap:4px;font-size:0.88rem;font-weight:500;color:var(--purple);line-height:2; }
+  .fill-input { border:none;border-bottom:2px solid var(--purple-light);padding:2px 6px;font-family:'Poppins',sans-serif;font-size:0.88rem;font-weight:600;color:var(--purple);background:transparent;min-width:100px;max-width:160px;width:auto;text-align:center;outline:none;transition:border-color 0.2s;display:inline-block; }
+  .fill-input:focus { border-bottom-color:var(--orange); }
+  .fill-input.correct { border-bottom-color:var(--teal);color:var(--teal); }
+  .fill-input.wrong { border-bottom-color:var(--red);color:var(--red); }
+
+  /* TEXTAREA */
+  .writing-area { width:100%;border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Poppins',sans-serif;font-size:0.88rem;color:var(--purple);resize:vertical;outline:none;min-height:120px;transition:border-color 0.2s;margin-bottom:8px; }
+  .writing-area:focus { border-color:var(--purple-light); }
+
+  /* BUTTONS */
+  .btn { display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none; }
+  .btn-primary { background:var(--orange);color:var(--white);box-shadow:0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background:#e84d18;transform:translateY(-1px); }
+  .btn-secondary { background:var(--gray-light);color:var(--purple); }
+  .btn-secondary:hover { background:#e5e7eb; }
+  .btn-whatsapp { background:#25D366;color:var(--white);box-shadow:0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background:#1fb855;transform:translateY(-1px); }
+  .btn-row { display:flex;gap:10px;flex-wrap:wrap;margin-top:14px; }
+
+  /* FEEDBACK */
+  .feedback { display:none;padding:12px 16px;border-radius:var(--radius-sm);font-size:0.83rem;font-weight:600;margin-top:14px;line-height:1.5; }
+  .feedback.show { display:block; }
+  .feedback.ok { background:#f0fdfa;color:var(--teal);border:1px solid #99f6e4; }
+  .feedback.err { background:#fef2f2;color:var(--red);border:1px solid #fecaca; }
+  .feedback.partial { background:#fffbeb;color:#b45309;border:1px solid #fde68a; }
+
+  /* CLICK-MATCH */
+  .cm-wrap { display:flex;gap:24px;align-items:flex-start; }
+  .cm-col { flex:1;display:flex;flex-direction:column;gap:8px; }
+  .cm-item { padding:10px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-light);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:600;color:var(--purple);background:var(--white);text-align:center;user-select:none; }
+  .cm-item:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .cm-item.active { border-color:var(--orange);background:#fff5ee;outline:2px solid var(--orange); }
+  .cm-item.linked { border-color:var(--purple-light);background:#f5f3ff;opacity:0.7; }
+  .cm-item.correct-link { border-color:var(--teal);background:#f0fdfa;color:var(--teal);opacity:1; }
+  .cm-item.wrong-link { border-color:var(--red);background:#fef2f2;color:var(--red);opacity:1; }
+  .cm-pair-num { display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--purple-light);color:#fff;font-size:0.65rem;font-weight:700;margin-left:6px; }
+  @media(max-width:600px){ .cm-wrap{gap:12px} .cm-item{font-size:0.78rem;padding:8px 10px} }
+
+  /* CTF */
+  .ctf-wordbank { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--cream);border-radius:var(--radius-sm); }
+  .ctf-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 14px;font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none; }
+  .ctf-chip:hover { background:var(--purple-light);transform:translateY(-1px); }
+  .ctf-chip.active { background:var(--orange);outline:3px solid #ffb347;transform:scale(1.08); }
+  .ctf-chip.used { background:var(--gray);cursor:default;opacity:0.45; }
+  .ctf-chip.wrong-pick { background:var(--red);outline:2px solid var(--red);opacity:1; }
+  .ctf-chip.correct-pick { background:var(--teal);outline:2px solid var(--teal);opacity:1; }
+  .ctf-gap { display:inline-block;min-width:72px;text-align:center;border-bottom:2.5px solid var(--purple-light);color:var(--orange);font-weight:700;font-size:0.88rem;padding:0 4px;cursor:pointer;margin:0 2px;transition:border-color 0.2s,background 0.2s;border-radius:4px 4px 0 0;vertical-align:middle;line-height:1.8; }
+  .ctf-gap:empty::before { content:'_ _ _';color:#bbb;font-weight:400;font-size:0.78rem; }
+  .ctf-gap.ready { border-bottom-color:var(--orange);background:#fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color:var(--teal);color:var(--teal);background:#f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color:var(--red);color:var(--red);background:#fef2f2; }
+
+  /* SENTENCE BUILDER */
+  .sb-words { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:38px;padding:8px;background:var(--gray-light);border-radius:var(--radius-sm); }
+  .sb-zone { display:flex;flex-wrap:wrap;gap:8px;min-height:44px;padding:8px 10px;background:var(--white);border:2px dashed var(--purple-light);border-radius:var(--radius-sm);margin-bottom:8px;transition:border-color 0.2s; }
+  .sb-zone.correct-zone { border-color:var(--teal);background:#f0fdfa; }
+  .sb-zone.wrong-zone { border-color:var(--red);background:#fef2f2; }
+  .sb-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 12px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.15s;user-select:none; }
+  .sb-chip:hover { background:var(--purple-light);transform:translateY(-1px); }
+  .sb-chip.in-zone { background:var(--orange); }
+  .sb-item { margin-bottom:18px; }
+  .sb-label { font-size:0.75rem;font-weight:700;color:var(--gray);margin-bottom:6px; }
+
+  /* READING TEXT */
+  .reading-text { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:18px;margin-bottom:18px;font-size:0.9rem;line-height:1.75;color:var(--purple);font-weight:500;border-left:4px solid var(--teal); }
+
+  /* MATCH SELECT */
+  .match-select { border:2px solid var(--gray-light);border-radius:6px;padding:5px 10px;font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;color:var(--purple);outline:none;transition:border-color 0.2s;background:var(--white);max-width:min(100%,260px);vertical-align:middle; }
+  .match-select:focus { border-color:var(--purple-light); }
+  .match-select.correct { border-color:var(--teal);color:var(--teal);background:#f0fdfa; }
+  .match-select.wrong { border-color:var(--red);color:var(--red);background:#fef2f2; }
+
+  /* VOCAB / GRAMMAR BANK */
+  .bank-section { margin-bottom:28px; }
+  .bank-title { font-size:0.9rem;font-weight:700;color:var(--purple);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gray-light); }
+  .vocab-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px; }
+  .vocab-chip { background:var(--white);border:2px solid var(--gray-light);border-radius:var(--radius-sm);padding:10px 12px;text-align:center;font-size:0.82rem;font-weight:600;color:var(--purple);cursor:pointer;transition:all 0.2s; }
+  .vocab-chip:hover { border-color:var(--purple-light);background:#f5f3ff; }
+  .vocab-chip .vc-pt { font-size:0.72rem;color:var(--gray);font-weight:500;margin-top:2px; }
+  .grammar-table { width:100%;border-collapse:collapse;font-size:0.83rem; }
+  .grammar-table th { background:var(--purple);color:var(--white);padding:8px 12px;text-align:left;font-weight:600; }
+  .grammar-table td { padding:8px 12px;border-bottom:1px solid var(--gray-light);color:var(--purple);font-weight:500; }
+  .grammar-table tr:nth-child(even) td { background:var(--cream-light); }
+  .grammar-table .orange { color:var(--orange);font-weight:700; }
+  .grammar-table .teal { color:var(--teal);font-weight:700; }
+  .grammar-table .red { color:var(--red);font-weight:700; }
+  .tip-box { background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;font-size:0.82rem;color:#92400e;margin-top:12px;line-height:1.6; }
+
+  /* SUMMARY */
+  .summary-card { background:linear-gradient(135deg,var(--purple),var(--purple-light));border-radius:var(--radius);padding:24px;text-align:center;color:var(--white);margin-top:10px; }
+  .summary-card h3 { font-size:1.1rem;font-weight:800;margin-bottom:6px; }
+  .summary-card p { font-size:0.82rem;opacity:0.8;margin-bottom:16px; }
+  .score-big { font-size:2.8rem;font-weight:800;color:var(--orange); }
+  #confetti-canvas { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999; }
+
+  /* DRAG-GROUP */
+  .dg-wrap { display:flex;gap:16px;flex-wrap:wrap; }
+  .dg-source { background:var(--cream);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;min-height:44px; }
+  .dg-group { flex:1;min-width:140px; }
+  .dg-group-label { font-size:0.82rem;font-weight:700;color:var(--white);padding:6px 14px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;text-align:center;margin-bottom:0; }
+  .dg-group-label.regular { background:var(--teal); }
+  .dg-group-label.irregular { background:var(--orange); }
+  .dg-drop { min-height:80px;border:2px dashed var(--gray-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:8px;display:flex;flex-wrap:wrap;gap:6px;background:var(--white);transition:border-color 0.2s; }
+  .dg-drop.over { border-color:var(--purple-light);background:#f5f3ff; }
+  .dg-chip { background:var(--purple);color:var(--white);border:none;border-radius:6px;padding:5px 12px;font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:grab;user-select:none;touch-action:none;transition:all 0.15s;display:inline-block; }
+  .dg-chip:active { cursor:grabbing; }
+  .dg-chip.correct-chip { background:var(--teal);cursor:default; }
+  .dg-chip.wrong-chip { background:var(--red);cursor:default; }
+  @media(max-width:600px){ .dg-wrap{flex-direction:column;gap:10px} .dg-group{min-width:100%} }
+
+  /* EXAMPLE BOX */
+  .example-box { background:linear-gradient(135deg,var(--cream),#fff5e6);border-radius:var(--radius-sm);padding:16px;margin-top:14px;margin-bottom:14px;font-size:0.88rem;line-height:1.8;color:var(--purple);font-weight:500;border:2px dashed var(--orange); }
+  .example-box .ex-label { font-size:0.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px; }
+
+  /* CHECKLIST */
+  .checklist { list-style:none;margin:14px 0; }
+  .checklist li { display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:0.88rem;font-weight:500;color:var(--purple);border-bottom:1px solid var(--gray-light); }
+  .checklist li:last-child { border-bottom:none; }
+  .check-icon { color:var(--teal);font-size:1rem;flex-shrink:0;margin-top:2px; }
+
+  /* RESPONSIVE */
+  @media(max-width:600px){
+    .header h1{font-size:1.1rem} .header{padding:20px 16px 16px} .content{padding:14px 10px 50px}
+    .ex-card{padding:14px 12px} .day-header{gap:10px;margin-bottom:16px}
+    .day-number{width:42px;height:42px;font-size:0.95rem} .day-title{font-size:1rem}
+    .tab-btn{padding:12px 10px;font-size:0.72rem} .mc-option{font-size:0.82rem;padding:8px 10px}
+    .btn{font-size:0.78rem;padding:9px 16px} .btn-row{gap:8px}
+    .fill-input{min-width:70px;max-width:120px;font-size:0.82rem}
+    .grammar-table{font-size:0.75rem} .grammar-table th,.grammar-table td{padding:6px 8px}
+    .vocab-grid{grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:8px}
+    .reading-text{font-size:0.85rem;padding:14px}
+    .writing-area{font-size:0.85rem} .summary-card{padding:18px} .score-big{font-size:2.2rem}
+    .progress-section{padding:12px 14px}
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>Simple Past – She Was Born in 1991</strong>.<br>What is your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Let's go!</button>
+  </div>
+</div>
+
+<!-- HELLO BANNER -->
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <img src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" style="height:72px;object-fit:contain;" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Simple Past – Weekly Practice</h1>
+      <div class="subtitle">Pre-Intermediate</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Weekly progress</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- MOTIVATION -->
+<div class="motivation-bar">
+  <span id="motivation-text">Loading today's motivation...</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">Day 1</button>
+    <button class="tab-btn" data-tab="day2">Day 2</button>
+    <button class="tab-btn" data-tab="day3">Day 3</button>
+    <button class="tab-btn" data-tab="day4">Day 4</button>
+    <button class="tab-btn" data-tab="day5">Day 5</button>
+    <button class="tab-btn" data-tab="day6">Day 6</button>
+    <button class="tab-btn" data-tab="day7">Day 7</button>
+    <button class="tab-btn" data-tab="vocab">Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════ DAY 1 – LIFE EVENTS IN THE PAST ══════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Life Events in the Past</div>
+      <div class="day-desc">Regular or Irregular? · What Happened?</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Regular or Irregular (drag-to-group) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Regular or Irregular?</div>
+    <div class="ex-instruction">Drag each past form into the correct group: Regular or Irregular.</div>
+    <div class="dg-source" id="d1e1-source"></div>
+    <div class="dg-wrap">
+      <div class="dg-group">
+        <div class="dg-group-label regular">REGULAR</div>
+        <div class="dg-drop" id="d1e1-drop-regular" data-group="regular"></div>
+      </div>
+      <div class="dg-group">
+        <div class="dg-group-label irregular">IRREGULAR</div>
+        <div class="dg-drop" id="d1e1-drop-irregular" data-group="irregular"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Match situations to sentences (click match) -->
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Happened?</div>
+    <div class="ex-instruction">Click a situation on the left, then click the matching sentence on the right.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 2 – PAST FORMS ══════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Past Forms</div>
+      <div class="day-desc">Present → Past · One Saturday, Three People · Build the Event</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC: present → past -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Present → Past</div>
+    <div class="ex-instruction">Choose the correct past form of each verb.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Reading: match statement to person (MC) -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – One Saturday, Three People</div>
+    <div class="ex-instruction">Read the three messages. Then answer: who did each thing — Alex, Grace or Leo?</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Alex:</strong> I had a busy Saturday. I got up at 7:00 and went to the supermarket. Then I cleaned my apartment and made lunch. In the evening, I stayed at home and watched a film.<br><br>
+      <strong style="color:var(--orange);">Grace:</strong> My Saturday was great. I met two friends in the city centre. We had lunch at a new restaurant and went shopping. I bought a jacket. I got home at about 8:00.<br><br>
+      <strong style="color:var(--orange);">Leo:</strong> I worked in the morning. I finished at 1:00 and went home. In the afternoon, I visited my parents. We had coffee together. Then I took the bus home.
+    </div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Sentence builder: put words in order -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Build the Event</div>
+    <div class="ex-instruction">Tap the words in the correct order to make a Past Simple sentence. Tap a word in the answer zone to move it back.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e3-check">Check</button>
+      <button class="btn btn-secondary" id="d2e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 3 – NEGATIVE PAST ══════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Negative Past</div>
+      <div class="day-desc">Match the Columns · What Really Happened? · Didn't + Base Form</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – Match the Columns (click match) -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Match the Columns</div>
+    <div class="ex-instruction">Click a question on the left, then click the matching answer on the right.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – MC: choose sentence that matches -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – What Really Happened?</div>
+    <div class="ex-instruction">Read each situation and choose the sentence that correctly describes it.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – CTF: didn't + base form, word bank -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Didn't + Base Form</div>
+    <div class="ex-instruction">Click a verb from the box, then click the gap. Use the negative Past Simple.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e3-check">Check</button>
+      <button class="btn btn-secondary" id="d3e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 4 – ASKING ABOUT THE PAST ══════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Asking About the Past</div>
+      <div class="day-desc">The Answer Tells You the Question · Question + Answer</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC: choose correct question -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – The Answer Tells You the Question</div>
+    <div class="ex-instruction">Read each answer and choose the correct question.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – Click match: questions to answers -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Question + Answer</div>
+    <div class="ex-instruction">Click a question on the left, then click the matching answer on the right.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e3-check">Check</button>
+      <button class="btn btn-secondary" id="d4e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 5 – A STORY IN THE PAST ══════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">A Story in the Past</div>
+      <div class="day-desc">The Wrong Train · Which Verb Completes the Story? · What Happened First?</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC reading comprehension -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – The Wrong Train</div>
+    <div class="ex-instruction">Read the story and choose the correct answer.</div>
+    <div class="reading-text">On Friday, Olivia finished work at 5:30 and took a train to Brighton to visit her friend Chloe. She was tired and didn't look carefully at the information on the platform. After about twenty minutes, she looked out of the window and saw a station she didn't know.<br><br>Olivia asked another passenger, "Does this train go to Brighton?" The man smiled and said, "No. This train goes to Bristol."<br><br>Olivia got off at the next station and called Chloe. She waited forty minutes for another train and finally arrived in Brighton at 9:15. Chloe met her at the station. They were hungry, so they went to a small restaurant near Chloe's flat.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – MC: choose correct verb form in narrative -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Which Verb Completes the Story?</div>
+    <div class="ex-instruction">Choose the correct form to complete the story about Chris's Sunday.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Sentence builder: put events in logical order -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – What Happened First?</div>
+    <div class="ex-instruction">Tap the events in the correct logical order (1st → 2nd → 3rd) for each set. Tap in the answer zone to move back.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e3-check">Check</button>
+      <button class="btn btn-secondary" id="d5e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 6 – PAST SIMPLE IN CONTEXT ══════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Past Simple in Context</div>
+      <div class="day-desc">Three Mini Biographies · A Conversation After a Trip · The Missing Information</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC reading: who is it? -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Three Mini Biographies</div>
+    <div class="ex-instruction">Read the profiles and answer each question with Nina, Carlos or Sophie.</div>
+    <div class="reading-text">
+      <strong style="color:var(--orange);">Nina</strong> was born in Canada in 1988. She studied languages at university and graduated in 2010. She moved to Spain two years later and found a job as a teacher. She got married in 2018.<br><br>
+      <strong style="color:var(--orange);">Carlos</strong> was born in Brazil in 1975. He started working at a hotel when he was 20. In 2001, he moved to Portugal. He became a hotel manager in 2008 and had his first child in 2010.<br><br>
+      <strong style="color:var(--orange);">Sophie</strong> was born in France in 1992. She studied art in Paris. After university, she travelled for a year. She visited nine countries and took hundreds of photos. In 2017, she moved to London and started working for a magazine.
+    </div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – MC: best response in dialogue -->
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – A Conversation After a Trip</div>
+    <div class="ex-instruction">Choose the best response for each question in the conversation.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – CTF: question word bank -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – The Missing Information</div>
+    <div class="ex-instruction">Read the answers. Complete each question with the correct question word from the box.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e3-check">Check</button>
+      <button class="btn btn-secondary" id="d6e3-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 7 – CONSOLIDATION ══════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Consolidation</div>
+      <div class="day-desc">Complete Review · Mark the Correct Sentence · Writing Challenge</div>
+    </div>
+  </div>
+
+  <!-- EX 1 – MC: complete review -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the correct answer for each item.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <!-- EX 2 – MC: mark the correct sentence -->
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Mark the Correct Sentence</div>
+    <div class="ex-instruction">Choose the correct sentence.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e2-check">Check</button>
+      <button class="btn btn-secondary" id="d7e2-reset">Reset</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <!-- EX 3 – Writing Challenge -->
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Writing Challenge: A Short Story From Your Past</div>
+    <div class="ex-instruction">Write 6–8 sentences about a memorable day, weekend, trip or important moment from your past.</div>
+    <ul class="checklist">
+      <li><span class="check-icon">✓</span> Say <strong>when</strong> it happened.</li>
+      <li><span class="check-icon">✓</span> Say <strong>where</strong> you were or went.</li>
+      <li><span class="check-icon">✓</span> Say who was with you.</li>
+      <li><span class="check-icon">✓</span> Use at least <strong>three Past Simple affirmative verbs</strong>.</li>
+      <li><span class="check-icon">✓</span> Use at least <strong>one irregular verb</strong>.</li>
+      <li><span class="check-icon">✓</span> Use at least <strong>one negative sentence</strong>.</li>
+      <li><span class="check-icon">✓</span> Say how the experience was.</li>
+    </ul>
+    <div class="example-box" style="margin-top:14px;">
+      <div class="ex-label">Model text</div>
+      Last year, I went to São Paulo for a weekend with two friends. We stayed at a small hotel near the city centre. On Saturday, we visited a museum and had lunch at a nice restaurant. In the afternoon, I bought some presents for my family. We didn't go out at night because we were very tired. On Sunday, we had breakfast at a café and walked around the city. We came home in the evening. It was a great weekend.
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="Write your story here..." rows="7"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-send">Send to Teacher Mari</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY SUMMARY -->
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">★</div>
+    <h3>Week complete!</h3>
+    <p>You finished the Simple Past weekly practice. Amazing work!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.7;margin-top:4px;margin-bottom:18px;">exercises checked</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">Send to Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ══════════ VOCAB BANK ══════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">V</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Life events · Past verbs (regular &amp; irregular)</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Life Events</div>
+    <div class="vocab-grid" id="vocab-life"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">Irregular Verbs – Past Forms</div>
+    <div class="vocab-grid" id="vocab-irreg"></div>
+  </div>
+</div>
+
+<!-- ══════════ GRAMMAR BANK ══════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">G</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Past Simple – affirmative, negative, questions · was / were · Question words</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Past Simple – Affirmative</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Regular verb</th><th>Irregular verb</th></tr>
+      <tr><td>I / you / he / she / it / we / they</td><td class="orange">worked / studied / moved</td><td class="teal">went / had / got / found</td></tr>
+    </table>
+    <div class="tip-box">Tip: Regular verbs add -ed (or -d). Irregular verbs have special past forms — learn them one by one!</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Past Simple – Negative</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Negative form</th><th>Example</th></tr>
+      <tr><td>All subjects</td><td class="red">didn't + base verb</td><td>She didn't go to school. / We didn't have lunch.</td></tr>
+    </table>
+    <div class="tip-box">Tip: After didn't, always use the base form of the verb: "She didn't went" is wrong. Correct: "She didn't go."</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Past Simple – Questions</div>
+    <table class="grammar-table">
+      <tr><th>Type</th><th>Structure</th><th>Example</th></tr>
+      <tr><td>Yes/No</td><td class="orange">Did + subject + base verb?</td><td>Did she find a job?</td></tr>
+      <tr><td>Wh- question</td><td class="orange">Question word + did + subject + base verb?</td><td>Where did they go?</td></tr>
+      <tr><td>Short answer</td><td class="teal">Yes, I/she/they did. / No, I/she/they didn't.</td><td>Did he call? — Yes, he did.</td></tr>
+    </table>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">was / were</div>
+    <table class="grammar-table">
+      <tr><th>Subject</th><th>Affirmative</th><th>Negative</th><th>Question</th></tr>
+      <tr><td>I / he / she / it</td><td class="orange">was</td><td class="red">wasn't</td><td class="teal">Was I/she...?</td></tr>
+      <tr><td>you / we / they</td><td class="orange">were</td><td class="red">weren't</td><td class="teal">Were you/they...?</td></tr>
+    </table>
+    <div class="tip-box">Tip: "Was/were born" is always past: "She was born in 1991." Not "She is born."</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">Question Words in the Past</div>
+    <table class="grammar-table">
+      <tr><th>Word</th><th>Asks about</th><th>Example</th></tr>
+      <tr><td class="orange">Where</td><td>place</td><td>Where did you go?</td></tr>
+      <tr><td class="orange">When</td><td>time</td><td>When did she graduate?</td></tr>
+      <tr><td class="orange">Who</td><td>person</td><td>Who did you meet?</td></tr>
+      <tr><td class="orange">What</td><td>thing / action</td><td>What did he buy?</td></tr>
+      <tr><td class="orange">How</td><td>manner / means</td><td>How did they travel?</td></tr>
+      <tr><td class="orange">What time</td><td>exact time</td><td>What time did the film finish?</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ════════════════════════════════════════════
+//  WELCOME
+// ════════════════════════════════════════════
+const STUDENT_KEY = 'teachermari_simplepast1991_student';
+let studentName = localStorage.getItem(STUDENT_KEY) || '';
+
+function startSession(name) {
+  studentName = name.trim();
+  localStorage.setItem(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + studentName + '! Let\'s practise and improve!';
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = document.getElementById('student-name-input').value.trim();
+  if (!val) { document.getElementById('student-name-input').focus(); document.getElementById('student-name-input').style.borderColor='var(--red)'; return; }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('welcome-start-btn').click(); });
+document.getElementById('student-name-input').addEventListener('input', () => { document.getElementById('student-name-input').style.borderColor=''; });
+
+// ════════════════════════════════════════════
+//  PROGRESS
+// ════════════════════════════════════════════
+const STORAGE_KEY = 'teachermari_simplepast1991';
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let totalChecked = parseInt(state.totalChecked || 0);
+const TOTAL_EX = 19; // 18 checkable exercises + d7e3 (writing/WhatsApp)
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function incrementChecked(exId) {
+  totalChecked++;
+  state.totalChecked = totalChecked;
+  saveState();
+  updateProgress();
+  if (exId) markExerciseDone(exId);
+}
+function updateProgress() {
+  const pct = Math.min(100, Math.round((totalChecked / TOTAL_EX) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+updateProgress();
+
+// MOTIVATION
+const MOTIVATIONS = [
+  'Every verb you practise takes you one step closer to fluency!',
+  'Mistakes are part of learning. Keep going!',
+  'The past is history — and now you can talk about it!',
+  'Small steps every day lead to big results!',
+  'Teacher Mari believes in you. You can do this!',
+  'Practice makes progress. You are doing great!',
+  'Today you are better than yesterday. Keep it up!'
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function scoreText(correct, total) {
+  if (correct === total) return { msg: 'Perfect! You got all ' + total + ' correct!', type:'ok' };
+  if (correct >= total * 0.7) return { msg: 'Well done! ' + correct + '/' + total + ' correct. Review the mistakes and try again!', type:'partial' };
+  return { msg: correct + '/' + total + ' correct. Keep practising — you can do it!', type:'err' };
+}
+
+// buildMC
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question">' + (i+1) + '. ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o,j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> ' + String.fromCharCode(97+j) + ') ' + o + '</label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0] ? opts[0].closest('.mc-item') : null;
+    if (itemDiv) { const oldHint = itemDiv.querySelector('.mc-explain'); if (oldHint) oldHint.remove(); }
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    if (sel) {
+      const v = parseInt(sel.value);
+      opts[v].classList.add(v === item.ans ? 'correct' : 'wrong');
+      if (v === item.ans) correct++;
+      else {
+        opts[item.ans].classList.add('correct');
+        if (item.why && itemDiv) {
+          const optBox = itemDiv.querySelector('.mc-options');
+          const hint = document.createElement('div');
+          hint.className = 'mc-explain';
+          hint.style.cssText = 'margin-top:8px;font-size:0.78rem;color:var(--teal);font-weight:600;background:#f0fdfa;border-left:3px solid var(--teal);padding:7px 10px;border-radius:0 6px 6px 0;line-height:1.4;';
+          hint.textContent = '💡 ' + item.why;
+          optBox.insertAdjacentElement('afterend', hint);
+        }
+      }
+    }
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetMC(containerId, prefix, data, fbId) {
+  document.getElementById(containerId).querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  document.getElementById(containerId).querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.getElementById(containerId).querySelectorAll('.mc-explain').forEach(h => h.remove());
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// buildClickMatch
+function buildClickMatch(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const rightShuffled = data.map((item,i) => ({text:item.right, originalIndex:i}));
+  for (let i=rightShuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rightShuffled[i],rightShuffled[j]]=[rightShuffled[j],rightShuffled[i]];}
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item,i)=>{const div=document.createElement('div');div.className='cm-item';div.dataset.side='left';div.dataset.idx=i;div.textContent=item.left;leftCol.appendChild(div);});
+  rightShuffled.forEach(item=>{const div=document.createElement('div');div.className='cm-item';div.dataset.side='right';div.dataset.idx=item.originalIndex;div.textContent=item.text;rightCol.appendChild(div);});
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol); wrap.appendChild(cmWrap);
+  const links={};let selectedLeft=null,pairCount=0;
+  cmWrap.addEventListener('click',e=>{
+    const item=e.target.closest('.cm-item');
+    if(!item||item.classList.contains('linked')) return;
+    if(item.dataset.side==='left'){
+      if(selectedLeft===item){item.classList.remove('active');selectedLeft=null;return;}
+      leftCol.querySelectorAll('.cm-item').forEach(c=>c.classList.remove('active'));
+      item.classList.add('active');selectedLeft=item;
+    } else {
+      if(!selectedLeft) return;
+      pairCount++;
+      const leftIdx=selectedLeft.dataset.idx;
+      links[leftIdx]=item.dataset.idx;
+      const num=pairCount;
+      selectedLeft.classList.remove('active');selectedLeft.classList.add('linked');item.classList.add('linked');
+      selectedLeft.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());item.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());
+      const bL=document.createElement('span');bL.className='cm-pair-num';bL.textContent=num;
+      const bR=document.createElement('span');bR.className='cm-pair-num';bR.textContent=num;
+      selectedLeft.appendChild(bL);item.appendChild(bR);
+      selectedLeft.dataset.pairNum=num;item.dataset.pairNum=num;selectedLeft=null;
+    }
+  });
+  return {links,leftCol,rightCol,data,getPairCount:()=>pairCount,resetPairCount:()=>{pairCount=0;}};
+}
+function checkClickMatch(state, fbId, exId) {
+  let correct=0;
+  const {links,leftCol,rightCol,data}=state;
+  leftCol.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  rightCol.querySelectorAll('.cm-item').forEach(el=>el.classList.remove('correct-link','wrong-link'));
+  data.forEach((item,i)=>{
+    const leftEl=leftCol.querySelector('.cm-item[data-idx="'+i+'"]');
+    const linkedRightIdx=links[i];
+    const correctRightEl=rightCol.querySelector('.cm-item[data-idx="'+i+'"]');
+    if(linkedRightIdx===undefined){if(correctRightEl)correctRightEl.classList.add('correct-link');if(leftEl)leftEl.classList.add('wrong-link');return;}
+    if(parseInt(linkedRightIdx)===i){correct++;leftEl.classList.add('correct-link');if(correctRightEl)correctRightEl.classList.add('correct-link');}
+    else{
+      leftEl.classList.add('wrong-link');
+      const wrongRightEl=rightCol.querySelector('.cm-item[data-idx="'+linkedRightIdx+'"]');
+      if(wrongRightEl)wrongRightEl.classList.add('wrong-link');
+      if(correctRightEl)correctRightEl.classList.add('correct-link');
+    }
+  });
+  const r=scoreText(correct,data.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetClickMatch(state, fbId) {
+  const {links,leftCol,rightCol}=state;
+  Object.keys(links).forEach(k=>delete links[k]);
+  state.resetPairCount();
+  [leftCol,rightCol].forEach(col=>{col.querySelectorAll('.cm-item').forEach(el=>{el.classList.remove('active','linked','correct-link','wrong-link');el.querySelectorAll('.cm-pair-num').forEach(b=>b.remove());delete el.dataset.pairNum;});});
+  document.getElementById(fbId).className='feedback';
+}
+
+// buildFill
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const parts=item.line.split('___');
+    let html='<div class="fill-line">'+(i+1)+'. '+parts[0];
+    for(let k=1;k<parts.length;k++) html+='<input class="fill-input" id="'+prefix+'_'+i+'_'+(k-1)+'" placeholder="...">'+parts[k];
+    html+='</div>';
+    div.innerHTML=html;wrap.appendChild(div);
+  });
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct=0,total=0;
+  data.forEach((item,i)=>{
+    const answers=Array.isArray(item.ans[0])?item.ans:[item.ans];
+    answers.forEach((ans,k)=>{
+      total++;
+      const inp=document.getElementById(prefix+'_'+i+'_'+k);
+      if(!inp) return;
+      inp.classList.remove('correct','wrong');
+      const existingHint=inp.parentElement.querySelector('.correct-hint[data-for="'+inp.id+'"]');
+      if(existingHint)existingHint.remove();
+      const val=inp.value.trim().toLowerCase();
+      const ok=Array.isArray(ans)?ans.map(a=>a.toLowerCase()).includes(val):val===ans.toLowerCase();
+      if(ok){inp.classList.add('correct');correct++;}
+      else{
+        inp.classList.add('wrong');
+        const correctAns=Array.isArray(ans)?ans[0]:ans;
+        const hint=document.createElement('span');hint.className='correct-hint';hint.dataset.for=inp.id;
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent='(✔ '+correctAns+')';
+        inp.insertAdjacentElement('afterend',hint);
+      }
+    });
+  });
+  const r=scoreText(correct,total);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((item,i)=>{
+    const answers=Array.isArray(item.ans[0])?item.ans:[item.ans];
+    answers.forEach((_,k)=>{
+      const inp=document.getElementById(prefix+'_'+i+'_'+k);
+      if(inp){inp.value='';inp.className='fill-input';const hint=inp.parentElement&&inp.parentElement.querySelector('.correct-hint[data-for="'+inp.id+'"]');if(hint)hint.remove();}
+    });
+  });
+  document.getElementById(fbId).className='feedback';
+}
+
+// buildCTFSentences
+function buildCTFSentences(cfg) {
+  const wrap=document.getElementById(cfg.containerId);
+  const list=document.createElement('div');
+  const startIndex=cfg.startIndex||1;
+  cfg.items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='fill-item';
+    const html=item.line.replace(/___/g,()=>'<span class="ctf-gap" data-ans="'+item.ans+'"></span>');
+    div.innerHTML='<div class="fill-line">'+(i+startIndex)+'. '+html+'</div>';
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+  const bank=document.createElement('div');bank.className='ctf-wordbank';
+  cfg.words.forEach((w,wi)=>{
+    const btn=document.createElement('button');btn.className='ctf-chip';btn.dataset.word=w;btn.dataset.wi=wi;btn.textContent=w;bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+  let selected=null;
+  bank.addEventListener('click',e=>{
+    const chip=e.target.closest('.ctf-chip');
+    if(!chip||chip.classList.contains('used')) return;
+    if(selected&&selected.chipEl===chip){chip.classList.remove('active');selected=null;list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));return;}
+    if(selected)selected.chipEl.classList.remove('active');
+    chip.classList.add('active');
+    selected={chipEl:chip,word:chip.dataset.word,wi:chip.dataset.wi};
+    list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.toggle('ready',!g.textContent));
+  });
+  list.addEventListener('click',e=>{
+    const gap=e.target.closest('.ctf-gap');
+    if(!gap) return;
+    gap.classList.remove('correct-gap','wrong-gap','ready');
+    if(gap.textContent&&!selected){
+      const returnWi=gap.dataset.filledWi;
+      const chipBack=bank.querySelector('.ctf-chip[data-wi="'+returnWi+'"]');
+      if(chipBack)chipBack.classList.remove('used');
+      gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';
+      list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+      return;
+    }
+    if(!selected) return;
+    if(gap.textContent){const oldWi=gap.dataset.filledWi;const chipBack=bank.querySelector('.ctf-chip[data-wi="'+oldWi+'"]');if(chipBack)chipBack.classList.remove('used');}
+    gap.textContent=selected.word;gap.dataset.filled=selected.word;gap.dataset.filledWi=selected.wi;
+    selected.chipEl.classList.remove('active');selected.chipEl.classList.add('used');
+    selected=null;list.querySelectorAll('.ctf-gap').forEach(g=>g.classList.remove('ready'));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click',()=>{
+    let correct=0,total=0;
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{
+      total++;gap.classList.remove('correct-gap','wrong-gap','ready');
+      const existingHint=gap.parentElement.querySelector('.correct-hint');if(existingHint)existingHint.remove();
+      const filled=(gap.textContent||'').trim().toLowerCase();
+      const ans=(gap.dataset.ans||'').toLowerCase();
+      if(filled===ans){gap.classList.add('correct-gap');correct++;}
+      else{
+        gap.classList.add('wrong-gap');
+        const hint=document.createElement('span');hint.className='correct-hint';
+        hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-left:6px;';
+        hint.textContent='(✔ '+gap.dataset.ans+')';
+        gap.insertAdjacentElement('afterend',hint);
+      }
+    });
+    const r=scoreText(correct,total);showFeedback(cfg.fbId,r.msg,r.type);incrementChecked(cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click',()=>{
+    list.querySelectorAll('.ctf-gap').forEach(gap=>{gap.textContent='';gap.dataset.filled='';gap.dataset.filledWi='';gap.classList.remove('correct-gap','wrong-gap','ready');});
+    list.querySelectorAll('.correct-hint').forEach(h=>h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c=>c.classList.remove('used','active'));
+    selected=null;document.getElementById(cfg.fbId).className='feedback';
+  });
+}
+
+// buildSentenceBuilder
+function buildSentenceBuilder(containerId, items, prefix) {
+  const wrap=document.getElementById(containerId);
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='sb-item';
+    const shuffled=[...item.words].sort(()=>Math.random()-0.5);
+    div.innerHTML='<div class="sb-label">'+(i+1)+'.</div><div class="sb-words" id="'+prefix+'-words-'+i+'">'+shuffled.map(w=>'<button class="sb-chip" data-word="'+w+'" data-item="'+i+'">'+w+'</button>').join('')+'</div><div class="sb-label">Your answer:</div><div class="sb-zone" id="'+prefix+'-zone-'+i+'"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click',e=>{
+    const chip=e.target.closest('.sb-chip');if(!chip)return;
+    const i=chip.dataset.item;
+    const words=document.getElementById(prefix+'-words-'+i);
+    const zone=document.getElementById(prefix+'-zone-'+i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if(chip.parentElement===words){chip.classList.add('in-zone');zone.appendChild(chip);}
+    else{chip.classList.remove('in-zone');words.appendChild(chip);}
+  });
+}
+function checkSentenceBuilder(items, prefix, fbId, exId) {
+  let correct=0;
+  items.forEach((item,i)=>{
+    const zone=document.getElementById(prefix+'-zone-'+i);
+    const built=Array.from(zone.querySelectorAll('.sb-chip')).map(c=>c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    const existingHint=document.getElementById(prefix+'-hint-'+i);if(existingHint)existingHint.remove();
+    if(built.toLowerCase()===item.ans.toLowerCase()){zone.classList.add('correct-zone');correct++;}
+    else{
+      zone.classList.add('wrong-zone');
+      const hint=document.createElement('div');hint.id=prefix+'-hint-'+i;
+      hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;';
+      hint.textContent='✔ '+item.ans;
+      zone.insertAdjacentElement('afterend',hint);
+    }
+  });
+  const r=scoreText(correct,items.length);showFeedback(fbId,r.msg,r.type);incrementChecked(exId);
+}
+function resetSentenceBuilder(items, prefix, fbId) {
+  items.forEach((item,i)=>{
+    const zone=document.getElementById(prefix+'-zone-'+i);
+    const words=document.getElementById(prefix+'-words-'+i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c=>{c.classList.remove('in-zone');words.appendChild(c);});
+    const hint=document.getElementById(prefix+'-hint-'+i);if(hint)hint.remove();
+  });
+  document.getElementById(fbId).className='feedback';
+}
+
+// ════════════════════════════════════════════
+//  DRAG-GROUP HELPER (new)
+// ════════════════════════════════════════════
+function buildDragGroup(sourceId, dropIds, items) {
+  // items: [{word, group:'regular'|'irregular'}]
+  const source = document.getElementById(sourceId);
+  const shuffled = [...items].sort(() => Math.random() - 0.5);
+
+  shuffled.forEach((item, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'dg-chip';
+    chip.textContent = item.word;
+    chip.dataset.word = item.word;
+    chip.dataset.group = item.group;
+    chip.draggable = true;
+    chip.id = 'dgchip-' + i;
+    source.appendChild(chip);
+  });
+
+  // Desktop drag
+  source.addEventListener('dragstart', e => {
+    const chip = e.target.closest('.dg-chip');
+    if (!chip) return;
+    e.dataTransfer.setData('text/plain', chip.id);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  Object.values(dropIds).forEach(dropId => {
+    const drop = document.getElementById(dropId);
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('over');
+      const id = e.dataTransfer.getData('text/plain');
+      const chip = document.getElementById(id);
+      if (chip) drop.appendChild(chip);
+    });
+  });
+  source.addEventListener('dragover', e => { e.preventDefault(); source.classList.add('over'); });
+  source.addEventListener('dragleave', () => source.classList.remove('over'));
+  source.addEventListener('drop', e => {
+    e.preventDefault(); source.classList.remove('over');
+    const id = e.dataTransfer.getData('text/plain');
+    const chip = document.getElementById(id);
+    if (chip) source.appendChild(chip);
+  });
+
+  // Mobile touch
+  let touchChip = null, touchClone = null;
+  document.addEventListener('touchstart', e => {
+    const chip = e.target.closest('.dg-chip');
+    if (!chip) return;
+    touchChip = chip;
+    touchClone = chip.cloneNode(true);
+    touchClone.style.cssText = 'position:fixed;opacity:0.8;pointer-events:none;z-index:9999;padding:5px 12px;background:var(--orange);color:#fff;border-radius:6px;font-family:Poppins,sans-serif;font-size:0.82rem;font-weight:700;';
+    document.body.appendChild(touchClone);
+  }, {passive:true});
+  document.addEventListener('touchmove', e => {
+    if (!touchClone) return;
+    const t = e.touches[0];
+    touchClone.style.left = (t.clientX - 30) + 'px';
+    touchClone.style.top = (t.clientY - 20) + 'px';
+    // highlight drop targets
+    Object.values(dropIds).concat([sourceId]).forEach(id => {
+      const el = document.getElementById(id);
+      const rect = el.getBoundingClientRect();
+      if (t.clientX>=rect.left&&t.clientX<=rect.right&&t.clientY>=rect.top&&t.clientY<=rect.bottom) el.classList.add('over');
+      else el.classList.remove('over');
+    });
+  }, {passive:true});
+  document.addEventListener('touchend', e => {
+    if (!touchChip || !touchClone) return;
+    document.body.removeChild(touchClone);
+    touchClone = null;
+    const t = e.changedTouches[0];
+    let dropped = false;
+    Object.values(dropIds).concat([sourceId]).forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('over');
+      const rect = el.getBoundingClientRect();
+      if (!dropped && t.clientX>=rect.left&&t.clientX<=rect.right&&t.clientY>=rect.top&&t.clientY<=rect.bottom) {
+        el.appendChild(touchChip); dropped = true;
+      }
+    });
+    touchChip = null;
+  });
+
+  return items;
+}
+function checkDragGroup(items, sourceId, dropIds, fbId, exId) {
+  let correct = 0;
+  const allChips = [];
+  Object.values(dropIds).forEach(id => {
+    document.getElementById(id).querySelectorAll('.dg-chip').forEach(c => allChips.push({chip:c, placedGroup: document.getElementById(id).dataset.group}));
+  });
+  document.getElementById(sourceId).querySelectorAll('.dg-chip').forEach(c => allChips.push({chip:c, placedGroup:'source'}));
+  allChips.forEach(({chip, placedGroup}) => {
+    chip.classList.remove('correct-chip','wrong-chip');
+    const correctGroup = chip.dataset.group;
+    if (placedGroup === correctGroup) { chip.classList.add('correct-chip'); correct++; }
+    else { chip.classList.add('wrong-chip'); }
+  });
+  const r = scoreText(correct, items.length);
+  showFeedback(fbId, r.msg, r.type);
+  incrementChecked(exId);
+}
+function resetDragGroup(items, sourceId, dropIds, fbId) {
+  const source = document.getElementById(sourceId);
+  Object.values(dropIds).forEach(id => {
+    document.getElementById(id).querySelectorAll('.dg-chip').forEach(c => {
+      c.classList.remove('correct-chip','wrong-chip'); source.appendChild(c);
+    });
+  });
+  source.querySelectorAll('.dg-chip').forEach(c => c.classList.remove('correct-chip','wrong-chip'));
+  document.getElementById(fbId).className = 'feedback';
+}
+
+// ════════════════════════════════════════════
+//  DAY 1
+// ════════════════════════════════════════════
+// EX 1 – Regular or Irregular (drag)
+const d1e1Items = [
+  {word:'graduated', group:'regular'},{word:'went', group:'irregular'},
+  {word:'worked', group:'regular'},{word:'had', group:'irregular'},
+  {word:'visited', group:'regular'},{word:'became', group:'irregular'},
+  {word:'watched', group:'regular'},{word:'bought', group:'irregular'},
+  {word:'moved', group:'regular'},{word:'found', group:'irregular'},
+  {word:'studied', group:'regular'},{word:'got', group:'irregular'}
+];
+const d1e1DropIds = {'regular':'d1e1-drop-regular','irregular':'d1e1-drop-irregular'};
+buildDragGroup('d1e1-source', d1e1DropIds, d1e1Items);
+document.getElementById('d1e1-check').addEventListener('click', () => checkDragGroup(d1e1Items,'d1e1-source',d1e1DropIds,'d1e1-fb','d1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetDragGroup(d1e1Items,'d1e1-source',d1e1DropIds,'d1e1-fb'));
+
+// EX 2 – Match situations to sentences (click match)
+const d1e2Data = [
+  {left:'Nina finished university in 2019.', right:'She graduated in 2019.'},
+  {left:'Paul changed his home from Chicago to Boston.', right:'He moved to Boston.'},
+  {left:'Mia and Daniel became husband and wife.', right:'They got married.'},
+  {left:'Kevin started working for a bank.', right:'He found a job at a bank.'},
+  {left:'Laura became a mother in 2021.', right:'She had a child.'},
+  {left:'Tom travelled to Italy for his holiday.', right:'He went to Italy.'},
+  {left:'Rachel paid $800 for a new laptop.', right:'She bought a new laptop.'},
+  {left:'David was a student in 2015, but now he is a doctor.', right:'He became a doctor.'},
+];
+const d1e2state = buildClickMatch('d1e2', d1e2Data, 'd1e2');
+document.getElementById('d1e2-check').addEventListener('click', () => checkClickMatch(d1e2state,'d1e2-fb','d1e2'));
+document.getElementById('d1e2-reset').addEventListener('click', () => resetClickMatch(d1e2state,'d1e2-fb'));
+
+// ════════════════════════════════════════════
+//  DAY 2
+// ════════════════════════════════════════════
+// EX 1 – MC: choose past form
+const d2e1Data = [
+  {q:'go', opts:['goes','went','go'], ans:1, why:'The past of "go" is irregular: went.'},
+  {q:'have', opts:['had','has','have'], ans:0, why:'The past of "have" is irregular: had.'},
+  {q:'study', opts:['studies','studied','study'], ans:1, why:'Regular verb: study → studied (y → ied).'},
+  {q:'get', opts:['gets','got','get'], ans:1, why:'The past of "get" is irregular: got.'},
+  {q:'see', opts:['saw','sees','see'], ans:0, why:'The past of "see" is irregular: saw.'},
+  {q:'work', opts:['worked','works','work'], ans:0, why:'Regular verb: work → worked.'},
+  {q:'buy', opts:['buys','bought','buy'], ans:1, why:'The past of "buy" is irregular: bought.'},
+  {q:'meet', opts:['met','meets','meet'], ans:0, why:'The past of "meet" is irregular: met.'},
+  {q:'make', opts:['made','makes','make'], ans:0, why:'The past of "make" is irregular: made.'},
+  {q:'visit', opts:['visited','visits','visit'], ans:0, why:'Regular verb: visit → visited.'},
+];
+buildMC('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkMC(d2e1Data,'d2e1','d2e1-fb','d2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetMC('d2e1','d2e1',d2e1Data,'d2e1-fb'));
+
+// EX 2 – MC: who did it?
+const d2e2Data = [
+  {q:'Who bought something?', opts:['Alex','Grace','Leo'], ans:1, why:'Grace says: "I bought a jacket."'},
+  {q:'Who visited family?', opts:['Alex','Grace','Leo'], ans:2, why:'Leo says: "I visited my parents."'},
+  {q:'Who cleaned the house?', opts:['Alex','Grace','Leo'], ans:0, why:'Alex says: "I cleaned my apartment."'},
+  {q:'Who worked on Saturday?', opts:['Alex','Grace','Leo'], ans:2, why:'Leo says: "I worked in the morning."'},
+  {q:'Who watched a film?', opts:['Alex','Grace','Leo'], ans:0, why:'Alex says: "I stayed at home and watched a film."'},
+  {q:'Who ate at a restaurant?', opts:['Alex','Grace','Leo'], ans:1, why:'Grace says: "We had lunch at a new restaurant."'},
+  {q:'Who took public transport home?', opts:['Alex','Grace','Leo'], ans:2, why:'Leo says: "Then I took the bus home."'},
+  {q:'Who went to a supermarket?', opts:['Alex','Grace','Leo'], ans:0, why:'Alex says: "I went to the supermarket."'},
+];
+buildMC('d2e2', d2e2Data, 'd2e2');
+document.getElementById('d2e2-check').addEventListener('click', () => checkMC(d2e2Data,'d2e2','d2e2-fb','d2e2'));
+document.getElementById('d2e2-reset').addEventListener('click', () => resetMC('d2e2','d2e2',d2e2Data,'d2e2-fb'));
+
+// EX 3 – Sentence builder: word order
+const d2e3Items = [
+  {words:['Carla','moved','to','Madrid','last','year.'], ans:'Carla moved to Madrid last year.'},
+  {words:['We','had','breakfast','at','7:30.'], ans:'We had breakfast at 7:30.'},
+  {words:['Jake','bought','a','new','phone','yesterday.'], ans:'Jake bought a new phone yesterday.'},
+  {words:['Anna','graduated','from','university','in','2018.'], ans:'Anna graduated from university in 2018.'},
+  {words:['I','saw','my','friends','last','Saturday.'], ans:'I saw my friends last Saturday.'},
+  {words:['They','got','home','at','midnight.'], ans:'They got home at midnight.'},
+  {words:['He','started','this','company','in','2005.'], ans:'He started this company in 2005.'},
+  {words:['We','had','a','great','time','on','holiday.'], ans:'We had a great time on holiday.'},
+];
+buildSentenceBuilder('d2e3', d2e3Items, 'd2e3');
+document.getElementById('d2e3-check').addEventListener('click', () => checkSentenceBuilder(d2e3Items,'d2e3','d2e3-fb','d2e3'));
+document.getElementById('d2e3-reset').addEventListener('click', () => resetSentenceBuilder(d2e3Items,'d2e3','d2e3-fb'));
+
+// ════════════════════════════════════════════
+//  DAY 3
+// ════════════════════════════════════════════
+// EX 1 – Match the Columns: questions to answers (click match)
+const d3e1Data = [
+  {left:'A: What did you do last night?',              right:'F: I watched a film and made dinner.'},
+  {left:'A: Where did Emma go after work?',            right:'B: She went to the supermarket.'},
+  {left:'A: Did you have breakfast this morning?',     right:'A: Yes, I did. I had coffee and toast.'},
+  {left:'A: Who did Jake meet at the café?',           right:'D: He met his friend Daniel.'},
+  {left:'A: What did Lisa buy at the shopping centre?',right:'G: She bought a new jacket.'},
+  {left:'A: How did they get to the airport?',         right:'H: They took a taxi.'},
+  {left:'A: Did Ben see the film last weekend?',       right:'E: No, he didn\u2019t. He stayed at home.'},
+  {left:'A: What time did you get home?',              right:'C: At about 11:30.'},
+];
+const d3e1state = buildClickMatch('d3e1', d3e1Data, 'd3e1');
+document.getElementById('d3e1-check').addEventListener('click', () => checkClickMatch(d3e1state,'d3e1-fb','d3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetClickMatch(d3e1state,'d3e1-fb'));
+
+// EX 2 – MC: choose matching sentence
+const d3e2Data = [
+  {q:'Maya wanted to travel by train, but in the end she drove.', opts:["Maya didn't travel.","Maya didn't take the train.","Maya didn't drive."], ans:1, why:'She did drive — so she did NOT take the train. Option B is correct.'},
+  {q:'Jack had coffee in the morning, but no breakfast.', opts:["Jack didn't have breakfast.","Jack didn't drink coffee.","Jack didn't get up."], ans:0, why:'The text says "no breakfast", so he didn\'t have breakfast.'},
+  {q:'Lucy stayed home all weekend.', opts:["Lucy didn't stay home.","Lucy didn't go out.","Lucy didn't have a weekend."], ans:1, why:'If she stayed home all weekend, she didn\'t go out.'},
+  {q:'We looked at several jackets, but we left the shop with no bags.', opts:["We didn't go shopping.","We didn't see any jackets.","We didn't buy anything."], ans:2, why:'We went shopping and saw jackets, but we left with nothing — so we didn\'t buy anything.'},
+  {q:"Mark's flight was at 6:00, so he left before breakfast.", opts:["Mark didn't have breakfast.","Mark didn't take a flight.","Mark didn't leave early."], ans:0, why:'He left before breakfast, so he didn\'t have breakfast.'},
+  {q:"Sarah planned to call me, but I received no call.", opts:["Sarah didn't call me.","Sarah didn't know me.","Sarah didn't have a phone."], ans:0, why:'She planned to call but didn\'t — so she didn\'t call.'},
+];
+buildMC('d3e2', d3e2Data, 'd3e2');
+document.getElementById('d3e2-check').addEventListener('click', () => checkMC(d3e2Data,'d3e2','d3e2-fb','d3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetMC('d3e2','d3e2',d3e2Data,'d3e2-fb'));
+
+// EX 3 – CTF: didn't + verb from box
+const d3e3Items = [
+  {line:"The restaurant was closed, so we ___ there.", ans:"didn't go"},
+  {line:"Amy was sick yesterday, so she ___.", ans:"didn't work"},
+  {line:"The shoes were too expensive, so I ___ them.", ans:"didn't buy"},
+  {line:"I was very tired, so I ___ the film.", ans:"didn't see"},
+  {line:"Jake wasn't hungry, so he ___ dinner.", ans:"didn't eat"},
+  {line:"I stayed at home, so I ___ the bus.", ans:"didn't take"},
+  {line:"The report was very long. Lisa ___ it yesterday.", ans:"didn't finish"},
+  {line:"Tom woke up late, so he ___ breakfast.", ans:"didn't have"},
+];
+buildCTFSentences({
+  containerId:'d3e3',
+  words:["didn't go","didn't see","didn't work","didn't buy","didn't finish","didn't eat","didn't take","didn't have"],
+  items:d3e3Items,
+  startIndex:1,
+  exId:'d3e3',fbId:'d3e3-fb',checkId:'d3e3-check',resetId:'d3e3-reset'
+});
+
+// ════════════════════════════════════════════
+//  DAY 4
+// ════════════════════════════════════════════
+// EX 1 – MC: choose question
+const d4e1Data = [
+  {q:'A: ___? &nbsp; B: I went to Mexico.', opts:['Where did you go?','When did you go?','Who did you go with?'], ans:0, why:'"I went to Mexico" answers WHERE. Use "Where did you go?"'},
+  {q:'A: ___? &nbsp; B: Last August.', opts:['What did you do?','When did you travel?','Where did you stay?'], ans:1, why:'"Last August" is a time expression. Use "When did you travel?"'},
+  {q:'A: ___? &nbsp; B: At a small hotel near the beach.', opts:['Where did you stay?','Who did you stay with?','When did you stay there?'], ans:0, why:'"At a small hotel near the beach" is a place. Use "Where did you stay?"'},
+  {q:'A: ___? &nbsp; B: My sister.', opts:['Where did you go?','Who did you travel with?','What did you buy?'], ans:1, why:'"My sister" is a person. Use "Who did you travel with?"'},
+  {q:'A: ___? &nbsp; B: We visited museums and went to the beach.', opts:['What did you do?','Where did you stay?','When did you arrive?'], ans:0, why:'Activities (visited, went) answer WHAT. Use "What did you do?"'},
+  {q:'A: ___? &nbsp; B: Yes, I did. I loved it!', opts:['Did you have a good time?','Were you at work?','Did you go by train?'], ans:0, why:'"Yes, I did" is a short answer to a Did-question about enjoying the trip.'},
+];
+buildMC('d4e1', d4e1Data, 'd4e1');
+document.getElementById('d4e1-check').addEventListener('click', () => checkMC(d4e1Data,'d4e1','d4e1-fb','d4e1'));
+document.getElementById('d4e1-reset').addEventListener('click', () => resetMC('d4e1','d4e1',d4e1Data,'d4e1-fb'));
+
+// EX 2 – Click match: questions to answers
+const d4e3Data = [
+  {left:'Where did Mia go last weekend?', right:'To her parents\u2019 house.'},
+  {left:'Did you work yesterday?', right:'Yes, I did.'},
+  {left:'What did Ben buy?', right:'A new laptop.'},
+  {left:'When did they get married?', right:'In 2016.'},
+  {left:'Who did Laura meet for lunch?', right:'Her old school friend.'},
+  {left:'Did Sam enjoy the film?', right:'No, he didn\u2019t.'},
+  {left:'How did you get to the airport?', right:'By taxi.'},
+  {left:'What time did the concert finish?', right:'At about 11:00.'},
+];
+const d4e3state = buildClickMatch('d4e3', d4e3Data, 'd4e3');
+document.getElementById('d4e3-check').addEventListener('click', () => checkClickMatch(d4e3state,'d4e3-fb','d4e3'));
+document.getElementById('d4e3-reset').addEventListener('click', () => resetClickMatch(d4e3state,'d4e3-fb'));
+
+// ════════════════════════════════════════════
+//  DAY 5
+// ════════════════════════════════════════════
+// EX 1 – MC reading: The Wrong Train
+const d5e1Data = [
+  {q:'Olivia travelled after...', opts:['breakfast.','work.','lunch.'], ans:1, why:'The text says she "finished work at 5:30 and took a train".'},
+  {q:'She wanted to go to...', opts:['Brighton.','Bristol.','London.'], ans:0, why:'She took the train "to Brighton to visit her friend Chloe".'},
+  {q:'Olivia realised there was a problem when she...', opts:['spoke to Chloe.','saw an unfamiliar station.','arrived in Brighton.'], ans:1, why:'She "looked out of the window and saw a station she didn\'t know."'},
+  {q:'The first train went to...', opts:['Brighton.','Bristol.','London.'], ans:1, why:'The passenger told her: "This train goes to Bristol."'},
+  {q:'Olivia waited ___ for another train.', opts:['twenty minutes','forty minutes','one hour'], ans:1, why:'The text says: "She waited forty minutes for another train."'},
+  {q:'Chloe...', opts:['met Olivia at the station.','waited at the restaurant.','travelled with Olivia.'], ans:0, why:'The text says: "Chloe met her at the station."'},
+  {q:'At the end of the story, they...', opts:['went to work.','took another train.','went to a restaurant.'], ans:2, why:'They "went to a small restaurant near Chloe\'s flat."'},
+];
+buildMC('d5e1', d5e1Data, 'd5e1');
+document.getElementById('d5e1-check').addEventListener('click', () => checkMC(d5e1Data,'d5e1','d5e1-fb','d5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetMC('d5e1','d5e1',d5e1Data,'d5e1-fb'));
+
+// EX 2 – MC: verb form in narrative (Chris's Sunday)
+const d5e2Data = [
+  {q:'Last Sunday, Chris ___ up late.', opts:['gets','got','get'], ans:1, why:'"Last Sunday" tells us it\'s past. The past of "get" is "got".'},
+  {q:'He ___ breakfast at about 10:30 and then...', opts:['has','have','had'], ans:2, why:'"Had" is the past of "have".'},
+  {q:'...then ___ his friend Max.', opts:['meets','meet','met'], ans:2, why:'"Met" is the past of "meet".'},
+  {q:'They ___ to a park near the city centre.', opts:['went','goes','go'], ans:0, why:'"Went" is the past of "go".'},
+  {q:'They ___ sandwiches for lunch and...', opts:['eats','eat','ate'], ans:2, why:'"Ate" is the past of "eat".'},
+  {q:'...and ___ some photos.', opts:['takes','took','take'], ans:1, why:'"Took" is the past of "take".'},
+  {q:'In the afternoon, they ___ coffee at a café and...', opts:['had','has','have'], ans:0, why:'"Had" is the past of "have".'},
+  {q:'...___ home at about six.', opts:['goes','go','went'], ans:2, why:'"Went" is the past of "go".'},
+];
+buildMC('d5e2', d5e2Data, 'd5e2');
+document.getElementById('d5e2-check').addEventListener('click', () => checkMC(d5e2Data,'d5e2','d5e2-fb','d5e2'));
+document.getElementById('d5e2-reset').addEventListener('click', () => resetMC('d5e2','d5e2',d5e2Data,'d5e2-fb'));
+
+// EX 3 – Sentence builder: logical order (4 sets)
+const d5e3Sets = [
+  {label:'A – Rachel', words:['She got the job.', 'Rachel saw an interesting job online.', 'She had an interview.'], ans:'Rachel saw an interesting job online. She had an interview. She got the job.'},
+  {label:'B – Mike and Anna', words:['They had dinner at a restaurant.', 'Mike and Anna arrived in Paris.', 'They checked in at their hotel.'], ans:'Mike and Anna arrived in Paris. They checked in at their hotel. They had dinner at a restaurant.'},
+  {label:'C – Daniel', words:['He bought some food.', 'Daniel went to the supermarket.', 'He made dinner.'], ans:'Daniel went to the supermarket. He bought some food. He made dinner.'},
+  {label:'D – Julia', words:['She graduated from university.', 'Julia studied business for four years.', 'She found her first full-time job.'], ans:'Julia studied business for four years. She graduated from university. She found her first full-time job.'},
+];
+(function(){
+  const wrap=document.getElementById('d5e3');
+  d5e3Sets.forEach((set,i)=>{
+    const div=document.createElement('div');div.className='sb-item';
+    const shuffled=[...set.words].sort(()=>Math.random()-0.5);
+    div.innerHTML='<div class="sb-label">'+(i+1)+'. <strong>'+set.label+'</strong></div><div class="sb-words" id="d5e3-words-'+i+'">'+shuffled.map(w=>'<button class="sb-chip" data-word="'+w.replace(/'/g,"&#39;")+'" data-item="'+i+'">'+w+'</button>').join('')+'</div><div class="sb-label">Your order:</div><div class="sb-zone" id="d5e3-zone-'+i+'"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click',e=>{
+    const chip=e.target.closest('.sb-chip');if(!chip)return;
+    const i=chip.dataset.item;
+    const words=document.getElementById('d5e3-words-'+i);
+    const zone=document.getElementById('d5e3-zone-'+i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    if(chip.parentElement===words){chip.classList.add('in-zone');zone.appendChild(chip);}
+    else{chip.classList.remove('in-zone');words.appendChild(chip);}
+  });
+})();
+document.getElementById('d5e3-check').addEventListener('click',()=>{
+  let correct=0;
+  d5e3Sets.forEach((set,i)=>{
+    const zone=document.getElementById('d5e3-zone-'+i);
+    const built=Array.from(zone.querySelectorAll('.sb-chip')).map(c=>c.dataset.word).join(' ');
+    zone.classList.remove('correct-zone','wrong-zone');
+    const existingHint=document.getElementById('d5e3-hint-'+i);if(existingHint)existingHint.remove();
+    if(built===set.ans){zone.classList.add('correct-zone');correct++;}
+    else{
+      zone.classList.add('wrong-zone');
+      const hint=document.createElement('div');hint.id='d5e3-hint-'+i;
+      hint.style.cssText='color:var(--teal);font-weight:700;font-size:0.8rem;margin-top:4px;line-height:1.5;';
+      hint.textContent='✔ '+set.ans;
+      zone.insertAdjacentElement('afterend',hint);
+    }
+  });
+  const r=scoreText(correct,d5e3Sets.length);showFeedback('d5e3-fb',r.msg,r.type);incrementChecked('d5e3');
+});
+document.getElementById('d5e3-reset').addEventListener('click',()=>{
+  d5e3Sets.forEach((_,i)=>{
+    const zone=document.getElementById('d5e3-zone-'+i);
+    const words=document.getElementById('d5e3-words-'+i);
+    zone.classList.remove('correct-zone','wrong-zone');
+    Array.from(zone.querySelectorAll('.sb-chip')).forEach(c=>{c.classList.remove('in-zone');words.appendChild(c);});
+    const hint=document.getElementById('d5e3-hint-'+i);if(hint)hint.remove();
+  });
+  document.getElementById('d5e3-fb').className='feedback';
+});
+
+// ════════════════════════════════════════════
+//  DAY 6
+// ════════════════════════════════════════════
+// EX 1 – MC: who is it?
+const d6e1Data = [
+  {q:'Who worked in education?', opts:['Nina','Carlos','Sophie'], ans:0, why:'Nina "found a job as a teacher".'},
+  {q:'Who visited many countries?', opts:['Nina','Carlos','Sophie'], ans:2, why:'Sophie "visited nine countries" during her year of travel.'},
+  {q:'Who became a manager?', opts:['Nina','Carlos','Sophie'], ans:1, why:'Carlos "became a hotel manager in 2008".'},
+  {q:'Who moved to Spain?', opts:['Nina','Carlos','Sophie'], ans:0, why:'Nina "moved to Spain two years later".'},
+  {q:'Who had a child in 2010?', opts:['Nina','Carlos','Sophie'], ans:1, why:'Carlos "had his first child in 2010".'},
+  {q:'Who studied art?', opts:['Nina','Carlos','Sophie'], ans:2, why:'Sophie "studied art in Paris".'},
+  {q:'Who moved to another country in 2001?', opts:['Nina','Carlos','Sophie'], ans:1, why:'Carlos "moved to Portugal" in 2001.'},
+  {q:'Who got married in 2018?', opts:['Nina','Carlos','Sophie'], ans:0, why:'Nina "got married in 2018".'},
+];
+buildMC('d6e1', d6e1Data, 'd6e1');
+document.getElementById('d6e1-check').addEventListener('click', () => checkMC(d6e1Data,'d6e1','d6e1-fb','d6e1'));
+document.getElementById('d6e1-reset').addEventListener('click', () => resetMC('d6e1','d6e1',d6e1Data,'d6e1-fb'));
+
+// EX 2 – MC: choose best response in conversation
+const d6e2Data = [
+  {q:'A: Where did you go on holiday?<br>B: ___', opts:['We went to Greece.','We usually go in August.','Yes, we did.'], ans:0, why:'"Where" asks about place. "We went to Greece" answers correctly.'},
+  {q:'A: Did you stay at a hotel?<br>B: ___', opts:['In Athens.','No, we rented an apartment.','For ten days.'], ans:1, why:'This is a Did-question. A short answer (No...) + explanation is correct.'},
+  {q:'A: How did you get there?<br>B: ___', opts:['We flew from London.','At about 9:00.','For three hours.'], ans:0, why:'"How" asks about means of transport. "We flew from London" is correct.'},
+  {q:'A: What did you do there?<br>B: ___', opts:['It was beautiful.','We visited several beaches and went sightseeing.','In July.'], ans:1, why:'"What did you do" asks about activities. Option B lists activities.'},
+  {q:'A: Did you buy any souvenirs?<br>B: ___', opts:['Yes, I bought a small bag.','No, it wasn\'t.','At a market.'], ans:0, why:'This is a Did-question. "Yes, I bought..." gives a clear yes + detail.'},
+  {q:'A: When did you get home?<br>B: ___', opts:['By plane.','Last Sunday.','At home.'], ans:1, why:'"When" asks about time. "Last Sunday" is the correct time answer.'},
+  {q:'A: Did you have a good time?<br>B: ___', opts:['Yes, we did. It was fantastic.','For ten days.','To Greece.'], ans:0, why:'"Did you...?" needs "Yes, we did" or "No, we didn\'t." Option A is correct.'},
+];
+buildMC('d6e2', d6e2Data, 'd6e2');
+document.getElementById('d6e2-check').addEventListener('click', () => checkMC(d6e2Data,'d6e2','d6e2-fb','d6e2'));
+document.getElementById('d6e2-reset').addEventListener('click', () => resetMC('d6e2','d6e2',d6e2Data,'d6e2-fb'));
+
+// EX 3 – CTF: question word bank (full Q+A context)
+const d6e3Items = [
+  {line:'___ did you go after work? <span style="color:var(--gray);font-size:0.82rem;">→ I went to the gym after work.</span>', ans:'Where'},
+  {line:'___ did you meet at the café? <span style="color:var(--gray);font-size:0.82rem;">→ I met my cousin Sarah at the café.</span>', ans:'Who'},
+  {line:'___ did you get home last night? <span style="color:var(--gray);font-size:0.82rem;">→ I got home at about 10:30 last night.</span>', ans:'What time'},
+  {line:'___ did you buy at the shopping centre? <span style="color:var(--gray);font-size:0.82rem;">→ I bought a new pair of shoes.</span>', ans:'What'},
+  {line:'___ did you travel to Madrid? <span style="color:var(--gray);font-size:0.82rem;">→ I travelled to Madrid by train.</span>', ans:'How'},
+  {line:'___ did you graduate from university? <span style="color:var(--gray);font-size:0.82rem;">→ I graduated from university in 2019.</span>', ans:'When'},
+  {line:'___ did you have for dinner? <span style="color:var(--gray);font-size:0.82rem;">→ I had pasta and salad for dinner.</span>', ans:'What'},
+  {line:'___ did you stay on holiday? <span style="color:var(--gray);font-size:0.82rem;">→ I stayed at a small hotel near the beach.</span>', ans:'Where'},
+];
+buildCTFSentences({
+  containerId:'d6e3',
+  words:['Where','Where','When','Who','What','What','How','What time'],
+  items:d6e3Items,
+  startIndex:1,
+  exId:'d6e3',fbId:'d6e3-fb',checkId:'d6e3-check',resetId:'d6e3-reset'
+});
+
+// ════════════════════════════════════════════
+//  DAY 7
+// ════════════════════════════════════════════
+// EX 1 – MC: complete review (15 items)
+const d7e1Data = [
+  {q:'My parents ___ married in 1995.', opts:['get','got','gets'], ans:1, why:'"Got" is the past of "get". Past Simple is needed because of "in 1995".'},
+  {q:'Anna ___ from university last year.', opts:['graduated','graduates','graduate'], ans:0, why:'"Last year" requires Past Simple. "Graduated" is correct.'},
+  {q:'We ___ dinner at home yesterday.', opts:['have','had','has'], ans:1, why:'"Yesterday" requires Past Simple. "Had" is the past of "have".'},
+  {q:'Jack was tired, so he ___ out last night.', opts:["didn't go","doesn't go","isn't going"], ans:0, why:'Past negative: "didn\'t go" (didn\'t + base verb). "Last night" confirms past.'},
+  {q:'A: ___ did you go on Saturday?<br>B: To the city centre.', opts:['Who','Where','When'], ans:1, why:'"To the city centre" is a place — use "Where".'},
+  {q:'A: Did Mia buy the dress?<br>B: No, ___.', opts:["she didn't","she wasn't","she doesn't"], ans:0, why:'Short answer to "Did...?": No, she didn\'t.'},
+  {q:'What did you ___ for lunch?', opts:['eat','eats','eating'], ans:0, why:'After "did", always use the base form: "eat", not "eats" or "eating".'},
+  {q:'Helen ___ born in 1987.', opts:['is','was','were'], ans:1, why:'"Was" is the past of "is" for singular subjects.'},
+  {q:'My brothers ___ born in London.', opts:['was','are','were'], ans:2, why:'"Were" is past of "are/is" for plural subjects (my brothers = they).'},
+  {q:'We ___ our friends at a restaurant last night.', opts:['met','meet','meets'], ans:0, why:'"Met" is the past of "meet". "Last night" confirms past.'},
+  {q:'A: ___ did the film finish?<br>B: At 10:45.', opts:['What time','Where','Who'], ans:0, why:'"At 10:45" is an exact time — use "What time".'},
+  {q:'Sam ___ a new laptop last week.', opts:['buys','bought','buy'], ans:1, why:'"Last week" requires Past Simple. "Bought" is the past of "buy".'},
+  {q:'A: Did they enjoy the trip?<br>B: Yes, ___.', opts:['they were','they did','they do'], ans:1, why:'Short answer to "Did...?": Yes, they did.'},
+  {q:'Maria moved ___ Brazil ___ Canada in 2015.', opts:['from / to','at / from','to / from'], ans:0, why:'We moved FROM a place TO another place: "from Brazil to Canada".'},
+  {q:'A: Who did you ___ yesterday?<br>B: My old school friend.', opts:['see','sees','seeing'], ans:0, why:'After "did", always use the base form: "see".'},
+];
+buildMC('d7e1', d7e1Data, 'd7e1');
+document.getElementById('d7e1-check').addEventListener('click', () => checkMC(d7e1Data,'d7e1','d7e1-fb','d7e1'));
+document.getElementById('d7e1-reset').addEventListener('click', () => resetMC('d7e1','d7e1',d7e1Data,'d7e1-fb'));
+
+// EX 2 – MC: mark the correct sentence (8 items, 3 options each)
+const d7e2Data = [
+  {q:'Choose the correct sentence:', opts:['I went to the supermarket yesterday.','I go to the supermarket yesterday.','I did was go to the supermarket yesterday.'], ans:0, why:'"Went" is the Past Simple of "go". "I go" is Present Simple. "I did was go" is not a valid structure.'},
+  {q:'Choose the correct sentence:', opts:['We didn’t had lunch at home yesterday.','We were didn’t have lunch at home yesterday.','We didn’t have lunch at home yesterday.'], ans:2, why:'After "didn’t", use the base form: "have", not "had". "Were didn’t" is not a valid structure.'},
+  {q:'Choose the correct sentence:', opts:['Did you went to the cinema last Saturday?','Did you go to the cinema last Saturday?','Were you did go to the cinema last Saturday?'], ans:1, why:'After "Did", use the base form: "go", not "went". "Were you did" is not a valid structure.'},
+  {q:'Choose the correct sentence:', opts:['My parents were in São Paulo last weekend.','My parents was in São Paulo last weekend.','My parents did were in São Paulo last weekend.'], ans:0, why:'"Were" is used with plural subjects (my parents = they). "Was" is for I/he/she/it. "Did were" is not valid.'},
+  {q:'Choose the correct sentence:', opts:['Laura doesn’t work yesterday.','Laura was didn’t work yesterday.','Laura didn’t work yesterday.'], ans:2, why:'"Didn’t work" is the correct negative Past Simple. "Doesn’t" is Present Simple. "Was didn’t" is not valid.'},
+  {q:'Choose the correct sentence:', opts:['What did you buy at the shopping centre?','What did you bought at the shopping centre?','What were you did buy at the shopping centre?'], ans:0, why:'After "did", use the base form: "buy", not "bought". "Were you did" is not a valid structure.'},
+  {q:'Choose the correct sentence:', opts:['They have dinner at a restaurant last night.','They had dinner at a restaurant last night.','They were did have dinner at a restaurant last night.'], ans:1, why:'"Last night" requires Past Simple. "Had" is the past of "have". "Have" is Present Simple. "Were did" is not valid.'},
+  {q:'Choose the correct sentence:', opts:['Where you did go after work?','Where were you did go after work?','Where did you go after work?'], ans:2, why:'Wh- questions use: question word + did + subject + base verb. "Where did you go?" is correct.'},
+];
+buildMC('d7e2', d7e2Data, 'd7e2');
+document.getElementById('d7e2-check').addEventListener('click', () => checkMC(d7e2Data,'d7e2','d7e2-fb','d7e2'));
+document.getElementById('d7e2-reset').addEventListener('click', () => resetMC('d7e2','d7e2',d7e2Data,'d7e2-fb'));
+
+// EX 3 – Writing: WhatsApp
+document.getElementById('d7e3-send').addEventListener('click', () => {
+  const text = document.getElementById('d7e3-text').value.trim();
+  const name = studentName || 'Student';
+  const msg = 'Day 7 – Writing Challenge\n\nStudent: ' + name + '\n\n' + (text || '(no text written)');
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+  incrementChecked('d7e3');
+});
+
+// ════════════════════════════════════════════
+//  VOCAB BANK DATA
+// ════════════════════════════════════════════
+const VOCAB_LIFE = [
+  {en:'be born', pt:'to come into the world'},
+  {en:'graduate', pt:'to finish university'},
+  {en:'move to', pt:'to go to live in a new place'},
+  {en:'get married', pt:'to become husband and wife'},
+  {en:'have a child', pt:'to become a parent'},
+  {en:'find a job', pt:'to get employment'},
+  {en:'start working', pt:'to begin a job'},
+  {en:'become a doctor', pt:'to achieve a profession'},
+  {en:'study at university', pt:'to go to university'},
+  {en:'travel to', pt:'to go to a place'},
+  {en:'buy a house', pt:'to purchase a home'},
+  {en:'retire', pt:'to stop working at old age'},
+];
+const VOCAB_IRREG = [
+  {en:'go → went', pt:'ir'},
+  {en:'have → had', pt:'ter'},
+  {en:'get → got', pt:'obter / chegar'},
+  {en:'make → made', pt:'fazer'},
+  {en:'see → saw', pt:'ver'},
+  {en:'buy → bought', pt:'comprar'},
+  {en:'meet → met', pt:'encontrar'},
+  {en:'find → found', pt:'encontrar / achar'},
+  {en:'become → became', pt:'tornar-se'},
+  {en:'take → took', pt:'pegar / levar'},
+  {en:'eat → ate', pt:'comer'},
+  {en:'come → came', pt:'vir'},
+];
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(word);u.lang='en-US';u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+function renderVocabGrid(id, data) {
+  const wrap=document.getElementById(id);
+  data.forEach(item=>{
+    const div=document.createElement('div');div.className='vocab-chip';
+    div.innerHTML='<button onclick="speakWord(\''+item.en+'\')" style="background:none;border:none;cursor:pointer;font-size:1.1rem;margin-bottom:2px;" title="Listen">🔊</button><div style="font-weight:700;font-size:0.88rem;color:var(--purple);">'+item.en+'</div><div class="vc-pt">'+item.pt+'</div>';
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-life', VOCAB_LIFE);
+renderVocabGrid('vocab-irreg', VOCAB_IRREG);
+
+// ════════════════════════════════════════════
+//  CONFETTI + DAY COMPLETION
+// ════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1:['d1e1','d1e2'],
+  day2:['d2e1','d2e2','d2e3'],
+  day3:['d3e1','d3e2','d3e3'],
+  day4:['d4e1','d4e3'],
+  day5:['d5e1','d5e2','d5e3'],
+  day6:['d6e1','d6e2','d6e3'],
+  day7:['d7e1','d7e2','d7e3'],
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(JSON.parse(localStorage.getItem('teachermari_simplepast1991_done')||'[]'));
+const completedDays = new Set(JSON.parse(localStorage.getItem('teachermari_simplepast1991_days')||'[]'));
+
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  localStorage.setItem('teachermari_simplepast1991_done', JSON.stringify([...completedExercises]));
+  checkDayCompletion(exId);
+}
+function checkDayCompletion(exId) {
+  for (const [day, exList] of Object.entries(DAY_EXERCISES)) {
+    if (exList.includes(exId) && !completedDays.has(day)) {
+      const allDone = exList.every(e => completedExercises.has(e));
+      if (allDone) {
+        completedDays.add(day);
+        localStorage.setItem('teachermari_simplepast1991_days', JSON.stringify([...completedDays]));
+        if (completedDays.size === TOTAL_DAYS) {
+          setTimeout(() => celebrateWeek(), 400);
+          document.getElementById('weekly-summary').style.display = 'block';
+          document.getElementById('final-score').textContent = totalChecked;
+        } else {
+          setTimeout(() => celebrateDay(), 400);
+        }
+      }
+    }
+  }
+}
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const particles = Array.from({length:count}, () => ({
+    x:Math.random()*canvas.width, y:Math.random()*-canvas.height,
+    r:Math.random()*7+3,
+    color:['#FF5C23','#5340c8','#04392F','#f59e0b','#0d9488','#ec4899','#3b82f6'][Math.floor(Math.random()*7)],
+    speed:Math.random()*4+1, drift:(Math.random()-0.5)*3,
+    angle:Math.random()*360, spin:(Math.random()-0.5)*6
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle=p.color;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);ctx.restore();
+      p.y+=p.speed;p.x+=p.drift;p.angle+=p.spin;
+    });
+    frame++;
+    if(frame<duration)requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) { toast=document.createElement('div'); toast.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:14px 28px;border-radius:99px;font-family:Poppins,sans-serif;font-size:1rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;white-space:nowrap;'; document.body.appendChild(toast); }
+  toast.textContent = msg;
+  requestAnimationFrame(()=>{toast.style.transform='translateX(-50%) translateY(0)';toast.style.opacity='1';});
+  setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(80px)';toast.style.opacity='0';},3200);
+}
+function celebrateDay() { launchConfetti(140,200); showToast('Day complete! Great job!'); }
+function celebrateWeek() { launchConfetti(280,360); showToast('Week complete! You are amazing!'); }
+
+// Summary WhatsApp
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = 'Weekly Practice Complete!\n\nStudent: '+(studentName||'Student')+'\nUnit: Simple Past – She Was Born in 1991\nExercises checked: '+totalChecked+'\n\nSent from the weekly exercise file.';
+  window.open('https://wa.me/5524992723816?text='+encodeURIComponent(msg),'_blank');
+});
+</script>
+</body>
+</html>
