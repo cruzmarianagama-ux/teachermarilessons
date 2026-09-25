@@ -3103,15 +3103,9 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                   <div onClick={() => p.representante && onSelectStudent(p.representante)} style={{ flex: "1 1 200px", minWidth: 0, cursor: p.representante ? "pointer" : "default" }}>
                     <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{p.nomes}</p>
                     <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>
-                      {p.mes} · {p.valor} · {p.metodo}{p.informadoEm ? ` · informado em ${p.informadoEm}` : ""}{p.comprovantePath ? "" : " · sem comprovante"}
+                      {p.mes} · {p.valor} · {p.metodo}{p.informadoEm ? ` · informado em ${p.informadoEm}` : ""}
                     </p>
                   </div>
-                  {p.comprovantePath && (
-                    <button onClick={() => abrirComprovante(p.comprovantePath)}
-                      style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: "#FFF", color: palette.purple }}>
-                      👁 Ver comprovante
-                    </button>
-                  )}
                   <button onClick={() => confirmarPagamentoAdmin(p)}
                     style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.green, color: "#FFF" }}>
                     Confirmar
@@ -3612,7 +3606,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [pixCopiadoId, setPixCopiadoId] = useState(null);
   const [pixConfig, setPixConfig] = useState(null);
   const [informandoId, setInformandoId] = useState(null);
-  const [comprovanteArquivo, setComprovanteArquivo] = useState(null);
   const [enviandoInforme, setEnviandoInforme] = useState(false);
   React.useEffect(() => { carregarPixConfig(true).then(setPixConfig); }, []);
   const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
@@ -4715,32 +4708,15 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setCobranca((prev) => prev.map((x) => (x.rowId === c.rowId ? { ...x, status: "pendente", recusadoEm: agora, comprovantePath: null } : x)));
   };
 
-  // Aluno clica em "Já paguei" (comprovante opcional)
+  // Aluno clica em "Já paguei"
   const informarPagamento = async (c) => {
     setEnviandoInforme(true);
-    let caminho = null;
-    if (comprovanteArquivo) {
-      if (comprovanteArquivo.size > 10 * 1024 * 1024) {
-        alert("O comprovante precisa ter no máximo 10 MB.");
-        setEnviandoInforme(false);
-        return;
-      }
-      const ext = (comprovanteArquivo.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-      caminho = `${turmaId}/${c.rowId}_${Date.now()}.${ext}`;
-      const { error: erroUpload } = await supabase.storage.from("comprovantes")
-        .upload(caminho, comprovanteArquivo, { contentType: comprovanteArquivo.type || undefined });
-      if (erroUpload) {
-        alert("Não consegui enviar o comprovante: " + erroUpload.message);
-        setEnviandoInforme(false);
-        return;
-      }
-    }
+    const caminho = null;
     const { error } = await supabase.rpc("informar_pagamento", { p_billing_id: c.rowId, p_comprovante_path: caminho });
     setEnviandoInforme(false);
     if (error) { alert("Não consegui registrar o pagamento: " + error.message); return; }
     setCobranca((prev) => prev.map((x) => (x.rowId === c.rowId ? { ...x, status: "informado", recusadoEm: null, comprovantePath: caminho || x.comprovantePath } : x)));
     setInformandoId(null);
-    setComprovanteArquivo(null);
   };
 
   const abrirEdicaoCobranca = (c) => {
@@ -6407,12 +6383,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       )}
                       </React.Fragment>
                       )}
-                      {c.status === "informado" && c.comprovantePath && (
-                        <button onClick={() => abrirComprovante(c.comprovantePath)}
-                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
-                          👁 Ver comprovante
-                        </button>
-                      )}
                       {c.status === "informado" && (
                         <button onClick={() => recusarPagamento(c)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: "#F7C1C1", color: "#791F1F" }}>
@@ -6473,26 +6443,19 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   )}
                   {role !== "admin" && !quitada(c) && (
                     informandoId !== c.rowId ? (
-                      <button onClick={() => { setInformandoId(c.rowId); setComprovanteArquivo(null); }}
+                      <button onClick={() => setInformandoId(c.rowId)}
                         style={{ marginTop: "10px", fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.lightGreen, color: palette.green }}>
                         ✅ Já paguei
                       </button>
                     ) : (
                       <div style={{ marginTop: "10px", padding: "12px", borderRadius: "10px", background: dark ? "#2A1D66" : "#FFF", border: `1px solid ${palette.lavender}55` }}>
-                        <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>Comprovante (opcional)</p>
-                        <label style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "8px", border: `1px dashed ${palette.lavender}99`, cursor: "pointer", marginBottom: "10px" }}>
-                          <span style={{ fontSize: "12px", color: comprovanteArquivo ? palette.green : textSecondary }}>
-                            {comprovanteArquivo ? `📎 ${comprovanteArquivo.name}` : "Toque para anexar o print ou PDF do comprovante"}
-                          </span>
-                          <input type="file" accept="image/*,application/pdf" style={{ display: "none" }}
-                            onChange={(e) => setComprovanteArquivo(e.target.files[0] || null)} />
-                        </label>
+                        <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "10px" }}>Confirma que já pagou {c.valor} referente a {c.mes}?</p>
                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                           <button onClick={() => informarPagamento(c)} disabled={enviandoInforme}
                             style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.green, color: "#FFF", opacity: enviandoInforme ? 0.6 : 1 }}>
-                            {enviandoInforme ? "Enviando..." : "Confirmar pagamento"}
+                            {enviandoInforme ? "Enviando..." : "Sim, já paguei"}
                           </button>
-                          <button onClick={() => { setInformandoId(null); setComprovanteArquivo(null); }} disabled={enviandoInforme}
+                          <button onClick={() => setInformandoId(null)} disabled={enviandoInforme}
                             style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: "transparent", color: dark ? "#FFF" : palette.purple }}>
                             Cancelar
                           </button>
