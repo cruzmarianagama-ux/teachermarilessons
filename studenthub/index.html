@@ -52,13 +52,15 @@ const palette = {
 const LOGO = "https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png";
 
 // ---------- PIX ----------
-// Preencha com os seus dados. "chave" pode ser CPF/CNPJ (só números), e-mail,
-// celular no formato +5511999999999 ou chave aleatória.
-// "nome" (até 25 caracteres) e "cidade" (até 15) têm que bater com o cadastro do seu banco.
-const PIX_CONFIG = {
-  chave: "",
-  nome: "MARIANA CRUZ",
-  cidade: "",
+// A chave Pix fica salva na tabela "config_pix" (linha única, id = 1).
+// A admin cadastra pelo card "⚡ Minha chave Pix" no painel inicial.
+let pixConfigCache = null;
+const carregarPixConfig = async (forcar = false) => {
+  if (pixConfigCache && !forcar) return pixConfigCache;
+  const { data, error } = await supabase.from("config_pix").select("chave, nome, cidade").eq("id", 1).maybeSingle();
+  if (error) { console.error("Erro ao carregar chave Pix:", error.message); return null; }
+  pixConfigCache = data || null;
+  return pixConfigCache;
 };
 
 const pixLimpar = (txt, max) => (txt || "")
@@ -80,11 +82,12 @@ const pixCRC16 = (payload) => {
 };
 
 // Gera o "Pix copia e cola" (BR Code estático) já com o valor da cobrança.
-// Retorna null se a PIX_CONFIG não estiver preenchida.
-const gerarPixCopiaECola = (valorNum) => {
-  const nome = pixLimpar(PIX_CONFIG.nome, 25);
-  const cidade = pixLimpar(PIX_CONFIG.cidade, 15);
-  const chave = (PIX_CONFIG.chave || "").trim();
+// Retorna null se a chave/nome/cidade não estiverem cadastrados.
+const gerarPixCopiaECola = (valorNum, cfg) => {
+  if (!cfg) return null;
+  const nome = pixLimpar(cfg.nome, 25);
+  const cidade = pixLimpar(cfg.cidade, 15);
+  const chave = (cfg.chave || "").trim();
   if (!chave || !nome || !cidade) return null;
   const contaPix = pixCampo("00", "br.gov.bcb.pix") + pixCampo("01", chave);
   let payload =
@@ -1986,6 +1989,32 @@ function GeradorProposta({ students }) {
 }
 
 function AdminPanel({ onLogout, onSelectStudent, session }) {
+  const [pixForm, setPixForm] = useState({ chave: "", nome: "MARIANA CRUZ", cidade: "" });
+  const [pixSalvo, setPixSalvo] = useState(false);
+  const [pixAberto, setPixAberto] = useState(false);
+  const [pixSalvando, setPixSalvando] = useState(false);
+  useEffect(() => {
+    carregarPixConfig(true).then((cfg) => {
+      if (cfg && cfg.chave && cfg.nome && cfg.cidade) {
+        setPixForm({ chave: cfg.chave, nome: cfg.nome, cidade: cfg.cidade });
+        setPixSalvo(true);
+      } else {
+        if (cfg) setPixForm((f) => ({ chave: cfg.chave || "", nome: cfg.nome || f.nome, cidade: cfg.cidade || "" }));
+        setPixAberto(true); // abre sozinho enquanto não estiver cadastrado
+      }
+    });
+  }, []);
+  const salvarPix = async () => {
+    const chave = pixForm.chave.trim(), nome = pixForm.nome.trim(), cidade = pixForm.cidade.trim();
+    if (!chave || !nome || !cidade) { alert("Preencha chave, nome e cidade."); return; }
+    setPixSalvando(true);
+    const { error } = await supabase.from("config_pix").upsert({ id: 1, chave, nome, cidade, atualizado_em: new Date().toISOString() });
+    setPixSalvando(false);
+    if (error) { alert("Erro ao salvar chave Pix: " + error.message); return; }
+    pixConfigCache = { chave, nome, cidade };
+    setPixSalvo(true);
+    setPixAberto(false);
+  };
   const { useEffect } = React;
   const [abaAdmin, setAbaAdmin] = useState("alunos");
   const [materiaisAdmin, setMateriaisAdmin] = useState([]);
@@ -3013,6 +3042,43 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         {abaAdmin === "alunos" && (
         <React.Fragment>
 
+        {/* ── MINHA CHAVE PIX ── */}
+        <div style={{ background: "#FFF", borderRadius: "12px", border: `1.5px solid ${pixSalvo ? "#EEE8FC" : palette.orange}`, padding: "12px 16px", marginBottom: "16px", fontFamily: "'Poppins', sans-serif", boxShadow: "0 1px 4px rgba(29,16,80,0.04)" }}>
+          <div onClick={() => setPixAberto(!pixAberto)} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+            <span style={{ fontSize: "14px", fontWeight: 700, color: palette.purple }}>⚡ Minha chave Pix</span>
+            <span style={{ fontSize: "11px", fontWeight: 600, padding: "3px 10px", borderRadius: "20px", background: pixSalvo ? palette.lightGreen : `${palette.orange}22`, color: pixSalvo ? palette.green : palette.orange }}>
+              {pixSalvo ? "Cadastrada" : "Não cadastrada"}
+            </span>
+            {pixSalvo && !pixAberto && (
+              <span style={{ fontSize: "12px", color: `${palette.purple}88`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{pixForm.chave}</span>
+            )}
+            <span style={{ marginLeft: "auto", fontSize: "12px", fontWeight: 600, color: palette.purple }}>{pixAberto ? "Fechar" : "Editar"}</span>
+          </div>
+          {pixAberto && (
+            <div style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px", alignItems: "end" }}>
+              {[
+                ["chave", "Chave Pix", "CPF, e-mail, +5511999999999 ou aleatória"],
+                ["nome", "Nome (como no banco)", "MARIANA CRUZ"],
+                ["cidade", "Cidade", "Ex: São Paulo"],
+              ].map(([campo, rotulo, ph]) => (
+                <div key={campo}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>{rotulo}</label>
+                  <input type="text" value={pixForm[campo]} placeholder={ph}
+                    onChange={(e) => setPixForm((f) => ({ ...f, [campo]: e.target.value }))}
+                    style={{ width: "100%", boxSizing: "border-box", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif" }} />
+                </div>
+              ))}
+              <button onClick={salvarPix} disabled={pixSalvando}
+                style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: pixSalvando ? "default" : "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF", fontFamily: "'Poppins', sans-serif", opacity: pixSalvando ? 0.6 : 1 }}>
+                {pixSalvando ? "Salvando..." : "Salvar chave"}
+              </button>
+              <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: "11px", color: `${palette.purple}88` }}>
+                O valor entra sozinho em cada cobrança Pix. Nome e cidade precisam bater com o cadastro da sua chave no banco.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* ── PORTAIS DOS ALUNOS — cards ── */}
         {(() => {
           const normalizar = (t) => (t||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -3496,6 +3562,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [mostrarNovaCobranca, setMostrarNovaCobranca] = useState(false);
   const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "", metodo: "boleto" });
   const [pixCopiadoId, setPixCopiadoId] = useState(null);
+  const [pixConfig, setPixConfig] = useState(null);
+  useEffect(() => { carregarPixConfig(true).then(setPixConfig); }, []);
   const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [feriadoPopup, setFeriadoPopup] = useState(null); // { dia, motivo }
@@ -4667,9 +4735,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   };
 
   const copiarPix = async (c) => {
-    const codigo = gerarPixCopiaECola(c.valorNum);
+    let cfg = pixConfig;
+    if (!cfg) { cfg = await carregarPixConfig(true); setPixConfig(cfg); }
+    const codigo = gerarPixCopiaECola(c.valorNum, cfg);
     if (!codigo) {
-      alert("A chave Pix ainda não foi configurada. Fale com a Teacher Mari.");
+      alert(role === "admin"
+        ? "Cadastre sua chave Pix (chave, nome e cidade) no card \"⚡ Minha chave Pix\" do painel inicial."
+        : "A chave Pix ainda não foi configurada. Fale com a Teacher Mari.");
       return;
     }
     const ok = await copiarTexto(codigo);
