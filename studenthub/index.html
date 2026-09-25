@@ -63,45 +63,17 @@ const carregarPixConfig = async (forcar = false) => {
   return pixConfigCache;
 };
 
-const pixLimpar = (txt, max) => (txt || "")
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  .replace(/[^A-Za-z0-9 ]/g, "").toUpperCase().trim().slice(0, max);
-
-const pixCampo = (id, valor) => `${id}${String(valor.length).padStart(2, "0")}${valor}`;
-
-const pixCRC16 = (payload) => {
-  let crc = 0xFFFF;
-  for (let i = 0; i < payload.length; i++) {
-    crc ^= payload.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
-      crc &= 0xFFFF;
-    }
+// Abre o comprovante (pasta privada) com um link temporário de 10 min
+const abrirComprovante = async (path) => {
+  if (!path) return;
+  const janela = window.open("", "_blank"); // abre antes do await pra não ser bloqueado
+  const { data, error } = await supabase.storage.from("comprovantes").createSignedUrl(path, 600);
+  if (error || !data) {
+    if (janela) janela.close();
+    alert("Não consegui abrir o comprovante: " + (error ? error.message : "arquivo não encontrado"));
+    return;
   }
-  return crc.toString(16).toUpperCase().padStart(4, "0");
-};
-
-// Gera o "Pix copia e cola" (BR Code estático) já com o valor da cobrança.
-// Retorna null se a chave/nome/cidade não estiverem cadastrados.
-const gerarPixCopiaECola = (valorNum, cfg) => {
-  if (!cfg) return null;
-  const nome = pixLimpar(cfg.nome, 25);
-  const cidade = pixLimpar(cfg.cidade, 15);
-  const chave = (cfg.chave || "").trim();
-  if (!chave || !nome || !cidade) return null;
-  const contaPix = pixCampo("00", "br.gov.bcb.pix") + pixCampo("01", chave);
-  let payload =
-    pixCampo("00", "01") +
-    pixCampo("26", contaPix) +
-    pixCampo("52", "0000") +
-    pixCampo("53", "986") +
-    (valorNum > 0 ? pixCampo("54", valorNum.toFixed(2)) : "") +
-    pixCampo("58", "BR") +
-    pixCampo("59", nome) +
-    pixCampo("60", cidade) +
-    pixCampo("62", pixCampo("05", "***")) +
-    "6304";
-  return payload + pixCRC16(payload);
+  if (janela) janela.location.href = data.signedUrl; else window.location.href = data.signedUrl;
 };
 
 const copiarTexto = async (texto) => {
@@ -1010,7 +982,7 @@ function DiagnosticoAdmin({ students }) {
     const [lessonsRes, recordsRes, billingRes] = await Promise.all([
       supabase.from("lessons").select("id, turma_id, data, status, horario, turmas(students(nome, id))").gte("data", dataInicio).lte("data", dataFim).in("status", ["realizada", "reposicaoAgendada", "agendada"]),
       supabase.from("lesson_records").select("turma_id, data").gte("data", dataInicio).lte("data", dataFim),
-      supabase.from("billing").select("*, turmas(students(nome))").neq("status", "pago"),
+      supabase.from("billing").select("*, turmas(students(nome))").not("status", "in", "(pago,informado)"),
     ]);
 
     const lessons = lessonsRes.data || [];
@@ -1993,10 +1965,11 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [pixSalvo, setPixSalvo] = useState(false);
   const [pixAberto, setPixAberto] = useState(false);
   const [pixSalvando, setPixSalvando] = useState(false);
+  const [pagamentosAConfirmar, setPagamentosAConfirmar] = useState([]);
   React.useEffect(() => {
     carregarPixConfig(true).then((cfg) => {
-      if (cfg && cfg.chave && cfg.nome && cfg.cidade) {
-        setPixForm({ chave: cfg.chave, nome: cfg.nome, cidade: cfg.cidade });
+      if (cfg && cfg.chave) {
+        setPixForm({ chave: cfg.chave, nome: cfg.nome || "", cidade: cfg.cidade || "" });
         setPixSalvo(true);
       } else {
         if (cfg) setPixForm((f) => ({ chave: cfg.chave || "", nome: cfg.nome || f.nome, cidade: cfg.cidade || "" }));
@@ -2004,9 +1977,27 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
       }
     });
   }, []);
+  const confirmarPagamentoAdmin = async (p) => {
+    const { error } = await supabase.from("billing").update({ status: "pago", recusado_em: null }).eq("id", p.rowId);
+    if (error) { alert("Erro ao confirmar: " + error.message); return; }
+    setPagamentosAConfirmar((prev) => prev.filter((x) => x.rowId !== p.rowId));
+  };
+
+  const recusarPagamentoAdmin = async (p) => {
+    if (!window.confirm(`Recusar o pagamento de ${p.nomes} (${p.mes})? A cobrança volta pra pendente e o aluno recebe um aviso.`)) return;
+    const { error } = await supabase.from("billing")
+      .update({ status: "pendente", recusado_em: new Date().toISOString(), informado_em: null, comprovante_path: null })
+      .eq("id", p.rowId);
+    if (error) { alert("Erro ao recusar: " + error.message); return; }
+    if (p.comprovantePath) await supabase.storage.from("comprovantes").remove([p.comprovantePath]);
+    setPagamentosAConfirmar((prev) => prev.filter((x) => x.rowId !== p.rowId));
+  };
+
   const salvarPix = async () => {
-    const chave = pixForm.chave.trim(), nome = pixForm.nome.trim(), cidade = pixForm.cidade.trim();
-    if (!chave || !nome || !cidade) { alert("Preencha chave, nome e cidade."); return; }
+    const chave = pixForm.chave.trim();
+    // nome/cidade não são mais usados, mas a tabela exige as colunas
+    const nome = (pixForm.nome || "").trim(), cidade = (pixForm.cidade || "").trim();
+    if (!chave) { alert("Preencha a chave Pix."); return; }
     setPixSalvando(true);
     const { error } = await supabase.from("config_pix").upsert({ id: 1, chave, nome, cidade, atualizado_em: new Date().toISOString() });
     setPixSalvando(false);
@@ -2147,7 +2138,27 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
 
     // Cobranças em aberto (não pagas, vencimento no passado) — lista detalhada
     const { data: billingData } = await supabase.from("billing").select("*").neq("status", "pago");
+    // Pagamentos informados pelo aluno ("Já paguei") aguardando conferência
+    setPagamentosAConfirmar((billingData || [])
+      .filter((b) => b.status === "informado")
+      .map((b) => {
+        const info = infoTurma(b.turma_id);
+        return {
+          rowId: b.id,
+          turma_id: b.turma_id,
+          nomes: info.nomes || "(turma sem alunos)",
+          representante: info.representante,
+          mes: b.mes,
+          valor: `R$ ${Number(b.valor).toFixed(2).replace(".", ",")}`,
+          metodo: b.metodo_pagamento === "pix" ? "Pix" : "Boleto",
+          informadoEm: b.informado_em ? new Date(b.informado_em).toLocaleDateString("pt-BR") : null,
+          comprovantePath: b.comprovante_path || null,
+        };
+      })
+      .sort((a, b) => a.nomes.localeCompare(b.nomes)));
+
     const cobrAtrasadas = (billingData || [])
+      .filter((b) => b.status !== "informado")
       .filter((b) => b.vencimento && b.vencimento < hojeISO)
       .map((b) => {
         const info = infoTurma(b.turma_id);
@@ -2616,8 +2627,11 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
         m[tid] = [...(m[tid] || []), "reposicao"];
       }
     });
+    pagamentosAConfirmar.forEach((p) => {
+      m[p.turma_id] = [...(m[p.turma_id] || []), "confirmar"];
+    });
     return m;
-  }, [cobrancasAbertoLista, reposicoesPendentesLista]);
+  }, [cobrancasAbertoLista, reposicoesPendentesLista, pagamentosAConfirmar]);
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: palette.cream }}>
@@ -3057,9 +3071,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           {pixAberto && (
             <div style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px", alignItems: "end" }}>
               {[
-                ["chave", "Chave Pix", "CPF, e-mail, +5511999999999 ou aleatória"],
-                ["nome", "Nome (como no banco)", "MARIANA CRUZ"],
-                ["cidade", "Cidade", "Ex: São Paulo"],
+                ["chave", "Chave Pix", "CPF, e-mail, celular ou chave aleatória"],
               ].map(([campo, rotulo, ph]) => (
                 <div key={campo}>
                   <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "6px" }}>{rotulo}</label>
@@ -3073,11 +3085,46 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                 {pixSalvando ? "Salvando..." : "Salvar chave"}
               </button>
               <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: "11px", color: `${palette.purple}88` }}>
-                O valor entra sozinho em cada cobrança Pix. Nome e cidade precisam bater com o cadastro da sua chave no banco.
+                É essa chave que o aluno copia nas cobranças marcadas como Pix. Confira se está exatamente igual à do seu banco.
               </p>
             </div>
           )}
         </div>
+
+        {/* ── PAGAMENTOS A CONFIRMAR ── */}
+        {pagamentosAConfirmar.length > 0 && (
+          <div style={{ background: "#FFF", borderRadius: "12px", border: `1.5px solid ${palette.green}`, padding: "12px 16px", marginBottom: "16px", fontFamily: "'Poppins', sans-serif", boxShadow: "0 1px 4px rgba(29,16,80,0.04)" }}>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: palette.purple, marginBottom: "10px" }}>
+              🧾 Pagamentos a confirmar ({pagamentosAConfirmar.length})
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {pagamentosAConfirmar.map((p) => (
+                <div key={p.rowId} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", padding: "10px 12px", borderRadius: "10px", background: `${palette.lightGreen}55` }}>
+                  <div onClick={() => p.representante && onSelectStudent(p.representante)} style={{ flex: "1 1 200px", minWidth: 0, cursor: p.representante ? "pointer" : "default" }}>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: palette.purple }}>{p.nomes}</p>
+                    <p style={{ margin: "2px 0 0 0", fontSize: "11px", color: `${palette.purple}99` }}>
+                      {p.mes} · {p.valor} · {p.metodo}{p.informadoEm ? ` · informado em ${p.informadoEm}` : ""}{p.comprovantePath ? "" : " · sem comprovante"}
+                    </p>
+                  </div>
+                  {p.comprovantePath && (
+                    <button onClick={() => abrirComprovante(p.comprovantePath)}
+                      style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: "#FFF", color: palette.purple }}>
+                      👁 Ver comprovante
+                    </button>
+                  )}
+                  <button onClick={() => confirmarPagamentoAdmin(p)}
+                    style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.green, color: "#FFF" }}>
+                    Confirmar
+                  </button>
+                  <button onClick={() => recusarPagamentoAdmin(p)}
+                    style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: "#F7C1C1", color: "#791F1F" }}>
+                    Recusar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── PORTAIS DOS ALUNOS — cards ── */}
         {(() => {
@@ -3141,6 +3188,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
                       {/* Alertas */}
                       {temCobranca && <span style={{ fontSize: "11px", flexShrink: 0 }}>💳</span>}
                       {temReposicao && <span style={{ fontSize: "11px", flexShrink: 0 }}>🔄</span>}
+                      {alertas.includes("confirmar") && <span title="Pagamento a confirmar" style={{ fontSize: "11px", flexShrink: 0 }}>🧾</span>}
                     </button>
                   );
                 })}
@@ -3563,6 +3611,9 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "", metodo: "boleto" });
   const [pixCopiadoId, setPixCopiadoId] = useState(null);
   const [pixConfig, setPixConfig] = useState(null);
+  const [informandoId, setInformandoId] = useState(null);
+  const [comprovanteArquivo, setComprovanteArquivo] = useState(null);
+  const [enviandoInforme, setEnviandoInforme] = useState(false);
   React.useEffect(() => { carregarPixConfig(true).then(setPixConfig); }, []);
   const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
@@ -3827,6 +3878,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
         mes: b.mes, valor: `R$ ${Number(b.valor).toFixed(2).replace(".", ",")}`, status: b.status,
         vencimento: new Date(b.vencimento + "T00:00:00").toLocaleDateString("pt-BR"), vencimentoISO: b.vencimento, boletoUrl: b.boleto_url, rowId: b.id,
         metodo: b.metodo_pagamento === "pix" ? "pix" : "boleto", valorNum: Number(b.valor),
+        comprovantePath: b.comprovante_path || null, recusadoEm: b.recusado_em || null,
       })));
 
       setCarregandoDados(false);
@@ -4623,28 +4675,72 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const bg = dark ? palette.purple : palette.cream;
   const cardBg = dark ? "#2A1D66" : "#FFFFFF";
   const textSecondary = dark ? `${palette.lavender}CC` : `${palette.purple}99`;
+  // Pro aluno, "informado" (clicou em Já paguei) já conta como pago. Pra admin, só "pago".
+  const quitada = (c) => c.status === "pago" || (role !== "admin" && c.status === "informado");
+  const cobrancaRecusada = role !== "admin" && cobranca.find((c) => c.status === "pendente" && c.recusadoEm);
+
   const cobrancaVencida = cobranca
-    .filter((c) => c.status !== "pago")
+    .filter((c) => !quitada(c))
     .map((c) => ({ ...c, diasParaVencer: Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000) }))
     .filter((c) => c.diasParaVencer < 0)
     .sort((a, b) => a.diasParaVencer - b.diasParaVencer)[0];
 
   const cobrancaProxima = !cobrancaVencida && cobranca
-    .filter((c) => c.status !== "pago")
+    .filter((c) => !quitada(c))
     .map((c) => ({ ...c, diasParaVencer: Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000) }))
     .filter((c) => c.diasParaVencer >= 0 && c.diasParaVencer <= 2)
     .sort((a, b) => a.diasParaVencer - b.diasParaVencer)[0];
 
   const marcarComoPago = async (rowId) => {
-    const { error } = await supabase.from("billing").update({ status: "pago" }).eq("id", rowId);
+    const { error } = await supabase.from("billing").update({ status: "pago", recusado_em: null }).eq("id", rowId);
     if (error) { alert("Erro ao marcar como pago: " + error.message); return; }
-    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pago" } : c)));
+    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pago", recusadoEm: null } : c)));
   };
 
   const marcarComoPendente = async (rowId) => {
-    const { error } = await supabase.from("billing").update({ status: "pendente" }).eq("id", rowId);
+    const { error } = await supabase.from("billing").update({ status: "pendente", recusado_em: null, informado_em: null }).eq("id", rowId);
     if (error) { alert("Erro ao marcar como pendente: " + error.message); return; }
-    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pendente" } : c)));
+    setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? { ...c, status: "pendente", recusadoEm: null } : c)));
+  };
+
+  // Admin recusa um "Já paguei": volta pra pendente e o aluno vê um aviso
+  const recusarPagamento = async (c) => {
+    if (!window.confirm(`Recusar o pagamento de ${c.mes}? A cobrança volta pra pendente e o aluno recebe um aviso.`)) return;
+    const agora = new Date().toISOString();
+    const { error } = await supabase.from("billing")
+      .update({ status: "pendente", recusado_em: agora, informado_em: null, comprovante_path: null })
+      .eq("id", c.rowId);
+    if (error) { alert("Erro ao recusar: " + error.message); return; }
+    if (c.comprovantePath) await supabase.storage.from("comprovantes").remove([c.comprovantePath]);
+    setCobranca((prev) => prev.map((x) => (x.rowId === c.rowId ? { ...x, status: "pendente", recusadoEm: agora, comprovantePath: null } : x)));
+  };
+
+  // Aluno clica em "Já paguei" (comprovante opcional)
+  const informarPagamento = async (c) => {
+    setEnviandoInforme(true);
+    let caminho = null;
+    if (comprovanteArquivo) {
+      if (comprovanteArquivo.size > 10 * 1024 * 1024) {
+        alert("O comprovante precisa ter no máximo 10 MB.");
+        setEnviandoInforme(false);
+        return;
+      }
+      const ext = (comprovanteArquivo.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+      caminho = `${turmaId}/${c.rowId}_${Date.now()}.${ext}`;
+      const { error: erroUpload } = await supabase.storage.from("comprovantes")
+        .upload(caminho, comprovanteArquivo, { contentType: comprovanteArquivo.type || undefined });
+      if (erroUpload) {
+        alert("Não consegui enviar o comprovante: " + erroUpload.message);
+        setEnviandoInforme(false);
+        return;
+      }
+    }
+    const { error } = await supabase.rpc("informar_pagamento", { p_billing_id: c.rowId, p_comprovante_path: caminho });
+    setEnviandoInforme(false);
+    if (error) { alert("Não consegui registrar o pagamento: " + error.message); return; }
+    setCobranca((prev) => prev.map((x) => (x.rowId === c.rowId ? { ...x, status: "informado", recusadoEm: null, comprovantePath: caminho || x.comprovantePath } : x)));
+    setInformandoId(null);
+    setComprovanteArquivo(null);
   };
 
   const abrirEdicaoCobranca = (c) => {
@@ -4679,6 +4775,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const excluirCobranca = async (c) => {
     const confirmar = window.confirm(`Excluir a cobrança de ${c.mes} (${c.valor})? Essa ação não pode ser desfeita.`);
     if (!confirmar) return;
+    if (c.comprovantePath) await supabase.storage.from("comprovantes").remove([c.comprovantePath]);
     // Se tinha boleto anexado, apaga do storage também pra não deixar arquivo órfão
     if (c.boletoUrl) {
       const parts = c.boletoUrl.split("/boletos/");
@@ -4737,15 +4834,15 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const copiarPix = async (c) => {
     let cfg = pixConfig;
     if (!cfg) { cfg = await carregarPixConfig(true); setPixConfig(cfg); }
-    const codigo = gerarPixCopiaECola(c.valorNum, cfg);
+    const codigo = cfg && cfg.chave ? cfg.chave.trim() : "";
     if (!codigo) {
       alert(role === "admin"
-        ? "Cadastre sua chave Pix (chave, nome e cidade) no card \"⚡ Minha chave Pix\" do painel inicial."
+        ? "Cadastre sua chave Pix no card \"⚡ Minha chave Pix\" do painel inicial."
         : "A chave Pix ainda não foi configurada. Fale com a Teacher Mari.");
       return;
     }
     const ok = await copiarTexto(codigo);
-    if (!ok) { window.prompt("Copie o código Pix abaixo:", codigo); return; }
+    if (!ok) { window.prompt("Copie a chave Pix abaixo:", codigo); return; }
     setPixCopiadoId(c.rowId);
     setTimeout(() => setPixCopiadoId((id) => (id === c.rowId ? null : id)), 2500);
   };
@@ -5195,6 +5292,14 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           </div>
         )}
 
+        {cobrancaRecusada && (!turma || turma.modalidade !== "grupo") && (
+          <div onClick={() => setActive("cobranca")} style={{ display: "flex", alignItems: "flex-start", gap: "10px", background: "#F7C1C122", border: "1px solid #E24B4A", borderRadius: "12px", padding: "12px 16px", marginBottom: "16px", cursor: "pointer" }}>
+            <span style={{ fontSize: "13px", color: dark ? "#FFF" : palette.purple, fontWeight: 500, lineHeight: 1.5 }}>
+              ⚠️ Não identificamos o pagamento de {cobrancaRecusada.mes}. Confira e clique em "Já paguei" novamente na aba financeiro.
+            </span>
+          </div>
+        )}
+
         {cobrancaVencida && (!turma || turma.modalidade !== "grupo") && (() => {
           const diasAtrasado = Math.abs(cobrancaVencida.diasParaVencer);
           const diasTexto = diasAtrasado === 1 ? "1 dia" : `${diasAtrasado} dias`;
@@ -5211,7 +5316,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           const d = cobrancaProxima.diasParaVencer;
           const texto = d === 0
             ? `Sua mensalidade de ${cobrancaProxima.mes} vence HOJE (${cobrancaProxima.vencimento}). Fique em dia!`
-            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). ${cobrancaProxima.metodo === "pix" ? "Copie o código Pix na aba financeiro." : "Baixe seu boleto na aba financeiro."}`;
+            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). ${cobrancaProxima.metodo === "pix" ? "Copie a chave Pix na aba financeiro." : "Baixe seu boleto na aba financeiro."}`;
           const bg = d === 0 ? `${palette.orange}22` : `${palette.lavender}33`;
           const border = d === 0 ? `1px solid ${palette.orange}` : `1px solid ${palette.lavender}`;
           return (
@@ -6176,7 +6281,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       </React.Fragment>
                       ) : (
                         <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "14px", lineHeight: 1.5 }}>
-                          O aluno verá o botão "Copiar Pix" com o código copia e cola já no valor da cobrança.
+                          O aluno verá o botão "Copiar chave Pix" e paga o valor da cobrança pelo app do banco.
                         </p>
                       )}
 
@@ -6194,17 +6299,19 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                 <p style={{ fontSize: "13px", color: textSecondary }}>Nenhuma cobrança cadastrada ainda.</p>
               )}
               {(() => {
-                const emAberto = cobranca.filter((c) => c.status !== "pago");
-                const pagas = cobranca.filter((c) => c.status === "pago");
+                const emAberto = cobranca.filter((c) => !quitada(c));
+                const pagas = cobranca.filter((c) => quitada(c));
                 const ordenadas = [...emAberto, ...pagas];
                 const temAmbos = emAberto.length > 0 && pagas.length > 0;
                 return ordenadas.map((c, i) => {
-                const isFirstPago = temAmbos && c.status === "pago" && i === emAberto.length;
+                const isFirstPago = temAmbos && quitada(c) && i === emAberto.length;
                 const emEdicao = editandoCobrancaId === c.rowId;
                 const diasParaVencer = Math.ceil((new Date(c.vencimentoISO + "T00:00:00") - new Date(new Date().toDateString())) / 86400000);
                 let statusLabel, statusBg, statusCor;
-                if (c.status === "pago") {
+                if (quitada(c)) {
                   statusLabel = "Pago"; statusBg = palette.lightGreen; statusCor = palette.green;
+                } else if (c.status === "informado") {
+                  statusLabel = "Aguardando confirmação"; statusBg = palette.lavender; statusCor = palette.purple;
                 } else if (diasParaVencer < 0) {
                   statusLabel = "Atrasado"; statusBg = "#F7C1C1"; statusCor = "#791F1F";
                 } else if (diasParaVencer === 0) {
@@ -6283,7 +6390,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       {c.metodo === "pix" ? (
                         <button onClick={() => copiarPix(c)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.purple, color: "#FFF" }}>
-                          {pixCopiadoId === c.rowId ? "✅ Pix copiado!" : "⚡ Copiar Pix"}
+                          {pixCopiadoId === c.rowId ? "✅ Chave copiada!" : "⚡ Copiar chave Pix"}
                         </button>
                       ) : (
                       <React.Fragment>
@@ -6300,10 +6407,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       )}
                       </React.Fragment>
                       )}
+                      {c.status === "informado" && c.comprovantePath && (
+                        <button onClick={() => abrirComprovante(c.comprovantePath)}
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple }}>
+                          👁 Ver comprovante
+                        </button>
+                      )}
+                      {c.status === "informado" && (
+                        <button onClick={() => recusarPagamento(c)}
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: "#F7C1C1", color: "#791F1F" }}>
+                          Recusar pagamento
+                        </button>
+                      )}
                       {c.status !== "pago" ? (
                         <button onClick={() => marcarComoPago(c.rowId)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.lightGreen, color: palette.green }}>
-                          Marcar como pago
+                          {c.status === "informado" ? "✅ Confirmar pagamento" : "Marcar como pago"}
                         </button>
                       ) : (
                         <button onClick={() => marcarComoPendente(c.rowId)}
@@ -6324,13 +6443,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       )}
                     </div>
                   ) : c.metodo === "pix" ? (
-                    c.status !== "pago" && (
+                    !quitada(c) && (
                       <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                         <button onClick={() => copiarPix(c)}
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "'Poppins', sans-serif", background: pixCopiadoId === c.rowId ? palette.lightGreen : palette.orange, color: pixCopiadoId === c.rowId ? palette.green : "#FFF", transition: "all 0.15s" }}>
-                          {pixCopiadoId === c.rowId ? "✅ Copiado!" : "⚡ Copiar Pix"}
+                          {pixCopiadoId === c.rowId ? "✅ Chave copiada!" : "⚡ Copiar chave Pix"}
                         </button>
-                        <span style={{ fontSize: "12px", color: textSecondary }}>Cole no app do seu banco em Pix → Copia e cola.</span>
+                        <span style={{ fontSize: "12px", color: textSecondary }}>No app do banco: Pix → Pagar com chave → cole a chave e digite {c.valor}.</span>
                       </div>
                     )
                   ) : (
@@ -6347,7 +6466,41 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       </div>
                     )
                   )}
-                  {role !== "admin" && c.metodo !== "pix" && !c.boletoUrl && (
+                  {role !== "admin" && !quitada(c) && c.recusadoEm && (
+                    <p style={{ marginTop: "10px", fontSize: "12px", fontWeight: 500, color: "#B42318" }}>
+                      ⚠️ Não identificamos este pagamento. Confira e clique em "Já paguei" novamente.
+                    </p>
+                  )}
+                  {role !== "admin" && !quitada(c) && (
+                    informandoId !== c.rowId ? (
+                      <button onClick={() => { setInformandoId(c.rowId); setComprovanteArquivo(null); }}
+                        style={{ marginTop: "10px", fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.lightGreen, color: palette.green }}>
+                        ✅ Já paguei
+                      </button>
+                    ) : (
+                      <div style={{ marginTop: "10px", padding: "12px", borderRadius: "10px", background: dark ? "#2A1D66" : "#FFF", border: `1px solid ${palette.lavender}55` }}>
+                        <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "8px" }}>Comprovante (opcional)</p>
+                        <label style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "8px", border: `1px dashed ${palette.lavender}99`, cursor: "pointer", marginBottom: "10px" }}>
+                          <span style={{ fontSize: "12px", color: comprovanteArquivo ? palette.green : textSecondary }}>
+                            {comprovanteArquivo ? `📎 ${comprovanteArquivo.name}` : "Toque para anexar o print ou PDF do comprovante"}
+                          </span>
+                          <input type="file" accept="image/*,application/pdf" style={{ display: "none" }}
+                            onChange={(e) => setComprovanteArquivo(e.target.files[0] || null)} />
+                        </label>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <button onClick={() => informarPagamento(c)} disabled={enviandoInforme}
+                            style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: "none", background: palette.green, color: "#FFF", opacity: enviandoInforme ? 0.6 : 1 }}>
+                            {enviandoInforme ? "Enviando..." : "Confirmar pagamento"}
+                          </button>
+                          <button onClick={() => { setInformandoId(null); setComprovanteArquivo(null); }} disabled={enviandoInforme}
+                            style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", cursor: "pointer", fontFamily: "'Poppins', sans-serif", border: `1px solid ${palette.lavender}55`, background: "transparent", color: dark ? "#FFF" : palette.purple }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  )}
+                  {role !== "admin" && !quitada(c) && c.metodo !== "pix" && !c.boletoUrl && (
                     <p style={{ marginTop: "10px", fontSize: "12px", color: textSecondary }}>Boleto ainda não disponível.</p>
                   )}
                   </React.Fragment>
