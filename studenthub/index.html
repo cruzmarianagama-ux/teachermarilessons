@@ -51,6 +51,74 @@ const palette = {
 
 const LOGO = "https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png";
 
+// ---------- PIX ----------
+// Preencha com os seus dados. "chave" pode ser CPF/CNPJ (só números), e-mail,
+// celular no formato +5511999999999 ou chave aleatória.
+// "nome" (até 25 caracteres) e "cidade" (até 15) têm que bater com o cadastro do seu banco.
+const PIX_CONFIG = {
+  chave: "",
+  nome: "MARIANA CRUZ",
+  cidade: "",
+};
+
+const pixLimpar = (txt, max) => (txt || "")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^A-Za-z0-9 ]/g, "").toUpperCase().trim().slice(0, max);
+
+const pixCampo = (id, valor) => `${id}${String(valor.length).padStart(2, "0")}${valor}`;
+
+const pixCRC16 = (payload) => {
+  let crc = 0xFFFF;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+};
+
+// Gera o "Pix copia e cola" (BR Code estático) já com o valor da cobrança.
+// Retorna null se a PIX_CONFIG não estiver preenchida.
+const gerarPixCopiaECola = (valorNum) => {
+  const nome = pixLimpar(PIX_CONFIG.nome, 25);
+  const cidade = pixLimpar(PIX_CONFIG.cidade, 15);
+  const chave = (PIX_CONFIG.chave || "").trim();
+  if (!chave || !nome || !cidade) return null;
+  const contaPix = pixCampo("00", "br.gov.bcb.pix") + pixCampo("01", chave);
+  let payload =
+    pixCampo("00", "01") +
+    pixCampo("26", contaPix) +
+    pixCampo("52", "0000") +
+    pixCampo("53", "986") +
+    (valorNum > 0 ? pixCampo("54", valorNum.toFixed(2)) : "") +
+    pixCampo("58", "BR") +
+    pixCampo("59", nome) +
+    pixCampo("60", cidade) +
+    pixCampo("62", pixCampo("05", "***")) +
+    "6304";
+  return payload + pixCRC16(payload);
+};
+
+const copiarTexto = async (texto) => {
+  try {
+    await navigator.clipboard.writeText(texto);
+    return true;
+  } catch {
+    // Fallback pra navegadores/iframes sem clipboard API
+    const ta = document.createElement("textarea");
+    ta.value = texto;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+};
+
 // ---------- LOGIN ----------
 function PortalLogin({ onLogin }) {
   const [role, setRole] = useState("aluno");
@@ -3424,9 +3492,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
   const [novoEmbed, setNovoEmbed] = useState({ titulo: "", url: "" });
   const [cobranca, setCobranca] = useState([]);
   const [editandoCobrancaId, setEditandoCobrancaId] = useState(null);
-  const [rascunhoCobranca, setRascunhoCobranca] = useState({ mes: "", valor: "", vencimento: "" });
+  const [rascunhoCobranca, setRascunhoCobranca] = useState({ mes: "", valor: "", vencimento: "", metodo: "boleto" });
   const [mostrarNovaCobranca, setMostrarNovaCobranca] = useState(false);
-  const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "" });
+  const [novaCobranca, setNovaCobranca] = useState({ mes: "", valor: "", vencimento: "", metodo: "boleto" });
+  const [pixCopiadoId, setPixCopiadoId] = useState(null);
   const [novaCobrancaBoleto, setNovaCobrancaBoleto] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [feriadoPopup, setFeriadoPopup] = useState(null); // { dia, motivo }
@@ -3689,6 +3758,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       setCobranca((billingData || []).map((b) => ({
         mes: b.mes, valor: `R$ ${Number(b.valor).toFixed(2).replace(".", ",")}`, status: b.status,
         vencimento: new Date(b.vencimento + "T00:00:00").toLocaleDateString("pt-BR"), vencimentoISO: b.vencimento, boletoUrl: b.boleto_url, rowId: b.id,
+        metodo: b.metodo_pagamento === "pix" ? "pix" : "boleto", valorNum: Number(b.valor),
       })));
 
       setCarregandoDados(false);
@@ -4513,7 +4583,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
     setEditandoCobrancaId(c.rowId);
     // Converte "R$ 250,00" de volta para número editável (250.00)
     const valorNumerico = c.valor.replace(/[^\d,]/g, "").replace(",", ".");
-    setRascunhoCobranca({ mes: c.mes, valor: valorNumerico, vencimento: c.vencimentoISO });
+    setRascunhoCobranca({ mes: c.mes, valor: valorNumerico, vencimento: c.vencimentoISO, metodo: c.metodo || "boleto" });
   };
 
   const salvarEdicaoCobranca = async (rowId) => {
@@ -4523,7 +4593,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       return;
     }
     const { error } = await supabase.from("billing")
-      .update({ mes: rascunhoCobranca.mes, valor: valorNum, vencimento: rascunhoCobranca.vencimento })
+      .update({ mes: rascunhoCobranca.mes, valor: valorNum, vencimento: rascunhoCobranca.vencimento, metodo_pagamento: rascunhoCobranca.metodo })
       .eq("id", rowId);
     if (error) { alert("Erro ao salvar: " + error.message); return; }
     setCobranca((prev) => prev.map((c) => (c.rowId === rowId ? {
@@ -4532,6 +4602,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       valor: `R$ ${valorNum.toFixed(2).replace(".", ",")}`,
       vencimento: new Date(rascunhoCobranca.vencimento + "T00:00:00").toLocaleDateString("pt-BR"),
       vencimentoISO: rascunhoCobranca.vencimento,
+      metodo: rascunhoCobranca.metodo,
+      valorNum,
     } : c)));
     setEditandoCobrancaId(null);
   };
@@ -4556,13 +4628,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       return;
     }
     const { data, error } = await supabase.from("billing")
-      .insert({ turma_id: turmaId, mes: novaCobranca.mes, valor: valorNum, vencimento: novaCobranca.vencimento, status: "pendente" })
+      .insert({ turma_id: turmaId, mes: novaCobranca.mes, valor: valorNum, vencimento: novaCobranca.vencimento, status: "pendente", metodo_pagamento: novaCobranca.metodo })
       .select().single();
     if (error) { alert("Erro ao criar cobrança: " + error.message); return; }
 
     let boletoUrl = null;
     let nomeArquivo = null;
-    if (novaCobrancaBoleto) {
+    if (novaCobrancaBoleto && novaCobranca.metodo === "boleto") {
       const file = novaCobrancaBoleto;
       const caminho = `${turmaId}/${data.id}_${file.name.replace(/\s+/g, "_")}`;
       const { error: erroUpload } = await supabase.storage.from("boletos").upload(caminho, file, { upsert: true });
@@ -4585,11 +4657,25 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
       boletoUrl,
       nomeArquivo,
       rowId: data.id,
+      metodo: data.metodo_pagamento === "pix" ? "pix" : "boleto",
+      valorNum: Number(data.valor),
     };
     setCobranca((prev) => [...prev, nova].sort((a, b) => a.vencimentoISO.localeCompare(b.vencimentoISO)));
-    setNovaCobranca({ mes: "", valor: "", vencimento: "" });
+    setNovaCobranca({ mes: "", valor: "", vencimento: "", metodo: "boleto" });
     setNovaCobrancaBoleto(null);
     setMostrarNovaCobranca(false);
+  };
+
+  const copiarPix = async (c) => {
+    const codigo = gerarPixCopiaECola(c.valorNum);
+    if (!codigo) {
+      alert("A chave Pix ainda não foi configurada. Fale com a Teacher Mari.");
+      return;
+    }
+    const ok = await copiarTexto(codigo);
+    if (!ok) { window.prompt("Copie o código Pix abaixo:", codigo); return; }
+    setPixCopiadoId(c.rowId);
+    setTimeout(() => setPixCopiadoId((id) => (id === c.rowId ? null : id)), 2500);
   };
   const reposicoesPendentes = Object.entries(aulas)
     .filter(([, r]) => typeof r === "object" && r.status === "aRepor" && r.prazo_reposicao)
@@ -5053,7 +5139,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
           const d = cobrancaProxima.diasParaVencer;
           const texto = d === 0
             ? `Sua mensalidade de ${cobrancaProxima.mes} vence HOJE (${cobrancaProxima.vencimento}). Fique em dia!`
-            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). Baixe seu boleto na aba financeiro.`;
+            : `Sua mensalidade de ${cobrancaProxima.mes} vence em ${d === 1 ? "1 dia" : `${d} dias`} (${cobrancaProxima.vencimento}). ${cobrancaProxima.metodo === "pix" ? "Copie o código Pix na aba financeiro." : "Baixe seu boleto na aba financeiro."}`;
           const bg = d === 0 ? `${palette.orange}22` : `${palette.lavender}33`;
           const border = d === 0 ? `1px solid ${palette.orange}` : `1px solid ${palette.lavender}`;
           return (
@@ -5989,6 +6075,24 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <input type="date" value={novaCobranca.vencimento} onChange={(e) => setNovaCobranca((n) => ({ ...n, vencimento: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "10px" }} />
 
+<label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Forma de pagamento</label>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                        {[["boleto", "📄 Boleto"], ["pix", "⚡ Pix"]].map(([valor, rotulo]) => {
+                          const sel = novaCobranca.metodo === valor;
+                          return (
+                            <button key={valor} type="button" onClick={() => setNovaCobranca((n) => ({ ...n, metodo: valor }))}
+                              style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif",
+                                border: sel ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`,
+                                background: sel ? palette.purple : (dark ? "#2A1D66" : "#FFF"),
+                                color: sel ? "#FFF" : (dark ? "#FFF" : palette.purple) }}>
+                              {rotulo}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {novaCobranca.metodo === "boleto" ? (
+                      <React.Fragment>
                       <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Boleto (opcional)</label>
                       <label style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "8px", border: `1px dashed ${palette.lavender}99`, cursor: "pointer", marginBottom: "14px", background: dark ? "#2A1D66" : "#FFF" }}>
                         <span style={{ fontSize: "13px", color: novaCobrancaBoleto ? palette.green : (dark ? "#FFF" : `${palette.purple}88`) }}>
@@ -5997,6 +6101,12 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
                           onChange={(e) => setNovaCobrancaBoleto(e.target.files[0] || null)} />
                       </label>
+                      </React.Fragment>
+                      ) : (
+                        <p style={{ fontSize: "12px", color: textSecondary, marginBottom: "14px", lineHeight: 1.5 }}>
+                          O aluno verá o botão "Copiar Pix" com o código copia e cola já no valor da cobrança.
+                        </p>
+                      )}
 
                       <button onClick={criarCobranca}
                         style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.purple, color: "#FFF" }}>
@@ -6057,6 +6167,22 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <input type="date" value={rascunhoCobranca.vencimento} onChange={(e) => setRascunhoCobranca((r) => ({ ...r, vencimento: e.target.value }))}
                         style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", border: `1px solid ${palette.lavender}55`, fontSize: "13px", fontFamily: "'Poppins', sans-serif", marginBottom: "14px" }} />
 
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, marginBottom: "6px" }}>Forma de pagamento</label>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                        {[["boleto", "📄 Boleto"], ["pix", "⚡ Pix"]].map(([valor, rotulo]) => {
+                          const sel = rascunhoCobranca.metodo === valor;
+                          return (
+                            <button key={valor} type="button" onClick={() => setRascunhoCobranca((n) => ({ ...n, metodo: valor }))}
+                              style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'Poppins', sans-serif",
+                                border: sel ? `2px solid ${palette.purple}` : `1px solid ${palette.lavender}55`,
+                                background: sel ? palette.purple : (dark ? "#2A1D66" : "#FFF"),
+                                color: sel ? "#FFF" : (dark ? "#FFF" : palette.purple) }}>
+                              {rotulo}
+                            </button>
+                          );
+                        })}
+                      </div>
+
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={() => salvarEdicaoCobranca(c.rowId)}
                           style={{ padding: "9px 16px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600, background: palette.orange, color: "#FFF" }}>
@@ -6073,7 +6199,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{c.mes}</p>
-                      <p style={{ fontSize: "13px", color: textSecondary }}>{c.valor} · vencimento {c.vencimento}</p>
+                      <p style={{ fontSize: "13px", color: textSecondary }}>{c.valor} · vencimento {c.vencimento} · {c.metodo === "pix" ? "⚡ Pix" : "📄 Boleto"}</p>
                     </div>
                     <span style={{ fontSize: "12px", fontWeight: 600, padding: "5px 12px", borderRadius: "20px", background: statusBg, color: statusCor }}>
                       {statusLabel}
@@ -6082,6 +6208,13 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
 
                   {role === "admin" ? (
                     <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                      {c.metodo === "pix" ? (
+                        <button onClick={() => copiarPix(c)}
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", background: palette.purple, color: "#FFF" }}>
+                          {pixCopiadoId === c.rowId ? "✅ Pix copiado!" : "⚡ Copiar Pix"}
+                        </button>
+                      ) : (
+                      <React.Fragment>
                       <label style={{ display: "inline-block", fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", background: palette.purple, color: "#FFF", cursor: "pointer" }}>
                         {c.boletoUrl ? "Substituir boleto" : "Subir boleto"}
                         <input type="file" accept="application/pdf,image/*" style={{ display: "none" }}
@@ -6092,6 +6225,8 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                           style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", background: dark ? "#5A4AA0" : "#FFF", color: dark ? "#FFF" : palette.purple, textDecoration: "none", border: `1px solid ${palette.lavender}55` }}>
                           👁 Ver boleto
                         </a>
+                      )}
+                      </React.Fragment>
                       )}
                       {c.status !== "pago" ? (
                         <button onClick={() => marcarComoPago(c.rowId)}
@@ -6116,6 +6251,16 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         <span style={{ fontSize: "12px", color: textSecondary }}>{c.nomeArquivo}</span>
                       )}
                     </div>
+                  ) : c.metodo === "pix" ? (
+                    c.status !== "pago" && (
+                      <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                        <button onClick={() => copiarPix(c)}
+                          style={{ fontSize: "12px", fontWeight: 600, padding: "8px 14px", borderRadius: "8px", border: "none", cursor: "pointer", fontFamily: "'Poppins', sans-serif", background: pixCopiadoId === c.rowId ? palette.lightGreen : palette.orange, color: pixCopiadoId === c.rowId ? palette.green : "#FFF", transition: "all 0.15s" }}>
+                          {pixCopiadoId === c.rowId ? "✅ Copiado!" : "⚡ Copiar Pix"}
+                        </button>
+                        <span style={{ fontSize: "12px", color: textSecondary }}>Cole no app do seu banco em Pix → Copia e cola.</span>
+                      </div>
+                    )
                   ) : (
                     c.boletoUrl && (
                       <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `0.5px solid ${dark ? "#5A4AA0" : "#E5DCC8"}`, display: "flex", gap: "8px" }}>
@@ -6130,7 +6275,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       </div>
                     )
                   )}
-                  {role !== "admin" && !c.boletoUrl && (
+                  {role !== "admin" && c.metodo !== "pix" && !c.boletoUrl && (
                     <p style={{ marginTop: "10px", fontSize: "12px", color: textSecondary }}>Boleto ainda não disponível.</p>
                   )}
                   </React.Fragment>
