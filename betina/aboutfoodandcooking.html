@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Food and Cooking – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  button, input, select, textarea { font-family: 'Poppins', sans-serif; }
+  img { max-width: 100%; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+  #change-name { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 0.72rem; font-weight: 600; text-decoration: underline; cursor: pointer; margin-left: 8px; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white); text-align: center;
+    padding: 10px 16px; font-size: 0.82rem; font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white); overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent; white-space: nowrap;
+    transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn .tab-done { color: var(--teal); font-weight: 800; margin-left: 3px; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 22px; margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+    max-width: 100%;
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  .word-box {
+    background: var(--cream); border-radius: var(--radius-sm);
+    padding: 12px 16px; margin-bottom: 16px;
+    font-size: 0.85rem; font-weight: 600; color: var(--purple);
+    line-height: 1.7;
+  }
+  .word-box .letter { color: var(--orange); font-weight: 800; margin-right: 4px; }
+
+  .q-num { font-weight: 700; color: var(--purple); margin-right: 4px; flex-shrink: 0; }
+  .item-row { display: flex; gap: 6px; align-items: flex-start; }
+  .item-body { flex: 1; min-width: 0; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 20px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.5; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light); cursor: pointer;
+    transition: all 0.2s; font-size: 0.85rem; font-weight: 500;
+    background: var(--white); line-height: 1.45;
+  }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); margin-top: 4px; flex-shrink: 0; }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .gap-line { display: inline-block; min-width: 60px; border-bottom: 2px solid var(--purple-light); }
+
+  /* ── FILL ── */
+  .fill-item { margin-bottom: 16px; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .fill-line { font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .fill-input {
+    border: none; border-bottom: 2px solid var(--purple-light);
+    padding: 2px 6px; font-size: 0.88rem; font-weight: 600;
+    color: var(--purple); background: transparent;
+    width: 110px; max-width: 100%;
+    text-align: center; outline: none;
+    transition: border-color 0.2s; display: inline-block;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+  .correct-hint { color: var(--teal); font-weight: 700; font-size: 0.8rem; margin-left: 4px; }
+
+  /* ── WHY BOX ── */
+  .why-box {
+    margin-top: 8px; font-size: 0.78rem; line-height: 1.5;
+    background: #fef2f2; border-left: 3px solid var(--red);
+    padding: 8px 12px; border-radius: 0 6px 6px 0; color: #7f1d1d;
+  }
+  .why-box .why-correct { display: block; color: var(--teal); font-weight: 700; }
+  .why-box .why-text { display: block; margin-top: 2px; }
+  .why-box .why-text strong { color: var(--red); }
+  .why-box .why-row + .why-row { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #fecaca; }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%; border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    font-size: 0.88rem; color: var(--purple);
+    resize: vertical; outline: none; min-height: 220px;
+    transition: border-color 0.2s; margin-bottom: 6px; line-height: 1.6;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.78rem; font-weight: 700; color: var(--gray); }
+  .word-count.ok { color: var(--teal); }
+  .word-count.over { color: #b45309; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    border: none; transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none; padding: 12px 16px; border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── MATCH SELECT ── */
+  .match-select {
+    border: 2px solid var(--gray-light); border-radius: 6px;
+    padding: 4px 8px; font-size: 0.85rem; font-weight: 700;
+    color: var(--purple); outline: none; background: var(--white);
+    max-width: min(100%, 160px); vertical-align: middle;
+  }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 20px; align-items: flex-start; }
+  .cm-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-col-title { font-size: 0.72rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.6px; text-align: center; }
+  .cm-item {
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light); cursor: pointer;
+    transition: all 0.2s; font-size: 0.83rem; font-weight: 600;
+    color: var(--purple); background: var(--white);
+    user-select: none; line-height: 1.4; position: relative;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-num { color: var(--orange); font-weight: 800; margin-right: 4px; }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.68rem; font-weight: 700; margin-right: 6px; padding: 0 4px;
+  }
+
+  /* ── READING / DIALOGUE ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm); padding: 16px 18px; margin-bottom: 14px;
+    font-size: 0.88rem; line-height: 1.7; color: var(--purple); font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text h4 { font-size: 0.9rem; font-weight: 800; color: var(--orange); margin-bottom: 4px; }
+  .profile-name { font-weight: 800; color: var(--orange); }
+  .dialogue-line { display: block; padding: 4px 0; line-height: 1.8; }
+  .dialogue-box .dialogue-line { border-bottom: 1px solid rgba(29,16,80,0.08); padding: 7px 0; }
+  .dialogue-box .dialogue-line:last-child { border-bottom: none; }
+  .speaker { font-weight: 700; color: var(--orange); margin-right: 6px; }
+  .listen-btn { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; opacity: 0.7; float: right; }
+  .listen-btn:hover { opacity: 1; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-item { margin-bottom: 14px; }
+  .tf-line { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; font-weight: 500; color: var(--purple); flex-wrap: wrap; line-height: 1.5; }
+  .tf-s { flex: 1 1 220px; min-width: 0; }
+  .tf-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .tf-btn {
+    padding: 4px 14px; border-radius: 99px; border: 2px solid var(--gray-light);
+    font-size: 0.8rem; font-weight: 700; cursor: pointer; background: var(--white);
+    color: var(--purple); transition: all 0.2s;
+  }
+  .tf-btn.t:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.f:hover { border-color: var(--red); color: var(--red); }
+  .tf-btn.selected-t { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .tf-btn.selected-f { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .tf-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+  .tf-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; }
+
+  /* ── ODD ONE OUT ── */
+  .ooo-item { margin-bottom: 16px; }
+  .ooo-label { font-size: 0.88rem; font-weight: 700; color: var(--purple); margin-bottom: 8px; }
+  .ooo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ooo-chip {
+    background: var(--white); color: var(--purple);
+    border: 2px solid var(--purple-light); border-radius: 99px;
+    padding: 5px 14px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .ooo-chip:hover { background: #f5f3ff; }
+  .ooo-chip.active { background: var(--orange); border-color: var(--orange); color: #fff; text-decoration: line-through; }
+  .ooo-chip.wrong-pick { background: var(--red); border-color: var(--red); color: #fff; }
+  .ooo-chip.correct-pick { background: var(--teal); border-color: var(--teal); color: #fff; text-decoration: line-through; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white); border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm); padding: 10px 12px; text-align: center;
+    font-size: 0.82rem; font-weight: 600; color: var(--purple); transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.88rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; line-height: 1.35; }
+  .speak-btn { background: none; border: none; cursor: pointer; font-size: 1.05rem; margin-bottom: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; vertical-align: top; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb; border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6;
+  }
+
+  /* ── WRITING ── */
+  .checklist { list-style: none; margin: 4px 0 14px; }
+  .checklist li { display: flex; gap: 10px; padding: 6px 0; font-size: 0.86rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); line-height: 1.5; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); flex-shrink: 0; }
+  .sub-list { margin: 4px 0 0 18px; font-style: italic; }
+  .useful-box { background: var(--cream); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 14px; font-size: 0.84rem; line-height: 1.8; }
+  .useful-box .ul-title { font-size: 0.75rem; font-weight: 800; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; }
+  .useful-box em { font-weight: 600; }
+  .example-box {
+    display: none;
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm); padding: 16px; margin-top: 14px;
+    font-size: 0.86rem; line-height: 1.8; color: var(--purple); font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box.show { display: block; }
+  .example-box p + p { margin-top: 10px; }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius); padding: 24px; text-align: center;
+    color: var(--white); margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  #toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 26px; border-radius: 99px;
+    font-size: 0.95rem; font-weight: 700; text-align: center;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35); z-index: 9999;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    opacity: 0; max-width: min(92vw, 460px); width: max-content;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: 90px; font-size: 0.84rem; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .reading-text { font-size: 0.84rem; padding: 14px; }
+    .tf-line { font-size: 0.84rem; }
+    .cm-wrap { gap: 10px; }
+    .cm-item { font-size: 0.76rem; padding: 8px 8px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="toast"></div>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly practice<br><strong>About Food and Cooking</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn" type="button">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"><span id="hello-text"></span><button id="change-name" type="button">change name</button></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div>
+      <h1>About Food and Cooking</h1>
+      <div class="subtitle">Weekly Practice</div>
+    </div>
+  </div>
+</div>
+
+<div class="progress-section">
+  <div class="progress-label"><span>Your progress this week</span><span id="progress-pct">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" type="button" data-tab="day1">🍅 Day 1</button>
+    <button class="tab-btn" type="button" data-tab="day2">🍳 Day 2</button>
+    <button class="tab-btn" type="button" data-tab="day3">🎂 Day 3</button>
+    <button class="tab-btn" type="button" data-tab="day4">👩‍🍳 Day 4</button>
+    <button class="tab-btn" type="button" data-tab="day5">⭐ Day 5</button>
+    <button class="tab-btn" type="button" data-tab="day6">💬 Day 6</button>
+    <button class="tab-btn" type="button" data-tab="day7">🏆 Day 7</button>
+    <button class="tab-btn" type="button" data-tab="vocab">📚 Vocab Bank</button>
+    <button class="tab-btn" type="button" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════ DAY 1 ═══════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Food &amp; Cooking Vocabulary</div>
+      <div class="day-desc">One Doesn't Belong</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – One Doesn't Belong</div>
+    <div class="ex-instruction">Look at the group name. Click the word or expression that does NOT belong in each group.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d1e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d1e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 2 ═══════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Talking About Cooking Experiences</div>
+      <div class="day-desc">Have You Ever...? · Experience or Specific Event?</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Have You Ever...?</div>
+    <div class="ex-instruction">Complete each mini-dialogue with the correct form of the verb in parentheses.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d2e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d2e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Experience or Specific Event?</div>
+    <div class="ex-instruction">Choose the sentence that best completes each conversation.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d2e2-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d2e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 3 ═══════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Cooking Challenges</div>
+      <div class="day-desc">Which Cooking Challenge? · Why Is It Difficult?</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Which Cooking Challenge?</div>
+    <div class="ex-instruction">Read the situations. Match each person to the best cooking challenge. Choose a letter.</div>
+    <div class="word-box" id="d3e1-options"></div>
+    <div id="d3e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d3e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d3e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Why Is It Difficult?</div>
+    <div class="ex-instruction">Match each cooking challenge to the most logical difficulty. Click a challenge on the left, then click a difficulty on the right. Click a matched item again to undo it.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d3e2-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d3e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 4 ═══════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Cooking Classes &amp; Food Experiences</div>
+      <div class="day-desc">Three Cooking Classes · After the Cooking Class</div>
+    </div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Three Cooking Classes</div>
+    <div class="ex-instruction">Read the descriptions and choose the correct class for each person.</div>
+    <div class="reading-text" id="rt-classes">
+      <button class="listen-btn" type="button" data-speak="rt-classes" title="Listen">🔊</button>
+      <h4>CLASS A — COOK WITH A CHEF</h4>
+      <p>Learn professional techniques while preparing a three-course dinner. The chef demonstrates each technique first, and students then prepare the dishes themselves. Some cooking experience is recommended.</p>
+      <br>
+      <h4>CLASS B — EASY COOKING</h4>
+      <p>Never cooked before? No problem. Learn how to prepare four simple meals using inexpensive ingredients and basic kitchen equipment. Perfect for beginners.</p>
+      <br>
+      <h4>CLASS C — CREATIVE KITCHEN</h4>
+      <p>There is no fixed recipe in this class. Students receive a selection of ingredients and work in small groups to create an original dish. At the end, everyone tastes the dishes.</p>
+    </div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d4e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d4e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – After the Cooking Class</div>
+    <div class="ex-instruction">Read the conversation and decide if the statements are True or False.</div>
+    <div class="reading-text dialogue-box" id="rt-mia">
+      <button class="listen-btn" type="button" data-speak="rt-mia" title="Listen">🔊</button>
+      <div class="dialogue-line"><span class="speaker">Mia:</span>How was your cooking class?</div>
+      <div class="dialogue-line"><span class="speaker">Alex:</span>Much better than I expected. I thought we'd just watch the chef, but everyone actually cooked.</div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span>What did you make?</div>
+      <div class="dialogue-line"><span class="speaker">Alex:</span>Fresh pasta with a tomato sauce. I'd made pasta dishes before, but I'd never made the pasta itself.</div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span>Was it difficult?</div>
+      <div class="dialogue-line"><span class="speaker">Alex:</span>At first. The chef showed us what to do, and then we worked in pairs. My pasta wasn't perfect, but it tasted great.</div>
+      <div class="dialogue-line"><span class="speaker">Mia:</span>Would you take another class?</div>
+      <div class="dialogue-line"><span class="speaker">Alex:</span>Definitely. Next time I'd like to learn how to make bread or desserts.</div>
+    </div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d4e2-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d4e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 5 ═══════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Food Dreams &amp; Ambitions</div>
+      <div class="day-desc">Who Wants to Do It? · The Best Advice</div>
+    </div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – Who Wants to Do It?</div>
+    <div class="ex-instruction">Read the profiles and match each statement to the correct person. You can choose the same person more than once.</div>
+    <div class="reading-text" id="rt-profiles">
+      <button class="listen-btn" type="button" data-speak="rt-profiles" title="Listen">🔊</button>
+      <p><span class="profile-name">MAYA:</span> "I love creating short videos and trying new restaurants. I'd love to share recipes and restaurant recommendations online."</p><br>
+      <p><span class="profile-name">BEN:</span> "I enjoy cooking for other people, but I don't want to work in a restaurant. I'd prefer to visit clients and prepare meals in their own kitchens."</p><br>
+      <p><span class="profile-name">OLIVIA:</span> "My dream is to have a small place where people can have coffee, homemade cakes and simple lunches."</p><br>
+      <p><span class="profile-name">NOAH:</span> "Healthy food doesn't have to be boring. I'd like to show people how to prepare easy, nutritious dishes."</p><br>
+      <p><span class="profile-name">EMILY:</span> "I love competitions, and I'm confident in the kitchen. I'd love the experience of cooking while cameras are recording everything."</p>
+    </div>
+    <div class="fill-line" style="font-weight:700;margin-bottom:8px;">Who...</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d5e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d5e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – The Best Advice</div>
+    <div class="ex-instruction">Choose the best advice for each situation.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d5e2-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d5e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 6 ═══════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Opinions About Food &amp; Cooking</div>
+      <div class="day-desc">What Does the Speaker Believe? · Two Sides of the Argument</div>
+    </div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – What Does the Speaker Believe?</div>
+    <div class="ex-instruction">Read each comment and choose the statement that best summarizes the speaker's opinion.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d6e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d6e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Two Sides of the Argument</div>
+    <div class="ex-instruction">For each statement, choose the argument that SUPPORTS it.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d6e2-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d6e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DAY 7 ═══════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Complete Review &amp; Writing</div>
+      <div class="day-desc">Complete Review · Writing Challenge</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the best answer.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" id="d7e1-check">✔ Check</button>
+      <button class="btn btn-secondary" type="button" id="d7e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 2 – Writing Challenge: My Relationship with Cooking</div>
+    <div class="ex-instruction">Write 100–130 words about your relationship with food and cooking. Then send your text to Teacher Mari on WhatsApp.</div>
+    <div class="fill-line" style="font-weight:700;">Include:</div>
+    <ul class="checklist">
+      <li><span class="check-icon">✔</span><span>how confident you are about cooking;</span></li>
+      <li><span class="check-icon">✔</span><span>something you have cooked or tried to cook;</span></li>
+      <li><span class="check-icon">✔</span><span>a dish or type of food you enjoy;</span></li>
+      <li><span class="check-icon">✔</span><span>one cooking experience you would like to try;</span></li>
+      <li><span class="check-icon">✔</span><span>something you think makes a good cook;</span></li>
+      <li><span class="check-icon">✔</span><span>your opinion about one of these statements:
+        <div class="sub-list">Cooking is a form of art.<br>Everyone should know how to cook.<br>Simple dishes are often better than complicated ones.</div></span></li>
+    </ul>
+    <div class="useful-box">
+      <div class="ul-title">Useful language</div>
+      <em>I'm quite confident about...</em> · <em>I'm not very experienced at...</em> · <em>I've tried...</em> · <em>I've never...</em> · <em>I'd like to...</em> · <em>In my opinion,...</em> · <em>I think a good cook needs...</em> · <em>I agree / disagree because...</em>
+    </div>
+    <textarea class="writing-area" id="d7e2-text" placeholder="Write your text here..."></textarea>
+    <div class="word-count" id="d7e2-count">0 words</div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" type="button" id="d7e2-send">📲 Send to Teacher Mari</button>
+      <button class="btn btn-secondary" type="button" id="d7e2-model">👀 Show model text</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+    <div class="example-box" id="d7e2-model-box">
+      <div class="ex-label">Model text</div>
+      <p>I'm quite confident about cooking simple meals, but I'm not very experienced at making complicated dishes. I've made pasta, soups and different desserts, and I really enjoy preparing food for other people. I've never baked my own bread, so that's something I'd like to try in the future.</p>
+      <p>For me, a good cook needs practice and creativity. Following a recipe is useful, especially when you're making something for the first time, but I also think it's fun to experiment with different ingredients.</p>
+      <p>I agree that everyone should know how to cook. You don't need to prepare restaurant-quality food, but being able to make a few good meals is an important life skill.</p>
+    </div>
+  </div>
+
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Week complete!</h3>
+    <p>You finished all the exercises in About Food and Cooking. Amazing work!</p>
+    <div class="score-big" id="final-score">0</div>
+    <div style="font-size:0.78rem;opacity:0.8;margin-top:4px;margin-bottom:18px;">exercises completed</div>
+    <button class="btn btn-whatsapp" type="button" id="summary-whatsapp">📲 Tell Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ═══════════ VOCAB BANK ═══════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">📚</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Food &amp; Cooking · Click 🔊 to listen</div>
+    </div>
+  </div>
+  <div id="vocab-bank"></div>
+</div>
+
+<!-- ═══════════ GRAMMAR BANK ═══════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Experiences · Past Events · Ambitions · Advice · Opinions</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Talking About Experiences: Have you ever...?</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Form</th><th>Example</th></tr>
+      <tr><td class="orange">Have / Has + subject + ever + past participle?</td><td>Have you ever baked bread?<br>Has Leo ever grilled meat?</td></tr>
+      <tr><td class="teal">Short answers</td><td>Yes, I have. / No, I haven't.<br>Yes, she has. / No, she hasn't.</td></tr>
+      <tr><td class="orange">I / You / We / They + have ('ve)</td><td>I've made pizza several times.</td></tr>
+      <tr><td class="orange">He / She / It + has ('s)</td><td>She's never taken a cooking class.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> Use <em>have</em> with I, you, we, they and <em>has</em> with he, she, it. Answer a <em>Have you ever...?</em> question with <em>have / haven't</em>, not <em>did</em> or <em>do</em>.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">⏱️ Experience or Specific Event?</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Present perfect</th><th>Past simple</th></tr>
+      <tr><td>Experience in your life. <strong>No specific time.</strong></td><td>A finished event. <strong>We say or ask when.</strong></td></tr>
+      <tr><td class="orange">I've made pizza before.</td><td class="teal">I made pizza last Friday.</td></tr>
+      <tr><td class="orange">Have you ever taken a cooking class?</td><td class="teal">When did you take the class? Last summer.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> Time words like <em>yesterday, last weekend, on Friday, in 2020</em> go with the past simple: <em>I made it yesterday</em> (not <em>I have made it yesterday</em>).</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">🔤 Useful Past Participles</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Verb</th><th>Past simple</th><th>Past participle</th></tr>
+      <tr><td>bake</td><td>baked</td><td class="orange">baked</td></tr>
+      <tr><td>cook</td><td>cooked</td><td class="orange">cooked</td></tr>
+      <tr><td>grill</td><td>grilled</td><td class="orange">grilled</td></tr>
+      <tr><td>try</td><td>tried</td><td class="orange">tried</td></tr>
+      <tr><td>invent</td><td>invented</td><td class="orange">invented</td></tr>
+      <tr><td>make</td><td>made</td><td class="orange">made</td></tr>
+      <tr><td>take</td><td>took</td><td class="orange">taken</td></tr>
+      <tr><td>eat</td><td>ate</td><td class="orange">eaten</td></tr>
+    </table></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">⭐ Ambitions and Dreams</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Structure</th><th>Example</th></tr>
+      <tr><td class="orange">I'd like to + verb</td><td>I'd like to open a small café one day.</td></tr>
+      <tr><td class="orange">I'd love to + verb</td><td>I'd love to take part in a cooking show.</td></tr>
+      <tr><td class="orange">I'd prefer to + verb</td><td>I'd prefer to cook in my clients' kitchens.</td></tr>
+      <tr><td class="orange">My dream is to + verb</td><td>My dream is to become a personal chef.</td></tr>
+    </table></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">💡 Giving Advice</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Structure</th><th>Example</th></tr>
+      <tr><td class="orange">You should + verb</td><td>You should learn about costs first.</td></tr>
+      <tr><td class="orange">You shouldn't + verb</td><td>You shouldn't open a restaurant tomorrow.</td></tr>
+      <tr><td class="teal">You could + verb (a softer idea)</td><td>You could practise cooking under pressure.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> After <em>should / could</em>, use the verb with no <em>to</em>: <em>You should learn</em> (not <em>You should to learn</em>).</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">💬 Giving Opinions</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Use</th><th>Expressions</th></tr>
+      <tr><td class="orange">Your opinion</td><td>In my opinion,... / I think... / For me,...</td></tr>
+      <tr><td class="teal">Agree / disagree</td><td>I agree because... / I disagree because...</td></tr>
+      <tr><td class="orange">A balanced opinion</td><td>I partly agree. ..., but ... / That's true, but...</td></tr>
+    </table></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  STORAGE
+// ══════════════════════════════════════════════
+const FILE_KEY = 'teachermari_aboutfoodandcooking';
+const STUDENT_KEY = FILE_KEY + '_student';
+const DONE_KEY = FILE_KEY + '_done';
+const DAYS_KEY = FILE_KEY + '_days';
+const WRITING_KEY = FILE_KEY + '_writing';
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function lsJSON(k, d) { try { return JSON.parse(lsGet(k, JSON.stringify(d))); } catch (e) { return d; } }
+
+// ══════════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════════
+let studentName = lsGet(STUDENT_KEY, '');
+function startSession(name) {
+  studentName = name.trim();
+  lsSet(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  document.getElementById('hello-text').textContent = `Hello, ${studentName}! 👋 Let's cook up some English!`;
+  document.getElementById('hello-banner').classList.add('show');
+}
+if (studentName) startSession(studentName);
+const nameInput = document.getElementById('student-name-input');
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = nameInput.value.trim();
+  if (!val) { nameInput.focus(); nameInput.style.borderColor = 'var(--red)'; return; }
+  startSession(val);
+});
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+nameInput.addEventListener('input', () => { nameInput.style.borderColor = ''; });
+document.getElementById('change-name').addEventListener('click', () => {
+  nameInput.value = studentName;
+  document.getElementById('welcome-screen').classList.remove('hidden');
+  nameInput.focus();
+});
+
+// ══════════════════════════════════════════════
+//  MOTIVATION & TABS
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes are part of learning. Try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practise every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  GENERAL HELPERS
+// ══════════════════════════════════════════════
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function hideFeedback(id) { document.getElementById(id).className = 'feedback'; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Perfect! You got all ${total} answers right! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Well done! ${correct}/${total} correct. Read the explanations in red and try again!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} correct. Read the explanations in red and try again. You can do it!`, type: 'err' };
+}
+function finishCheck(fbId, exId, correct, total) {
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  markExerciseDone(exId);
+}
+function norm(s) { return String(s).trim().toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' '); }
+function whyBox(correctHtml, why) {
+  const box = document.createElement('div');
+  box.className = 'why-box';
+  box.innerHTML = (correctHtml ? `<span class="why-correct">✔ Correct answer: ${correctHtml}</span>` : '') +
+                  (why ? `<span class="why-text"><strong>Why?</strong> ${why}</span>` : '');
+  return box;
+}
+function clearWhy(container) { container.querySelectorAll('.why-box, .correct-hint').forEach(e => e.remove()); }
+const NO_ANSWER = "You didn't answer this one. ";
+
+// ── MULTIPLE CHOICE ──
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question"><span class="q-num">${i+1}.</span> ${item.q}</div><div class="mc-options">` +
+      item.opts.map((o, j) => `<label class="mc-option" data-q="${prefix}_${i}"><input type="radio" name="${prefix}_${i}" value="${j}"><span><strong>${String.fromCharCode(97+j)})</strong> ${o}</span></label>`).join('') +
+      `</div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('change', e => {
+    if (!e.target.matches('input[type=radio]')) return;
+    const opts = wrap.querySelectorAll(`[data-q="${e.target.name}"]`);
+    opts.forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    e.target.closest('.mc-option').classList.add('selected');
+  });
+}
+function checkMC(containerId, data, prefix, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  clearWhy(wrap);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = wrap.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct', 'wrong'));
+    const sel = wrap.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    const v = sel ? parseInt(sel.value, 10) : -1;
+    if (v === item.ans) { opts[v].classList.add('correct'); correct++; return; }
+    if (v >= 0) opts[v].classList.add('wrong');
+    opts[item.ans].classList.add('correct');
+    const box = whyBox(`${String.fromCharCode(97 + item.ans)}) ${item.opts[item.ans]}`, (v < 0 ? NO_ANSWER : '') + item.why);
+    opts[0].closest('.mc-options').insertAdjacentElement('afterend', box);
+  });
+  finishCheck(fbId, exId, correct, data.length);
+}
+function resetMC(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+  wrap.querySelectorAll('input[type=radio]').forEach(r => { r.checked = false; });
+  clearWhy(wrap);
+  hideFeedback(fbId);
+}
+function setupMC(id, data) {
+  buildMC(id, data, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkMC(id, data, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetMC(id, id + '-fb'));
+}
+
+// ── FILL IN (typed answers, several gaps per item) ──
+// item: { line: html with ___ gaps, ans: [[accepted...] per gap], why: [text per gap] }
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    let k = 0;
+    const html = item.line.replace(/___/g, () => `<input class="fill-input" id="${prefix}_${i}_${k++}" placeholder="..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">`);
+    div.innerHTML = `<div class="item-row"><span class="q-num">${i+1}.</span><div class="item-body" id="${prefix}_body_${i}">${html}</div></div>`;
+    wrap.appendChild(div);
+  });
+}
+function checkFill(containerId, data, prefix, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  clearWhy(wrap);
+  let correct = 0, total = 0;
+  data.forEach((item, i) => {
+    const wrongAns = [], wrongWhy = [];
+    let blank = false;
+    item.ans.forEach((accepted, k) => {
+      total++;
+      const inp = document.getElementById(`${prefix}_${i}_${k}`);
+      inp.classList.remove('correct', 'wrong');
+      const val = norm(inp.value);
+      if (accepted.map(norm).includes(val)) { inp.classList.add('correct'); correct++; }
+      else {
+        inp.classList.add('wrong');
+        const hint = document.createElement('span');
+        hint.className = 'correct-hint';
+        hint.textContent = `(✔ ${accepted[0]})`;
+        inp.insertAdjacentElement('afterend', hint);
+        wrongAns.push(accepted[0]);
+        wrongWhy.push(item.why[k]);
+        if (val === '') blank = true;
+      }
+    });
+    if (wrongAns.length) {
+      document.getElementById(`${prefix}_body_${i}`).appendChild(whyBox(wrongAns.join(' / '), (blank ? NO_ANSWER : '') + wrongWhy.join(' ')));
+    }
+  });
+  finishCheck(fbId, exId, correct, total);
+}
+function resetFill(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.fill-input').forEach(inp => { inp.value = ''; inp.className = 'fill-input'; });
+  clearWhy(wrap);
+  hideFeedback(fbId);
+}
+
+// ── TRUE / FALSE ──
+function buildTF(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'tf-item'; div.id = `${prefix}_item_${i}`;
+    div.innerHTML = `<div class="tf-line"><span class="q-num">${i+1}.</span><span class="tf-s">${item.s}</span><div class="tf-btns"><button type="button" class="tf-btn t" data-i="${i}" data-val="T">True</button><button type="button" class="tf-btn f" data-i="${i}" data-val="F">False</button></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const btn = e.target.closest('.tf-btn');
+    if (!btn) return;
+    const i = btn.dataset.i;
+    sel[i] = btn.dataset.val;
+    wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`).forEach(b => b.classList.remove('selected-t', 'selected-f', 'wrong-sel', 'right-answer'));
+    btn.classList.add(btn.dataset.val === 'T' ? 'selected-t' : 'selected-f');
+  });
+  return sel;
+}
+function checkTF(containerId, data, sel, prefix, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  clearWhy(wrap);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const btns = wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`);
+    btns.forEach(b => b.classList.remove('wrong-sel', 'right-answer'));
+    const rightBtn = wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${item.ans}"]`);
+    if (sel[i] === item.ans) { rightBtn.classList.add('right-answer'); correct++; return; }
+    if (sel[i]) wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${sel[i]}"]`).classList.add('wrong-sel');
+    rightBtn.classList.add('right-answer');
+    document.getElementById(`${prefix}_item_${i}`).appendChild(whyBox(item.ans === 'T' ? 'True' : 'False', (sel[i] ? '' : NO_ANSWER) + item.why));
+  });
+  finishCheck(fbId, exId, correct, data.length);
+}
+function resetTF(containerId, sel, fbId) {
+  const wrap = document.getElementById(containerId);
+  Object.keys(sel).forEach(k => delete sel[k]);
+  wrap.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('selected-t', 'selected-f', 'wrong-sel', 'right-answer'));
+  clearWhy(wrap);
+  hideFeedback(fbId);
+}
+
+// ── MATCH (letter / name dropdown) ──
+// cfg.options: values shown in the dropdown; cfg.full: full text shown in the correction
+function buildMatch(containerId, data, prefix, cfg) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const optsHtml = `<option value="">...</option>` + cfg.options.map((o, j) => `<option value="${j}">${o}</option>`).join('');
+    div.innerHTML = `<div class="item-row"><span class="q-num">${i+1}.</span><div class="item-body" id="${prefix}_body_${i}">${item.left} <select class="match-select" id="${prefix}_${i}" aria-label="answer ${i+1}">${optsHtml}</select></div></div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('change', e => { if (e.target.matches('.match-select')) e.target.classList.remove('correct', 'wrong'); });
+}
+function checkMatch(containerId, data, prefix, cfg, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  clearWhy(wrap);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const s = document.getElementById(`${prefix}_${i}`);
+    s.classList.remove('correct', 'wrong');
+    const v = s.value === '' ? -1 : parseInt(s.value, 10);
+    if (v === item.ans) { s.classList.add('correct'); correct++; return; }
+    s.classList.add('wrong');
+    const full = (cfg.full || cfg.options)[item.ans];
+    const hint = document.createElement('span');
+    hint.className = 'correct-hint';
+    hint.textContent = `(✔ ${cfg.options[item.ans]})`;
+    s.insertAdjacentElement('afterend', hint);
+    document.getElementById(`${prefix}_body_${i}`).appendChild(whyBox(full, (v < 0 ? NO_ANSWER : '') + item.why));
+  });
+  finishCheck(fbId, exId, correct, data.length);
+}
+function resetMatch(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.match-select').forEach(s => { s.value = ''; s.className = 'match-select'; });
+  clearWhy(wrap);
+  hideFeedback(fbId);
+}
+
+// ── CLICK-MATCH (two clickable columns) ──
+function buildClickMatch(containerId, data, cfg) {
+  const wrap = document.getElementById(containerId);
+  const order = data.map((_, i) => i);
+  do {
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+  } while (order.length > 1 && order.every((v, i) => v === i));
+
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  leftCol.innerHTML = `<div class="cm-col-title">${cfg.leftTitle}</div>`;
+  rightCol.innerHTML = `<div class="cm-col-title">${cfg.rightTitle}</div>`;
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.innerHTML = `<span class="cm-num">${i+1}.</span>${item.left}`;
+    leftCol.appendChild(div);
+  });
+  order.forEach(idx => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = idx;
+    div.innerHTML = `<span class="cm-text">${data[idx].right}</span>`;
+    rightCol.appendChild(div);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol);
+  wrap.appendChild(cmWrap);
+  const why = document.createElement('div'); why.className = 'cm-why';
+  wrap.appendChild(why);
+
+  const links = {};           // leftIdx -> rightIdx
+  let selectedLeft = null;
+  const leftEl = i => leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  const rightEl = i => rightCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  function clearMarks() {
+    cmWrap.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link', 'wrong-link'));
+  }
+  function unlink(li) {
+    const ri = links[li];
+    if (ri === undefined) return;
+    delete links[li];
+    const l = leftEl(li), r = rightEl(ri);
+    l.classList.remove('linked'); r.classList.remove('linked');
+    r.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+  }
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item) return;
+    clearMarks();
+    const idx = parseInt(item.dataset.idx, 10);
+    if (item.dataset.side === 'left') {
+      if (item.classList.contains('linked')) { unlink(idx); return; }
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active');
+      selectedLeft = item;
+    } else {
+      if (item.classList.contains('linked')) {
+        const li = Object.keys(links).find(k => links[k] === idx);
+        if (li !== undefined) unlink(parseInt(li, 10));
+        return;
+      }
+      if (!selectedLeft) return;
+      const li = parseInt(selectedLeft.dataset.idx, 10);
+      links[li] = idx;
+      selectedLeft.classList.remove('active');
+      selectedLeft.classList.add('linked');
+      item.classList.add('linked');
+      const badge = document.createElement('span'); badge.className = 'cm-pair-num'; badge.textContent = li + 1;
+      item.insertBefore(badge, item.firstChild);
+      selectedLeft = null;
+    }
+  });
+  return { data, links, leftCol, rightCol, why, leftEl, rightEl, clearMarks, unlink, getSelected: () => selectedLeft, clearSelected: () => { if (selectedLeft) selectedLeft.classList.remove('active'); selectedLeft = null; } };
+}
+function checkClickMatch(st, fbId, exId) {
+  st.clearMarks();
+  st.why.innerHTML = '';
+  let correct = 0;
+  const rows = [];
+  st.data.forEach((item, i) => {
+    const ri = st.links[i];
+    const l = st.leftEl(i);
+    if (ri === i) {
+      correct++;
+      l.classList.add('correct-link'); st.rightEl(ri).classList.add('correct-link');
+      return;
+    }
+    l.classList.add('wrong-link');
+    if (ri !== undefined) st.rightEl(ri).classList.add('wrong-link');
+    rows.push(`<div class="why-row"><span class="why-correct">✔ ${i+1}. ${item.left} → ${item.right}</span><span class="why-text"><strong>Why?</strong> ${ri === undefined ? NO_ANSWER : ''}${item.why}</span></div>`);
+  });
+  if (rows.length) {
+    const box = document.createElement('div'); box.className = 'why-box'; box.innerHTML = rows.join('');
+    st.why.appendChild(box);
+  }
+  finishCheck(fbId, exId, correct, st.data.length);
+}
+function resetClickMatch(st, fbId) {
+  Object.keys(st.links).forEach(k => st.unlink(parseInt(k, 10)));
+  st.clearSelected();
+  st.clearMarks();
+  st.why.innerHTML = '';
+  hideFeedback(fbId);
+}
+
+// ── ODD ONE OUT (click the word that doesn't belong) ──
+function buildOddOneOut(containerId, data) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'ooo-item'; div.id = `${containerId}_item_${i}`;
+    div.innerHTML = `<div class="ooo-label"><span class="q-num">${i+1}.</span> ${item.label}</div><div class="ooo-chips">` +
+      item.group.map((w, j) => `<button type="button" class="ooo-chip" data-item="${i}" data-opt="${j}">${w}</button>`).join('') + `</div>`;
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.ooo-chip');
+    if (!chip) return;
+    const i = chip.dataset.item;
+    const was = chip.classList.contains('active');
+    wrap.querySelectorAll(`.ooo-chip[data-item="${i}"]`).forEach(c => c.classList.remove('active', 'wrong-pick', 'correct-pick'));
+    if (!was) chip.classList.add('active');
+  });
+}
+function checkOddOneOut(containerId, data, fbId, exId) {
+  const wrap = document.getElementById(containerId);
+  clearWhy(wrap);
+  let correct = 0;
+  data.forEach((item, i) => {
+    const chips = wrap.querySelectorAll(`.ooo-chip[data-item="${i}"]`);
+    chips.forEach(c => c.classList.remove('wrong-pick', 'correct-pick'));
+    const sel = wrap.querySelector(`.ooo-chip[data-item="${i}"].active`);
+    const right = wrap.querySelector(`.ooo-chip[data-item="${i}"][data-opt="${item.ans}"]`);
+    if (sel && parseInt(sel.dataset.opt, 10) === item.ans) { sel.classList.add('correct-pick'); correct++; return; }
+    if (sel) { sel.classList.remove('active'); sel.classList.add('wrong-pick'); }
+    right.classList.add('correct-pick');
+    document.getElementById(`${containerId}_item_${i}`).appendChild(whyBox(item.group[item.ans], (sel ? '' : NO_ANSWER) + item.why));
+  });
+  finishCheck(fbId, exId, correct, data.length);
+}
+function resetOddOneOut(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.ooo-chip').forEach(c => c.classList.remove('active', 'wrong-pick', 'correct-pick'));
+  clearWhy(wrap);
+  hideFeedback(fbId);
+}
+
+// dialogue helper
+function dl(speaker, text) { return `<span class="dialogue-line"><span class="speaker">${speaker}:</span>${text}</span>`; }
+const GAP = `<span class="gap-line">&nbsp;</span>`;
+
+// ══════════════════════════════════════════════
+//  DAY 1 – ONE DOESN'T BELONG
+// ══════════════════════════════════════════════
+const d1e1Data = [
+  { label:"Cooking methods", group:["boil","blender","grill","fry"], ans:1,
+    why:"A blender is a kitchen appliance. Boil, grill and fry are ways to cook food." },
+  { label:"Ingredients", group:["flour","tomato","breakfast","butter"], ans:2,
+    why:"Breakfast is a meal. Flour, tomato and butter are things you use to make food." },
+  { label:"Places to eat out", group:["cooker","café","food truck","restaurant"], ans:0,
+    why:"A cooker is a kitchen appliance. You cook on it at home. You don't go there to eat." },
+  { label:"Kitchen appliances", group:["oven","appetizer","blender","cooker"], ans:1,
+    why:"An appetizer is a course: a small dish before the main course. It isn't a machine." },
+  { label:"Courses", group:["dessert","main course","lunch","appetizer"], ans:2,
+    why:"Lunch is a meal. Courses are the parts of a meal: appetizer, main course and dessert." },
+  { label:"Sweet food", group:["sushi","cupcake","doughnut","tiramisu"], ans:0,
+    why:"Sushi is savoury, not sweet. Cupcakes, doughnuts and tiramisu are all sweet." },
+  { label:"Things in a recipe", group:["cooking time","ingredients","instructions","food truck"], ans:3,
+    why:"A food truck is a place to eat out. You don't find it in a recipe." },
+  { label:"Meals", group:["breakfast","lunch","dessert","dinner"], ans:2,
+    why:"Dessert is a course, not a meal. Breakfast, lunch and dinner are meals." }
+];
+buildOddOneOut('d1e1', d1e1Data);
+document.getElementById('d1e1-check').addEventListener('click', () => checkOddOneOut('d1e1', d1e1Data, 'd1e1-fb', 'd1e1'));
+document.getElementById('d1e1-reset').addEventListener('click', () => resetOddOneOut('d1e1', 'd1e1-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 2 – EXPERIENCES
+// ══════════════════════════════════════════════
+const d2e1Data = [
+  { line: dl('A', "Have you ever ___ bread? <em>(bake)</em>") + dl('B', "Yes, I have. I made some last month."),
+    ans: [["baked"]],
+    why: ["After 'Have you ever', use the past participle: bake → baked."] },
+  { line: dl('A', "___ you ever ___ a vegan dish? <em>(make)</em>") + dl('B', "No, I haven't, but I'd like to try."),
+    ans: [["Have"],["made"]],
+    why: ["With 'you', the question starts with 'Have': Have you ever...?", "'Make' is irregular. The past participle is 'made'."] },
+  { line: dl('A', "Has Leo ever ___ meat? <em>(grill)</em>") + dl('B', "Yes. He did it at a barbecue last weekend."),
+    ans: [["grilled"]],
+    why: ["After 'Has... ever', use the past participle: grill → grilled."] },
+  { line: dl('A', "Have they ever ___ their own pizza? <em>(make)</em>") + dl('B', "Yes. They made one on Friday."),
+    ans: [["made"]],
+    why: ["After 'Have... ever', use the past participle. 'Make' is irregular: make → made."] },
+  { line: dl('A', "___ Maya ever ___ a new dish? <em>(invent)</em>") + dl('B', "No, she hasn't. She always follows recipes."),
+    ans: [["Has"],["invented"]],
+    why: ["Maya is 'she', so the question starts with 'Has', not 'Have'.", "After 'Has... ever', use the past participle: invent → invented."] },
+  { line: dl('A', "Have you ever ___ a chocolate dessert? <em>(make)</em>") + dl('B', "Yes. I made a chocolate cake for my sister's birthday."),
+    ans: [["made"]],
+    why: ["After 'Have you ever', use the past participle. 'Make' is irregular: make → made."] },
+  { line: dl('A', "___ Ben and Laura ever ___ a cooking class? <em>(take)</em>") + dl('B', "Yes. They took one in Italy."),
+    ans: [["Have"],["taken"]],
+    why: ["Ben and Laura are 'they', so the question starts with 'Have', not 'Has'.", "'Take' is irregular: take → took → taken. After 'have', use 'taken', not 'took'."] },
+  { line: dl('A', "Has your brother ever ___ for a big group? <em>(cook)</em>") + dl('B', "Yes. He cooked dinner for twelve people last Christmas."),
+    ans: [["cooked"]],
+    why: ["After 'Has... ever', use the past participle: cook → cooked."] }
+];
+buildFill('d2e1', d2e1Data, 'd2e1');
+document.getElementById('d2e1-check').addEventListener('click', () => checkFill('d2e1', d2e1Data, 'd2e1', 'd2e1-fb', 'd2e1'));
+document.getElementById('d2e1-reset').addEventListener('click', () => resetFill('d2e1', 'd2e1-fb'));
+
+const d2e2Data = [
+  { q: dl('A', "Have you ever made pizza?") + dl('B', GAP) + dl('A', "Really? When?"),
+    opts: ["Yes, I make.", "Yes, I did yesterday.", "Yes, I have."], ans: 2,
+    why: "'Have you ever...?' asks about experience, so we answer with 'have': Yes, I have. A time like 'yesterday' needs a past simple question." },
+  { q: dl('A', "When did you take the cooking class?") + dl('B', GAP),
+    opts: ["Last summer.", "I've taken it twice.", "I've never taken one."], ans: 0,
+    why: "'When did...?' asks for a specific time in the past, so the answer is a time: Last summer." },
+  { q: dl('A', "Have you ever tried to bake bread?") + dl('B', GAP) + dl('A', "Maybe we can try it together sometime."),
+    opts: ["No, I don't.", "No, I haven't.", "No, I didn't last night."], ans: 1,
+    why: "Answer a 'Have you ever...?' question with 'have' or 'haven't': No, I haven't." },
+  { q: dl('A', "How did your chocolate cake turn out?") + dl('B', GAP),
+    opts: ["I've never made one.", "I have made it yesterday.", "It was delicious, but it looked terrible."], ans: 2,
+    why: "The question asks about the result of the cake, so B describes it. Also, we don't use 'have made' with 'yesterday'." },
+  { q: dl('A', "Has Nina ever cooked Thai food?") + dl('B', GAP),
+    opts: ["Yes, she cooks.", "Yes, she has.", "Yes, she did."], ans: 1,
+    why: "The question starts with 'Has', so the short answer uses 'has': Yes, she has." },
+  { q: dl('A', "What did you make for dinner yesterday?") + dl('B', GAP),
+    opts: ["I made vegetable soup.", "I've made pasta before.", "I've never made dinner."], ans: 0,
+    why: "'Yesterday' is a finished time, so we answer with the past simple: I made vegetable soup." }
+];
+setupMC('d2e2', d2e2Data);
+
+// ══════════════════════════════════════════════
+//  DAY 3 – COOKING CHALLENGES
+// ══════════════════════════════════════════════
+const D3E1_FULL = [
+  "follow a 15-step recipe",
+  "cook a traditional family dish",
+  "make a birthday cake",
+  "plan healthy meals for a big family",
+  "prepare a dish using only four ingredients",
+  "teach cooking to a friend"
+];
+const D3E1_CFG = { options: ['A','B','C','D','E','F'], full: D3E1_FULL.map((t, i) => `${'ABCDEF'[i]} – ${t}`) };
+document.getElementById('d3e1-options').innerHTML = D3E1_FULL.map((t, i) => `<div><span class="letter">${'ABCDEF'[i]}.</span>${t}</div>`).join('');
+const d3e1Data = [
+  { left:"Maya opens the fridge and finds eggs, cheese, tomatoes and some vegetables. She can't go shopping. →", ans:4,
+    why:"Maya can't go shopping, so she must cook with the few things in her fridge: only four ingredients." },
+  { left:"Daniel's sister is turning 30 and he wants to prepare something special for the celebration. →", ans:2,
+    why:"His sister is having a birthday celebration, so a birthday cake is the best challenge." },
+  { left:"Sophie needs breakfast, lunch and dinner ideas for five people for the next seven days. →", ans:3,
+    why:"Sophie needs meals for five people for a whole week. That is planning meals for a big family." },
+  { left:"Amir wants to prepare the dish his grandmother always makes at family celebrations. →", ans:1,
+    why:"His grandmother's dish for family celebrations is a traditional family dish." },
+  { left:"Rachel's recipe has three pages and lots of different stages. She needs to concentrate carefully. →", ans:0,
+    why:"A recipe with three pages and many stages is a long recipe with many steps." },
+  { left:"Lucas's friend wants to learn how to prepare simple meals but doesn't enjoy spending time in the kitchen. →", ans:5,
+    why:"Lucas's friend wants to learn, so Lucas can teach cooking to his friend." }
+];
+buildMatch('d3e1', d3e1Data, 'd3e1', D3E1_CFG);
+document.getElementById('d3e1-check').addEventListener('click', () => checkMatch('d3e1', d3e1Data, 'd3e1', D3E1_CFG, 'd3e1-fb', 'd3e1'));
+document.getElementById('d3e1-reset').addEventListener('click', () => resetMatch('d3e1', 'd3e1-fb'));
+
+const d3e2Data = [
+  { left:"Following a long recipe", right:"You need to follow many instructions in the correct order.",
+    why:"A long recipe has many steps, and you must do them in the right order." },
+  { left:"Cooking a traditional family dish", right:"People may expect it to taste like the version they already know.",
+    why:"Your family already knows this dish, so they expect the same taste." },
+  { left:"Making a birthday cake", right:"Both the taste and the appearance may be important.",
+    why:"A birthday cake must taste good and also look beautiful for the party." },
+  { left:"Planning healthy meals for a family", right:"You need to organize many meals and consider different needs.",
+    why:"A family eats many meals, and each person can have different needs." },
+  { left:"Cooking with only four ingredients", right:"You have very limited options and need to be creative.",
+    why:"With only four ingredients you don't have many options, so you need to be creative." },
+  { left:"Teaching someone who doesn't like cooking", right:"You need to keep the person interested and motivated.",
+    why:"The person doesn't like cooking, so the difficult part is keeping them interested." }
+];
+const d3e2State = buildClickMatch('d3e2', d3e2Data, { leftTitle:'Challenge', rightTitle:'Difficulty' });
+document.getElementById('d3e2-check').addEventListener('click', () => checkClickMatch(d3e2State, 'd3e2-fb', 'd3e2'));
+document.getElementById('d3e2-reset').addEventListener('click', () => resetClickMatch(d3e2State, 'd3e2-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 4 – COOKING CLASSES
+// ══════════════════════════════════════════════
+const CLASSES = ["Class A", "Class B", "Class C"];
+const d4e1Data = [
+  { q:"Emma has almost no cooking experience. Which class is best for her?", opts:CLASSES, ans:1,
+    why:"Class B is for people who have never cooked before. It says: Perfect for beginners." },
+  { q:"Leo wants to learn techniques from someone who cooks professionally.", opts:CLASSES, ans:0,
+    why:"In Class A, a chef demonstrates professional techniques." },
+  { q:"Sara loves experimenting instead of following recipes.", opts:CLASSES, ans:2,
+    why:"Class C has no fixed recipe, so students can experiment." },
+  { q:"Tom wants to learn dishes he can make without expensive ingredients.", opts:CLASSES, ans:1,
+    why:"Class B uses inexpensive ingredients. Inexpensive means cheap." },
+  { q:"Nina wants to invent something with other students.", opts:CLASSES, ans:2,
+    why:"In Class C, students work in small groups to create an original dish." },
+  { q:"Paul already cooks well and wants to improve his technique.", opts:CLASSES, ans:0,
+    why:"Class A recommends some cooking experience and teaches professional techniques." }
+];
+setupMC('d4e1', d4e1Data);
+
+const d4e2Data = [
+  { s:"Alex expected the class to be mainly a demonstration.", ans:'T',
+    why:"Alex says he thought they would just watch the chef. That is a demonstration." },
+  { s:"The students only watched the chef cook.", ans:'F',
+    why:"Alex says everyone actually cooked. They didn't only watch." },
+  { s:"Alex had never eaten or prepared any type of pasta before.", ans:'F',
+    why:"Alex had made pasta dishes before. The new thing was making the pasta itself." },
+  { s:"The students worked with a partner.", ans:'T',
+    why:"Alex says they worked in pairs. In pairs means with a partner." },
+  { s:"Alex was unhappy with the taste of the pasta.", ans:'F',
+    why:"His pasta wasn't perfect, but Alex says it tasted great." },
+  { s:"Alex is interested in taking another cooking class.", ans:'T',
+    why:"Alex says 'Definitely' and wants to learn bread or desserts next time." }
+];
+const d4e2Sel = buildTF('d4e2', d4e2Data, 'd4e2');
+document.getElementById('d4e2-check').addEventListener('click', () => checkTF('d4e2', d4e2Data, d4e2Sel, 'd4e2', 'd4e2-fb', 'd4e2'));
+document.getElementById('d4e2-reset').addEventListener('click', () => resetTF('d4e2', d4e2Sel, 'd4e2-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 5 – FOOD DREAMS
+// ══════════════════════════════════════════════
+const D5E1_CFG = { options: ['Maya','Ben','Olivia','Noah','Emily'] };
+const d5e1Data = [
+  { left:"wants to become a food influencer?", ans:0,
+    why:"Maya wants to share recipes and restaurant recommendations online. That's what food influencers do." },
+  { left:"would like to become a personal chef?", ans:1,
+    why:"Ben wants to prepare meals in his clients' kitchens. That's the job of a personal chef." },
+  { left:"wants to open a café?", ans:2,
+    why:"Olivia dreams of a small place with coffee, homemade cakes and simple lunches. That's a café." },
+  { left:"would like to teach people to cook healthy food?", ans:3,
+    why:"Noah wants to show people how to prepare easy, nutritious dishes." },
+  { left:"wants to take part in a cooking show?", ans:4,
+    why:"Emily loves competitions and wants to cook while cameras are recording." },
+  { left:"wants to work in customers' homes?", ans:1,
+    why:"Ben wants to visit clients and cook in their own kitchens, so he works in their homes." },
+  { left:"is interested in creating online content?", ans:0,
+    why:"Maya loves creating short videos and sharing them online." }
+];
+buildMatch('d5e1', d5e1Data, 'd5e1', D5E1_CFG);
+document.getElementById('d5e1-check').addEventListener('click', () => checkMatch('d5e1', d5e1Data, 'd5e1', D5E1_CFG, 'd5e1-fb', 'd5e1'));
+document.getElementById('d5e1-reset').addEventListener('click', () => resetMatch('d5e1', 'd5e1-fb'));
+
+const d5e2Data = [
+  { q:"\"I want to open a café, but I've never managed a business.\"",
+    opts:["You shouldn't ever serve coffee.", "You should learn about costs and business management before opening it.", "You should stop cooking at home."], ans:1,
+    why:"The problem is business experience, so the best advice is to learn about business first." },
+  { q:"\"I want to become a food influencer, but my videos aren't very interesting.\"",
+    opts:["You should buy more food.", "You shouldn't use social media.", "You could work on your filming and storytelling skills."], ans:2,
+    why:"The problem is the videos, so better filming and storytelling can make them more interesting." },
+  { q:"\"I'd like to become a personal chef, but I only know how to cook three dishes.\"",
+    opts:["You should develop a wider range of dishes first.", "You should open a restaurant tomorrow.", "You shouldn't cook for yourself."], ans:0,
+    why:"A personal chef needs to cook many different dishes, so learning more dishes is the best advice." },
+  { q:"\"I want to teach healthy cooking, but I don't know much about nutrition.\"",
+    opts:["You should only teach desserts.", "You could learn more about nutrition before teaching others.", "You shouldn't use vegetables."], ans:1,
+    why:"The problem is not knowing about nutrition, so learning more about it is the logical advice." },
+  { q:"\"I'd love to take part in a cooking show, but I get extremely nervous when people watch me.\"",
+    opts:["You should stop watching cooking shows.", "You should only cook alone forever.", "You could practise cooking under pressure."], ans:2,
+    why:"Practising under pressure can help you feel less nervous when people watch you." },
+  { q:"\"I want to open a restaurant, but I haven't decided what kind of food to serve.\"",
+    opts:["You shouldn't create a menu.", "You should choose a clear concept and decide who your customers will be.", "You should make every dish you know."], ans:1,
+    why:"The problem is the type of food, so choosing a clear concept helps you decide." }
+];
+setupMC('d5e2', d5e2Data);
+
+// ══════════════════════════════════════════════
+//  DAY 6 – OPINIONS
+// ══════════════════════════════════════════════
+const d6e1Data = [
+  { q:"\"My grandmother never measures anything. She cooks from experience, and her food is fantastic. But when I try a new dish, I definitely need instructions.\"",
+    opts:["Recipes make food taste worse.", "Nobody should use recipes.", "Experienced cooks may not need recipes, but recipes can be useful."], ans:2,
+    why:"The grandmother doesn't need a recipe, but the speaker needs instructions for new dishes. Both ideas are in the comment." },
+  { q:"\"I enjoy cooking with friends because we talk and laugh while preparing everything. When I'm alone, cooking feels more like work.\"",
+    opts:["Cooking with other people can make the experience more enjoyable.", "Cooking alone always produces better food.", "People shouldn't talk while cooking."], ans:0,
+    why:"The speaker has fun with friends and says cooking alone feels like work." },
+  { q:"\"A beautiful plate is nice, but I don't care how impressive it looks if the food doesn't taste good.\"",
+    opts:["Appearance is more important than taste.", "Taste matters more than presentation.", "Food should never look attractive."], ans:1,
+    why:"The speaker says a beautiful plate is nice, but the taste is what really matters." },
+  { q:"\"Following recipes is useful, but sometimes I change an ingredient or add something different. That's the fun part for me.\"",
+    opts:["Recipes should never be changed.", "Good cooks never follow recipes.", "Experimenting can make cooking more interesting."], ans:2,
+    why:"The speaker changes ingredients and says that's the fun part. Changing things is experimenting." },
+  { q:"\"Children don't need to become chefs, but everyone should know how to prepare a few basic meals.\"",
+    opts:["Basic cooking is a useful life skill.", "Cooking is only important for professional chefs.", "Children should prepare complicated dishes."], ans:0,
+    why:"The speaker says everyone should know how to make a few basic meals. That's a life skill." },
+  { q:"\"For me, preparing someone's favourite dinner is one way of showing that I care about them.\"",
+    opts:["People should only cook for themselves.", "Cooking for someone can be an expression of affection.", "Favourite dishes are usually unhealthy."], ans:1,
+    why:"The speaker cooks someone's favourite dinner to show care. Affection means caring about someone." }
+];
+setupMC('d6e1', d6e1Data);
+
+const d6e2Data = [
+  { q:"<strong>Simple dishes are often better than complicated ones.</strong>",
+    opts:["Complicated recipes always use fewer ingredients.", "A few good ingredients can produce excellent flavour without unnecessary steps.", "Simple food takes several days to prepare."], ans:1,
+    why:"This argument explains why simple can be better: great flavour with fewer steps. The other options are not true." },
+  { q:"<strong>Traditional recipes shouldn't be changed too much.</strong>",
+    opts:["Traditional food should never be eaten.", "New ingredients are always cheaper.", "Changing key ingredients can make the dish lose part of its identity."], ans:2,
+    why:"It gives a reason not to change the recipe: the dish can lose its identity." },
+  { q:"<strong>People waste too much money ordering food instead of cooking.</strong>",
+    opts:["Home cooking can sometimes cost less than frequent food delivery.", "Restaurants never charge for food.", "Cooking at home always requires expensive equipment."], ans:0,
+    why:"It shows that cooking at home can be cheaper, so ordering food often wastes money." },
+  { q:"<strong>Social media has made people care too much about how food looks.</strong>",
+    opts:["Social media prevents people from seeing food.", "People no longer photograph meals.", "Attractive food photos can receive more attention online even when appearance says nothing about taste."], ans:2,
+    why:"It shows that people online focus on how food looks, not on how it tastes." },
+  { q:"<strong>You can learn to cook well without taking a cooking class.</strong>",
+    opts:["Cooking classes don't include cooking.", "People can develop their skills through practice, recipes and other resources.", "Professional chefs never study cooking."], ans:1,
+    why:"It gives other ways to learn: practice, recipes and other resources. No class is necessary." },
+  { q:"<strong>Expensive ingredients don't necessarily make better food.</strong>",
+    opts:["Technique and the way ingredients are combined also affect the final dish.", "Cheap ingredients have no flavour.", "The most expensive dish is always the healthiest."], ans:0,
+    why:"It shows that good food depends on technique too, not only on the price of ingredients." }
+];
+setupMC('d6e2', d6e2Data);
+
+// ══════════════════════════════════════════════
+//  DAY 7 – REVIEW & WRITING
+// ══════════════════════════════════════════════
+const d7e1Data = [
+  { q:"Which word is an <strong>ingredient</strong>?", opts:["blender","grill","flour"], ans:2,
+    why:"Flour is an ingredient. A blender is an appliance, and grill is a cooking method." },
+  { q:"Which is a <strong>cooking method</strong>?", opts:["cooker","boil","dessert"], ans:1,
+    why:"Boil is a way to cook. A cooker is an appliance, and dessert is a course." },
+  { q:"Which is a <strong>course</strong>?", opts:["appetizer","breakfast","food truck"], ans:0,
+    why:"An appetizer is a course. Breakfast is a meal, and a food truck is a place to eat out." },
+  { q: dl('A', "Have you ever " + GAP + " bread?") + dl('B', "Yes. I made some last weekend."), opts:["baked","bake","baking"], ans:0,
+    why:"After 'Have you ever', use the past participle: baked." },
+  { q: dl('A', "Has Lisa ever taken a cooking class?") + dl('B', GAP), opts:["Yes, she did yesterday.","Yes, she takes.","Yes, she has."], ans:2,
+    why:"The question starts with 'Has', so the short answer is: Yes, she has." },
+  { q: dl('A', "When did you make that cake?") + dl('B', GAP), opts:["I've made it before.","Last Saturday.","Yes, I have."], ans:1,
+    why:"'When' asks for a specific time in the past: Last Saturday." },
+  { q:"Someone wants to cook professionally in different clients' homes. They want to become " + GAP + ".", opts:["a personal chef","a food influencer","a cooking-show viewer"], ans:0,
+    why:"A personal chef cooks meals in clients' homes." },
+  { q:"\"I want to open a restaurant, but I know nothing about managing money.\" Which advice is best?",
+    opts:["You shouldn't learn how restaurants work.","You should stop eating in restaurants.","You should learn about the business side of running a restaurant."], ans:2,
+    why:"The problem is managing money, so learning the business side is the best advice." },
+  { q:"Which person is most likely <strong>experimenting with food</strong>?",
+    opts:["Mia follows the recipe exactly every time.","Ryan combines different ingredients to create his own dishes.","Emma always orders the same meal."], ans:1,
+    why:"Experimenting means trying new things, like Ryan creating his own dishes." },
+  { q:"\"Cooking is an important life skill.\" Which argument best supports this statement?",
+    opts:["Everyone needs to become a professional chef.","Cooking is only useful if you own a restaurant.","Knowing how to prepare basic meals can help people become more independent."], ans:2,
+    why:"Being independent is a good reason why cooking is useful for everyone in life." },
+  { q:"\"You eat with your eyes first\" is mainly about " + GAP + ".", opts:["presentation","cooking time","kitchen appliances"], ans:0,
+    why:"This expression means that how food looks (its presentation) is important." },
+  { q:"Which statement shows a <strong>past experience without saying exactly when it happened</strong>?",
+    opts:["I made pizza last Friday.","I'm making pizza now.","I've made pizza several times."], ans:2,
+    why:"The present perfect (I've made) talks about experience with no specific time. 'Last Friday' is a specific time." },
+  { q:"Which sentence expresses an <strong>ambition</strong>?",
+    opts:["I opened the café at 8:00 this morning.","I'd like to open a small café one day.","The café is opposite the restaurant."], ans:1,
+    why:"'I'd like to... one day' talks about a wish for the future. That is an ambition." },
+  { q:"A recipe normally contains " + GAP + ".", opts:["ingredients and instructions","customers and chefs","meals and restaurants"], ans:0,
+    why:"A recipe tells you the ingredients and the instructions." },
+  { q:"Which response best expresses a <strong>balanced opinion</strong>? <em>\"The best chefs don't use recipes.\"</em>",
+    opts:["That's always true because recipes are useless.","Chefs don't cook food.","I partly agree. Experienced chefs may not need recipes for familiar dishes, but recipes can still be useful."], ans:2,
+    why:"A balanced opinion shows both sides: 'I partly agree... but...'." }
+];
+setupMC('d7e1', d7e1Data);
+
+// Writing challenge
+const writingEl = document.getElementById('d7e2-text');
+const countEl = document.getElementById('d7e2-count');
+function countWords(t) { const m = t.trim().match(/[A-Za-zÀ-ÿ0-9'’-]+/g); return m ? m.length : 0; }
+function updateCount() {
+  const n = countWords(writingEl.value);
+  countEl.textContent = `${n} word${n === 1 ? '' : 's'} (target: 100–130)`;
+  countEl.className = 'word-count' + (n >= 100 && n <= 130 ? ' ok' : n > 130 ? ' over' : '');
+}
+writingEl.value = lsGet(WRITING_KEY, '');
+updateCount();
+writingEl.addEventListener('input', () => { lsSet(WRITING_KEY, writingEl.value); updateCount(); });
+document.getElementById('d7e2-model').addEventListener('click', e => {
+  const box = document.getElementById('d7e2-model-box');
+  box.classList.toggle('show');
+  e.currentTarget.textContent = box.classList.contains('show') ? '🙈 Hide model text' : '👀 Show model text';
+});
+document.getElementById('d7e2-send').addEventListener('click', () => {
+  const text = writingEl.value.trim();
+  const n = countWords(text);
+  if (n < 100) {
+    showFeedback('d7e2-fb', `✏️ You have ${n} words. Please write at least 100 words before you send your text.`, 'err');
+    writingEl.focus();
+    return;
+  }
+  const msg = `Hello, Teacher Mari! This is ${studentName || 'your student'}.\n\n*About Food and Cooking – Day 7 – Writing Challenge*\n(${n} words)\n\n${text}`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+  showFeedback('d7e2-fb', n > 130
+    ? `✅ Sent! Great job! Your text has ${n} words. Next time, try to stay between 100 and 130 words.`
+    : `✅ Sent! Great job! Teacher Mari will read your text soon.`, n > 130 ? 'partial' : 'ok');
+  markExerciseDone('d7e2');
+});
+
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = `🏆 Hello, Teacher Mari! This is ${studentName || 'your student'}.\n\nI finished all the exercises in *About Food and Cooking*!\nExercises completed: ${completedExercises.size}/${TOTAL_EXERCISES}`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+const VOCAB = [
+  { title:"🍽️ Meals", items:[
+    ["breakfast","the first meal of the day"],["lunch","the meal in the middle of the day"],["dinner","the main meal in the evening"] ]},
+  { title:"🥗 Courses", items:[
+    ["appetizer","a small dish before the main course"],["main course","the biggest part of a meal"],["dessert","something sweet at the end of a meal"] ]},
+  { title:"🧈 Ingredients", items:[
+    ["flour","white powder for bread and cakes"],["butter","a yellow food made from milk"],["tomato","a red fruit used in sauces"],["eggs","you use them in cakes"],["cheese","a food made from milk"],["onion","a vegetable with a strong taste"] ]},
+  { title:"🔌 Kitchen Appliances", items:[
+    ["oven","you bake cakes and bread in it"],["cooker","you cook on it at home"],["blender","it mixes food into a liquid"] ]},
+  { title:"🔥 Cooking Methods", items:[
+    ["boil","cook in very hot water"],["fry","cook in hot oil"],["grill","cook over or under direct heat"],["bake","cook in an oven"] ]},
+  { title:"🚚 Places to Eat Out", items:[
+    ["café","a small place for coffee and light food"],["restaurant","a place where you order and eat meals"],["food truck","a vehicle that sells food"] ]},
+  { title:"🍰 Sweet & Savoury Food", items:[
+    ["sweet","with a sugary taste"],["savoury","salty or spicy, not sweet"],["cupcake","a small sweet cake"],["doughnut","a sweet fried cake"],["tiramisu","an Italian coffee dessert"],["onion rings","fried rings of onion"] ]},
+  { title:"📖 Recipes & Cooking", items:[
+    ["dish","food prepared in a particular way"],["recipe","instructions to make a dish"],["instructions","steps that tell you what to do"],["cooking time","how long you need to cook something"],["technique","a special way of doing something"],["presentation","how food looks on the plate"],["experiment","try new ideas"],["taste","how food feels in your mouth; to try food"] ]},
+  { title:"⭐ Food Dreams & Jobs", items:[
+    ["personal chef","cooks in clients' homes"],["food influencer","shares food content online"],["cooking show","a TV programme about cooking"],["open a café","start your own café"],["nutritious","good for your health"] ]}
+];
+function speakText(text, rate) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-GB'; u.rate = rate || 0.85;
+  window.speechSynthesis.speak(u);
+}
+(function renderVocab() {
+  const bank = document.getElementById('vocab-bank');
+  VOCAB.forEach(section => {
+    const sec = document.createElement('div'); sec.className = 'bank-section';
+    sec.innerHTML = `<div class="bank-title">${section.title}</div><div class="vocab-grid">` +
+      section.items.map(([en, def]) => `<div class="vocab-chip"><button type="button" class="speak-btn" data-word="${en}" title="Listen">🔊</button><div class="vc-en">${en}</div><div class="vc-def">${def}</div></div>`).join('') +
+      `</div>`;
+    bank.appendChild(sec);
+  });
+  bank.addEventListener('click', e => {
+    const b = e.target.closest('.speak-btn');
+    if (b) speakText(b.dataset.word, 0.85);
+  });
+})();
+document.querySelectorAll('.listen-btn[data-speak]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const el = document.getElementById(btn.dataset.speak);
+    speakText(el.innerText.replace(/🔊/g, '').trim(), 0.9);
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS, CONFETTI & CELEBRATION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1'],
+  day2: ['d2e1','d2e2'],
+  day3: ['d3e1','d3e2'],
+  day4: ['d4e1','d4e2'],
+  day5: ['d5e1','d5e2'],
+  day6: ['d6e1','d6e2'],
+  day7: ['d7e1','d7e2']
+};
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const TOTAL_EXERCISES = Object.values(DAY_EXERCISES).reduce((a, l) => a + l.length, 0);
+const completedExercises = new Set(lsJSON(DONE_KEY, []));
+const completedDays = new Set(lsJSON(DAYS_KEY, []));
+
+function updateProgress() {
+  const pct = Math.min(100, Math.round((completedExercises.size / TOTAL_EXERCISES) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const day = btn.dataset.tab;
+    if (completedDays.has(day) && !btn.querySelector('.tab-done')) {
+      const s = document.createElement('span'); s.className = 'tab-done'; s.textContent = '✓';
+      btn.appendChild(s);
+    }
+  });
+  if (completedDays.size === TOTAL_DAYS) {
+    document.getElementById('weekly-summary').style.display = 'block';
+    document.getElementById('final-score').textContent = `${completedExercises.size}/${TOTAL_EXERCISES}`;
+  }
+}
+function markExerciseDone(exId) {
+  completedExercises.add(exId);
+  lsSet(DONE_KEY, JSON.stringify([...completedExercises]));
+  for (const [day, list] of Object.entries(DAY_EXERCISES)) {
+    if (list.includes(exId) && !completedDays.has(day) && list.every(e => completedExercises.has(e))) {
+      completedDays.add(day);
+      lsSet(DAYS_KEY, JSON.stringify([...completedDays]));
+      if (completedDays.size === TOTAL_DAYS) setTimeout(celebrateWeek, 400);
+      else setTimeout(celebrateDay, 400);
+    }
+  }
+  updateProgress();
+}
+updateProgress();
+
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#FF5C23','#5340c8','#04392F','#FAEAD3','#f59e0b','#0d9488','#1D1050'];
+  const particles = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speed: Math.random() * 4 + 1.5,
+    drift: (Math.random() - 0.5) * 3,
+    angle: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 6
+  }));
+  let frame = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    frame++;
+    if (frame < duration) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+function celebrateDay() {
+  launchConfetti(150, 200);
+  showToast('🎉 Day complete! Great job!');
+}
+function celebrateWeek() {
+  launchConfetti(220, 260);
+  setTimeout(() => launchConfetti(220, 260), 900);
+  showToast(`🏆 Week complete! Amazing work${studentName ? ', ' + studentName : ''}!`);
+}
+</script>
+</body>
+</html>
