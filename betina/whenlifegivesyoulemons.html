@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>When Life Gives You Lemons – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, select, textarea { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+  .change-name {
+    background: none; border: none; color: rgba(255,255,255,0.85);
+    font-size: 0.72rem; font-weight: 600; text-decoration: underline;
+    cursor: pointer; margin-left: 8px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; font-weight: 600; color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--teal); font-weight: 800; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 20px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.5; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 500; line-height: 1.45;
+    background: var(--white);
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); margin-top: 4px; flex-shrink: 0; }
+  .mc-letter { font-weight: 700; flex-shrink: 0; }
+
+  /* ── LINES / FILL ── */
+  .fill-item { margin-bottom: 16px; }
+  .fill-line { display: block; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+
+  /* ── DROPDOWN ── */
+  .match-select {
+    border: 2px solid var(--gray-light);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--purple);
+    outline: none;
+    background: var(--white);
+    max-width: min(100%, 280px);
+    vertical-align: middle;
+    transition: border-color 0.2s;
+  }
+  .match-select:focus { border-color: var(--purple-light); }
+  .match-select.correct { border-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .match-select.wrong { border-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── WHY / CORRECTION HINT ── */
+  .why-hint {
+    margin-top: 8px;
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--purple);
+    background: #f0fdfa;
+    border-left: 3px solid var(--teal);
+    padding: 7px 10px;
+    border-radius: 0 6px 6px 0;
+    line-height: 1.5;
+  }
+  .why-hint .yours { color: var(--red); font-weight: 700; }
+  .why-hint .right { color: var(--teal); font-weight: 700; }
+
+  /* ── CLICK-TO-FILL ── */
+  .ctf-wordbank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 18px; padding: 10px 12px;
+    background: var(--cream); border-radius: var(--radius-sm);
+  }
+  .ctf-chip {
+    background: var(--purple); color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+    user-select: none;
+    max-width: 100%;
+  }
+  .ctf-chip:hover  { background: var(--purple-light); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; }
+  .ctf-chip.used   { background: var(--gray); cursor: default; opacity: 0.45; }
+  .ctf-gap {
+    display: inline-block;
+    min-width: 90px; text-align: center;
+    border-bottom: 2.5px solid var(--purple-light);
+    color: var(--orange); font-weight: 700;
+    font-size: 0.86rem; padding: 0 6px;
+    cursor: pointer; margin: 0 2px;
+    border-radius: 4px 4px 0 0;
+    vertical-align: middle; line-height: 1.8;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready  { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap   { border-bottom-color: var(--red);  color: var(--red);  background: #fef2f2; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 16px; align-items: flex-start; }
+  .cm-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-col-label { font-size: 0.7rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+  .cm-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.82rem; font-weight: 600; line-height: 1.4;
+    color: var(--purple);
+    background: var(--white);
+    user-select: none;
+    word-wrap: break-word;
+  }
+  .cm-col.left .cm-item { text-align: center; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .cm-explain:empty { display: none; }
+  .cm-explain { margin-top: 12px; }
+  .situation-box {
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin: 6px 0 12px;
+    font-size: 0.86rem; font-weight: 600;
+    line-height: 1.5;
+  }
+  .situation-box .sit-label { color: var(--orange); font-weight: 800; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; display: block; }
+  .sub-block { margin-bottom: 22px; }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 8px; }
+  .reading-text p + p { margin-top: 10px; }
+  .listen-btn {
+    background: var(--white); border: 2px solid var(--gray-light); cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; color: var(--purple);
+    padding: 4px 12px; border-radius: 99px; margin-bottom: 10px;
+  }
+  .listen-btn:hover { border-color: var(--purple-light); }
+
+  /* ── KEY BOX ── */
+  .key-box {
+    background: var(--cream);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.84rem; font-weight: 600;
+    line-height: 1.8;
+  }
+  .key-box b { color: var(--orange); }
+
+  /* ── WRITING ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 200px;
+    line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.78rem; font-weight: 600; color: var(--gray); margin-top: 6px; }
+  .word-count.ok { color: var(--teal); }
+  .word-count.over { color: #b45309; }
+  .guide-list { margin: 0 0 14px 18px; font-size: 0.85rem; line-height: 1.8; }
+  .useful-lang {
+    background: #f5f3ff;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 0.83rem; line-height: 1.8;
+  }
+  .useful-lang .ul-title { font-weight: 800; color: var(--purple-light); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .useful-lang em { font-style: italic; font-weight: 500; }
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin: 14px 0;
+    font-size: 0.86rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .example-box p + p { margin-top: 10px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--purple);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--purple);
+  }
+  .vocab-chip .vc-top { display: flex; align-items: center; gap: 6px; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.88rem; }
+  .vocab-chip .vc-def { font-size: 0.75rem; color: var(--gray); margin-top: 3px; line-height: 1.4; }
+  .vocab-chip .vc-ex { font-size: 0.75rem; color: var(--purple-light); margin-top: 4px; font-style: italic; line-height: 1.4; }
+  .speak-btn { background: none; border: none; cursor: pointer; font-size: 1rem; line-height: 1; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; vertical-align: top; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 24px; border-radius: 99px;
+    font-size: 0.95rem; font-weight: 700;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35);
+    z-index: 9999; opacity: 0;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    max-width: calc(100% - 32px); text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.15rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 54px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 16px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .cm-wrap { gap: 8px; }
+    .cm-item { font-size: 0.74rem; padding: 8px 7px; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .fill-line { font-size: 0.84rem; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .progress-section { padding: 12px 14px; }
+    .toast { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>When Life Gives You Lemons</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div>
+      <h1>When Life Gives You Lemons 🍋</h1>
+      <div class="subtitle">Weekly Practice · 7 Days</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Your progress this week</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">🍋 Day 1</button>
+    <button class="tab-btn" data-tab="day2">💬 Day 2</button>
+    <button class="tab-btn" data-tab="day3">👀 Day 3</button>
+    <button class="tab-btn" data-tab="day4">🪟 Day 4</button>
+    <button class="tab-btn" data-tab="day5">💡 Day 5</button>
+    <button class="tab-btn" data-tab="day6">🌤️ Day 6</button>
+    <button class="tab-btn" data-tab="day7">✍️ Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════ DAY 1 ══════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Optimist, Pessimist or Realist?</div>
+      <div class="day-desc">Match the Expressions · What Kind of Person?</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Match the Expressions</div>
+    <div class="ex-instruction">Match the expressions to their meanings. Click an expression on the left, then click its meaning on the right. Click a linked item to undo it.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Kind of Person?</div>
+    <div class="ex-instruction">Read each situation. Decide if the person is an optimist (O), a pessimist (P) or a realist (R).</div>
+    <div id="d1e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d1e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 2 ══════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Attitudes and Reactions</div>
+      <div class="day-desc">Complete the Mini-Situations · Choose the Best Reaction</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Complete the Mini-Situations</div>
+    <div class="ex-instruction">Complete each sentence with the correct expression from the box. Use each expression once. Click an expression, then click the gap.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Choose the Best Reaction</div>
+    <div class="ex-instruction">Read each situation and choose the reaction that best matches the attitude in parentheses.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d2e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 3 ══════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">Different Ways of Seeing the Same Situation</div>
+      <div class="day-desc">Three People, Three Reactions · What Does the Speaker Mean?</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Three People, Three Reactions</div>
+    <div class="ex-instruction">Read each situation and match each person to the correct reaction. Click a person on the left, then click their reaction on the right.</div>
+    <div class="sub-block">
+      <div class="situation-box"><span class="sit-label">Situation 1</span>A colleague asks you to help with a project on Friday evening.</div>
+      <div id="d3e1a"></div>
+    </div>
+    <div class="sub-block">
+      <div class="situation-box"><span class="sit-label">Situation 2</span>You're trying a new recipe for the first time.</div>
+      <div id="d3e1b"></div>
+    </div>
+    <div class="sub-block">
+      <div class="situation-box"><span class="sit-label">Situation 3</span>You're invited to a wedding where you don't know many people.</div>
+      <div id="d3e1c"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Does the Speaker Mean?</div>
+    <div class="ex-instruction">Choose the best interpretation of each statement.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d3e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 4 ══════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">When Things Go Wrong</div>
+      <div class="day-desc">Reading: A Broken Shop Window · Who Said It?</div>
+    </div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 1 – A Broken Shop Window</div>
+    <div class="ex-instruction">Read the text and answer the questions.</div>
+    <div class="reading-text">
+      <button class="listen-btn" type="button" id="rt-listen">🔊 Listen</button>
+      <div id="rt-shop">
+        <h3>A Creative Solution</h3>
+        <p>One morning, a shop owner arrived at work and discovered that someone had broken his shop window. There was a large hole in the glass.</p>
+        <p>Instead of simply covering the damaged area with a piece of cardboard, he decided to do something unusual. He used a boot to cover the hole in the window. The result was creative and attracted people's attention.</p>
+        <p>Some people thought his solution was funny and positive. Others pointed out that the solution wasn't very practical and that problems like this happened too often in the area.</p>
+        <p>The shop owner couldn't change what had happened, but he found a creative way to respond to it.</p>
+      </div>
+    </div>
+    <div id="d4e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Who Said It?</div>
+    <div class="ex-instruction">These are comments about the shop owner's solution. Match each comment to the attitude it expresses.</div>
+    <div class="key-box"><b>A</b> optimistic &nbsp;·&nbsp; <b>B</b> pessimistic &nbsp;·&nbsp; <b>C</b> realistic</div>
+    <div id="d4e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d4e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 5 ══════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Turning Problems into Opportunities</div>
+      <div class="day-desc">Problem → Opportunity · What Should They Do Next?</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Problem → Opportunity</div>
+    <div class="ex-instruction">Match each problem to the most logical opportunity. Click a problem on the left, then click the opportunity on the right.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – What Should They Do Next?</div>
+    <div class="ex-instruction">Choose the most practical response to each situation.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d5e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 6 ══════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Hope, Reality and Expectations</div>
+      <div class="day-desc">Which Saying Fits? · Hope for the Best, but Expect the Worst</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Which Saying Fits?</div>
+    <div class="ex-instruction">Choose the expression that best fits each situation.</div>
+    <div class="key-box">
+      <b>A</b> hope for the best &nbsp;·&nbsp; <b>B</b> expect the worst &nbsp;·&nbsp; <b>C</b> deal with reality<br>
+      <b>D</b> keep a positive attitude &nbsp;·&nbsp; <b>E</b> turn problems into opportunities &nbsp;·&nbsp; <b>F</b> focus on the problem
+    </div>
+    <div id="d6e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Hope for the Best, but Expect the Worst</div>
+    <div class="ex-instruction">Read the situations and choose the response that best represents the idea “Hope for the best, but expect the worst.”</div>
+    <div id="d6e2"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d6e2-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+</div>
+
+<!-- ══════════ DAY 7 ══════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Complete Review &amp; Writing</div>
+      <div class="day-desc">Complete Review · Writing Challenge</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the best answer.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="d7e1-check">✔ Check</button>
+      <button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button>
+    </div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 2 – Writing Challenge: When Life Gives You Lemons</div>
+    <div class="ex-instruction">Read the situation and write 100–130 words.</div>
+    <div class="situation-box">You have been preparing an important presentation for several days. On the morning of the presentation, your computer suddenly stops working and you can't access the final version of your slides.</div>
+    <div style="font-size:0.85rem;font-weight:700;margin-bottom:6px;">Write about:</div>
+    <ul class="guide-list">
+      <li>what went wrong;</li>
+      <li>how a pessimist might react;</li>
+      <li>how an optimist might react;</li>
+      <li>how a realist might react;</li>
+      <li>what you could do to solve the problem;</li>
+      <li>how you could turn the situation into an opportunity.</li>
+    </ul>
+    <div class="useful-lang">
+      <div class="ul-title">Useful language</div>
+      <em>Something went wrong when...</em><br>
+      <em>A pessimist might think...</em><br>
+      <em>An optimist might say...</em><br>
+      <em>A realist would probably...</em><br>
+      <em>Instead of focusing on...</em><br>
+      <em>I could deal with the situation by...</em><br>
+      <em>I could turn the problem into an opportunity by...</em><br>
+      <em>The important thing is to keep a positive attitude...</em>
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Model text</div>
+      <p>I've been preparing an important presentation for several days, but on the morning of the presentation, my computer suddenly stops working. A pessimist might think that the whole presentation is going to be a disaster. An optimist might hope that everything will work out somehow.</p>
+      <p>A realist would probably focus on finding a practical solution. I could try to access my files from another device or contact someone who can help me. If the slides are unavailable, I could still give a simpler presentation using my notes.</p>
+      <p>I could also turn the problem into an opportunity to become more confident speaking without slides. After that, I would start keeping backup copies of important files.</p>
+    </div>
+    <textarea class="writing-area" id="d7e2-text" placeholder="Write your text here..."></textarea>
+    <div class="word-count" id="d7e2-count">0 words · Goal: 100–130 words</div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e2-send">📲 Send to Teacher Mari</button>
+    </div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Week complete!</h3>
+    <p>You finished all 7 days of “When Life Gives You Lemons”. Amazing work!</p>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">📲 Tell Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ══════════ VOCAB BANK ══════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Attitudes · Expressions for Reacting to Problems</div>
+    </div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🧠 Three Attitudes</div>
+    <div class="vocab-grid" id="vocab-attitudes"></div>
+  </div>
+  <div class="bank-section">
+    <div class="bank-title">🍋 Key Expressions</div>
+    <div class="vocab-grid" id="vocab-expressions"></div>
+  </div>
+</div>
+
+<!-- ══════════ GRAMMAR BANK ══════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Expression Patterns · Might / Could / Would probably</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">📌 Expression Patterns</div>
+    <div class="table-wrap">
+    <table class="grammar-table">
+      <tr><th>Pattern</th><th>Example</th></tr>
+      <tr><td><span class="orange">focus on</span> + noun</td><td>Let's focus on the main problem.</td></tr>
+      <tr><td><span class="orange">deal with</span> + noun</td><td>We need to deal with reality.</td></tr>
+      <tr><td><span class="orange">turn</span> something <span class="orange">into</span> something else</td><td>We can turn this problem into an opportunity.</td></tr>
+      <tr><td>something <span class="orange">goes / went wrong</span></td><td>Something went wrong during the presentation.</td></tr>
+      <tr><td><span class="orange">hope for</span> the best / <span class="orange">expect</span> the worst</td><td>Hope for the best, but expect the worst.</td></tr>
+      <tr><td><span class="orange">keep</span> a positive attitude</td><td>She managed to keep a positive attitude.</td></tr>
+    </table>
+    </div>
+    <div class="tip-box">💡 <strong>Tip:</strong> After <em>focus on</em> and <em>deal with</em>, use a noun: <em>focus on <u>the solution</u></em>, <em>deal with <u>the problem</u></em>. With <em>turn</em>, remember <em>into</em>: <em>turn a problem <u>into</u> an opportunity</em>.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">🔮 Talking About Possible Reactions</div>
+    <div class="table-wrap">
+    <table class="grammar-table">
+      <tr><th>Structure</th><th>Use</th><th>Example</th></tr>
+      <tr><td><span class="orange">might</span> + verb</td><td>a possible reaction</td><td>A pessimist might think it's a disaster.</td></tr>
+      <tr><td><span class="orange">could</span> + verb</td><td>a possible action or solution</td><td>I could use another computer.</td></tr>
+      <tr><td><span class="orange">would probably</span> + verb</td><td>the reaction we expect</td><td>A realist would probably look for a solution.</td></tr>
+    </table>
+    </div>
+    <div class="tip-box">💡 <strong>Tip:</strong> After <em>might</em>, <em>could</em> and <em>would</em>, use the base form of the verb: <em>A pessimist might <u>think</u>…</em> (not <em>thinks</em> or <em>to think</em>).</div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  STORAGE KEYS
+// ══════════════════════════════════════════════
+const KEY = 'teachermari_whenlifegivesyoulemons';
+const STUDENT_KEY = KEY + '_student';
+const DONE_KEY = KEY + '_done';
+const DAYS_KEY = KEY + '_days';
+const WRITING_KEY = KEY + '_writing';
+
+function lsGet(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+// ══════════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════════
+let studentName = lsGet(STUDENT_KEY, '');
+function startSession(name) {
+  studentName = name.trim();
+  lsSet(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.innerHTML = '';
+  banner.appendChild(document.createTextNode(`Hello, ${studentName}! 👋 Let's practise!`));
+  const change = document.createElement('button');
+  change.className = 'change-name'; change.type = 'button'; change.textContent = 'Not you?';
+  change.addEventListener('click', () => {
+    document.getElementById('student-name-input').value = '';
+    document.getElementById('welcome-screen').classList.remove('hidden');
+  });
+  banner.appendChild(change);
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+const nameInput = document.getElementById('student-name-input');
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const val = nameInput.value.trim();
+  if (!val) { nameInput.focus(); nameInput.style.borderColor = 'var(--red)'; return; }
+  startSession(val);
+});
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+nameInput.addEventListener('input', () => { nameInput.style.borderColor = ''; });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "When life gives you lemons, make lemonade!",
+  "Every mistake is a chance to learn something new.",
+  "Small steps every day make a big difference.",
+  "Hope for the best, and prepare for the rest!",
+  "You can turn any problem into an opportunity.",
+  "Keep a positive attitude. You are doing great!",
+  "Practice today, speak better tomorrow!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2'],
+  day2: ['d2e1','d2e2'],
+  day3: ['d3e1','d3e2'],
+  day4: ['d4e1','d4e2'],
+  day5: ['d5e1','d5e2'],
+  day6: ['d6e1','d6e2'],
+  day7: ['d7e1','d7e2'],
+};
+const ALL_EXERCISES = Object.values(DAY_EXERCISES).flat();
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+let completedExercises = new Set();
+let completedDays = new Set();
+try { completedExercises = new Set(JSON.parse(lsGet(DONE_KEY, '[]'))); } catch (e) {}
+try { completedDays = new Set(JSON.parse(lsGet(DAYS_KEY, '[]'))); } catch (e) {}
+
+function updateProgress() {
+  const done = ALL_EXERCISES.filter(e => completedExercises.has(e)).length;
+  const pct = Math.round((done / ALL_EXERCISES.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  Object.keys(DAY_EXERCISES).forEach(day => {
+    const tab = document.querySelector(`.tab-btn[data-tab="${day}"]`);
+    if (tab) tab.classList.toggle('done', completedDays.has(day));
+  });
+  if (completedDays.size === TOTAL_DAYS) document.getElementById('weekly-summary').style.display = 'block';
+}
+
+function markDone(exId) {
+  if (completedExercises.has(exId)) return;
+  completedExercises.add(exId);
+  lsSet(DONE_KEY, JSON.stringify([...completedExercises]));
+  for (const [day, list] of Object.entries(DAY_EXERCISES)) {
+    if (list.includes(exId) && !completedDays.has(day) && list.every(e => completedExercises.has(e))) {
+      completedDays.add(day);
+      lsSet(DAYS_KEY, JSON.stringify([...completedDays]));
+      if (completedDays.size === TOTAL_DAYS) setTimeout(celebrateWeek, 400);
+      else setTimeout(() => celebrateDay(day.replace('day', '')), 400);
+    }
+  }
+  updateProgress();
+}
+
+// ══════════════════════════════════════════════
+//  FEEDBACK HELPERS
+// ══════════════════════════════════════════════
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showFeedback(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'feedback show ' + type;
+}
+function hideFeedback(id) { document.getElementById(id).className = 'feedback'; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Excellent! You got all ${total} correct!`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Well done! ${correct}/${total} correct. Read the explanations and try again.`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} correct. Read the explanations below and try again. You can do it!`, type: 'err' };
+}
+function makeHint(yoursHtml, rightHtml, why) {
+  const d = document.createElement('div');
+  d.className = 'why-hint';
+  let html = '';
+  if (yoursHtml !== null) html += `✗ Your answer: <span class="yours">${yoursHtml}</span><br>`;
+  else html += `✗ <span class="yours">No answer.</span><br>`;
+  html += `✔ Correct answer: <span class="right">${rightHtml}</span>`;
+  if (why) html += `<br>💡 ${esc(why)}`;
+  d.innerHTML = html;
+  return d;
+}
+
+// ══════════════════════════════════════════════
+//  MULTIPLE CHOICE (A / B / C)
+// ══════════════════════════════════════════════
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = `<div class="mc-question">${i+1}. ${item.q}</div><div class="mc-options">` +
+      item.opts.map((o, j) => `<label class="mc-option" data-q="${prefix}_${i}" data-opt="${j}"><input type="radio" name="${prefix}_${i}" value="${j}"><span class="mc-letter">${String.fromCharCode(65+j)}.</span><span>${o}</span></label>`).join('') +
+      '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('change', e => {
+    const inp = e.target;
+    if (!inp.matches('input[type=radio]')) return;
+    const box = inp.closest('.mc-options');
+    box.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+    inp.closest('.mc-option').classList.add('selected');
+    const old = box.parentElement.querySelector('.why-hint'); if (old) old.remove();
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll(`[data-q="${prefix}_${i}"]`);
+    opts.forEach(o => o.classList.remove('correct','wrong'));
+    const itemDiv = opts[0].closest('.mc-item');
+    const old = itemDiv.querySelector('.why-hint'); if (old) old.remove();
+    const sel = document.querySelector(`input[name="${prefix}_${i}"]:checked`);
+    const v = sel ? parseInt(sel.value, 10) : -1;
+    if (v === item.ans) { opts[v].classList.add('correct'); correct++; return; }
+    if (v >= 0) opts[v].classList.add('wrong');
+    opts[item.ans].classList.add('correct');
+    const yours = v >= 0 ? `${String.fromCharCode(65+v)}. ${item.opts[v]}` : null;
+    const right = `${String.fromCharCode(65+item.ans)}. ${item.opts[item.ans]}`;
+    itemDiv.appendChild(makeHint(yours, right, item.why));
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  markDone(exId);
+}
+function resetMC(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected','correct','wrong'));
+  wrap.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  wrap.querySelectorAll('.why-hint').forEach(h => h.remove());
+  hideFeedback(fbId);
+}
+function setupMC(id, data) {
+  buildMC(id, data, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkMC(data, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetMC(id, id + '-fb'));
+}
+
+// ══════════════════════════════════════════════
+//  DROPDOWN MATCH (letter selection)
+// ══════════════════════════════════════════════
+function buildMatch(containerId, data, options, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const optsHtml = `<option value="">...</option>` + options.map((o, j) => `<option value="${j}">${o}</option>`).join('');
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.left} &nbsp;<select class="match-select" id="${prefix}_${i}">${optsHtml}</select></div>`;
+    wrap.appendChild(div);
+    div.querySelector('select').addEventListener('change', ev => {
+      ev.target.classList.remove('correct','wrong');
+      const old = div.querySelector('.why-hint'); if (old) old.remove();
+    });
+  });
+}
+function checkMatch(data, options, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    const itemDiv = sel.closest('.fill-item');
+    sel.classList.remove('correct','wrong');
+    const old = itemDiv.querySelector('.why-hint'); if (old) old.remove();
+    const v = sel.value === '' ? -1 : parseInt(sel.value, 10);
+    if (v === item.ans) { sel.classList.add('correct'); correct++; return; }
+    sel.classList.add('wrong');
+    itemDiv.appendChild(makeHint(v >= 0 ? esc(options[v]) : null, esc(options[item.ans]), item.why));
+  });
+  const r = scoreText(correct, data.length);
+  showFeedback(fbId, r.msg, r.type);
+  markDone(exId);
+}
+function resetMatch(data, prefix, fbId) {
+  data.forEach((_, i) => {
+    const sel = document.getElementById(`${prefix}_${i}`);
+    sel.value = ''; sel.className = 'match-select';
+    const old = sel.closest('.fill-item').querySelector('.why-hint'); if (old) old.remove();
+  });
+  hideFeedback(fbId);
+}
+function setupMatch(id, data, options) {
+  buildMatch(id, data, options, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkMatch(data, options, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetMatch(data, id, id + '-fb'));
+}
+
+// ══════════════════════════════════════════════
+//  CLICK-TO-FILL (word bank + gaps)
+// ══════════════════════════════════════════════
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach((w, wi) => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'ctf-chip'; btn.dataset.wi = wi; btn.textContent = w;
+    bank.appendChild(btn);
+  });
+  wrap.appendChild(bank);
+
+  const list = document.createElement('div');
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item';
+    div.innerHTML = `<div class="fill-line">${i+1}. ${item.line.replace('___', `<span class="ctf-gap" data-idx="${i}"></span>`)}</div>`;
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+
+  let selected = null;
+  const clearReady = () => list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready'));
+  const clearGapFeedback = gap => {
+    gap.classList.remove('correct-gap','wrong-gap');
+    const old = gap.closest('.fill-item').querySelector('.why-hint'); if (old) old.remove();
+  };
+
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip');
+    if (!chip || chip.classList.contains('used')) return;
+    if (selected === chip) { chip.classList.remove('active'); selected = null; clearReady(); return; }
+    if (selected) selected.classList.remove('active');
+    chip.classList.add('active'); selected = chip;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap');
+    if (!gap) return;
+    clearGapFeedback(gap);
+    if (gap.textContent && !selected) {
+      const back = bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.wi}"]`);
+      if (back) back.classList.remove('used');
+      gap.textContent = ''; gap.dataset.wi = '';
+      clearReady();
+      return;
+    }
+    if (!selected) return;
+    if (gap.textContent) {
+      const back = bank.querySelector(`.ctf-chip[data-wi="${gap.dataset.wi}"]`);
+      if (back) back.classList.remove('used');
+    }
+    gap.textContent = selected.textContent;
+    gap.dataset.wi = selected.dataset.wi;
+    selected.classList.remove('active'); selected.classList.add('used');
+    selected = null; clearReady();
+  });
+
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0;
+    list.querySelectorAll('.ctf-gap').forEach(gap => {
+      clearGapFeedback(gap); gap.classList.remove('ready');
+      const item = cfg.items[parseInt(gap.dataset.idx, 10)];
+      const filled = (gap.textContent || '').trim();
+      if (filled.toLowerCase() === item.ans.toLowerCase()) { gap.classList.add('correct-gap'); correct++; return; }
+      gap.classList.add('wrong-gap');
+      gap.closest('.fill-item').appendChild(makeHint(filled ? esc(filled) : null, esc(item.ans), item.why));
+    });
+    const r = scoreText(correct, cfg.items.length);
+    showFeedback(cfg.fbId, r.msg, r.type);
+    markDone(cfg.exId);
+  });
+
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(gap => { gap.textContent = ''; gap.dataset.wi = ''; clearGapFeedback(gap); gap.classList.remove('ready'); });
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('used','active'));
+    selected = null;
+    hideFeedback(cfg.fbId);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  CLICK-MATCH (two clickable columns)
+// ══════════════════════════════════════════════
+function buildClickMatch(containerId, data, labels) {
+  const wrap = document.getElementById(containerId);
+  const order = data.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  // avoid a shuffle that keeps every item in place
+  if (order.length > 1 && order.every((v, i) => v === i)) order.push(order.shift());
+
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col left';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col right';
+  if (labels) {
+    leftCol.innerHTML = `<div class="cm-col-label">${labels[0]}</div>`;
+    rightCol.innerHTML = `<div class="cm-col-label">${labels[1]}</div>`;
+  }
+  data.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'left'; div.dataset.idx = i;
+    div.innerHTML = `<span class="cm-text">${item.left}</span>`;
+    leftCol.appendChild(div);
+  });
+  order.forEach(idx => {
+    const div = document.createElement('div');
+    div.className = 'cm-item'; div.dataset.side = 'right'; div.dataset.idx = idx;
+    div.innerHTML = `<span class="cm-text">${data[idx].right}</span>`;
+    rightCol.appendChild(div);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol);
+  wrap.appendChild(cmWrap);
+  const explain = document.createElement('div'); explain.className = 'cm-explain';
+  wrap.appendChild(explain);
+
+  const state = { links: {}, leftCol, rightCol, data, explain, pairCounter: 0 };
+  let selectedLeft = null;
+
+  const clearMarks = () => {
+    [leftCol, rightCol].forEach(c => c.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link')));
+    explain.innerHTML = '';
+  };
+  const unlink = leftIdx => {
+    const rightIdx = state.links[leftIdx];
+    const l = leftCol.querySelector(`.cm-item[data-idx="${leftIdx}"]`);
+    const r = rightCol.querySelector(`.cm-item[data-idx="${rightIdx}"]`);
+    [l, r].forEach(el => { if (el) { el.classList.remove('linked'); el.querySelectorAll('.cm-pair-num').forEach(b => b.remove()); } });
+    delete state.links[leftIdx];
+  };
+
+  cmWrap.addEventListener('click', e => {
+    const item = e.target.closest('.cm-item');
+    if (!item) return;
+    clearMarks();
+    if (item.classList.contains('linked')) {
+      if (item.dataset.side === 'left') unlink(item.dataset.idx);
+      else {
+        const leftIdx = Object.keys(state.links).find(k => state.links[k] === item.dataset.idx);
+        if (leftIdx !== undefined) unlink(leftIdx);
+      }
+      return;
+    }
+    if (item.dataset.side === 'left') {
+      if (selectedLeft === item) { item.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      item.classList.add('active'); selectedLeft = item;
+    } else {
+      if (!selectedLeft) return;
+      state.pairCounter++;
+      const num = state.pairCounter;
+      state.links[selectedLeft.dataset.idx] = item.dataset.idx;
+      selectedLeft.classList.remove('active');
+      [selectedLeft, item].forEach(el => {
+        el.classList.add('linked');
+        const b = document.createElement('span'); b.className = 'cm-pair-num'; b.textContent = num;
+        el.appendChild(b);
+      });
+      selectedLeft = null;
+    }
+  });
+  state.reset = () => {
+    Object.keys(state.links).forEach(k => delete state.links[k]);
+    state.pairCounter = 0; selectedLeft = null;
+    [leftCol, rightCol].forEach(c => c.querySelectorAll('.cm-item').forEach(el => {
+      el.classList.remove('active','linked','correct-link','wrong-link');
+      el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+    }));
+    explain.innerHTML = '';
+  };
+  return state;
+}
+function evalClickMatch(state) {
+  const { links, leftCol, rightCol, data, explain } = state;
+  let correct = 0;
+  [leftCol, rightCol].forEach(c => c.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link','wrong-link')));
+  explain.innerHTML = '';
+  data.forEach((item, i) => {
+    const leftEl = leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+    const linked = links[i];
+    if (linked !== undefined && parseInt(linked, 10) === i) {
+      correct++;
+      leftEl.classList.add('correct-link');
+      rightCol.querySelector(`.cm-item[data-idx="${i}"]`).classList.add('correct-link');
+      return;
+    }
+    leftEl.classList.add('wrong-link');
+    let yours = null;
+    if (linked !== undefined) {
+      rightCol.querySelector(`.cm-item[data-idx="${linked}"]`).classList.add('wrong-link');
+      yours = `${item.left} → ${data[parseInt(linked, 10)].right}`;
+    }
+    explain.appendChild(makeHint(yours, `${item.left} → ${item.right}`, item.why));
+  });
+  return { correct, total: data.length };
+}
+function setupClickMatch(id, data, labels) {
+  const state = buildClickMatch(id, data, labels);
+  document.getElementById(id + '-check').addEventListener('click', () => {
+    const r0 = evalClickMatch(state);
+    const r = scoreText(r0.correct, r0.total);
+    showFeedback(id + '-fb', r.msg, r.type);
+    markDone(id);
+  });
+  document.getElementById(id + '-reset').addEventListener('click', () => { state.reset(); hideFeedback(id + '-fb'); });
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1
+// ══════════════════════════════════════════════
+setupClickMatch('d1e1', [
+  {left:'hope for the best', right:'believe that something good will happen', why:"When you hope for the best, you believe something good will happen."},
+  {left:'go wrong', right:'not happen as planned', why:"When something goes wrong, it does not happen as planned."},
+  {left:'keep a positive attitude', right:'continue thinking positively, even in a difficult situation', why:"'Keep' means continue. You continue thinking positively when things are difficult."},
+  {left:'deal with reality', right:'accept a situation as it really is', why:"To deal with reality, you accept the real situation and work with it."},
+  {left:'focus on something', right:'give most of your attention to one particular thing', why:"When you focus on something, most of your attention goes to that one thing."},
+  {left:'expect the worst', right:'believe that something very bad will happen', why:"'The worst' is the most negative result. You believe something very bad will happen."},
+  {left:'turn something into something else', right:'change something so that it becomes something different', why:"'Turn … into' means change. One thing becomes a different thing."},
+], ['Expression', 'Meaning']);
+
+const OPR = ['O – optimist', 'P – pessimist', 'R – realist'];
+setupMatch('d1e2', [
+  {left:"“The weather forecast says there's a 90% chance of rain, so I'll take an umbrella.”", ans:2, why:"The person uses the facts (the forecast) and takes a practical step. That is realistic."},
+  {left:"“I have a job interview tomorrow. I'm sure they'll hate me and I won't get the job.”", ans:1, why:"The person is sure the result will be bad before the interview even happens. That is pessimistic."},
+  {left:"“My flight was cancelled, but maybe I can use the extra day to explore the city.”", ans:0, why:"The person finds something good in a bad situation. That is optimistic."},
+  {left:"“The project is behind schedule. We need to reduce the scope or ask for more time.”", ans:2, why:"The person accepts the problem and suggests practical solutions. That is realistic."},
+  {left:"“I didn't pass the exam, but I can learn from my mistakes and do better next time.”", ans:0, why:"The person believes the next time will be better. That is optimistic."},
+  {left:"“The restaurant has good reviews, but I'm sure our dinner will be terrible.”", ans:1, why:"The reviews are good, but the person still expects a bad result. That is pessimistic."},
+  {left:"“We don't have enough money for everything on our list, so let's decide what's essential.”", ans:2, why:"The person accepts the money limit and makes a practical decision. That is realistic."},
+  {left:"“The event has moved indoors because of the rain. Great! We can still have a good time.”", ans:0, why:"The person is happy and positive about the change. That is optimistic."},
+], OPR);
+
+// ══════════════════════════════════════════════
+//  DAY 2
+// ══════════════════════════════════════════════
+buildCTFSentences({
+  containerId: 'd2e1',
+  words: ['hope for the best','went wrong','keep a positive attitude','deal with reality','focus on','expect the worst','turn it into'],
+  items: [
+    {line:"The outdoor event might be affected by the weather, but let's prepare carefully and ___.", ans:'hope for the best', why:"They prepare and then believe the result will be good: 'hope for the best'."},
+    {line:"Something ___ during the presentation because the screen suddenly stopped working.", ans:'went wrong', why:"The screen stopped working, so something did not happen as planned. The story is in the past: 'went wrong'."},
+    {line:"Even after losing an important client, Maya managed to ___ and started contacting new companies.", ans:'keep a positive attitude', why:"Maya continued thinking positively after a problem: 'keep a positive attitude'."},
+    {line:"We only have two days to finish the project. We need to ___ and decide what we can realistically complete.", ans:'deal with reality', why:"They must accept the real situation (only two days): 'deal with reality'."},
+    {line:"Don't ___ before you've even received the test results. They might be fine.", ans:'expect the worst', why:"Believing the results are bad before you see them is to 'expect the worst'."},
+    {line:"We don't have time to discuss every small detail. Let's ___ the main problem.", ans:'focus on', why:"'Focus on' + a noun (the main problem) = give it most of your attention."},
+    {line:"The original plan failed, but perhaps we can ___ an opportunity to try something different.", ans:'turn it into', why:"We change the failed plan into something good: 'turn it into an opportunity'."},
+  ],
+  exId: 'd2e1', fbId: 'd2e1-fb', checkId: 'd2e1-check', resetId: 'd2e1-reset'
+});
+
+setupMC('d2e2', [
+  {q:'Your train is delayed by 40 minutes. <strong>(optimist)</strong>', opts:["“This always happens. I'll probably miss everything today.”","“The train is 40 minutes late, so I'll message them and tell them my new arrival time.”","“At least I have some extra time to finish my book.”"], ans:2, why:"An optimist sees something good in the delay: extra time to read. A is pessimistic and B is realistic."},
+  {q:'Your team has a good idea but only two days to complete the project. <strong>(realist)</strong>', opts:["“Let's identify the essential parts and finish those first.”","“There's no point trying. We're definitely going to fail.”","“Two days? Perfect! We can easily do absolutely everything.”"], ans:0, why:"A realist accepts the time limit and makes a practical plan. B is pessimistic and C is too optimistic."},
+  {q:"You don't get a job you really wanted. <strong>(pessimist)</strong>", opts:["“Maybe another opportunity will be even better.”","“I'll never get a good job. There's no point applying anywhere else.”","“I'll ask for feedback and decide what I can improve.”"], ans:1, why:"A pessimist thinks one bad result means everything will be bad in the future. A is optimistic and C is realistic."},
+  {q:'A new neighbour is a musician. <strong>(optimist)</strong>', opts:["“I'll wait and see how much noise there actually is.”","“Great! Maybe I'll get to hear some good music.”","“This is going to be a disaster. I'll never sleep again.”"], ans:1, why:"An optimist expects something good: nice music. A is realistic and C is pessimistic."},
+  {q:'Your company introduces a new AI tool. <strong>(realist)</strong>', opts:["“Let's learn what it can do and where its limitations are.”","“This will solve every problem we have.”","“It's definitely going to destroy the company.”"], ans:0, why:"A realist wants to understand what the tool can and can't do. B is too optimistic and C is pessimistic."},
+  {q:'Your lesson is cancelled and you suddenly have two free hours. <strong>(pessimist)</strong>', opts:["“Perfect! I can do something I haven't had time for.”","“I'll check when the class has been rescheduled and reorganize my day.”","“Great. Now my whole day is ruined.”"], ans:2, why:"A pessimist sees the free time as a problem: 'my whole day is ruined'. Here, 'Great' is sarcastic. A is optimistic and B is realistic."},
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 3
+// ══════════════════════════════════════════════
+const d3e1Sets = [
+  { id:'d3e1a', data:[
+    {left:'Optimist', right:"“Maybe we'll finish it quickly and I'll learn something useful too.”", why:"The optimist expects a good result and even sees a benefit: learning something useful."},
+    {left:'Pessimist', right:"“There goes my Friday night. This is going to take hours.”", why:"The pessimist expects the worst: a lost Friday night and hours of work."},
+    {left:'Realist', right:"“I'll check how urgent it is and whether I have enough time to help.”", why:"The realist checks the facts (how urgent, how much time) before deciding."},
+  ]},
+  { id:'d3e1b', data:[
+    {left:'Optimist', right:"“This is going to be fun. Maybe I'll discover a new favourite dish.”", why:"The optimist expects fun and a good result: a new favourite dish."},
+    {left:'Pessimist', right:"“I've never made this before. It's probably going to be terrible.”", why:"The pessimist expects the food to be terrible before trying."},
+    {left:'Realist', right:"“I'll follow the instructions carefully and check that I have all the ingredients first.”", why:"The realist prepares in a practical way: instructions and ingredients."},
+  ]},
+  { id:'d3e1c', data:[
+    {left:'Optimist', right:"“Great! I might meet some really interesting people.”", why:"The optimist expects something good: meeting interesting people."},
+    {left:'Pessimist', right:"“I probably won't have anyone to talk to all night.”", why:"The pessimist expects a bad night with nobody to talk to."},
+    {left:'Realist', right:"“I only know a few people, but I'll sit with them and introduce myself to others if I have the chance.”", why:"The realist accepts the situation (only a few friends) and makes a practical plan."},
+  ]},
+];
+const d3e1States = d3e1Sets.map(s => buildClickMatch(s.id, s.data, ['Person', 'Reaction']));
+document.getElementById('d3e1-check').addEventListener('click', () => {
+  let c = 0, t = 0;
+  d3e1States.forEach(st => { const r = evalClickMatch(st); c += r.correct; t += r.total; });
+  const r = scoreText(c, t);
+  showFeedback('d3e1-fb', r.msg, r.type);
+  markDone('d3e1');
+});
+document.getElementById('d3e1-reset').addEventListener('click', () => { d3e1States.forEach(st => st.reset()); hideFeedback('d3e1-fb'); });
+
+setupMC('d3e2', [
+  {q:"“I know the situation isn't ideal, but worrying about it won't change anything. Let's see what we can actually do.”", opts:['The speaker wants to ignore the problem.','The speaker believes the problem will disappear by itself.','The speaker accepts the problem and wants to find a practical response.'], ans:2, why:"The speaker says the situation 'isn't ideal' (accepts the problem) and asks 'what we can actually do' (a practical response)."},
+  {q:"“Every time something starts going well, I immediately think something bad is going to happen.”", opts:['The speaker tends to expect the worst.','The speaker always turns problems into opportunities.',"The speaker doesn't think about the future."], ans:0, why:"Even when things go well, the speaker thinks something bad will happen. That is expecting the worst."},
+  {q:"“We lost our usual meeting room, but this might be a good chance to try the new space upstairs.”", opts:['The speaker refuses to accept the change.','The speaker is turning a problem into an opportunity.','The speaker believes the meeting should be cancelled.'], ans:1, why:"Losing the room is a problem, but the speaker sees 'a good chance' to try something new."},
+  {q:"“I'm hoping everything will work out, but I've also prepared a backup plan.”", opts:['The speaker only focuses on what might go wrong.','The speaker refuses to think about possible problems.','The speaker is hopeful but also prepared for difficulties.'], ans:2, why:"'I'm hoping' shows hope. 'A backup plan' shows the speaker is prepared for problems."},
+  {q:"“The presentation didn't go well, so there's no point giving another one.”", opts:['The speaker is focusing on a negative experience and assuming future attempts will fail.','The speaker is looking for a practical solution.','The speaker sees the experience as an opportunity.'], ans:0, why:"One bad presentation makes the speaker think all future presentations will fail too."},
+  {q:"“This week has been difficult, but I'm trying not to let one bad week affect everything else.”", opts:['The speaker expects another bad week.','The speaker is trying to keep a positive attitude.',"The speaker doesn't realize the week was difficult."], ans:1, why:"The speaker knows the week was difficult but tries to stay positive. That is keeping a positive attitude."},
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 4
+// ══════════════════════════════════════════════
+setupMC('d4e1', [
+  {q:'What had happened before the shop owner arrived?', opts:['Someone had stolen a boot.','Someone had broken the shop window.','Someone had closed the shop.'], ans:1, why:"The text says he 'discovered that someone had broken his shop window'."},
+  {q:'What did the owner use to cover the hole?', opts:['A boot','A poster','A piece of wood'], ans:0, why:"The text says 'He used a boot to cover the hole in the window.' The cardboard was only an idea he didn't use."},
+  {q:'Why did some people like his solution?', opts:['It completely repaired the window.','It prevented all future problems.','It was creative and positive.'], ans:2, why:"The text says the result was creative and some people thought it was funny and positive. It didn't repair the window."},
+  {q:'What criticism did some people make?', opts:["The shop owner shouldn't open the shop again.","The solution wasn't very practical.",'The boot was too expensive.'], ans:1, why:"The text says others 'pointed out that the solution wasn't very practical'."},
+  {q:"Which sentence best summarizes the owner's reaction?", opts:['He found a creative response to a negative situation.','He pretended that nothing had happened.','He immediately replaced the entire window himself.'], ans:0, why:"The last sentence says he couldn't change what happened, but found a creative way to respond."},
+]);
+document.getElementById('rt-listen').addEventListener('click', () => speakText(document.getElementById('rt-shop').innerText));
+
+const ABC_ATT = ['A – optimistic', 'B – pessimistic', 'C – realistic'];
+setupMatch('d4e2', [
+  {left:"“It's a shame that the window was broken, but at least he created something that made people smile.”", ans:0, why:"'At least… made people smile' shows the speaker sees something positive. That is optimistic."},
+  {left:"“If things like this keep happening, his business won't survive.”", ans:1, why:"The speaker expects the business to fail. That is pessimistic."},
+  {left:"“The idea is creative, but the window still needs to be properly repaired.”", ans:2, why:"The speaker likes the idea but sees the real need: a proper repair. That is realistic."},
+  {left:"“Maybe all the attention will bring some new customers to the shop.”", ans:0, why:"The speaker hopes for a good result: new customers. That is optimistic."},
+  {left:"“One broken window today, another problem tomorrow. Things are only going to get worse.”", ans:1, why:"'Things are only going to get worse' means the speaker expects the worst. That is pessimistic."},
+  {left:"“The temporary solution is clever, but he still needs to think about security.”", ans:2, why:"The speaker sees the good idea and also a practical problem: security. That is realistic."},
+], ABC_ATT);
+
+// ══════════════════════════════════════════════
+//  DAY 5
+// ══════════════════════════════════════════════
+setupClickMatch('d5e1', [
+  {left:"You don't get the job after an interview.", right:'Ask for feedback and identify skills you could improve before your next application.', why:"After an interview, feedback shows you what to improve for the next job application."},
+  {left:'Your hotel looks completely different from the photos online.', right:'Contact the hotel, document the problem and look for a more suitable solution.', why:"The problem is with the hotel, so you contact the hotel and document the problem."},
+  {left:'You study hard but fail an exam.', right:'Review what went wrong and change the way you prepare for the next test.', why:"This opportunity talks about a test, so it matches the failed exam."},
+  {left:"A new gadget you bought doesn't work as expected.", right:"Check the warranty or return policy and learn more about the product before replacing it.", why:"Warranty and return policy are connected to a product you bought, like a gadget."},
+  {left:'You miss the bus and the next one arrives in an hour.', right:"Use the waiting time to have a coffee and finish something you've been meaning to do.", why:"You have an hour to wait, so you can use the waiting time well."},
+  {left:'Unexpected expenses make it difficult to save money.', right:'Review your spending and create a more realistic budget.', why:"Expenses and saving money are connected to your spending and your budget."},
+], ['Problem', 'Opportunity']);
+
+setupMC('d5e2', [
+  {q:"Julia didn't get a job after an interview. She wants to turn the experience into something useful.", opts:['Decide that interviews are a waste of time.','Apply for the same position every day.','Ask for feedback and use it to prepare for future interviews.'], ans:2, why:"Feedback turns the bad experience into something useful for her next interviews."},
+  {q:"Mark's hotel room is very different from the room advertised online.", opts:['Take photos and speak to the hotel staff about the problem.','Say nothing and complain only after the trip is over.','Assume every hotel will have the same problem.'], ans:0, why:"Photos and talking to the staff are practical steps to solve the problem now, during the trip."},
+  {q:'Nina failed an important exam despite studying hard.', opts:['Study exactly the same way without checking what went wrong.','Review her mistakes and change her study strategy.','Decide she can never pass the exam.'], ans:1, why:"Her mistakes show what went wrong. A new strategy can help her pass next time."},
+  {q:"Leo bought a gadget that doesn't work properly.", opts:['Throw it away immediately.','Buy exactly the same product before checking the problem.','Check whether it can be returned, repaired or replaced.'], ans:2, why:"Checking return, repair or replacement is the practical first step."},
+  {q:"Carla keeps having unexpected expenses and can't save as much as she planned.", opts:['Add an emergency category to her budget and adjust her savings target.','Stop checking her bank account.',"Continue using a budget that clearly isn't working."], ans:0, why:"An emergency category makes her budget realistic for unexpected expenses."},
+  {q:'Daniel misses his bus and has to wait an hour.', opts:['Assume the rest of his day is ruined.','Use the time to complete a small task nearby.','Wait without checking when the next bus actually arrives.'], ans:1, why:"Using the waiting time for a small task is the most practical choice."},
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 6
+// ══════════════════════════════════════════════
+const SAYINGS = ['A – hope for the best','B – expect the worst','C – deal with reality','D – keep a positive attitude','E – turn problems into opportunities','F – focus on the problem'];
+setupMatch('d6e1', [
+  {left:'The company lost an important client. Instead of giving up, the team used the extra time to develop a new service.', ans:4, why:"The team used a bad situation (a lost client) to create something new: a new service."},
+  {left:"Paula hasn't received her exam result yet, but she's already convinced that she failed.", ans:1, why:"Paula believes she failed before she knows the result. That is expecting the worst."},
+  {left:'The outdoor party is tomorrow. The weather might improve, so everyone is staying hopeful.', ans:0, why:"Everyone hopes the weather will be good. That is hoping for the best."},
+  {left:"The deadline can't be changed, so the team accepts that some non-essential tasks will have to wait.", ans:2, why:"The team accepts the real situation (a fixed deadline) and changes the plan. That is dealing with reality."},
+  {left:'Even after several difficult weeks, Sam continues to believe that things can improve.', ans:3, why:"Sam continues thinking positively after difficult weeks. That is keeping a positive attitude."},
+  {left:'Every time the team suggests a solution, Chris returns to everything that has already gone wrong.', ans:5, why:"Chris gives all his attention to the problems, not to the solutions. That is focusing on the problem."},
+], SAYINGS);
+
+setupMC('d6e2', [
+  {q:"You're organizing an outdoor event and rain is possible.", opts:['Cancel the event immediately because it will definitely rain.','Continue with the plan but prepare an indoor alternative.','Ignore the weather forecast completely.'], ans:1, why:"You hope the plan works (continue), but you prepare an indoor option in case it rains."},
+  {q:'You have an important online presentation.', opts:['Assume the internet connection will fail and refuse to present.','Don\'t prepare because everything will probably be fine.','Prepare normally and keep a copy of the presentation available offline.'], ans:2, why:"You prepare normally (hope for the best) and keep an offline copy in case the internet fails (expect the worst)."},
+  {q:"You're travelling abroad and need access to money.", opts:['Take your usual card but also keep a second payment option available.','Carry no money because your card will definitely work everywhere.','Assume your cards will be stolen and cancel the trip.'], ans:0, why:"You use your usual card (hope) but keep a second option in case it doesn't work (prepare)."},
+  {q:'Your team is launching a new product.', opts:['Expect the product to fail before customers even see it.','Be confident about the launch but prepare a plan for possible technical problems.','Refuse to discuss anything that might go wrong.'], ans:1, why:"You are confident (hope), and you also have a plan for problems (prepare)."},
+  {q:'You have a job interview next week.', opts:['Prepare carefully, stay confident and think about how you\'ll respond to difficult questions.','Assume you\'ll get the job and don\'t prepare.','Assume you\'ll fail and cancel the interview.'], ans:0, why:"You stay confident (hope) and you prepare for difficult questions (expect problems)."},
+  {q:"You're going on a long road trip.", opts:['Refuse to travel because the car might break down.','Assume nothing can go wrong and leave without checking anything.','Expect a good trip but check the car and prepare for possible problems.'], ans:2, why:"You expect a good trip (hope), but you check the car in case of problems (prepare)."},
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 7
+// ══════════════════════════════════════════════
+setupMC('d7e1', [
+  {q:'If you <strong>hope for the best</strong>, you ______.', opts:['believe something good may happen','believe everything will definitely fail','refuse to think about the future'], ans:0, why:"'Hope for the best' means you believe something good may happen."},
+  {q:'Which person is being a <strong>realist</strong>?', opts:['“Everything will be perfect. Nothing can possibly go wrong.”','“This will be a complete disaster. I know it.”',"“We have three hours, so let's decide what we can realistically finish.”"], ans:2, why:"A realist uses the facts (three hours) to make a practical plan. A is optimistic and B is pessimistic."},
+  {q:'Which expression means <strong>not happen as planned</strong>?', opts:['focus on','go wrong','deal with reality'], ans:1, why:"'Go wrong' means not happen as planned."},
+  {q:'Your flight is cancelled, but you decide to use the extra day to visit a place you wanted to see. You are ______.', opts:['turning a problem into an opportunity','expecting the worst','focusing only on the problem'], ans:0, why:"You change a problem (a cancelled flight) into something good (a visit)."},
+  {q:'Which sentence shows a <strong>pessimistic</strong> attitude?', opts:["“I'll wait until I have more information.”",'“Maybe something good will come from this.”',"“I'm sure this is only the beginning of more problems.”"], ans:2, why:"The speaker is sure more problems will come. That is pessimistic. A is realistic and B is optimistic."},
+  {q:"Someone broke the shop owner's window. What did he use to cover the hole?", opts:['A sign','A boot','A box'], ans:1, why:"In the Day 4 text, he used a boot to cover the hole."},
+  {q:'Which response best shows a <strong>positive but practical</strong> attitude?', opts:["“I'm sure nothing bad can happen.”",'“Everything always goes wrong.”',"“I hope it works, but I'll prepare a backup plan.”"], ans:2, why:"'I hope it works' is positive, and 'a backup plan' is practical."},
+  {q:'You failed an exam after studying hard. Which response best turns the problem into an opportunity?', opts:['Review your mistakes and try a different study strategy.',"Decide that studying doesn't help.",'Take the same exam again without changing anything.'], ans:0, why:"Reviewing your mistakes and trying a new strategy makes the problem useful for next time."},
+  {q:'Which sentence best describes someone who <strong>expects the worst</strong>?', opts:['They prepare for realistic difficulties.','They assume something bad will happen before they know the result.','They look for positive possibilities in difficult situations.'], ans:1, why:"To expect the worst is to think something bad will happen before you know the result."},
+  {q:'Your company introduces a new AI tool. Which reaction is the most <strong>realistic</strong>?', opts:['“It will solve every problem immediately.”','“It will definitely make everything worse.”',"“Let's learn what it can do and understand its limitations.”"], ans:2, why:"A realist wants to know what the tool can do and what its limits are."},
+  {q:'Which situation is the best example of <strong>keeping a positive attitude</strong>?', opts:['A project fails, but you stay motivated and try again.','A project fails, so you decide never to try anything similar again.','A project fails, but you pretend that it was successful.'], ans:0, why:"You stay motivated and try again after a problem. C is not positive, it is not accepting reality."},
+  {q:'Which response best matches an <strong>optimist</strong>?', opts:["“The new colleague probably won't like me.”",'“The new colleague might become a good friend.”','“I\'ll meet the new colleague before forming an opinion.”'], ans:1, why:"An optimist expects something good: a new friend. A is pessimistic and C is realistic."},
+  {q:'Which response best matches a <strong>pessimist</strong>?', opts:["“The weather may change, so I'll check the forecast later.”",'“It might rain, but we can still have fun indoors.”','“It will definitely rain and ruin the entire weekend.”'], ans:2, why:"'Definitely rain and ruin the entire weekend' means the speaker expects the worst. A is realistic and B is optimistic."},
+  {q:'Which response best matches a <strong>realist</strong>?', opts:["“The hotel isn't what we expected. Let's speak to reception and see what they can do.”",'“This is the worst trip ever. Nothing will improve.”',"“It doesn't matter that the room is completely different. Everything is perfect.”"], ans:0, why:"A realist accepts the problem and looks for a practical solution: talking to reception."},
+  {q:'What does <strong>turn something into something else</strong> mean?', opts:['continue thinking about the same problem','change one thing so that it becomes another thing','believe that something bad will happen'], ans:1, why:"'Turn … into' means change. One thing becomes another thing."},
+]);
+
+// Writing
+const wText = document.getElementById('d7e2-text');
+const wCount = document.getElementById('d7e2-count');
+function countWords(s) { return (s.trim().match(/\S+/g) || []).length; }
+function updateCount() {
+  const n = countWords(wText.value);
+  wCount.textContent = `${n} word${n === 1 ? '' : 's'} · Goal: 100–130 words`;
+  wCount.className = 'word-count' + (n >= 100 && n <= 130 ? ' ok' : (n > 130 ? ' over' : ''));
+}
+wText.value = lsGet(WRITING_KEY, '');
+updateCount();
+wText.addEventListener('input', () => { lsSet(WRITING_KEY, wText.value); updateCount(); hideFeedback('d7e2-fb'); });
+document.getElementById('d7e2-send').addEventListener('click', () => {
+  const text = wText.value.trim();
+  const n = countWords(text);
+  if (n < 100) {
+    showFeedback('d7e2-fb', `✏️ You have ${n} word${n === 1 ? '' : 's'}. Write at least 100 words before you send your text.`, 'err');
+    wText.focus();
+    return;
+  }
+  const msg = `Hello, Teacher Mari! This is ${studentName || 'your student'}.\n\n*When Life Gives You Lemons – Day 7 Writing Challenge*\n\n${text}\n\n(${n} words)`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+  showFeedback('d7e2-fb', n > 130 ? `✅ Sent! Your text has ${n} words. Next time, try to stay between 100 and 130 words.` : '✅ Great job! Your text is ready for Teacher Mari.', n > 130 ? 'partial' : 'ok');
+  markDone('d7e2');
+});
+
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = `🏆 Hello, Teacher Mari! This is ${studentName || 'your student'}. I finished all 7 days of *When Life Gives You Lemons*!`;
+  window.open(`https://wa.me/5524992723816?text=${encodeURIComponent(msg)}`, '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+const VOCAB_ATTITUDES = [
+  {en:'optimist (optimistic)', say:'optimist, optimistic', def:'a person who expects good things to happen', ex:'“Maybe something good will come from this.”'},
+  {en:'pessimist (pessimistic)', say:'pessimist, pessimistic', def:'a person who expects bad things to happen', ex:'“This is going to be a disaster.”'},
+  {en:'realist (realistic)', say:'realist, realistic', def:'a person who accepts the facts and looks for practical solutions', ex:'“Let\'s see what we can actually do.”'},
+];
+const VOCAB_EXPRESSIONS = [
+  {en:'hope for the best', def:'believe that something good will happen', ex:"Let's prepare carefully and hope for the best."},
+  {en:'go wrong', def:'not happen as planned', ex:'Something went wrong during the presentation.'},
+  {en:'keep a positive attitude', def:'continue thinking positively in a difficult situation', ex:'Maya managed to keep a positive attitude.'},
+  {en:'deal with reality', def:'accept a situation as it really is', ex:'We need to deal with reality and change the plan.'},
+  {en:'focus on something', def:'give most of your attention to one thing', ex:"Let's focus on the main problem."},
+  {en:'expect the worst', def:'believe that something very bad will happen', ex:"Don't expect the worst before you see the results."},
+  {en:'turn something into something else', def:'change something so that it becomes different', ex:'We can turn this problem into an opportunity.'},
+  {en:'backup plan', def:'a second plan if the first plan fails', ex:"I'm hopeful, but I've prepared a backup plan."},
+];
+function renderVocab(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = `<div class="vc-top"><button class="speak-btn" type="button" title="Listen">🔊</button><span class="vc-en">${esc(item.en)}</span></div><div class="vc-def">${esc(item.def)}</div><div class="vc-ex">${esc(item.ex)}</div>`;
+    div.querySelector('.speak-btn').addEventListener('click', () => speakText(item.say || item.en));
+    wrap.appendChild(div);
+  });
+}
+renderVocab('vocab-attitudes', VOCAB_ATTITUDES);
+renderVocab('vocab-expressions', VOCAB_EXPRESSIONS);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+const confetti = { particles: [], running: false };
+function launchConfetti(count) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#FF5C23','#1D1050','#04392F','#FAEAD3','#5340c8','#f59e0b','#0d9488'];
+  for (let i = 0; i < count; i++) {
+    confetti.particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height * 0.6,
+      r: Math.random() * 7 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 4 + 2,
+      drift: (Math.random() - 0.5) * 3,
+      angle: Math.random() * 360,
+      spin: (Math.random() - 0.5) * 8
+    });
+  }
+  if (confetti.running) return;
+  confetti.running = true;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confetti.particles.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6); ctx.restore();
+      p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+    });
+    confetti.particles = confetti.particles.filter(p => p.y < canvas.height + 20);
+    if (confetti.particles.length) requestAnimationFrame(draw);
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); confetti.running = false; }
+  })();
+}
+let toastEl = null, toastTimer = null;
+function showToast(msg) {
+  if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; document.body.appendChild(toastEl); }
+  toastEl.textContent = msg;
+  requestAnimationFrame(() => toastEl.classList.add('show'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
+}
+function celebrateDay(n) { launchConfetti(150); showToast(`🎉 Day ${n} complete! Great job!`); }
+function celebrateWeek() {
+  launchConfetti(220);
+  setTimeout(() => launchConfetti(220), 900);
+  showToast('🏆 Week complete! You are amazing!');
+  document.getElementById('weekly-summary').style.display = 'block';
+}
+
+updateProgress();
+</script>
+</body>
+</html>
