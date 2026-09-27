@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>That's a Good Question! – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, textarea, select { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white); border-radius: 20px; padding: 36px 28px;
+    max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm);
+    padding: 12px 16px; font-size: 1rem; font-weight: 600; color: var(--purple);
+    text-align: center; outline: none; margin-bottom: 16px; transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%; padding: 13px; background: var(--orange); color: var(--white);
+    border: none; border-radius: 99px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35); transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none; background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white); text-align: center; padding: 12px 16px; font-size: 1rem; font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px; text-align: center; position: relative; overflow: hidden;
+  }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,92,35,0.18); }
+  .header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,92,35,0.12); }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle { font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.70); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* ── PROGRESS ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; color: var(--purple); margin-bottom: 8px; }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ff8c5a); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar { background: linear-gradient(90deg, var(--green), #0a6655); color: var(--white); text-align: center; padding: 10px 16px; font-size: 0.82rem; font-weight: 500; }
+
+  /* ── TABS ── */
+  .tabs-wrap { background: var(--white); overflow-x: auto; border-bottom: 2px solid var(--gray-light); position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm); -webkit-overflow-scrolling: touch; }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn { padding: 14px 16px; font-size: 0.78rem; font-weight: 600; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .done-mark { color: var(--teal); font-weight: 800; margin-left: 4px; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number { background: var(--orange); color: var(--white); font-size: 1.1rem; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(255,92,35,0.3); }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--purple-light); }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+
+  /* ── DIALOGUE LINES ── */
+  .dl { display: block; line-height: 1.8; }
+  .speaker { font-weight: 700; color: var(--orange); margin-right: 4px; }
+  .dialogue-box { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 18px; border-left: 4px solid var(--teal); }
+  .dialogue-line { padding: 6px 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid rgba(29,16,80,0.08); line-height: 1.5; }
+  .dialogue-line:last-child { border-bottom: none; }
+
+  /* ── INFO CARD (hotel) ── */
+  .info-card { background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 16px 18px; margin-bottom: 18px; border: 2px dashed var(--orange); }
+  .info-card h4 { font-size: 0.95rem; font-weight: 800; color: var(--purple); margin-bottom: 8px; letter-spacing: 1px; text-align: center; }
+  .info-card ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 4px 16px; }
+  .info-card li { font-size: 0.84rem; font-weight: 500; padding: 3px 0; }
+  .info-card li strong { color: var(--orange); }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-item { margin-bottom: 20px; }
+  .mc-question { font-size: 0.88rem; font-weight: 600; color: var(--purple); margin-bottom: 10px; line-height: 1.5; }
+  .mc-question .q-num { color: var(--purple-light); font-weight: 800; margin-right: 4px; }
+  .mc-question .dl { font-weight: 500; }
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 500; background: var(--white); }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); font-weight: 700; }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); font-weight: 700; }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); flex-shrink: 0; }
+  .mc-letter { font-weight: 700; }
+
+  /* ── WHY BOX (feedback per item) ── */
+  .why-box { margin-top: 8px; font-size: 0.8rem; color: var(--purple); font-weight: 500; background: #f0fdfa; border-left: 3px solid var(--teal); padding: 8px 12px; border-radius: 0 6px 6px 0; line-height: 1.55; }
+  .why-box .ans-ok { color: var(--teal); font-weight: 700; }
+  .why-box .ans-bad { color: var(--red); font-weight: 700; }
+  .why-box .why-label { color: var(--orange); font-weight: 700; }
+
+  /* ── FILL / INPUT ── */
+  .fill-item { margin-bottom: 16px; }
+  .fill-line { font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 2; }
+  .item-num { color: var(--purple-light); font-weight: 800; margin-right: 4px; }
+  .fill-input {
+    border: none; border-bottom: 2px solid var(--purple-light); padding: 2px 6px;
+    font-size: 0.88rem; font-weight: 600; color: var(--purple); background: transparent;
+    width: min(100%, 230px); max-width: 100%; text-align: center; outline: none;
+    transition: border-color 0.2s; display: inline-block; vertical-align: baseline;
+  }
+  .fill-input.short { width: min(100%, 90px); }
+  .fill-input:focus { border-bottom-color: var(--orange); background: #fff5ee; }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── TEXTAREA ── */
+  .writing-area { width: 100%; max-width: 100%; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 0.88rem; color: var(--purple); resize: vertical; outline: none; min-height: 220px; transition: border-color 0.2s; line-height: 1.7; }
+  .writing-area:focus { border-color: var(--purple-light); }
+
+  /* ── BUTTONS ── */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 99px; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.83rem; font-weight: 600; margin-top: 14px; line-height: 1.5; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 16px; align-items: flex-start; }
+  .cm-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-col-title { font-size: 0.72rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .cm-item { padding: 10px 12px; border-radius: var(--radius-sm); border: 2px solid var(--gray-light); cursor: pointer; transition: all 0.2s; font-size: 0.84rem; font-weight: 600; color: var(--purple); background: var(--white); user-select: none; line-height: 1.4; overflow-wrap: anywhere; }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item .cm-tag { color: var(--purple-light); font-weight: 800; margin-right: 4px; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px; background: var(--orange); color: #fff; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
+  .cm-report { margin-top: 12px; }
+
+  /* ── CLICK-TO-FILL ── */
+  .ctf-wordbank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 10px 12px; background: var(--cream); border-radius: var(--radius-sm); position: sticky; top: 50px; z-index: 5; }
+  .ctf-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .ctf-chip:hover { background: var(--purple-light); }
+  .ctf-chip.active { background: var(--orange); outline: 3px solid #ffb347; transform: scale(1.06); }
+  .ctf-gap { display: inline-block; min-width: 64px; text-align: center; border-bottom: 2.5px solid var(--purple-light); color: var(--orange); font-weight: 700; font-size: 0.88rem; padding: 0 6px; cursor: pointer; margin: 0 2px; transition: border-color 0.2s, background 0.2s; border-radius: 4px 4px 0 0; vertical-align: baseline; line-height: 1.7; }
+  .ctf-gap:empty::before { content: '_ _ _'; color: #bbb; font-weight: 400; font-size: 0.78rem; }
+  .ctf-gap.ready { border-bottom-color: var(--orange); background: #fff5ee; }
+  .ctf-gap.correct-gap { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .ctf-gap.wrong-gap { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-item { margin-bottom: 20px; }
+  .sb-label { font-size: 0.8rem; font-weight: 700; color: var(--purple); margin-bottom: 6px; }
+  .sb-label .answer-given { color: var(--teal); font-weight: 700; }
+  .sb-words { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; min-height: 42px; padding: 8px; background: var(--gray-light); border-radius: var(--radius-sm); }
+  .sb-zone { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 46px; padding: 8px 10px; background: var(--white); border: 2px dashed var(--purple-light); border-radius: var(--radius-sm); transition: border-color 0.2s; }
+  .sb-zone::after { content: '?'; font-weight: 800; color: var(--gray); font-size: 1rem; }
+  .sb-zone.correct-zone { border-color: var(--teal); border-style: solid; background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); border-style: solid; background: #fef2f2; }
+  .sb-chip { background: var(--purple); color: var(--white); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .sb-chip:hover { background: var(--purple-light); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-zone.wrong-zone .sb-chip { background: var(--red); }
+  .sb-zone.correct-zone .sb-chip { background: var(--teal); }
+
+  /* ── SORT (BE / PRESENT SIMPLE) ── */
+  .sort-item { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-light); }
+  .sort-item:last-child { border-bottom: none; }
+  .sort-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.88rem; font-weight: 600; color: var(--purple); }
+  .sort-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sort-btn { padding: 5px 14px; border-radius: 99px; border: 2px solid var(--gray-light); font-size: 0.76rem; font-weight: 700; cursor: pointer; background: var(--white); color: var(--purple); transition: all 0.2s; }
+  .sort-btn:hover { border-color: var(--purple-light); }
+  .sort-btn.selected { border-color: var(--purple-light); background: var(--purple-light); color: #fff; }
+  .sort-btn.right-answer { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .sort-btn.wrong-sel { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--gray-light); }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+  .vocab-chip { background: var(--white); border: 2px solid var(--gray-light); border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--purple); transition: all 0.2s; }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.88rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .speak-btn { background: none; border: none; cursor: pointer; font-size: 1.05rem; margin-bottom: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; vertical-align: top; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; font-size: 0.82rem; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+  /* ── WRITING ── */
+  .checklist { list-style: none; margin: 10px 0 14px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 0.86rem; font-weight: 500; color: var(--purple); border-bottom: 1px solid var(--gray-light); }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-weight: 800; }
+  .topic-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .topic-chip { background: var(--cream); color: var(--purple); border-radius: 99px; padding: 4px 12px; font-size: 0.76rem; font-weight: 600; }
+  .example-box { display: none; background: linear-gradient(135deg, var(--cream), #fff5e6); border-radius: var(--radius-sm); padding: 16px; margin-top: 14px; font-size: 0.88rem; line-height: 1.8; color: var(--purple); font-weight: 500; border: 2px dashed var(--orange); }
+  .example-box.show { display: block; }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .word-count { font-size: 0.75rem; color: var(--gray); font-weight: 600; }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card { background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: var(--radius); padding: 24px; text-align: center; color: var(--white); margin-top: 10px; }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: min(100%, 190px); font-size: 0.84rem; }
+    .cm-wrap { gap: 8px; }
+    .cm-item { font-size: 0.76rem; padding: 8px 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr)); gap: 8px; }
+    .dialogue-box { padding: 12px 12px; }
+    .ctf-wordbank { top: 46px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+    .tip-box { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to the weekly practice<br><strong>That's a Good Question!</strong><br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div>
+      <h1>That's a Good Question!</h1>
+      <div class="subtitle">Weekly Practice · Asking Questions</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label"><span>Your weekly progress</span><span id="progress-pct">0%</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">❓ Day 1</button>
+    <button class="tab-btn" data-tab="day2">🔁 Day 2</button>
+    <button class="tab-btn" data-tab="day3">⚖️ Day 3</button>
+    <button class="tab-btn" data-tab="day4">🎯 Day 4</button>
+    <button class="tab-btn" data-tab="day5">⏱️ Day 5</button>
+    <button class="tab-btn" data-tab="day6">🧩 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🏁 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═════════ DAY 1 ═════════ -->
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header">
+    <div class="day-number">1</div>
+    <div>
+      <div class="day-title">Questions with BE</div>
+      <div class="day-desc">Question &amp; Answer Pairs · Build the Question · Read the Answer, Choose the Question</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Question &amp; Answer Pairs</div>
+    <div class="ex-instruction">Match each question to the correct answer. Click a question, then click its answer. Click a question again to undo.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e1-check">✔ Check</button><button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Build the Question</div>
+    <div class="ex-instruction">Put the words in the correct order to make questions. Tap the words in order. Tap a word again to remove it.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e2-check">✔ Check</button><button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Read the Answer, Choose the Question</div>
+    <div class="ex-instruction">Choose the question that matches the answer.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e3-check">✔ Check</button><button class="btn btn-secondary" id="d1e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 2 ═════════ -->
+<div class="day-panel" id="panel-day2">
+  <div class="day-header">
+    <div class="day-number">2</div>
+    <div>
+      <div class="day-title">Present Simple Questions</div>
+      <div class="day-desc">Do or Does? · Find the Question · The Interview</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Do or Does?</div>
+    <div class="ex-instruction">Complete each mini-dialogue. Write <strong>Do</strong> or <strong>Does</strong>.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e1-check">✔ Check</button><button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 2 – Find the Question</div>
+    <div class="ex-instruction">Choose the best question for each answer.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e2-check">✔ Check</button><button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – The Interview</div>
+    <div class="ex-instruction">Complete each question using the information in the answer.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e3-check">✔ Check</button><button class="btn btn-secondary" id="d2e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 3 ═════════ -->
+<div class="day-panel" id="panel-day3">
+  <div class="day-header">
+    <div class="day-number">3</div>
+    <div>
+      <div class="day-title">BE or DO?</div>
+      <div class="day-desc">Two Question Systems · BE or DO? · Question Families</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Two Question Systems</div>
+    <div class="ex-instruction">Read the answer and choose the correct question.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e1-check">✔ Check</button><button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – BE or DO?</div>
+    <div class="ex-instruction">Complete the questions. Write <strong>am, is, are, do</strong> or <strong>does</strong>.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e2-check">✔ Check</button><button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – Question Families</div>
+    <div class="ex-instruction">Put the questions into the correct category: <strong>BE</strong> or <strong>PRESENT SIMPLE</strong>.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e3-check">✔ Check</button><button class="btn btn-secondary" id="d3e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 4 ═════════ -->
+<div class="day-panel" id="panel-day4">
+  <div class="day-header">
+    <div class="day-number">4</div>
+    <div>
+      <div class="day-title">Questions with CAN &amp; WOULD LIKE</div>
+      <div class="day-desc">Can: Question or Answer? · Complete the Invitation · Which Question Fits the Situation?</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Can: Question or Answer?</div>
+    <div class="ex-instruction">Match each question to the correct answer. Click a question, then click its answer. Click a question again to undo.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e1-check">✔ Check</button><button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Complete the Invitation</div>
+    <div class="ex-instruction">Choose the best option to complete each mini-dialogue.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e2-check">✔ Check</button><button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 3 – Which Question Fits the Situation?</div>
+    <div class="ex-instruction">Choose the best question.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e3-check">✔ Check</button><button class="btn btn-secondary" id="d4e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 5 ═════════ -->
+<div class="day-panel" id="panel-day5">
+  <div class="day-header">
+    <div class="day-number">5</div>
+    <div>
+      <div class="day-title">Questions About Now</div>
+      <div class="day-desc">Now or Routine? · Build the Question from the Answer · A Phone Call</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Now or Routine?</div>
+    <div class="ex-instruction">Choose the question that matches the answer.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e1-check">✔ Check</button><button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Build the Question from the Answer</div>
+    <div class="ex-instruction">Read the answer. Put the words in order to make the question. Tap the words in order. Tap a word again to remove it.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e2-check">✔ Check</button><button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 3 – A Phone Call</div>
+    <div class="ex-instruction">Read the dialogue and choose the correct answer.</div>
+    <div class="dialogue-box">
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Hi, Emma. Where are you?</div>
+      <div class="dialogue-line"><span class="speaker">Emma:</span> I'm at the airport.</div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Are you travelling today?</div>
+      <div class="dialogue-line"><span class="speaker">Emma:</span> Yes, I am. I'm going to São Paulo.</div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Do you travel a lot for work?</div>
+      <div class="dialogue-line"><span class="speaker">Emma:</span> No, I don't. I usually work from home.</div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> What are you doing now?</div>
+      <div class="dialogue-line"><span class="speaker">Emma:</span> I'm waiting for my flight.</div>
+      <div class="dialogue-line"><span class="speaker">Leo:</span> Are you having coffee?</div>
+      <div class="dialogue-line"><span class="speaker">Emma:</span> No, I'm not. I'm drinking water.</div>
+    </div>
+    <div id="d5e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e3-check">✔ Check</button><button class="btn btn-secondary" id="d5e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 6 ═════════ -->
+<div class="day-panel" id="panel-day6">
+  <div class="day-header">
+    <div class="day-number">6</div>
+    <div>
+      <div class="day-title">Putting the Question System Together</div>
+      <div class="day-desc">Read the Answer First · Questions About a Hotel · One Answer, One Question</div>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-title">Exercise 1 – Read the Answer First</div>
+    <div class="ex-instruction">Choose the correct question for each answer.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e1-check">✔ Check</button><button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+
+  <div class="ex-card reading">
+    <div class="ex-title">Exercise 2 – Questions About a Hotel</div>
+    <div class="ex-instruction">Read the hotel information. Choose the question that each guest needs to ask.</div>
+    <div class="info-card">
+      <h4>🏨 SUNSET HOTEL</h4>
+      <ul>
+        <li><strong>Restaurant:</strong> ground floor</li>
+        <li><strong>Breakfast:</strong> 7:00–10:00</li>
+        <li><strong>Swimming pool:</strong> yes</li>
+        <li><strong>Gym:</strong> no</li>
+        <li><strong>Free parking:</strong> yes</li>
+        <li><strong>Cafés near the hotel:</strong> two</li>
+        <li><strong>Supermarket:</strong> opposite the hotel</li>
+      </ul>
+    </div>
+    <div id="d6e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e2-check">✔ Check</button><button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 3 – One Answer, One Question</div>
+    <div class="ex-instruction">Complete each question. Use the answer to decide which structure you need.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e3-check">✔ Check</button><button class="btn btn-secondary" id="d6e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<!-- ═════════ DAY 7 ═════════ -->
+<div class="day-panel" id="panel-day7">
+  <div class="day-header">
+    <div class="day-number">7</div>
+    <div>
+      <div class="day-title">Complete Question Review</div>
+      <div class="day-desc">Complete Review · Which Question Is Incorrect? · Writing Challenge</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 1 – Complete Review</div>
+    <div class="ex-instruction">Choose the correct option.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e1-check">✔ Check</button><button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="ex-title">Exercise 2 – Which Question Is Incorrect?</div>
+    <div class="ex-instruction">Choose the sentence with a mistake.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e2-check">✔ Check</button><button class="btn btn-secondary" id="d7e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <div class="ex-card writing">
+    <div class="ex-title">Exercise 3 – Writing Challenge: Create a Mini Interview</div>
+    <div class="ex-instruction">Imagine you are meeting a new person. Write <strong>8 questions</strong> to get to know them.</div>
+    <div class="sb-label">Include:</div>
+    <ul class="checklist">
+      <li><span class="check-icon">✓</span> 1 question with <strong>BE</strong></li>
+      <li><span class="check-icon">✓</span> 2 questions with <strong>PRESENT SIMPLE</strong></li>
+      <li><span class="check-icon">✓</span> 1 question with <strong>CAN</strong></li>
+      <li><span class="check-icon">✓</span> 1 question with <strong>PRESENT CONTINUOUS</strong></li>
+      <li><span class="check-icon">✓</span> 1 question with <strong>WOULD LIKE</strong></li>
+      <li><span class="check-icon">✓</span> 1 question with <strong>THERE IS / THERE ARE</strong></li>
+      <li><span class="check-icon">✓</span> 1 question with a <strong>QUESTION WORD</strong></li>
+    </ul>
+    <div class="sb-label">You can ask about:</div>
+    <div class="topic-chips">
+      <span class="topic-chip">home</span><span class="topic-chip">work</span><span class="topic-chip">food</span><span class="topic-chip">family</span><span class="topic-chip">free time</span><span class="topic-chip">skills</span><span class="topic-chip">routines</span><span class="topic-chip">today</span><span class="topic-chip">weekends</span>
+    </div>
+    <textarea class="writing-area" id="d7e3-text" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea>
+    <div class="word-count" id="d7e3-count">0 questions</div>
+    <div class="btn-row">
+      <button class="btn btn-whatsapp" id="d7e3-send">📲 Send to Teacher Mari</button>
+      <button class="btn btn-secondary" id="d7e3-model">👀 Show model text</button>
+    </div>
+    <div class="feedback" id="d7e3-fb"></div>
+    <div class="example-box" id="d7e3-model-box">
+      <div class="ex-label">Model text</div>
+      1. Where are you from?<br>
+      2. Where do you work?<br>
+      3. What do you usually do after work?<br>
+      4. Can you cook?<br>
+      5. What are you doing after class?<br>
+      6. What would you like to do this weekend?<br>
+      7. Is there a supermarket near your house?<br>
+      8. How often do you go to the cinema?
+    </div>
+  </div>
+
+  <div class="summary-card" id="weekly-summary" style="display:none;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+    <h3>Week complete!</h3>
+    <p>You finished <strong>That's a Good Question!</strong> Amazing work!</p>
+    <div class="score-big" id="final-score">0%</div>
+    <div style="font-size:0.78rem;opacity:0.75;margin-top:4px;margin-bottom:18px;">your average score</div>
+    <button class="btn btn-whatsapp" id="summary-whatsapp">📲 Share with Teacher Mari</button>
+  </div>
+</div>
+
+<!-- ═════════ VOCAB BANK ═════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Question words · How often · Short answers · Offers and invitations</div>
+    </div>
+  </div>
+  <div class="bank-section"><div class="bank-title">❓ Question Words</div><div class="vocab-grid" id="vocab-qwords"></div></div>
+  <div class="bank-section"><div class="bank-title">🔁 How Often? (frequency)</div><div class="vocab-grid" id="vocab-freq"></div></div>
+  <div class="bank-section"><div class="bank-title">💬 Short Answers</div><div class="vocab-grid" id="vocab-short"></div></div>
+  <div class="bank-section"><div class="bank-title">☕ Offers and Invitations</div><div class="vocab-grid" id="vocab-offers"></div></div>
+</div>
+
+<!-- ═════════ GRAMMAR BANK ═════════ -->
+<div class="day-panel" id="panel-grammar">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--orange);">📐</div>
+    <div>
+      <div class="day-title">Grammar Bank</div>
+      <div class="day-desc">Six question systems in English</div>
+    </div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">1️⃣ Questions with BE (am / is / are)</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>(Question word)</th><th>BE</th><th>Subject</th><th>Example</th></tr>
+      <tr><td>–</td><td class="orange">Are</td><td>you</td><td>Are you tired? – Yes, I am. / No, I'm not.</td></tr>
+      <tr><td>–</td><td class="orange">Is</td><td>your sister</td><td>Is your sister at work? – No, she isn't.</td></tr>
+      <tr><td>Where</td><td class="orange">are</td><td>you</td><td>Where are you from? – I'm from Brazil.</td></tr>
+      <tr><td>Who</td><td class="orange">is</td><td>that woman</td><td>Who is that woman? – She's my mother.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> BE comes <strong>before</strong> the subject: <em>Where are you from?</em> not <em>Where you are from?</em></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">2️⃣ Present Simple Questions (do / does)</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>(Question word)</th><th>Do / Does</th><th>Subject</th><th>Base verb</th></tr>
+      <tr><td>–</td><td class="orange">Do</td><td>you / we / they</td><td>work on Saturdays? – Yes, I do.</td></tr>
+      <tr><td>–</td><td class="orange">Does</td><td>he / she / it</td><td>drink coffee? – No, she doesn't.</td></tr>
+      <tr><td>Where</td><td class="orange">does</td><td>she</td><td>work?</td></tr>
+      <tr><td>How often</td><td class="orange">do</td><td>you</td><td>go shopping?</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> After <strong>does</strong>, the verb has no -s: <em>Where does she work?</em> not <em>Where does she works?</em></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">3️⃣ BE or DO? How to choose</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Is there a main verb?</th><th>Use</th><th>Example</th></tr>
+      <tr><td>No (from, tired, at home, Brazilian…)</td><td class="teal">BE</td><td>Where <strong>are</strong> your parents from?</td></tr>
+      <tr><td>Yes (work, live, like, have…)</td><td class="teal">DO / DOES</td><td>Where <strong>do</strong> your parents live?</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> Look at the answer! <em>Yes, she <strong>is</strong></em> → the question uses <em>Is</em>. <em>Yes, she <strong>does</strong></em> → the question uses <em>Does</em>.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">4️⃣ Questions with CAN</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>(Question word)</th><th>Can</th><th>Subject</th><th>Base verb</th></tr>
+      <tr><td>–</td><td class="orange">Can</td><td>you</td><td>swim? – Yes, I can. / No, I can't.</td></tr>
+      <tr><td>What</td><td class="orange">can</td><td>your sister</td><td>cook? – Pasta and rice.</td></tr>
+      <tr><td>Where</td><td class="orange">can</td><td>I</td><td>park?</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> Never use <em>do</em> with <em>can</em>: <em>Can you cook?</em> not <em>Do you can cook?</em></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">5️⃣ Questions with WOULD LIKE</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>Use</th><th>Question</th><th>Answer</th></tr>
+      <tr><td>Offer</td><td>Would you like <strong>some coffee</strong>?</td><td>Yes, please. / No, thanks.</td></tr>
+      <tr><td>Invitation</td><td>Would you like <strong>to go</strong> to the cinema?</td><td>Yes, I'd love to.</td></tr>
+      <tr><td>Preference</td><td>What would you like <strong>to do</strong>?</td><td>I'd like to relax.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> <em>Do you like coffee?</em> = in general. <em>Would you like a coffee?</em> = an offer now.</div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">6️⃣ Present Continuous Questions (now)</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th>(Question word)</th><th>BE</th><th>Subject</th><th>Verb + -ing</th></tr>
+      <tr><td>What</td><td class="orange">are</td><td>you</td><td>doing right now?</td></tr>
+      <tr><td>–</td><td class="orange">Is</td><td>he</td><td>working now? – Yes, he is.</td></tr>
+      <tr><td>Where</td><td class="orange">is</td><td>she</td><td>going?</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> <em>now / right now</em> → <em>What are you doing?</em> · <em>usually / every day</em> → <em>What do you do?</em></div>
+  </div>
+
+  <div class="ex-card grammar">
+    <div class="bank-title">7️⃣ Questions with THERE IS / THERE ARE</div>
+    <div class="table-wrap"><table class="grammar-table">
+      <tr><th></th><th>Question</th><th>Short answers</th></tr>
+      <tr><td>Singular</td><td><span class="orange">Is there</span> a bank near here?</td><td>Yes, there is. / No, there isn't.</td></tr>
+      <tr><td>Plural</td><td><span class="orange">Are there any</span> cafés near here?</td><td>Yes, there are. / No, there aren't.</td></tr>
+    </table></div>
+    <div class="tip-box">💡 <strong>Tip:</strong> Never use <em>do / does</em> with <em>there</em>: <em>Is there a gym?</em> not <em>Does there a gym?</em></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  STORAGE (safe)
+// ══════════════════════════════════════════════
+const FILE_KEY = 'teachermari_thatsagoodquestion';
+function lsGet(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+// ══════════════════════════════════════════════
+//  WELCOME
+// ══════════════════════════════════════════════
+const STUDENT_KEY = FILE_KEY + '_student';
+let studentName = lsGet(STUDENT_KEY, '');
+function startSession(name) {
+  studentName = name.trim();
+  lsSet(STUDENT_KEY, studentName);
+  document.getElementById('welcome-screen').classList.add('hidden');
+  const banner = document.getElementById('hello-banner');
+  banner.textContent = 'Hello, ' + studentName + '! 👋 Let\'s practise asking questions!';
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const inp = document.getElementById('student-name-input');
+  const val = inp.value.trim();
+  if (!val) { inp.focus(); inp.style.borderColor = 'var(--red)'; return; }
+  startSession(val);
+});
+document.getElementById('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('welcome-start-btn').click(); });
+document.getElementById('student-name-input').addEventListener('input', e => { e.target.style.borderColor = ''; });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "Good questions start good conversations!",
+  "Every question you ask makes your English stronger!",
+  "Small steps, big results!",
+  "Mistakes help you learn. Try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practise a little every day!",
+  "Great job! Keep going!"
+];
+document.getElementById('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7e3'],
+};
+const ALL_EXERCISES = Object.values(DAY_EXERCISES).flat();
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+function parseJSON(s, fb) { try { return JSON.parse(s); } catch (e) { return fb; } }
+const completedExercises = new Set(parseJSON(lsGet(FILE_KEY + '_done', '[]'), []));
+const completedDays = new Set(parseJSON(lsGet(FILE_KEY + '_days', '[]'), []));
+const scores = parseJSON(lsGet(FILE_KEY + '_scores', '{}'), {});
+
+function updateProgress() {
+  const pct = Math.min(100, Math.round((completedExercises.size / ALL_EXERCISES.length) * 100));
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const day = btn.dataset.tab;
+    if (completedDays.has(day) && !btn.querySelector('.done-mark')) {
+      const m = document.createElement('span'); m.className = 'done-mark'; m.textContent = '✓'; btn.appendChild(m);
+    }
+  });
+}
+function averageScore() {
+  const vals = Object.values(scores);
+  if (!vals.length) return 0;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+function showSummary() {
+  document.getElementById('weekly-summary').style.display = 'block';
+  document.getElementById('final-score').textContent = averageScore() + '%';
+}
+function markExerciseDone(exId, correct, total) {
+  if (typeof correct === 'number' && total) scores[exId] = Math.round((correct / total) * 100);
+  lsSet(FILE_KEY + '_scores', JSON.stringify(scores));
+  completedExercises.add(exId);
+  lsSet(FILE_KEY + '_done', JSON.stringify([...completedExercises]));
+  for (const [day, list] of Object.entries(DAY_EXERCISES)) {
+    if (list.includes(exId) && !completedDays.has(day) && list.every(e => completedExercises.has(e))) {
+      completedDays.add(day);
+      lsSet(FILE_KEY + '_days', JSON.stringify([...completedDays]));
+      if (completedDays.size === TOTAL_DAYS) { setTimeout(celebrateWeek, 400); showSummary(); }
+      else setTimeout(celebrateDay, 400);
+    }
+  }
+  updateProgress();
+}
+updateProgress();
+if (completedDays.size === TOTAL_DAYS) showSummary();
+
+// ══════════════════════════════════════════════
+//  GENERAL HELPERS
+// ══════════════════════════════════════════════
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dlg(sp, text) { return '<span class="dl"><span class="speaker">' + sp + ':</span> ' + text + '</span>'; }
+const BLANK = '<strong>______</strong>';
+function capFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+function showFeedback(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = 'feedback show ' + type; }
+function hideFeedback(id) { document.getElementById(id).className = 'feedback'; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: '✅ Perfect! You got all ' + total + ' correct! 🎉', type: 'ok' };
+  if (correct >= total * 0.7) return { msg: '🌟 Very good! ' + correct + '/' + total + ' correct. Read the explanations and try again!', type: 'partial' };
+  return { msg: '💪 ' + correct + '/' + total + ' correct. Read the explanations below. You can do it!', type: 'err' };
+}
+function finishCheck(correct, total, fbId, exId) {
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  markExerciseDone(exId, correct, total);
+}
+// why box: yourAns (optional, shown in red), correctAns (green), why
+function makeWhy(yourAns, correctAns, why) {
+  const box = document.createElement('div');
+  box.className = 'why-box';
+  let html = '';
+  if (yourAns !== null && yourAns !== undefined) {
+    html += 'Your answer: <span class="ans-bad">' + (yourAns === '' ? '(no answer)' : esc(yourAns)) + '</span><br>';
+  }
+  html += '✔ Correct answer: <span class="ans-ok">' + correctAns + '</span>';
+  if (why) html += '<br><span class="why-label">Why?</span> ' + why;
+  box.innerHTML = html;
+  return box;
+}
+
+// Normalise answers: case, punctuation, contractions, optional "usually"
+function norm(s) {
+  let t = String(s || '').toLowerCase().replace(/[’‘`´]/g, "'");
+  t = t.replace(/\bcan't\b/g, 'can not').replace(/\bcannot\b/g, 'can not').replace(/\bwon't\b/g, 'will not');
+  t = t.replace(/n't\b/g, ' not').replace(/'re\b/g, ' are').replace(/'m\b/g, ' am')
+       .replace(/'d\b/g, ' would').replace(/'ve\b/g, ' have').replace(/'ll\b/g, ' will')
+       .replace(/\b(he|she|it|what|where|who|there|that|how|when|why)'s\b/g, '$1 is');
+  t = t.replace(/[?.!,;:]/g, ' ').replace(/\busually\b/g, ' ');
+  return t.replace(/\s+/g, ' ').trim();
+}
+
+// ══════════════════════════════════════════════
+//  MULTIPLE CHOICE (buildMC)
+// ══════════════════════════════════════════════
+function buildMC(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'mc-item';
+    div.innerHTML = '<div class="mc-question"><span class="q-num">' + (i + 1) + '.</span> ' + item.q + '</div><div class="mc-options">' +
+      item.opts.map((o, j) => '<label class="mc-option" data-q="' + prefix + '_' + i + '" data-opt="' + j + '"><input type="radio" name="' + prefix + '_' + i + '" value="' + j + '"> <span><span class="mc-letter">' + String.fromCharCode(65 + j) + '.</span> ' + o + '</span></label>').join('') + '</div>';
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('.mc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.querySelector('input').checked = true;
+      opt.closest('.mc-options').querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+      opt.classList.add('selected');
+      const old = opt.closest('.mc-item').querySelector('.why-box'); if (old) old.remove();
+    });
+  });
+}
+function checkMC(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const opts = document.querySelectorAll('[data-q="' + prefix + '_' + i + '"]');
+    opts.forEach(o => o.classList.remove('correct', 'wrong'));
+    const itemDiv = opts[0].closest('.mc-item');
+    const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+    const sel = document.querySelector('input[name="' + prefix + '_' + i + '"]:checked');
+    const v = sel ? parseInt(sel.value, 10) : -1;
+    if (v === item.ans) { opts[v].classList.add('correct'); correct++; return; }
+    if (v >= 0) opts[v].classList.add('wrong');
+    opts[item.ans].classList.add('correct');
+    const correctText = String.fromCharCode(65 + item.ans) + '. ' + item.opts[item.ans];
+    const yourText = v >= 0 ? String.fromCharCode(65 + v) + '. ' + item.opts[v].replace(/<[^>]+>/g, '') : '';
+    itemDiv.appendChild(makeWhy(yourText, correctText, item.why));
+  });
+  finishCheck(correct, data.length, fbId, exId);
+}
+function resetMC(containerId, fbId) {
+  const wrap = document.getElementById(containerId);
+  wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+  wrap.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  wrap.querySelectorAll('.why-box').forEach(h => h.remove());
+  hideFeedback(fbId);
+}
+function setupMC(id, data) {
+  buildMC(id, data, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkMC(data, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetMC(id, id + '-fb'));
+}
+
+// ══════════════════════════════════════════════
+//  CLICK-TO-FILL (buildCTFSentences) – reusable word bank
+// ══════════════════════════════════════════════
+function buildCTFSentences(cfg) {
+  const wrap = document.getElementById(cfg.containerId);
+  const bank = document.createElement('div'); bank.className = 'ctf-wordbank';
+  cfg.words.forEach(w => {
+    const b = document.createElement('button'); b.className = 'ctf-chip'; b.type = 'button';
+    b.dataset.word = w; b.textContent = w; bank.appendChild(b);
+  });
+  wrap.appendChild(bank);
+  const list = document.createElement('div');
+  cfg.items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'fill-item'; div.dataset.idx = i;
+    const cap = item.ans.charAt(0) === item.ans.charAt(0).toUpperCase();
+    const gap = '<span class="ctf-gap" data-idx="' + i + '" data-cap="' + (cap ? '1' : '0') + '"></span>';
+    div.innerHTML = '<div class="fill-line"><span class="item-num">' + (i + 1) + '.</span> ' + item.line.replace('___', gap) + '</div>';
+    list.appendChild(div);
+  });
+  wrap.appendChild(list);
+
+  let selected = null;
+  bank.addEventListener('click', e => {
+    const chip = e.target.closest('.ctf-chip'); if (!chip) return;
+    if (selected === chip) { chip.classList.remove('active'); selected = null; list.querySelectorAll('.ctf-gap').forEach(g => g.classList.remove('ready')); return; }
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active'); selected = chip;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  list.addEventListener('click', e => {
+    const gap = e.target.closest('.ctf-gap'); if (!gap) return;
+    const itemDiv = gap.closest('.fill-item');
+    const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+    gap.classList.remove('correct-gap', 'wrong-gap');
+    if (!selected) { gap.textContent = ''; gap.dataset.filled = ''; return; }
+    const w = selected.dataset.word;
+    gap.dataset.filled = w;
+    gap.textContent = gap.dataset.cap === '1' ? capFirst(w) : w;
+    list.querySelectorAll('.ctf-gap').forEach(g => g.classList.toggle('ready', !g.textContent));
+  });
+  document.getElementById(cfg.checkId).addEventListener('click', () => {
+    let correct = 0;
+    cfg.items.forEach((item, i) => {
+      const gap = list.querySelector('.ctf-gap[data-idx="' + i + '"]');
+      const itemDiv = gap.closest('.fill-item');
+      const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+      gap.classList.remove('correct-gap', 'wrong-gap', 'ready');
+      const filled = (gap.dataset.filled || '').toLowerCase();
+      if (filled === item.ans.toLowerCase()) { gap.classList.add('correct-gap'); correct++; }
+      else {
+        gap.classList.add('wrong-gap');
+        itemDiv.appendChild(makeWhy(gap.textContent || '', item.ans, item.why));
+      }
+    });
+    finishCheck(correct, cfg.items.length, cfg.fbId, cfg.exId);
+  });
+  document.getElementById(cfg.resetId).addEventListener('click', () => {
+    list.querySelectorAll('.ctf-gap').forEach(g => { g.textContent = ''; g.dataset.filled = ''; g.classList.remove('correct-gap', 'wrong-gap', 'ready'); });
+    list.querySelectorAll('.why-box').forEach(h => h.remove());
+    bank.querySelectorAll('.ctf-chip').forEach(c => c.classList.remove('active'));
+    selected = null;
+    hideFeedback(cfg.fbId);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  FILL WITH TEXT INPUT (buildFill) – tolerant checking
+// ══════════════════════════════════════════════
+// item: { a:'Where ___?', b:'I work in a hotel.', ans:['do you work', ...], why }
+function buildFill(containerId, data, prefix) {
+  const wrap = document.getElementById(containerId);
+  data.forEach((item, i) => {
+    const parts = item.a.split('___');
+    const div = document.createElement('div'); div.className = 'fill-item';
+    const input = '<input class="fill-input' + (item.short ? ' short' : '') + '" id="' + prefix + '_' + i + '" placeholder="..." autocomplete="off" autocapitalize="off" spellcheck="false">';
+    const line = parts[0] + input + (parts[1] || '');
+    div.innerHTML = '<div class="fill-line"><span class="item-num">' + (i + 1) + '.</span> ' +
+      (item.b ? dlg('A', line) + dlg('B', item.b) : line) + '</div>';
+    wrap.appendChild(div);
+  });
+}
+function fillIsCorrect(item, value) {
+  const parts = item.a.split('___');
+  const pre = norm(parts[0]), post = norm(parts[1] || '');
+  let v = norm(value);
+  if (!v) return false;
+  if (pre && (v === pre || v.startsWith(pre + ' '))) v = v.slice(pre.length).trim();
+  if (post && (v === post || v.endsWith(' ' + post))) v = v.slice(0, v.length - post.length).trim();
+  return item.ans.some(a => norm(a) === v);
+}
+function checkFill(data, prefix, fbId, exId) {
+  let correct = 0;
+  data.forEach((item, i) => {
+    const inp = document.getElementById(prefix + '_' + i);
+    const itemDiv = inp.closest('.fill-item');
+    const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+    inp.classList.remove('correct', 'wrong');
+    if (fillIsCorrect(item, inp.value)) { inp.classList.add('correct'); correct++; }
+    else {
+      inp.classList.add('wrong');
+      const parts = item.a.split('___');
+      const full = esc(parts[0]) + '<u>' + esc(item.ans[0]) + '</u>' + esc(parts[1] || '');
+      itemDiv.appendChild(makeWhy(inp.value.trim(), full, item.why));
+    }
+  });
+  finishCheck(correct, data.length, fbId, exId);
+}
+function resetFill(data, prefix, fbId) {
+  data.forEach((_, i) => {
+    const inp = document.getElementById(prefix + '_' + i);
+    inp.value = ''; inp.className = 'fill-input';
+    const old = inp.closest('.fill-item').querySelector('.why-box'); if (old) old.remove();
+  });
+  hideFeedback(fbId);
+}
+function setupFill(id, data) {
+  buildFill(id, data, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkFill(data, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetFill(data, id, id + '-fb'));
+  data.forEach((_, i) => {
+    document.getElementById(id + '_' + i).addEventListener('input', e => {
+      e.target.classList.remove('correct', 'wrong');
+      const old = e.target.closest('.fill-item').querySelector('.why-box'); if (old) old.remove();
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+//  CLICK-MATCH (buildClickMatch) – two clickable columns
+// ══════════════════════════════════════════════
+// cfg: { lefts:[{text, ans(index in rights), why}], rights:[text] }
+function buildClickMatch(containerId, cfg) {
+  const wrap = document.getElementById(containerId);
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  leftCol.innerHTML = '<div class="cm-col-title">Questions</div>';
+  rightCol.innerHTML = '<div class="cm-col-title">Answers</div>';
+  cfg.lefts.forEach((item, i) => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'left'; d.dataset.idx = i;
+    d.innerHTML = '<span class="cm-tag">' + (i + 1) + '.</span><span class="cm-text">' + esc(item.text) + '</span>';
+    leftCol.appendChild(d);
+  });
+  cfg.rights.forEach((txt, j) => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'right'; d.dataset.idx = j;
+    d.innerHTML = '<span class="cm-tag">' + String.fromCharCode(65 + j) + '.</span><span class="cm-text">' + esc(txt) + '</span>';
+    rightCol.appendChild(d);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol);
+  wrap.appendChild(cmWrap);
+  const report = document.createElement('div'); report.className = 'cm-report'; wrap.appendChild(report);
+
+  const links = {}; // leftIdx -> rightIdx
+  let selectedLeft = null;
+  function clearMarks() {
+    cmWrap.querySelectorAll('.cm-item').forEach(el => el.classList.remove('correct-link', 'wrong-link'));
+    report.innerHTML = '';
+  }
+  function badge(el, n) {
+    el.querySelectorAll('.cm-pair-num').forEach(b => b.remove());
+    if (n !== null) { const b = document.createElement('span'); b.className = 'cm-pair-num'; b.textContent = n; el.appendChild(b); }
+  }
+  function unlinkLeft(li) {
+    if (links[li] === undefined) return;
+    const r = rightCol.querySelector('.cm-item[data-idx="' + links[li] + '"]');
+    const l = leftCol.querySelector('.cm-item[data-idx="' + li + '"]');
+    r.classList.remove('linked'); badge(r, null);
+    l.classList.remove('linked'); badge(l, null);
+    delete links[li];
+  }
+  cmWrap.addEventListener('click', e => {
+    const el = e.target.closest('.cm-item'); if (!el) return;
+    clearMarks();
+    const idx = parseInt(el.dataset.idx, 10);
+    if (el.dataset.side === 'left') {
+      if (links[idx] !== undefined) { unlinkLeft(idx); }
+      if (selectedLeft === el) { el.classList.remove('active'); selectedLeft = null; return; }
+      leftCol.querySelectorAll('.cm-item').forEach(c => c.classList.remove('active'));
+      el.classList.add('active'); selectedLeft = el;
+    } else {
+      if (!selectedLeft) return;
+      const li = parseInt(selectedLeft.dataset.idx, 10);
+      // free this right item if another question uses it
+      Object.keys(links).forEach(k => { if (links[k] === idx) unlinkLeft(parseInt(k, 10)); });
+      links[li] = idx;
+      selectedLeft.classList.remove('active');
+      selectedLeft.classList.add('linked'); el.classList.add('linked');
+      badge(selectedLeft, li + 1); badge(el, li + 1);
+      selectedLeft = null;
+    }
+  });
+  return { cfg, links, leftCol, rightCol, report, clearMarks, unlinkLeft, getSelected: () => selectedLeft, clearSelected: () => { selectedLeft = null; } };
+}
+function checkClickMatch(st, fbId, exId) {
+  st.clearMarks();
+  let correct = 0;
+  st.cfg.lefts.forEach((item, i) => {
+    const l = st.leftCol.querySelector('.cm-item[data-idx="' + i + '"]');
+    const chosen = st.links[i];
+    if (chosen === item.ans) {
+      correct++;
+      l.classList.add('correct-link');
+      st.rightCol.querySelector('.cm-item[data-idx="' + chosen + '"]').classList.add('correct-link');
+      return;
+    }
+    l.classList.add('wrong-link');
+    if (chosen !== undefined) st.rightCol.querySelector('.cm-item[data-idx="' + chosen + '"]').classList.add('wrong-link');
+    const yourTxt = chosen !== undefined ? String.fromCharCode(65 + chosen) + '. ' + st.cfg.rights[chosen] : '';
+    const box = makeWhy(yourTxt, String.fromCharCode(65 + item.ans) + '. ' + esc(st.cfg.rights[item.ans]), item.why);
+    box.insertAdjacentHTML('afterbegin', '<strong>' + (i + 1) + '. ' + esc(item.text) + '</strong><br>');
+    st.report.appendChild(box);
+  });
+  finishCheck(correct, st.cfg.lefts.length, fbId, exId);
+}
+function resetClickMatch(st, fbId) {
+  Object.keys(st.links).forEach(k => st.unlinkLeft(parseInt(k, 10)));
+  st.leftCol.querySelectorAll('.cm-item').forEach(el => el.classList.remove('active'));
+  st.clearSelected();
+  st.clearMarks();
+  hideFeedback(fbId);
+}
+function setupClickMatch(id, cfg) {
+  const st = buildClickMatch(id, cfg);
+  document.getElementById(id + '-check').addEventListener('click', () => checkClickMatch(st, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetClickMatch(st, id + '-fb'));
+  return st;
+}
+
+// ══════════════════════════════════════════════
+//  SENTENCE BUILDER (put the words in order)
+// ══════════════════════════════════════════════
+// item: { words:[...], ans:'Are you tired?', given?:'answer shown above', why }
+function buildSentenceBuilder(containerId, items, prefix) {
+  const wrap = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sb-item';
+    const givenHtml = item.given ? ' <span class="answer-given">Answer: ' + esc(item.given) + '</span>' : '';
+    div.innerHTML = '<div class="sb-label"><span class="item-num">' + (i + 1) + '.</span>' + givenHtml + '</div>' +
+      '<div class="sb-words" id="' + prefix + '-words-' + i + '">' +
+      item.words.map((w, k) => '<button type="button" class="sb-chip" data-item="' + i + '" data-k="' + k + '" data-word="' + esc(w) + '">' + esc(w) + '</button>').join('') +
+      '</div><div class="sb-zone" id="' + prefix + '-zone-' + i + '"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip'); if (!chip) return;
+    const i = chip.dataset.item;
+    const words = document.getElementById(prefix + '-words-' + i);
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const old = zone.parentElement.querySelector('.why-box'); if (old) old.remove();
+    if (chip.parentElement === words) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else {
+      chip.classList.remove('in-zone');
+      // return chip to its original position
+      const k = parseInt(chip.dataset.k, 10);
+      const after = Array.from(words.children).find(c => parseInt(c.dataset.k, 10) > k);
+      words.insertBefore(chip, after || null);
+    }
+  });
+}
+function checkSentenceBuilder(items, prefix, fbId, exId) {
+  let correct = 0;
+  items.forEach((item, i) => {
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    const words = document.getElementById(prefix + '-words-' + i);
+    const old = zone.parentElement.querySelector('.why-box'); if (old) old.remove();
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const built = Array.from(zone.querySelectorAll('.sb-chip')).map(c => c.dataset.word).join(' ');
+    const complete = words.querySelectorAll('.sb-chip').length === 0;
+    if (complete && norm(built) === norm(item.ans)) { zone.classList.add('correct-zone'); correct++; }
+    else {
+      zone.classList.add('wrong-zone');
+      const yours = built ? capFirst(built) + '?' : '';
+      zone.parentElement.appendChild(makeWhy(yours + (built && !complete ? ' (not all words used)' : ''), esc(item.ans), item.why));
+    }
+  });
+  finishCheck(correct, items.length, fbId, exId);
+}
+function resetSentenceBuilder(items, prefix, fbId) {
+  items.forEach((item, i) => {
+    const zone = document.getElementById(prefix + '-zone-' + i);
+    const words = document.getElementById(prefix + '-words-' + i);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    const all = Array.from(zone.querySelectorAll('.sb-chip')).concat(Array.from(words.querySelectorAll('.sb-chip')));
+    all.sort((a, b) => a.dataset.k - b.dataset.k).forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    const old = zone.parentElement.querySelector('.why-box'); if (old) old.remove();
+  });
+  hideFeedback(fbId);
+}
+function setupSentenceBuilder(id, items) {
+  buildSentenceBuilder(id, items, id);
+  document.getElementById(id + '-check').addEventListener('click', () => checkSentenceBuilder(items, id, id + '-fb', id));
+  document.getElementById(id + '-reset').addEventListener('click', () => resetSentenceBuilder(items, id, id + '-fb'));
+}
+
+// ══════════════════════════════════════════════
+//  SORT INTO CATEGORIES (new helper: buildSort)
+// ══════════════════════════════════════════════
+// items: [{s, ans:'k', why}], cats: [{key, label}]
+function buildSort(containerId, items, cats, prefix) {
+  const wrap = document.getElementById(containerId);
+  const sel = {};
+  items.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'sort-item';
+    div.innerHTML = '<div class="sort-line"><span><span class="item-num">' + (i + 1) + '.</span> ' + esc(item.s) + '</span><div class="sort-btns">' +
+      cats.map(c => '<button type="button" class="sort-btn" data-i="' + i + '" data-val="' + c.key + '">' + c.label + '</button>').join('') + '</div></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const btn = e.target.closest('.sort-btn'); if (!btn) return;
+    const i = btn.dataset.i;
+    sel[i] = btn.dataset.val;
+    const itemDiv = btn.closest('.sort-item');
+    itemDiv.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('selected', 'right-answer', 'wrong-sel'));
+    const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+    btn.classList.add('selected');
+  });
+  return { items, cats, sel, wrap };
+}
+function checkSort(st, fbId, exId) {
+  let correct = 0;
+  const label = k => st.cats.find(c => c.key === k).label;
+  st.items.forEach((item, i) => {
+    const btns = st.wrap.querySelectorAll('.sort-btn[data-i="' + i + '"]');
+    const itemDiv = btns[0].closest('.sort-item');
+    const old = itemDiv.querySelector('.why-box'); if (old) old.remove();
+    btns.forEach(b => b.classList.remove('selected', 'right-answer', 'wrong-sel'));
+    const chosen = st.sel[i];
+    btns.forEach(b => { if (b.dataset.val === item.ans) b.classList.add('right-answer'); });
+    if (chosen === item.ans) { correct++; return; }
+    btns.forEach(b => { if (b.dataset.val === chosen) b.classList.add('wrong-sel'); });
+    itemDiv.appendChild(makeWhy(chosen ? label(chosen) : '', label(item.ans), item.why));
+  });
+  finishCheck(correct, st.items.length, fbId, exId);
+}
+function resetSort(st, fbId) {
+  Object.keys(st.sel).forEach(k => delete st.sel[k]);
+  st.wrap.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('selected', 'right-answer', 'wrong-sel'));
+  st.wrap.querySelectorAll('.why-box').forEach(h => h.remove());
+  hideFeedback(fbId);
+}
+
+// ══════════════════════════════════════════════
+//  DAY 1 – QUESTIONS WITH BE
+// ══════════════════════════════════════════════
+setupClickMatch('d1e1', {
+  lefts: [
+    { text: 'Are you at home now?', ans: 3, why: "'Are you...?' is a yes/no question about you. The answer uses I: 'No, I'm at work.'" },
+    { text: 'Where are you from?', ans: 5, why: "'Where... from?' asks about your country: 'I'm from Brazil.'" },
+    { text: 'Is your sister at work?', ans: 6, why: "'Your sister' = she. The answer uses she: 'No, she isn't. She's at home.'" },
+    { text: 'What is your phone number?', ans: 7, why: "A question about a phone number needs a number in the answer." },
+    { text: 'Are your parents Brazilian?', ans: 1, why: "'Your parents' = they, so the short answer is 'Yes, they are.'" },
+    { text: 'Who is that woman?', ans: 2, why: "'Who' asks about a person: 'She's my mother.'" },
+    { text: 'Is your bag new?', ans: 4, why: "'Your bag' = it, so the short answer is 'Yes, it is.'" },
+    { text: 'Where are your keys?', ans: 0, why: "'Where' asks about a place, and 'keys' is plural: 'They're on the table.'" }
+  ],
+  rights: ["They're on the table.", 'Yes, they are.', "She's my mother.", "No, I'm at work.", 'Yes, it is.', "I'm from Brazil.", "No, she isn't. She's at home.", "It's 98821-4530."]
+});
+
+setupSentenceBuilder('d1e2', [
+  { words: ['you', 'are', 'tired'], ans: 'Are you tired?', why: "In yes/no questions, BE comes first: Are + you + tired?" },
+  { words: ['from', 'where', 'she', 'is'], ans: 'Where is she from?', why: "Question word + BE + subject + from: Where is she from?" },
+  { words: ['your', 'is', 'new', 'phone'], ans: 'Is your phone new?', why: "BE comes first, then the subject (your phone), then the adjective (new)." },
+  { words: ['they', 'are', 'at work'], ans: 'Are they at work?', why: "BE comes before the subject: Are + they + at work?" },
+  { words: ['your', 'who', 'teacher', 'is'], ans: 'Who is your teacher?', why: "Question word + BE + subject: Who is your teacher?" },
+  { words: ['this', 'what', 'is'], ans: 'What is this?', why: "Question word + BE + subject: What is this?" },
+  { words: ['your parents', 'are', 'at home'], ans: 'Are your parents at home?', why: "'Your parents' is plural, so we use Are. BE comes first." },
+  { words: ['what colour', 'your car', 'is'], ans: 'What colour is your car?', why: "'What colour' stays together at the start. Then BE + subject: is your car." }
+]);
+
+setupMC('d1e3', [
+  { q: "<strong>I'm from Mexico.</strong>", opts: ['Who are you?', 'Where are you from?', 'Are you from Mexico?'], ans: 1, why: "The answer gives a country, so we ask 'Where are you from?'. 'Are you from Mexico?' needs 'Yes, I am.'" },
+  { q: '<strong>Yes, my parents are at home.</strong>', opts: ['Are your parents at home?', 'Where are your parents?', 'Is your mother at home?'], ans: 0, why: "The answer starts with 'Yes', so it is a yes/no question. It talks about my parents (plural): Are your parents...?" },
+  { q: "<strong>She's my sister.</strong>", opts: ['Where is your sister?', 'Is she your sister?', 'Who is she?'], ans: 2, why: "The answer tells us who the person is, so we ask with 'Who'. 'Is she your sister?' needs 'Yes, she is.'" },
+  { q: "<strong>It's 21.</strong>", opts: ['What number is the bus?', 'Where is the bus?', 'Is the bus new?'], ans: 0, why: "The answer is a number, so we ask 'What number...?'." },
+  { q: "<strong>No, they aren't. They're American.</strong>", opts: ['Where are your friends?', 'Are your friends Brazilian?', 'Who are your friends?'], ans: 1, why: "'No, they aren't' answers a yes/no question with 'Are'. 'They're American' tells us it is about nationality." },
+  { q: "<strong>They're in my bag.</strong>", opts: ['What are your keys?', 'Where are your keys?', 'Are these your keys?'], ans: 1, why: "'In my bag' is a place, so we ask with 'Where'." }
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 2 – PRESENT SIMPLE QUESTIONS
+// ══════════════════════════════════════════════
+setupFill('d2e1', [
+  { a: '___ you work on Saturdays?', b: 'Yes, I do.', ans: ['Do'], short: true, why: "We use Do with I, you, we and they." },
+  { a: '___ your sister drink coffee?', b: "No, she doesn't.", ans: ['Does'], short: true, why: "'Your sister' = she. We use Does with he, she and it." },
+  { a: '___ they live near here?', b: 'Yes, they do.', ans: ['Do'], short: true, why: "We use Do with they." },
+  { a: '___ your father work in a hospital?', b: 'Yes, he does.', ans: ['Does'], short: true, why: "'Your father' = he, so we use Does." },
+  { a: '___ you have breakfast at home?', b: "No, I don't.", ans: ['Do'], short: true, why: "We use Do with you. The answer 'No, I don't' confirms it." },
+  { a: '___ Maria go to the gym?', b: 'Yes, she does.', ans: ['Does'], short: true, why: "'Maria' = she, so we use Does." },
+  { a: '___ your friends speak English?', b: 'Yes, they do.', ans: ['Do'], short: true, why: "'Your friends' = they (plural), so we use Do." },
+  { a: '___ your brother watch TV at night?', b: "No, he doesn't.", ans: ['Does'], short: true, why: "'Your brother' = he, so we use Does." }
+]);
+
+setupMC('d2e2', [
+  { q: '<strong>I work in a bank.</strong>', opts: ['Where do you work?', 'What do you eat?', 'When do you work?'], ans: 0, why: "'In a bank' is a place, so we ask 'Where do you work?'." },
+  { q: '<strong>At about 7:00 every morning.</strong>', opts: ['Where do you get up?', 'What time do you get up?', 'Do you get up?'], ans: 1, why: "'At about 7:00' is a clock time, so we ask 'What time...?'." },
+  { q: '<strong>Yes, she does. She goes every Tuesday.</strong>', opts: ['Does Laura go to the gym?', 'Is Laura at the gym?', 'Can Laura go to the gym?'], ans: 0, why: "'Yes, she does' answers a question with Does." },
+  { q: '<strong>I usually have coffee and toast.</strong>', opts: ['Where do you have breakfast?', 'Do you have breakfast?', 'What do you have for breakfast?'], ans: 2, why: "'Coffee and toast' are things, so we ask with 'What'." },
+  { q: "<strong>No, he doesn't. He works from home.</strong>", opts: ['Where does your brother work?', 'Does your brother work in an office?', 'Is your brother working?'], ans: 1, why: "'No, he doesn't' answers a question with Does. 'Where' questions don't have Yes/No answers." },
+  { q: '<strong>Because I like films.</strong>', opts: ['Where do you go to the cinema?', 'Why do you go to the cinema?', 'When do you go to the cinema?'], ans: 1, why: "An answer with 'Because' goes with a 'Why' question." },
+  { q: '<strong>Twice a week.</strong>', opts: ['How often do you do exercise?', 'What do you do?', 'Where do you do exercise?'], ans: 0, why: "'Twice a week' tells us how many times, so we ask 'How often...?'." }
+]);
+
+setupFill('d2e3', [
+  { a: 'Where ___?', b: 'I work in a hotel.', ans: ['do you work'], why: "'I work' → present simple with you: Where do you work?" },
+  { a: 'What time ___?', b: 'She starts work at 9:00.', ans: ['does she start work', 'does she start'], why: "'She' → does. After does, the verb has no -s: does she start (not starts)." },
+  { a: '___ English at work?', b: 'Yes, I do. I speak English every day.', ans: ['do you speak', 'do you use'], why: "'Yes, I do' answers a question with Do you: Do you speak English at work?" },
+  { a: 'What ___ after work?', b: 'He usually goes to the gym.', ans: ['does he usually do', 'does he do'], why: "'He' → does. Then the base verb do: What does he (usually) do? (not 'does he goes')" },
+  { a: 'Where ___?', b: 'My parents live in Rio.', ans: ['do your parents live', 'do they live'], why: "'Your parents' = they → do. Where do your parents live?" },
+  { a: '___ coffee every morning?', b: "No, she doesn't. She drinks tea.", ans: ['does she drink'], why: "'No, she doesn't' → Does she...? After does, the verb has no -s: drink (not drinks)." },
+  { a: 'How often ___?', b: 'I go shopping once a week.', ans: ['do you go shopping'], why: "'I go shopping' → How often do you go shopping? We need the full action: go shopping." }
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 3 – BE OR DO?
+// ══════════════════════════════════════════════
+setupMC('d3e1', [
+  { q: "<strong>I'm at work.</strong>", opts: ['Where are you?', 'Where do you?', 'Where do you work?'], ans: 0, why: "'I'm at work' uses BE and tells us where you are now: Where are you? 'Where do you?' has no main verb." },
+  { q: '<strong>I work at a hotel.</strong>', opts: ['Where are you work?', 'Where do you work?', 'Where are you?'], ans: 1, why: "'Work' is a main verb, so we use do: Where do you work? Don't mix are + work." },
+  { q: "<strong>Yes, she is. She's Brazilian.</strong>", opts: ['Does she Brazilian?', 'Is she Brazilian?', 'Does she live in Brazil?'], ans: 1, why: "'Yes, she is' answers a question with Is. 'Brazilian' is an adjective, so we use BE." },
+  { q: '<strong>Yes, she does. She lives in Brazil.</strong>', opts: ['Does she live in Brazil?', 'Is she live in Brazil?', 'Is she in Brazil?'], ans: 0, why: "'Yes, she does' answers a question with Does. 'Live' is a main verb." },
+  { q: "<strong>They're at the cinema.</strong>", opts: ['Where do they go?', 'Where are they?', 'Where they are?'], ans: 1, why: "'They're at the cinema' = where they are now → Where are they? BE goes before the subject." },
+  { q: '<strong>They go to the cinema on Fridays.</strong>', opts: ['Where are they on Fridays?', 'Where do they go on Fridays?', 'Where they go on Fridays?'], ans: 1, why: "'Go' is a main verb, so we need do: Where do they go? 'Where they go' has no do." },
+  { q: "<strong>No, I'm not. I'm tired.</strong>", opts: ['Do you happy?', 'Are you happy?', 'Do you feel happy?'], ans: 1, why: "'No, I'm not' answers a question with Are you. 'Happy' is an adjective, so we use BE." },
+  { q: '<strong>Yes, I do. I usually have lunch at home.</strong>', opts: ['Do you have lunch at home?', 'Are you have lunch at home?', 'Are you at home?'], ans: 0, why: "'Yes, I do' answers a question with Do you. 'Have lunch' has a main verb (have)." }
+]);
+
+setupFill('d3e2', [
+  { a: 'Where ___ your parents from?', ans: ['are'], short: true, why: "No main verb here (only 'from'), so we use BE. 'Your parents' = they → are." },
+  { a: 'Where ___ your parents live?', ans: ['do'], short: true, why: "'Live' is a main verb, so we use do. 'Your parents' = they → do." },
+  { a: '___ you tired today?', ans: ['Are'], short: true, why: "'Tired' is an adjective, not a verb, so we use BE: Are you tired?" },
+  { a: '___ you work on Saturdays?', ans: ['Do'], short: true, why: "'Work' is a main verb, so we use Do: Do you work...?" },
+  { a: 'What ___ your sister do after work?', ans: ['does'], short: true, why: "'Do' is the main verb and 'your sister' = she → does." },
+  { a: 'Where ___ your sister now?', ans: ['is'], short: true, why: "No main verb. We ask where she is now → BE: Where is your sister?" },
+  { a: '___ your friends at home?', ans: ['Are'], short: true, why: "'At home' is a place, not a verb. 'Your friends' = they → Are." },
+  { a: '___ your friends watch films at the weekend?', ans: ['Do'], short: true, why: "'Watch' is a main verb and 'your friends' = they → Do." },
+  { a: 'What time ___ your father have dinner?', ans: ['does'], short: true, why: "'Have' is the main verb and 'your father' = he → does." },
+  { a: '___ your father at work now?', ans: ['Is'], short: true, why: "No main verb ('at work' is a place). 'Your father' = he → Is." }
+]);
+
+const d3e3St = buildSort('d3e3', [
+  { s: 'Where are your friends?', ans: 'BE', why: "There is no main verb. 'Are' is the verb in this question." },
+  { s: 'What do you usually eat for lunch?', ans: 'PS', why: "'Eat' is a main verb, and the question uses do." },
+  { s: 'Is your mother at work?', ans: 'BE', why: "'Is' + at work. There is no main verb." },
+  { s: 'Does your brother play football?', ans: 'PS', why: "'Play' is a main verb, and the question uses does." },
+  { s: 'Who is your teacher?', ans: 'BE', why: "'Is' is the only verb. There is no main verb." },
+  { s: 'Where does Anna work?', ans: 'PS', why: "'Work' is a main verb, and the question uses does." },
+  { s: 'Are you tired?', ans: 'BE', why: "'Tired' is an adjective. The verb is 'are'." },
+  { s: 'Do they live near here?', ans: 'PS', why: "'Live' is a main verb, and the question uses do." },
+  { s: 'What colour is your car?', ans: 'BE', why: "'Is' is the only verb. There is no main verb." },
+  { s: 'What time do you go to bed?', ans: 'PS', why: "'Go' is a main verb, and the question uses do." }
+], [{ key: 'BE', label: 'BE' }, { key: 'PS', label: 'PRESENT SIMPLE' }], 'd3e3');
+document.getElementById('d3e3-check').addEventListener('click', () => checkSort(d3e3St, 'd3e3-fb', 'd3e3'));
+document.getElementById('d3e3-reset').addEventListener('click', () => resetSort(d3e3St, 'd3e3-fb'));
+
+// ══════════════════════════════════════════════
+//  DAY 4 – CAN & WOULD LIKE
+// ══════════════════════════════════════════════
+setupClickMatch('d4e1', {
+  lefts: [
+    { text: 'Can you swim?', ans: 3, why: "'Can you...?' → the short answer uses I: 'Yes, I can.'" },
+    { text: 'What can your sister cook?', ans: 4, why: "'What... cook?' asks about food: 'Pasta and rice.'" },
+    { text: 'Can your parents speak English?', ans: 1, why: "'Your parents' = they → 'Yes, they can.'" },
+    { text: 'Where can I park?', ans: 6, why: "'Where' asks about a place: 'You can park near the hotel.'" },
+    { text: 'Can Daniel play the guitar?', ans: 5, why: "The question is about an instrument. The answer talks about the piano: 'No, he can't, but he can play the piano.'" },
+    { text: 'What sports can you play?', ans: 2, why: "'What sports' needs names of sports: 'Tennis and football.'" },
+    { text: 'Can we sit here?', ans: 7, why: "'Can we...?' asks for permission. The answer uses you: 'Yes, you can.'" },
+    { text: 'Can your friend drive?', ans: 0, why: "'Drive' connects to 'He has a car.' → 'Yes, he can.'" }
+  ],
+  rights: ['Yes, he can. He has a car.', 'Yes, they can.', 'Tennis and football.', 'Yes, I can.', 'Pasta and rice.', "No, he can't, but he can play the piano.", 'You can park near the hotel.', 'Yes, you can.']
+});
+
+setupMC('d4e2', [
+  { q: dlg('A', BLANK + ' to go to the cinema tonight?') + dlg('B', "Yes, I'd love to."), opts: ['Are you like', 'Would you like', 'Do you like'], ans: 1, why: "This is an invitation, so we use 'Would you like to...?'. 'Do you like' asks what you enjoy in general." },
+  { q: dlg('A', 'What ' + BLANK + ' to drink?') + dlg('B', "I'd like some water."), opts: ['would you like', 'do you like', 'are you like'], ans: 0, why: "The answer is 'I'd like' (= I would like), so the question uses 'would you like'." },
+  { q: dlg('A', BLANK + ' some coffee?') + dlg('B', 'No, thanks.'), opts: ['Can you like', 'Do you like', 'Would you like'], ans: 2, why: "This is an offer, so we use 'Would you like...?'. The answer 'No, thanks' goes with an offer." },
+  { q: dlg('A', 'What ' + BLANK + ' this weekend?') + dlg('B', "I'd like to stay at home and relax."), opts: ['would you like to do', 'would you do like', 'do you would like to do'], ans: 0, why: "The correct order is: What + would + you + like + to do?" },
+  { q: dlg('A', BLANK + ' to have dinner with us?') + dlg('B', "Yes, I'd love to."), opts: ['Would you like', 'Can you like', 'Are you like'], ans: 0, why: "This is an invitation: 'Would you like to have dinner with us?'" },
+  { q: dlg('A', 'What ' + BLANK + ' to eat?') + dlg('B', 'A sandwich, please.'), opts: ['are you like', 'would you like', 'would like you'], ans: 1, why: "The correct order is What + would + you + like. 'would like you' has the wrong order." }
+]);
+
+setupMC('d4e3', [
+  { q: 'You want to know if Mia has the ability to drive.', opts: ['Does Mia drive every day?', 'Can Mia drive?', 'Is Mia driving?'], ans: 1, why: "We use can to talk about ability." },
+  { q: 'You are offering your friend a coffee.', opts: ['Would you like some coffee?', 'Can you make coffee?', 'Do you drink coffee every day?'], ans: 0, why: "We use 'Would you like...?' to offer something." },
+  { q: "You want to know your friend's preferred plan for Saturday.", opts: ['Are you at home on Saturday?', 'Can you work on Saturday?', 'What would you like to do on Saturday?'], ans: 2, why: "To ask about what someone wants to do, we use 'What would you like to do?'." },
+  { q: 'You want to know if Tom has the ability to cook.', opts: ['Can Tom cook?', 'Does Tom cook every day?', 'Is Tom cooking?'], ans: 0, why: "We use can to talk about ability." },
+  { q: 'You are inviting a friend to the cinema.', opts: ['Do you watch films?', 'Would you like to go to the cinema?', 'Can you watch films?'], ans: 1, why: "We use 'Would you like to...?' to invite someone." },
+  { q: 'You want to know which languages Ana has the ability to speak.', opts: ['Where does Ana speak English?', 'What languages can Ana speak?', 'Is Ana speaking English?'], ans: 1, why: "Ability → can. 'What languages' asks which ones." }
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 5 – QUESTIONS ABOUT NOW
+// ══════════════════════════════════════════════
+setupMC('d5e1', [
+  { q: "<strong>I'm having lunch right now.</strong>", opts: ['What do you usually have for lunch?', 'What are you doing right now?', 'Where do you have lunch?'], ans: 1, why: "'Right now' → present continuous: What are you doing right now?" },
+  { q: '<strong>I usually wear jeans to work.</strong>', opts: ['What are you wearing now?', 'Are you wearing jeans?', 'What do you usually wear to work?'], ans: 2, why: "'Usually' → a routine → present simple: What do you usually wear?" },
+  { q: "<strong>Yes, he is. He's working in his office.</strong>", opts: ['Does he work in an office?', 'Is he working now?', 'Where does he work?'], ans: 1, why: "'Yes, he is. He's working' → a question with Is + -ing: Is he working now?" },
+  { q: '<strong>At about 8:00 every evening.</strong>', opts: ['What time do you have dinner?', 'What are you eating?', 'Are you having dinner?'], ans: 0, why: "'Every evening' → a routine, and '8:00' is a time: What time do you have dinner?" },
+  { q: "<strong>She's wearing a black dress.</strong>", opts: ['What does she usually wear?', 'What is she wearing?', 'Does she like dresses?'], ans: 1, why: "'She's wearing' → now → present continuous: What is she wearing?" },
+  { q: "<strong>No, they aren't. They're watching TV.</strong>", opts: ['Do they watch TV?', 'Are they sleeping?', 'What do they do at night?'], ans: 1, why: "'No, they aren't' answers a question with Are they + -ing." }
+]);
+
+setupSentenceBuilder('d5e2', [
+  { given: "She's talking to her mother.", words: ['she', 'who', 'talking to', 'is'], ans: 'Who is she talking to?', why: "Question word + is + subject + verb-ing: Who is she talking to?" },
+  { given: "They're waiting for a taxi.", words: ['they', 'what', 'waiting for', 'are'], ans: 'What are they waiting for?', why: "Question word + are + they + verb-ing: What are they waiting for?" },
+  { given: "No, I'm not. I'm wearing a jacket.", words: ['wearing', 'you', 'a coat', 'are'], ans: 'Are you wearing a coat?', why: "Yes/no question: Are + you + verb-ing: Are you wearing a coat?" },
+  { given: "He's going to the airport.", words: ['where', 'he', 'going', 'is'], ans: 'Where is he going?', why: "Question word + is + he + verb-ing: Where is he going?" },
+  { given: "I'm reading a book.", words: ['what', 'reading', 'you', 'are'], ans: 'What are you reading?', why: "Question word + are + you + verb-ing: What are you reading?" },
+  { given: "Yes, she is. She's working now.", words: ['she', 'working', 'is', 'now'], ans: 'Is she working now?', why: "Yes/no question: Is + she + verb-ing + now." },
+  { given: "They're travelling by train.", words: ['how', 'travelling', 'they', 'are'], ans: 'How are they travelling?', why: "Question word + are + they + verb-ing: How are they travelling?" }
+]);
+
+setupMC('d5e3', [
+  { q: "Which question asks about Emma's location now?", opts: ['Where are you?', 'Do you travel a lot?', 'What are you doing?'], ans: 0, why: "'Where are you?' asks about her place now. She answers 'I'm at the airport.'" },
+  { q: 'Which question asks about a routine?', opts: ['Are you travelling today?', 'Do you travel a lot for work?', 'Are you having coffee?'], ans: 1, why: "'Do you travel a lot...?' is present simple, so it asks about a routine." },
+  { q: 'What is Emma doing now?', opts: ['She works from home.', 'She is waiting for her flight.', 'She travels a lot.'], ans: 1, why: "Emma says: 'I'm waiting for my flight.'" },
+  { q: 'Is Emma travelling today?', opts: ['Yes, she is.', 'Yes, she does.', "No, she isn't."], ans: 0, why: "The question uses Is, so the short answer uses is. Emma says 'Yes, I am.'" },
+  { q: 'Does Emma usually work from home?', opts: ["No, she doesn't.", 'Yes, she is.', 'Yes, she does.'], ans: 2, why: "Emma says 'I usually work from home.' The question uses Does, so: Yes, she does." },
+  { q: 'What is Emma drinking?', opts: ['Coffee.', 'Water.', 'Tea.'], ans: 1, why: "Emma says: 'I'm drinking water.'" }
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 6 – PUTTING IT TOGETHER
+// ══════════════════════════════════════════════
+setupMC('d6e1', [
+  { q: "<strong>She's from Italy.</strong>", opts: ['Where does she live?', 'Where is she from?', 'Where is she going?'], ans: 1, why: "'From Italy' tells us her country: Where is she from?" },
+  { q: '<strong>She works in a restaurant.</strong>', opts: ['Where does she work?', 'Where is she?', 'Is she working?'], ans: 0, why: "'She works' is present simple: Where does she work?" },
+  { q: '<strong>Yes, she can. She makes great pasta.</strong>', opts: ['Does she cook every day?', 'Can she cook?', 'Is she cooking?'], ans: 1, why: "'Yes, she can' answers a question with Can." },
+  { q: "<strong>She's making dinner now.</strong>", opts: ['What does she make every day?', 'What can she make?', 'What is she doing now?'], ans: 2, why: "'She's making... now' → present continuous: What is she doing now?" },
+  { q: "<strong>I'd like to go to the beach.</strong>", opts: ['What would you like to do?', 'What do you do at the beach?', 'Can you go to the beach?'], ans: 0, why: "'I'd like to' answers 'What would you like to do?'." },
+  { q: "<strong>Yes, there is. It's next to the hotel.</strong>", opts: ['Does the hotel have a restaurant?', 'Is there a restaurant near the hotel?', 'Where is the hotel?'], ans: 1, why: "'Yes, there is' answers a question with 'Is there...?'." },
+  { q: '<strong>Yes, there are. There are three cafés.</strong>', opts: ['Are there any cafés near here?', 'Do you go to cafés?', 'Is there a café near here?'], ans: 0, why: "'Yes, there are' answers a plural question: Are there any...?" },
+  { q: '<strong>I usually go out with my friends.</strong>', opts: ['What are you doing now?', 'What would you like to do?', 'What do you usually do at the weekend?'], ans: 2, why: "'Usually' → a routine → present simple: What do you usually do?" }
+]);
+
+setupMC('d6e2', [
+  { q: 'A guest wants to know about the swimming pool.', opts: ['Is there a swimming pool?', 'Does a swimming pool?', 'Are there a swimming pool?'], ans: 0, why: "One swimming pool (singular) → Is there a...?" },
+  { q: 'A guest wants to know the breakfast time.', opts: ['Where is breakfast?', 'What time is breakfast?', 'Does breakfast start?'], ans: 1, why: "To ask about a time, we use 'What time...?'." },
+  { q: 'A guest wants to know about cafés in the area.', opts: ['Is there any cafés near the hotel?', 'Do there cafés near the hotel?', 'Are there any cafés near the hotel?'], ans: 2, why: "'Cafés' is plural → Are there any...? We don't use do with there." },
+  { q: 'A guest wants to know about parking.', opts: ['Is there free parking?', 'Are there free parking?', 'Does there free parking?'], ans: 0, why: "'Parking' is singular → Is there...? We don't use does with there." },
+  { q: 'A guest wants to know the location of the supermarket.', opts: ['What is the supermarket?', 'Where is the supermarket?', 'Is there the supermarket?'], ans: 1, why: "To ask about a location, we use 'Where is...?'." },
+  { q: 'A guest wants to know about a gym.', opts: ['Does there a gym?', 'Is there a gym?', 'Are there a gym?'], ans: 1, why: "One gym (singular) → Is there a gym? We don't use does with there." }
+]);
+
+setupFill('d6e3', [
+  { a: 'Where ___?', b: 'My brother is at work.', ans: ['is your brother', 'is he'], why: "The answer uses 'is' and there is no main verb → BE: Where is your brother?" },
+  { a: 'Where ___?', b: 'My brother works at a hotel.', ans: ['does your brother work', 'does he work'], why: "'Works' is a main verb → does. After does, no -s: Where does your brother work?" },
+  { a: 'What ___ every morning?', b: 'I usually have coffee and toast.', ans: ['do you usually have', 'do you have', 'do you have for breakfast', 'do you usually have for breakfast'], why: "A routine with a main verb (have) → present simple: What do you (usually) have...?" },
+  { a: 'What ___ right now?', b: "I'm having lunch.", ans: ['are you doing'], why: "'Right now' and 'I'm having' → present continuous: What are you doing right now?" },
+  { a: '___ a musical instrument?', b: 'Yes, I can. I can play the guitar.', ans: ['can you play'], why: "'Yes, I can' answers a question with Can: Can you play...?" },
+  { a: 'What ___ this evening?', b: "I'd like to watch a film.", ans: ['would you like to do'], why: "'I'd like to' answers 'What would you like to do?'." },
+  { a: '___ a supermarket near your house?', b: 'Yes, there is.', ans: ['is there'], why: "'Yes, there is' → one supermarket (singular): Is there...?" },
+  { a: '___ any restaurants near your house?', b: "No, there aren't.", ans: ['are there'], why: "'No, there aren't' → plural with any: Are there any...?" }
+]);
+
+// ══════════════════════════════════════════════
+//  DAY 7 – COMPLETE REVIEW
+// ══════════════════════════════════════════════
+setupMC('d7e1', [
+  { q: dlg('A', BLANK + ' you tired today?') + dlg('B', "No, I'm not."), opts: ['Do', 'Are', 'Can'], ans: 1, why: "'Tired' is an adjective → BE. The answer 'No, I'm not' confirms it." },
+  { q: dlg('A', 'Where ' + BLANK + ' your sister work?') + dlg('B', 'At a hospital.'), opts: ['is', 'do', 'does'], ans: 2, why: "'Work' is a main verb and 'your sister' = she → does." },
+  { q: dlg('A', BLANK + ' you drink coffee every morning?') + dlg('B', 'Yes, I do.'), opts: ['Do', 'Are', 'Does'], ans: 0, why: "'Drink' is a main verb with you → Do. The answer 'Yes, I do' confirms it." },
+  { q: dlg('A', 'What ' + BLANK + ' your father usually do after work?') + dlg('B', 'He watches TV.'), opts: ['is', 'does', 'do'], ans: 1, why: "'Do' is the main verb and 'your father' = he → does." },
+  { q: dlg('A', BLANK + ' your parents at home?') + dlg('B', 'Yes, they are.'), opts: ['Do', 'Is', 'Are'], ans: 2, why: "No main verb, and 'your parents' = they → Are." },
+  { q: dlg('A', BLANK + ' you swim?') + dlg('B', "No, I can't."), opts: ['Are', 'Can', 'Do'], ans: 1, why: "'No, I can't' answers a question with Can." },
+  { q: dlg('A', 'What ' + BLANK + ' you doing right now?') + dlg('B', "I'm studying English."), opts: ['are', 'do', 'can'], ans: 0, why: "'Doing' (-ing) + right now → present continuous: What are you doing?" },
+  { q: dlg('A', BLANK + ' she wearing jeans today?') + dlg('B', 'Yes, she is.'), opts: ['Does', 'Is', 'Can'], ans: 1, why: "'Wearing' (-ing) with she → Is she wearing...?" },
+  { q: dlg('A', 'What ' + BLANK + ' you like to drink?') + dlg('B', 'Some water, please.'), opts: ['are', 'would', 'do'], ans: 1, why: "'Some water, please' answers an offer: What would you like to drink?" },
+  { q: dlg('A', BLANK + ' there a bank near here?') + dlg('B', 'Yes, there is.'), opts: ['Is', 'Are', 'Does'], ans: 0, why: "One bank (singular) → Is there...?" },
+  { q: dlg('A', BLANK + ' there any good restaurants near the hotel?') + dlg('B', 'Yes, there are.'), opts: ['Is', 'Do', 'Are'], ans: 2, why: "'Restaurants' is plural → Are there any...?" },
+  { q: dlg('A', BLANK + ' your brother go to the gym?') + dlg('B', 'Yes, he does.'), opts: ['Is', 'Does', 'Do'], ans: 1, why: "'Go' is a main verb and 'your brother' = he → Does." },
+  { q: dlg('A', BLANK + ' are your keys?') + dlg('B', "They're in my bag."), opts: ['Where', 'Who', 'When'], ans: 0, why: "'In my bag' is a place → Where." },
+  { q: dlg('A', BLANK + ' do you go to the cinema?') + dlg('B', 'About twice a month.'), opts: ['Where', 'How often', 'What'], ans: 1, why: "'Twice a month' tells us how many times → How often." },
+  { q: dlg('A', BLANK + ' is that man?') + dlg('B', "He's my boss."), opts: ['Who', 'Where', 'How'], ans: 0, why: "'He's my boss' tells us about a person → Who." }
+]);
+
+setupMC('d7e2', [
+  { q: 'Which question has a mistake?', opts: ['Where are you from?', 'Where do you work?', 'Where you are from?'], ans: 2, why: "In questions, BE goes before the subject: Where are you from?" },
+  { q: 'Which question has a mistake?', opts: ['Does your sister work here?', 'Do your sister work here?', 'Do your parents work here?'], ans: 1, why: "'Your sister' = she, so we need Does: Does your sister work here?" },
+  { q: 'Which question has a mistake?', opts: ['Can you cook?', 'Do you can cook?', 'What can you cook?'], ans: 1, why: "We never use do with can: Can you cook?" },
+  { q: 'Which question has a mistake?', opts: ['What are you doing?', 'Are you working now?', 'What do you doing now?'], ans: 2, why: "With -ing we use BE, not do: What are you doing now?" },
+  { q: 'Which question has a mistake?', opts: ['Would you like some coffee?', 'What would you like to eat?', 'What do you would like to eat?'], ans: 2, why: "We never use do with would: What would you like to eat?" },
+  { q: 'Which question has a mistake?', opts: ['Is there a supermarket near here?', 'Are there any cafés near here?', 'Does there a supermarket near here?'], ans: 2, why: "We never use does with there: Is there a supermarket near here?" },
+  { q: 'Which question has a mistake?', opts: ['What time does she start work?', 'Where does he live?', 'Where does she works?'], ans: 2, why: "After does, the verb has no -s: Where does she work?" },
+  { q: 'Which question has a mistake?', opts: ['Are your parents Brazilian?', 'Is your parents Brazilian?', 'Is your mother Brazilian?'], ans: 1, why: "'Your parents' is plural, so we need Are: Are your parents Brazilian?" }
+]);
+
+// Exercise 3 – Writing (WhatsApp)
+(function () {
+  const ta = document.getElementById('d7e3-text');
+  const count = document.getElementById('d7e3-count');
+  const DRAFT_KEY = FILE_KEY + '_d7e3_draft';
+  ta.value = lsGet(DRAFT_KEY, '');
+  function countQ() {
+    const n = (ta.value.match(/\?/g) || []).length;
+    count.textContent = n + (n === 1 ? ' question' : ' questions');
+  }
+  countQ();
+  ta.addEventListener('input', () => { lsSet(DRAFT_KEY, ta.value); countQ(); });
+  document.getElementById('d7e3-model').addEventListener('click', e => {
+    const box = document.getElementById('d7e3-model-box');
+    box.classList.toggle('show');
+    e.currentTarget.textContent = box.classList.contains('show') ? '🙈 Hide model text' : '👀 Show model text';
+  });
+  document.getElementById('d7e3-send').addEventListener('click', () => {
+    const text = ta.value.trim();
+    if (text.length < 20) { showFeedback('d7e3-fb', '✏️ Please write your 8 questions before you send.', 'err'); ta.focus(); return; }
+    const msg = "Hi, Teacher Mari! This is " + (studentName || 'your student') + ".\n\n*That's a Good Question! – Day 7 – Writing Challenge: Mini Interview*\n\n" + text;
+    window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+    showFeedback('d7e3-fb', '✅ Great! Your questions are ready to send to Teacher Mari on WhatsApp.', 'ok');
+    markExerciseDone('d7e3');
+  });
+})();
+
+document.getElementById('summary-whatsapp').addEventListener('click', () => {
+  const msg = "🏆 *That's a Good Question! – Week complete!*\n\nHi, Teacher Mari! This is " + (studentName || 'your student') + ". I finished all 7 days.\n\nAverage score: " + averageScore() + '%';
+  window.open('https://wa.me/5524992723816?text=' + encodeURIComponent(msg), '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+function renderVocabGrid(id, data) {
+  const wrap = document.getElementById(id);
+  data.forEach(item => {
+    const div = document.createElement('div'); div.className = 'vocab-chip';
+    div.innerHTML = '<button type="button" class="speak-btn" title="Listen">🔊</button><div class="vc-en">' + esc(item.en) + '</div><div class="vc-def">' + esc(item.def) + '</div>';
+    div.querySelector('.speak-btn').addEventListener('click', () => speakWord(item.en));
+    wrap.appendChild(div);
+  });
+}
+renderVocabGrid('vocab-qwords', [
+  { en: 'What', def: 'things and actions' }, { en: 'Where', def: 'places' },
+  { en: 'Who', def: 'people' }, { en: 'When', def: 'time or day' },
+  { en: 'What time', def: 'clock time' }, { en: 'How often', def: 'how many times' },
+  { en: 'Why', def: 'reasons (answer: Because...)' }, { en: 'How', def: 'the way (by train, by car)' },
+  { en: 'What colour', def: 'colours' }, { en: 'What number', def: 'numbers' }
+]);
+renderVocabGrid('vocab-freq', [
+  { en: 'every day', def: '7 days a week' }, { en: 'once a week', def: '1 time a week' },
+  { en: 'twice a week', def: '2 times a week' }, { en: 'twice a month', def: '2 times a month' },
+  { en: 'every morning', def: 'all mornings' }, { en: 'usually', def: 'most of the time' }
+]);
+renderVocabGrid('vocab-short', [
+  { en: "Yes, I am. / No, I'm not.", def: 'Are you...?' }, { en: "Yes, she is. / No, she isn't.", def: 'Is she...?' },
+  { en: "Yes, I do. / No, I don't.", def: 'Do you...?' }, { en: "Yes, he does. / No, he doesn't.", def: 'Does he...?' },
+  { en: "Yes, I can. / No, I can't.", def: 'Can you...?' }, { en: "Yes, there is. / No, there isn't.", def: 'Is there...?' },
+  { en: "Yes, there are. / No, there aren't.", def: 'Are there any...?' }
+]);
+renderVocabGrid('vocab-offers', [
+  { en: 'Would you like some coffee?', def: 'an offer' }, { en: 'Would you like to go...?', def: 'an invitation' },
+  { en: "Yes, I'd love to.", def: 'yes to an invitation' }, { en: 'Yes, please.', def: 'yes to an offer' },
+  { en: 'No, thanks.', def: 'a polite no' }, { en: "I'd like...", def: 'I would like = I want (polite)' }
+]);
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+function launchConfetti(count, duration) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#FF5C23', '#5340c8', '#04392F', '#f59e0b', '#0d9488', '#1D1050', '#3b82f6'];
+  const ps = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height, r: Math.random() * 7 + 3,
+    c: colors[Math.floor(Math.random() * colors.length)], s: Math.random() * 4 + 1.5,
+    d: (Math.random() - 0.5) * 3, a: Math.random() * 360, sp: (Math.random() - 0.5) * 6
+  }));
+  let f = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ps.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a * Math.PI / 180); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore(); p.y += p.s; p.x += p.d; p.a += p.sp; });
+    f++;
+    if (f < duration) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.style.cssText = "position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,#1D1050,#5340c8);color:#fff;padding:14px 24px;border-radius:99px;font-family:'Poppins',sans-serif;font-size:0.95rem;font-weight:700;box-shadow:0 8px 30px rgba(29,16,80,0.35);z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s;opacity:0;max-width:calc(100vw - 32px);text-align:center;";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform = 'translateX(-50%) translateY(0)'; toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; toast.style.opacity = '0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() {
+  launchConfetti(220, 320);
+  setTimeout(() => launchConfetti(220, 320), 900);
+  showToast('🏆 Week complete! You are amazing!');
+}
+</script>
+</body>
+</html>
