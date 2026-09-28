@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Progress Test 1 – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, textarea, select { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; font-weight: 600; color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--teal); font-weight: 800; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+  .done-chip {
+    display: none;
+    font-size: 0.68rem; font-weight: 700;
+    background: #f0fdfa; color: var(--teal);
+    border: 1px solid #99f6e4;
+    border-radius: 99px; padding: 1px 8px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .ex-card.done .done-chip { display: inline-block; }
+
+  /* ── ITEM LAYOUT ── */
+  .item { margin-bottom: 16px; }
+  .q-row { display: flex; gap: 8px; align-items: flex-start; }
+  .q-num { font-weight: 700; color: var(--purple-light); flex-shrink: 0; min-width: 18px; font-size: 0.88rem; line-height: 1.9; }
+  .q-body { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 1.9; }
+  .blank { color: var(--gray); letter-spacing: 1px; font-weight: 600; }
+
+  /* ── DIALOGUE ── */
+  .dlg { display: flex; flex-direction: column; gap: 2px; }
+  .dline { display: flex; gap: 8px; align-items: baseline; }
+  .dline .speaker { color: var(--orange); font-weight: 700; flex-shrink: 0; min-width: 20px; }
+  .dline .say { flex: 1; min-width: 0; }
+
+  /* ── WHY / CORRECTION BOX ── */
+  .why-slot {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    background: #f0fdfa;
+    border-left: 3px solid var(--teal);
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    color: var(--purple);
+  }
+  .why-slot.show { display: block; }
+  .why-slot .bad { color: var(--red); font-weight: 700; }
+  .why-slot .good { color: var(--teal); font-weight: 700; }
+  .why-slot .why { display: block; margin-top: 2px; }
+  .why-slot .row + .row { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #99f6e4; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-options { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .mc-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 500;
+    background: var(--white);
+    line-height: 1.4;
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); font-weight: 700; }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); font-weight: 700; }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); flex-shrink: 0; }
+
+  /* ── FILL IN ── */
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 1px 6px;
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--purple);
+    background: #faf9ff;
+    width: 120px;
+    max-width: 100%;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+    border-radius: 4px 4px 0 0;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); background: #fff5ee; }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── INLINE CHOICE (No / Yes) ── */
+  .ic-opt {
+    display: inline-block;
+    padding: 1px 10px;
+    margin: 0 2px;
+    border-radius: 6px;
+    border: 2px solid var(--purple-light);
+    background: var(--white);
+    color: var(--purple);
+    font-size: 0.86rem; font-weight: 700;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.15s;
+  }
+  .ic-opt:hover { background: #f5f3ff; }
+  .ic-opt.selected { background: var(--purple); color: var(--white); border-color: var(--purple); }
+  .ic-opt.correct { background: var(--teal); border-color: var(--teal); color: var(--white); }
+  .ic-opt.wrong { background: var(--red); border-color: var(--red); color: var(--white); }
+  .ic-sep { color: var(--gray); font-weight: 600; }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 180px;
+    transition: border-color 0.2s;
+    margin-top: 14px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    text-align: center;
+    user-select: none;
+    word-break: break-word;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px;
+  }
+  .cm-tip { font-size: 0.75rem; color: var(--gray); margin-bottom: 10px; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-btns { display: inline-flex; gap: 6px; margin-left: 4px; vertical-align: middle; }
+  .tf-btn {
+    padding: 2px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--purple);
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--purple-light); }
+  .tf-btn.selected { border-color: var(--purple); background: var(--purple); color: #fff; }
+  .tf-btn.correct { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.wrong { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 6px 0 8px; min-height: 40px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); border-style: solid; background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); border-style: solid; background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple); color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.84rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-label { font-size: 0.72rem; font-weight: 700; color: var(--gray); }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text p + p { margin-top: 10px; }
+  .reading-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .listen-btn {
+    background: var(--white); border: 1px solid #99f6e4; cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; color: var(--teal);
+    padding: 3px 10px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+
+  /* ── WRITING ── */
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .checklist { list-style: none; margin: 14px 0 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    font-size: 0.86rem; font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-weight: 800; }
+  .guide-title { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 16px; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--purple);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.86rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 28px; border-radius: 99px;
+    font-size: 1rem; font-weight: 700;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35);
+    z-index: 9999; opacity: 0;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    max-width: 90vw; text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: 100px; font-size: 0.84rem; }
+    .q-body { font-size: 0.85rem; }
+    .cm-wrap { gap: 10px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(min(100px, 100%), 1fr)); gap: 8px; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+  }
+</style>
+
+<style>
+/* TML final dual-mode template additions */
+.mode-switch{display:flex;gap:4px;justify-content:center;margin-top:9px}
+.mode-switch button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:#fff;border-radius:99px;padding:6px 11px;font-size:.7rem;font-weight:700;cursor:pointer}
+.mode-switch button.active{background:var(--orange);border-color:var(--orange)}
+body.game-mode .tabs-wrap{display:none}
+body.game-mode .content>.day-panel{display:none!important}
+.game-area{max-width:780px;margin:0 auto}
+.game-navline{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.gnav{padding:7px 4px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:var(--gray);font-size:.67rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.gnav.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.game-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-left:4px solid var(--orange)}
+.game-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.game-kicker{font-size:.7rem;color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.game-title{font-size:1rem;font-weight:800}
+.game-inst{font-size:.78rem;color:var(--gray);margin-top:3px}
+.game-body{margin-top:14px}
+.game-feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:.8rem;font-weight:600}
+.game-feedback.show{display:block}.game-feedback.ok{background:#f0fdfa;color:var(--teal)}.game-feedback.err{background:#fef2f2;color:var(--red)}
+.game-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.game-actions button,.game-bottom button{border:0;border-radius:99px;padding:8px 13px;font-size:.75rem;font-weight:700;cursor:pointer}
+.game-check{background:var(--orange);color:#fff}.game-try{background:var(--purple);color:#fff}.game-see{background:var(--cream);color:var(--purple)}
+.game-explain{display:none;margin-top:9px;padding:9px 11px;background:#f7f4ff;border-left:3px solid var(--orange);border-radius:0 7px 7px 0;font-size:.78rem;line-height:1.5}.game-explain.show{display:block}
+.game-bottom{display:flex;justify-content:space-between;margin-top:14px}.game-bottom button{background:var(--gray-light);color:var(--purple)}
+.gmc{display:flex;flex-direction:column;gap:8px}.gopt{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--purple)}.gopt.selected{border-color:var(--purple-light);background:#f5f3ff}
+.gfill{border:0;border-bottom:2px solid var(--purple-light);padding:6px;font:inherit;color:var(--purple);outline:none;width:min(240px,100%)}
+.gtf{display:flex;gap:8px}.gtf button{border:2px solid var(--gray-light);background:#fff;border-radius:99px;padding:7px 16px;font-weight:700}.gtf button.selected{background:var(--purple);color:#fff}
+.gwords,.gzone{display:flex;flex-wrap:wrap;gap:7px;padding:8px;border-radius:8px;min-height:44px}.gwords{background:var(--gray-light)}.gzone{border:2px dashed var(--purple-light);margin-top:8px}.gchip{border:0;background:var(--purple);color:#fff;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+.gmatch{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gmatchcol{display:flex;flex-direction:column;gap:7px}.gm{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:9px;text-align:center;font-weight:600;color:var(--purple)}.gm.active{border-color:var(--orange);background:#fff5ee}.gm.linked{border-color:var(--purple-light);background:#f5f3ff}
+.game-bank-copy .day-header{margin-bottom:14px}.game-bank-copy .ex-card{margin-bottom:14px}
+@media(max-width:600px){.game-navline{display:flex;overflow-x:auto}.gnav{min-width:55px}.gnav.bank{min-width:76px}.game-card{padding:14px 12px}.gmatch{gap:8px}}
+</style>
+
+<style>
+.header{padding:16px 20px 13px}.header-logo{height:52px}.header h1{font-size:1.28rem}.progress-section{padding:10px 16px}.motivation-bar{padding:7px 12px}
+.tab-btn{padding:9px 10px;font-size:.7rem}.content{padding-top:16px}
+@media(max-width:600px){.header{padding:13px 12px 11px}.header-logo{height:42px}.tab-btn{padding:8px 8px;font-size:.68rem}}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div id="welcome-screen"><div class="welcome-card">
+<img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+<div class="welcome-hi">👋 Hello!</div><div class="welcome-sub">Welcome to your weekly practice<br><strong>Unit 7A – This is me</strong>.<br>What's your name?</div>
+<input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/><button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button></div></div>
+<div id="hello-banner"></div>
+<div class="header"><div class="header-inner"><img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/><div><h1>Unit 7A – Weekly Practice</h1><div class="subtitle">Elementary · This is me</div><div class="mode-switch"><button id="mode-traditional" class="active">Traditional</button><button id="mode-gamified">🎮 Gamified</button></div></div></div></div>
+<div class="progress-section"><div class="progress-label"><span>Your progress this week</span><span id="progress-pct">0%</span></div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>
+<div class="motivation-bar">🌟 <span id="motivation-text">Small steps every day make a big difference!</span></div>
+<div class="tabs-wrap"><div class="tabs">
+<button class="tab-btn active" data-tab="day1">🔤 Day 1</button><button class="tab-btn" data-tab="day2">📐 Day 2</button><button class="tab-btn" data-tab="day3">📅 Day 3</button><button class="tab-btn" data-tab="day4">🗣️ Day 4</button><button class="tab-btn" data-tab="day5">📖 Day 5</button><button class="tab-btn" data-tab="day6">🕵️ Day 6</button><button class="tab-btn" data-tab="day7">✍️ Day 7</button><button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button><button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+</div></div>
+<div class="content"><div id="game-area" class="game-area" style="display:none"><div id="game-nav" class="game-navline"></div><div id="game-stage"></div></div><div id="traditional-root"></div></div>
+<script>
+const DAYS = [
+{title:'Word Formation',desc:'Actions and people',ex:[
+{title:'Exercise 1 · Action or Person?',inst:'Choose the word that makes the sentence logical.',type:'mc',items:[
+['My sister can ___ Spanish.',['teach','teacher'],0,'After can, use the base verb: teach.'],['My sister is a Spanish ___.',['teach','teacher'],1,'After a + job, we need the person noun: teacher.'],['Paulo is a taxi ___.',['drive','driver'],1,'A person who drives a taxi is a driver.'],['He can ___ very well.',['drive','driver'],0,'After can, use the base verb: drive.'],['My favorite ___ is Brazilian.',['write','writer'],1,'A person who writes is a writer.'],['I want to ___ a book one day.',['write','writer'],0,'After want to, use the base verb: write.'],['Daniel wants to ___ in films.',['act','actor'],0,'After wants to, use the base verb: act.'],['Daniel is an ___.',['act','actor'],1,'The person noun is actor.']]},
+{title:'Exercise 2 · Same family, different job',inst:'Complete each sentence with the correct word.',type:'fill',items:[
+['Carla is a ___. She can teach English and Spanish.',['teacher'],'A person who teaches is a teacher.'],['Bruno is a bus ___. He can drive long distances.',['driver'],'A person who drives is a driver.'],['Mia is a ___. She wants to write a new book.',['writer'],'A person who writes is a writer.'],['Leo wants to act in films. He wants to be an ___.',['actor'],'A person who acts is an actor.']]},
+{title:'Exercise 3 · Read the situation',inst:'Read the situation and choose the best answer.',type:'mc',items:[
+['Julia works at a school. Her students are adults. Julia is a...',['writer','teacher','driver'],1,'She works with students, so she is a teacher.'],['Marcus creates stories and books. Marcus is a...',['writer','actor','teacher'],0,'A person who creates books is a writer.'],['Helen works in films and plays different characters. Helen is an...',['actor','driver','writer'],0,'A person who acts in films is an actor.'],['Robert takes people around the city in his taxi. Robert is a...',['teacher','driver','actor'],1,'He drives a taxi, so he is a driver.'],['Which sentence describes an action, not a person?',['She is a writer.','She writes books.','Her brother is an actor.'],1,'Writes is the action.'],['Which sentence describes a person, not an action?',['They teach English.','He drives every day.','She is a teacher.'],2,'Teacher names a person.']]}]},
+{title:'Was or Were?',desc:'Past simple of be in biographies',ex:[
+{title:'Exercise 1 · Was or were?',inst:'Choose the correct past form of be.',type:'mc',items:[
+['Vincent van Gogh ___ a painter.',['was','were'],0,'Vincent is singular: was.'],['His parents ___ Dutch.',['was','were'],1,'Parents is plural: were.'],['Marilyn Monroe ___ an American actress.',['was','were'],0,'Marilyn is singular: was.'],['The Beatles ___ a British band.',['was','were'],1,'The Beatles refers to several people: were.'],['Albert Einstein ___ born in Germany.',['was','were'],0,'Albert Einstein is singular: was.'],['Frida Kahlo and Diego Rivera ___ Mexican artists.',['was','were'],1,'Two people: were.'],['Pelé ___ a Brazilian football player.',['was','were'],0,'Pelé is singular: was.'],['His parents ___ Brazilian.',['was','were'],1,'Parents is plural: were.']]},
+{title:'Exercise 2 · Which sentence is correct?',inst:'Choose the sentence with the correct form of be.',type:'mc',items:[
+['Choose the correct sentence.',['Her father were a teacher.','Her father was a teacher.','Her father are a teacher.'],1,'Her father is singular, so use was.'],['Choose the correct sentence.',['Her parents were artists.','Her parents was artists.','Her parents is artists.'],0,'Parents is plural, so use were.'],['Choose the correct sentence.',['They was famous.','They were famous.','They is famous.'],1,'They takes were in the past.'],['Choose the correct sentence.',['He were born in 1960.','He was born in 1960.','He are born in 1960.'],1,'He takes was in the past.'],['Choose the correct sentence.',['His mother was Italian.','His mother were Italian.','His mother are Italian.'],0,'Mother is singular: was.'],['Choose the correct sentence.',['His brothers was musicians.','His brothers were musicians.','His brothers is musicians.'],1,'Brothers is plural: were.']]},
+{title:'Exercise 3 · Vincent van Gogh',inst:'Read the biography and mark True or False.',type:'tf',fixed:'<div class="reading-text"><strong>Vincent van Gogh</strong><br><br>Vincent van Gogh was a Dutch painter. He was born in the Netherlands in 1853. His father was a minister and his mother was an artist. Vincent and his brother Theo were very close. Van Gogh wasn\'t famous when he was alive, but today his paintings are famous all over the world.</div>',items:[
+['Van Gogh was Dutch.',true,'The text says he was a Dutch painter.'],['He was born in 1953.',false,'He was born in 1853.'],['His father was a minister.',true,'The text says his father was a minister.'],['His mother was an artist.',true,'The text says his mother was an artist.'],['Vincent and Theo were brothers.',true,'Theo was Vincent’s brother.'],['Van Gogh was very famous when he was alive.',false,'He wasn’t famous when he was alive.']]}]},
+{title:'Years & Life Events',desc:'Read years and understand a timeline',ex:[
+{title:'Exercise 1 · Reading years in context',inst:'Choose the correct way to say each year.',type:'mc',items:[
+['1853',['eighteen fifty-three','eighteen thirty-five','nineteen fifty-three'],0,'1853 = eighteen fifty-three.'],['1907',['nineteen seventy','nineteen oh seven','nineteen seventeen'],1,'1907 = nineteen oh seven.'],['1926',['nineteen twenty-six','nineteen sixty-two','nineteen two six'],0,'1926 = nineteen twenty-six.'],['1940',['nineteen fourteen','nineteen forty','nineteen four'],1,'1940 = nineteen forty.'],['1955',['nineteen fifty-five','nineteen fifteen-five','nineteen five-five'],0,'1955 = nineteen fifty-five.'],['1983',['nineteen eighty-three','nineteen thirty-eight','nineteen eighteen-three'],0,'1983 = nineteen eighty-three.']]},
+{title:'Exercise 2 · The year changes everything',inst:'Read the year in words and choose the correct number.',type:'mc',items:[
+['nineteen ninety-one',['1919','1991','1901'],1,'Nineteen ninety-one = 1991.'],['nineteen oh seven',['1970','1907','1917'],1,'Nineteen oh seven = 1907.'],['two thousand and five',['2005','2050','2015'],0,'Two thousand and five = 2005.'],['twenty twelve',['2020','2002','2012'],2,'Twenty twelve = 2012.'],['eighteen fifty-three',['1853','1835','1953'],0,'Eighteen fifty-three = 1853.'],['nineteen eighty-three',['1938','1983','1993'],1,'Nineteen eighty-three = 1983.']]},
+{title:'Exercise 3 · Put the life in order',inst:'Read Frida Kahlo’s biography and choose the correct chronological order.',type:'mc',fixed:'<div class="reading-text"><strong>Frida Kahlo</strong><br><br>Frida Kahlo was born in Mexico in 1907. When she was six, she was very ill. In 1925, she was in a serious bus accident. Painting was very important in her life after the accident. In 1929, Frida and Diego Rivera were married. In the 1930s and 1940s, her paintings were in exhibitions in different countries. She was 47 when she died in 1954.</div>',items:[
+['Which event was first?',['Frida and Diego were married.','Frida was born.','She was in a bus accident.'],1,'Frida was born in 1907.'],['What happened after Frida was very ill?',['She was in a bus accident.','She died.','She was born.'],0,'The next event given is the 1925 bus accident.'],['Which event was before the international exhibitions?',['Frida and Diego were married.','Frida died.','Frida was born in 1954.'],0,'They were married in 1929, before the exhibitions in the 1930s and 1940s.'],['Which is the correct order?',['born → ill → accident → married → exhibitions → died','born → married → ill → accident → died → exhibitions','ill → born → accident → exhibitions → married → died'],0,'That sequence follows the dates in the text.']]}]},
+{title:"What's the word?",desc:'Explain words when you do not know or remember them',ex:[
+{title:'Exercise 1 · How do you explain a word?',inst:'Choose the best category.',type:'mc',items:[
+['It’s a ___ who writes books.',['person','place','thing'],0,'A writer is a person.'],['It’s a ___ where you can see paintings.',['person','place','thing'],1,'A gallery is a place.'],['It’s a ___ that you use to take photos.',['person','place','thing'],2,'A camera is a thing.'],['It’s a ___ who acts in films.',['person','place','thing'],0,'An actor is a person.'],['It’s a ___ where you can borrow books.',['person','place','thing'],1,'A library is a place.'],['It’s a ___ that has your name and photo and you use it to travel internationally.',['person','place','thing'],2,'A passport is a thing/document.']]},
+{title:'Exercise 2 · Which explanation works?',inst:'Choose the best explanation.',type:'mc',items:[
+['painter',['It’s a person who creates paintings.','It’s a place where you see paintings.','It’s a thing you use to see paintings.'],0,'A painter is a person who creates paintings.'],['gallery',['It’s a person who paints pictures.','It’s a place where you can see art.','It’s a thing an artist wears.'],1,'A gallery is a place where you can see art.'],['writer',['It’s a person who writes books or stories.','It’s a place where people read.','It’s a thing you use to write.'],0,'A writer is a person.'],['hospital',['It’s a person who helps sick people.','It’s a place where doctors and nurses work.','It’s a thing doctors use.'],1,'A hospital is a place.'],['actor',['It’s a person who acts in films or plays.','It’s a place where you watch films.','It’s a thing you watch.'],0,'An actor is a person.'],['passport',['It’s a person who works at an airport.','It’s a place at an airport.','It’s a document you use when you travel to another country.'],2,'A passport is a travel document.']]},
+{title:'Exercise 3 · The museum problem',inst:'Choose the best question or explanation for each real-world situation.',type:'mc',items:[
+['You see the person who creates the paintings.',['What’s the word for a person who paints?','Where was the painting?','What year is the museum?'],0,'This asks for the name of a person/job.'],['You don’t know the English word gallery.',['What’s the word for a place where you can see art?','Who was the gallery?','What was the painter?'],0,'A gallery is a place where you can see art.'],['You want to know the meaning of portrait.',['What does “portrait” mean?','Where does “portrait” work?','Who was “portrait”?'],0,'Use What does ... mean? to ask for meaning.'],['You know the word but don’t know the spelling.',['What does it mean?','How do you spell it?','Where was it?'],1,'How do you spell it? asks for the letters.'],['Someone explains: “It’s a picture of a person.”',['portrait','gallery','painter'],0,'A portrait is a picture of a person.'],['Someone says: “It’s a person who creates art.”',['museum','artist','picture'],1,'An artist is a person who creates art.']]}]},
+{title:'Real People, Real Stories',desc:'Read for facts, grammar and inference',ex:[
+{title:'Exercise 1 · Who was Vincent van Gogh?',inst:'Read the text and choose the correct answer.',type:'mc',fixed:'<div class="reading-text"><strong>Vincent van Gogh</strong><br><br>Vincent van Gogh was born in 1853 in the Netherlands. His father was a minister and his mother was interested in art. Vincent wasn’t always a painter. When he was young, he was an art dealer and later he was a teacher. His brother Theo was very important in his life. Vincent’s life was difficult, and he wasn’t famous when he was alive. Today, he is one of the world’s most famous painters.</div>',items:[
+['Where was Van Gogh born?',['France','the Netherlands','Italy'],1,'He was born in the Netherlands.'],['What was his father’s job?',['He was a painter.','He was a minister.','He was a teacher.'],1,'His father was a minister.'],['Was Vincent always a painter?',['Yes, he was.','No, he wasn’t.','The text doesn’t say.'],1,'The text says he wasn’t always a painter.'],['What was one of his jobs when he was young?',['He was a teacher.','He was an actor.','He was a doctor.'],0,'He was an art dealer and later a teacher.'],['Who was Theo?',['Vincent’s father','Vincent’s brother','Vincent’s teacher'],1,'Theo was his brother.'],['Which statement is correct?',['Van Gogh was very famous when he was alive.','Van Gogh wasn’t famous when he was alive.','His brother was a famous painter.'],1,'The text says he wasn’t famous when he was alive.']]},
+{title:'Exercise 2 · Was he or wasn’t he?',inst:'Use the text and choose the correct short answer.',type:'mc',fixed:'<div class="reading-text"><strong>Vincent van Gogh</strong><br><br>Vincent van Gogh was born in 1853 in the Netherlands. His father was a minister and his mother was interested in art. Vincent wasn’t always a painter. When he was young, he was an art dealer and later he was a teacher. His brother Theo was very important in his life. Vincent’s life was difficult, and he wasn’t famous when he was alive. Today, he is one of the world’s most famous painters.</div><div class="grammar-tip"><strong>Remember:</strong> Was he...? → Yes, he was. / No, he wasn’t. &nbsp; Were they...? → Yes, they were. / No, they weren’t.</div>',items:[
+['Was Van Gogh Dutch?',['Yes, he was.','No, he wasn’t.'],0,'He was born in the Netherlands and was Dutch.'],['Was his father an actor?',['Yes, he was.','No, he wasn’t.'],1,'His father was a minister.'],['Was Van Gogh a teacher at one point in his life?',['Yes, he was.','No, he wasn’t.'],0,'The text says he was later a teacher.'],['Was Theo Vincent’s brother?',['Yes, he was.','No, he wasn’t.'],0,'Theo was Vincent’s brother.'],['Were Vincent’s early years easy?',['Yes, they were.','No, they weren’t.'],1,'The text describes his life as difficult.'],['Were his paintings famous when he was alive?',['Yes, they were.','No, they weren’t.'],1,'He wasn’t famous when he was alive.']]},
+{title:'Exercise 3 · What can you conclude?',inst:'Choose the conclusion or question supported by the information.',type:'mc',fixed:'<div class="reading-text"><strong>Vincent van Gogh</strong><br><br>Vincent van Gogh was born in 1853 in the Netherlands. His father was a minister and his mother was interested in art. Vincent wasn’t always a painter. When he was young, he was an art dealer and later he was a teacher. His brother Theo was very important in his life. Vincent’s life was difficult, and he wasn’t famous when he was alive. Today, he is one of the world’s most famous painters.</div><div class="grammar-tip"><strong>Biography detective:</strong> Some answers are not written word-for-word, so connect the information carefully.</div>',items:[
+['Vincent was an art dealer, a teacher, and later a painter. We can conclude that...',['he had different jobs in his life.','he was always a teacher.','he didn’t work.'],0,'Several jobs are mentioned.'],['He wasn’t famous when he was alive, but today he is internationally famous. This means...',['his art became much more famous later.','everybody knew him in 1853.','he wasn’t a painter.'],0,'His fame came later.'],['Theo was very important in Vincent’s life. Which statement is supported?',['Theo was Vincent’s brother.','Theo was Vincent’s father.','Theo was Vincent’s teacher.'],0,'The text identifies Theo as his brother.'],['Vincent was born in the Netherlands. Which question gives this answer?',['When was Vincent?','Where was Vincent born?','Who were Vincent born?'],1,'Where was ... born? asks for place.'],['His father was a minister. Which question gives this answer?',['What was his father’s job?','Where were his father?','When was his father job?'],0,'This asks about his job.'],['Vincent wasn’t famous when he was alive. Which sentence has the opposite meaning?',['Vincent was famous when he was alive.','Vincent wasn’t a painter.','Vincent was born in the Netherlands.'],0,'Was famous is the opposite of wasn’t famous.']]}]},
+{title:'Biography Detective',desc:'Compare real biographies and find evidence',ex:[
+{title:'Exercise 1 · Three famous lives',inst:'Read the three profiles and choose the correct answer.',type:'mc',fixed:'<div class="reading-text"><strong>Frida Kahlo</strong><br>Frida Kahlo was born in Mexico in <strong>1907</strong>. She was a Mexican painter. Her paintings were often about her life. She and Diego Rivera were married in <strong>1929</strong>.<br><br><strong>Albert Einstein</strong><br>Albert Einstein was born in Germany in <strong>1879</strong>. He was a physicist. His parents were Hermann and Pauline Einstein. He was famous for his work in science.<br><br><strong>Pelé</strong><br>Pelé was born in Brazil in <strong>1940</strong>. He was a football player. His real name was Edson Arantes do Nascimento. His parents were João Ramos and Celeste Arantes.</div>',items:[
+['Who was born first?',['Frida Kahlo','Albert Einstein','Pelé'],1,'1879 is earlier than 1907 and 1940.'],['Whose parents were Hermann and Pauline?',['Frida’s','Einstein’s','Pelé’s'],1,'They were Einstein’s parents.'],['Who was born in nineteen forty?',['Pelé','Einstein','Frida'],0,'Pelé was born in 1940.'],['Who was an artist?',['Einstein','Pelé','Frida'],2,'Frida was a painter.'],['Which two people were born before 1910?',['Frida and Einstein','Frida and Pelé','Einstein and Pelé'],0,'1879 and 1907 are before 1910.'],['Whose real name was different from the name everybody knows?',['Pelé','Einstein','Frida'],0,'Pelé’s real name was Edson Arantes do Nascimento.']]},
+{title:'Exercise 2 · Find the evidence',inst:'Choose the sentence that proves the statement.',type:'mc',fixed:'<div class="reading-text"><strong>Evidence mission</strong><br>Do not choose a sentence only because it is true. Choose the sentence that directly proves the statement.</div>',items:[
+['Frida was an artist.',['She was born in Mexico.','She was a Mexican painter.','She and Diego were married in 1929.'],1,'Painter directly proves she was an artist.'],['Einstein was born in Germany.',['He was born in Germany.','His parents were Hermann and Pauline.','He was a physicist.'],0,'The sentence directly states that he was born in Germany.'],['Pelé wasn’t his birth name.',['He was born in Brazil.','He was a football player.','His real name was Edson Arantes do Nascimento.'],2,'The real-name sentence proves it.'],['Einstein’s parents are mentioned.',['His parents were Hermann and Pauline Einstein.','He was famous for science.','He was born in 1879.'],0,'That sentence names his parents.'],['Frida was married.',['Her paintings were about her life.','She and Diego Rivera were married in 1929.','She was born in 1907.'],1,'The sentence directly says they were married.'],['Pelé was born in Brazil.',['He was born in Brazil.','He was a football player.','His parents were João and Celeste.'],0,'The sentence directly states that he was born in Brazil.']]},
+{title:'Exercise 3 · Biography logic',inst:'Use all the information to solve each question.',type:'mc',fixed:'<div class="reading-text"><strong>Dates to remember</strong><br>Einstein: <strong>1879</strong> · Frida: <strong>1907</strong> · Pelé: <strong>1940</strong></div>',items:[
+['Einstein was born in 1879 and Frida in 1907. Who was older?',['Einstein','Frida'],0,'The earlier birth year means Einstein was older.'],['How many years were between Frida’s birth (1907) and Pelé’s birth (1940)?',['23','33','43'],1,'1940 − 1907 = 33.'],['Who was born in the nineteenth century?',['Einstein','Frida','Pelé'],0,'1879 is in the nineteenth century.'],['Who were born in the twentieth century?',['Einstein and Frida','Frida and Pelé','Einstein and Pelé'],1,'1907 and 1940 are in the twentieth century.'],['Which question can you ask about all three people?',['Where was he/she born?','What were his/her paintings about?','What was his/her real name?'],0,'All three profiles include birthplace.'],['Which statement correctly compares two profiles?',['Frida and Einstein were painters.','Einstein and Pelé were born in Brazil.','Frida and Pelé were born in the twentieth century.'],2,'Both 1907 and 1940 are twentieth-century dates.']]}]},
+{title:'Complete Review',desc:'Review the week and finish with a writing challenge',ex:[
+{title:'Exercise 1 · Complete Review',inst:'Choose the correct answer.',type:'mc',items:[
+['My favorite ___ wrote this book.',['write','writer','writing'],1,'Writer is the person noun.'],['Van Gogh ___ Dutch.',['was','were','is'],0,'Van Gogh is singular and the sentence is past.'],['His parents ___ Dutch.',['was','were','is'],1,'Parents is plural: were.'],['Frida Kahlo ___ born in Mexico.',['were','was','are'],1,'Frida is singular: was.'],['Einstein’s parents ___ Hermann and Pauline.',['was','were','is'],1,'Parents is plural: were.'],['1907 is...',['nineteen seventy','nineteen oh seven','nineteen seventeen'],1,'1907 = nineteen oh seven.'],['1853 is...',['eighteen fifty-three','eighteen thirty-five','nineteen fifty-three'],0,'1853 = eighteen fifty-three.'],['A person who creates paintings is a...',['paint','painter','painting'],1,'Painter is the person noun.'],['It’s a place where you can see art.',['gallery','painter','portrait'],0,'A gallery is a place for art.'],['___ Van Gogh famous when he was alive?',['Was','Were','Did'],0,'With he and past be, use Was.'],['No, he ___.',["weren’t","wasn’t","isn’t"],1,'The short negative answer is No, he wasn’t.'],['___ his parents Dutch?',['Was','Were','Did'],1,'Parents is plural, so use Were.'],['“His parents were Dutch.” Which subject can replace his parents?',['he','it','they'],2,'His parents = they.'],['Which question is correct?',['Where was Frida born?','Where were Frida born?','Where did Frida was born?'],0,'With Frida, use was; do not use did with was.'],['Which sentence is correct?',['Pelé was a Brazilian football player.','Pelé were a Brazilian football player.','Pelé was Brazilian football players.'],0,'Pelé is singular: was + singular job noun.']]},
+{title:'Exercise 2 · Spot the Mistake',inst:'Choose the only correct sentence.',type:'mc',items:[
+['1',['Van Gogh were Dutch.','Van Gogh was Dutch.','Van Gogh was were Dutch.'],1,'Van Gogh is singular: was.'],['2',['His parents were Dutch.','His parents was Dutch.','His parents were was Dutch.'],0,'Parents is plural: were.'],['3',['Where were Frida born?','Where did Frida was born?','Where was Frida born?'],2,'Frida is singular and past be forms questions by inversion.'],['4',['Einstein was a physicist.','Einstein were a physicist.','Einstein was a physicists were.'],0,'Einstein is singular: was.'],['5',['Were his parents German?','Was his parents German?','Did his parents were German?'],0,'Parents is plural: Were.'],['6',["No, they wasn’t.","No, they weren’t.","No, they wasn’t were."],1,'They takes weren’t.'],['7',['She was born in nineteen oh seven.','She were born in nineteen oh seven.','She was born on nineteen seventy.'],0,'She was born in 1907 = nineteen oh seven.'],['8',['My favorite writer is Brazilian.','My favorite write is Brazilian.','My favorite writer write Brazilian.'],0,'Writer is the correct person noun.']]},
+{title:'Exercise 3 · Writing Challenge',inst:'Write 6–8 sentences about a real famous person.',type:'writing',fixed:'<div class="reading-text"><strong>Include:</strong><br>• Who was he/she?<br>• Where was he/she born?<br>• When was he/she born?<br>• What was his/her job?<br>• Who were important people in his/her life?<br>• Why was/is this person famous or interesting?<br><br><strong>Model:</strong><br>Frida Kahlo was a Mexican painter. She was born in Mexico in 1907. Her parents were Guillermo and Matilde. Frida was an artist, and many of her paintings were about her life. She and Diego Rivera were married in 1929. Today, her paintings are famous around the world.</div>'}]}
+];
+const VOCAB=[['Word formation','teach → teacher · write → writer · drive → driver · act → actor · paint → painter'],["What's the word?",'person who... · place where... · thing that... · What does ... mean? · How do you spell it?'],['Biography words','painter · writer · actor · artist · physicist · minister · parents · brother · born · famous · married'],['Years','1853: eighteen fifty-three · 1907: nineteen oh seven · 1940: nineteen forty · 2005: two thousand and five · 2012: twenty twelve']];
+const TOTAL=DAYS.reduce((n,d)=>n+d.ex.length,0), KEY='tml_u7a_state_v6';
+let state=JSON.parse(localStorage.getItem(KEY)||'{}'), student=localStorage.getItem(KEY+'_name')||'', game={day:0,ex:0,item:0,bank:null};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function save(){localStorage.setItem(KEY,JSON.stringify(state));updateProgress()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function exid(d,e){return `d${d+1}e${e+1}`}
+function completed(id){return !!state[id]?.done}
+function updateProgress(){let done=0;DAYS.forEach((d,di)=>d.ex.forEach((e,ei)=>{if(completed(exid(di,ei)))done++}));let pct=Math.round(done/TOTAL*100);$('#progress-pct').textContent=pct+'%';$('#progress-fill').style.width=pct+'%';$$('.tab-btn[data-tab^="day"]').forEach((b,i)=>{b.classList.toggle('done',DAYS[i].ex.every((_,ei)=>completed(exid(i,ei))))});$('#motivation-text').textContent=pct===100?'Amazing! You completed the whole week! 🎉':pct>=70?'You’re almost there — keep going!':pct>=35?'Great progress — keep it up!':'Small steps every day make a big difference!'}
+function fixedBox(x){return x?x:''}
+function writingStats(text){let t=text.trim(),words=(t.match(/\S+/g)||[]).length,sentences=t?(t.split(/(?:[.!?]+\s*|\n+)/).filter(x=>x.trim()).length):0;return {words,sentences}}
+function tradItem(ex,it,ii,prefix){if(ex.type==='mc')return `<div class="item"><div class="q-row"><span class="q-num">${ii+1}.</span><div class="q-body">${it[0]}<div class="mc-options">${it[1].map((o,i)=>`<label class="mc-option"><input type="radio" name="${prefix}-${ii}" value="${i}"><span>${o}</span></label>`).join('')}</div></div></div></div>`;if(ex.type==='tf')return `<div class="item"><div class="q-row"><span class="q-num">${ii+1}.</span><div class="q-body">${it[0]}<div class="mc-options"><label class="mc-option"><input type="radio" name="${prefix}-${ii}" value="true">True</label><label class="mc-option"><input type="radio" name="${prefix}-${ii}" value="false">False</label></div></div></div></div>`;if(ex.type==='fill')return `<div class="item"><div class="q-row"><span class="q-num">${ii+1}.</span><div class="q-body">${it[0].replace('___','<input class="fill-input" type="text">')}</div></div></div>`;return ''}
+function renderTraditional(){let html='';DAYS.forEach((d,di)=>{html+=`<div class="day-panel ${di===0?'active':''}" id="panel-day${di+1}"><div class="day-header"><div class="day-number">${di+1}</div><div><div class="day-title">${d.title}</div><div class="day-desc">${d.desc}</div></div></div>`;d.ex.forEach((ex,ei)=>{let id=exid(di,ei);html+=`<div class="ex-card ${di===1||di===6?'grammar':''} ${ex.fixed?'reading':''} ${ex.type==='writing'?'writing':''}" id="card-${id}"><div class="ex-title">${ex.title}<span class="done-chip">Done ✓</span></div><div class="ex-instruction">${ex.inst}</div>${fixedBox(ex.fixed)}`;if(ex.type==='writing')html+=`<textarea class="writing-area" id="${id}-write" placeholder="Write your biography here..."></textarea><div class="word-count" id="${id}-count">0 words</div><button class="btn btn-primary" data-write="${id}">Save writing ✓</button><div class="feedback" id="${id}-fb"></div>`;else html+=`<div class="items">${ex.items.map((it,ii)=>tradItem(ex,it,ii,id)).join('')}</div><button class="btn btn-primary" data-check="${id}">Check answers ✓</button><button class="btn btn-secondary" data-reset="${id}">Try again</button><div class="feedback" id="${id}-fb"></div>`;html+='</div>'});html+='</div>'});
+html+=`<div class="day-panel" id="panel-vocab"><div class="day-header"><div class="day-number">V</div><div><div class="day-title">Vocabulary Bank</div><div class="day-desc">Unit 7A reference</div></div></div>${VOCAB.map(v=>`<div class="ex-card"><div class="ex-title">${v[0]}</div><div class="ex-instruction">${v[1]}</div></div>`).join('')}</div>`;
+html+=`<div class="day-panel" id="panel-grammar"><div class="day-header"><div class="day-number">G</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Past simple of be</div></div></div><div class="ex-card grammar"><div class="ex-title">was / were</div><div class="table-wrap"><table class="grammar-table"><tr><th>Subject</th><th>Affirmative</th><th>Negative</th></tr><tr><td>I / he / she / it</td><td class="orange">was</td><td>wasn’t</td></tr><tr><td>you / we / they</td><td class="orange">were</td><td>weren’t</td></tr></table></div></div><div class="ex-card grammar"><div class="ex-title">Questions & short answers</div><div class="table-wrap"><table class="grammar-table"><tr><th>Question</th><th>Short answer</th></tr><tr><td>Was he famous?</td><td>Yes, he was. / No, he wasn’t.</td></tr><tr><td>Were they artists?</td><td>Yes, they were. / No, they weren’t.</td></tr><tr><td>Where was she born?</td><td>She was born in Mexico.</td></tr></table></div></div><div class="ex-card grammar"><div class="ex-title">Born</div><div class="ex-instruction"><strong>He was born</strong> in 1853. · <strong>They were born</strong> in Brazil. · <strong>Where was she born?</strong></div></div></div>`;$('#traditional-root').innerHTML=html;bindTraditional()}
+function mark(id){state[id]={...(state[id]||{}),done:true};save();$('#card-'+id)?.classList.add('done')}
+function bindTraditional(){$$('[data-check]').forEach(btn=>btn.onclick=()=>{let id=btn.dataset.check,m=id.match(/d(\d+)e(\d+)/),ex=DAYS[+m[1]-1].ex[+m[2]-1],card=$('#card-'+id),ok=0;[...card.querySelectorAll('.item')].forEach((row,i)=>{let it=ex.items[i],good=false;if(ex.type==='mc'){let s=row.querySelector('input:checked');good=!!s&&+s.value===it[2]}else if(ex.type==='tf'){let s=row.querySelector('input:checked');good=!!s&&((s.value==='true')===it[1])}else{let inp=row.querySelector('input');good=it[1].map(x=>x.toLowerCase()).includes(inp.value.trim().toLowerCase())}if(good)ok++});let fb=$('#'+id+'-fb');fb.className='feedback show '+(ok===ex.items.length?'ok':'err');fb.textContent=ok===ex.items.length?`✅ Excellent! ${ok}/${ex.items.length}`:`You got ${ok}/${ex.items.length}. Check your answers and try again.`;if(ok===ex.items.length)mark(id)});$$('[data-reset]').forEach(b=>b.onclick=()=>{let card=$('#card-'+b.dataset.reset);card.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);card.querySelectorAll('input[type=text]').forEach(x=>x.value='');let fb=card.querySelector('.feedback');fb.className='feedback';fb.textContent='' });let w=DAYS[6].ex[2],id='d7e3',ta=$('#'+id+'-write'),ct=$('#'+id+'-count');if(ta){ta.value=state[id]?.text||'';let paint=()=>{let z=writingStats(ta.value);ct.textContent=`${z.words} words · ${z.sentences} sentences`};paint();ta.oninput=()=>{state[id]={...(state[id]||{}),text:ta.value};save();paint()};$('[data-write="d7e3"]').onclick=()=>{let z=writingStats(ta.value),fb=$('#d7e3-fb');if(z.sentences<6||z.sentences>8||z.words<25){fb.className='feedback show err';fb.textContent='✏️ Write 6–8 complete sentences before you finish.'}else{fb.className='feedback show ok';fb.textContent='✅ Great! Your writing is saved.';mark(id)}}}DAYS.forEach((d,di)=>d.ex.forEach((e,ei)=>{if(completed(exid(di,ei)))$('#card-'+exid(di,ei))?.classList.add('done')}))}
+$$('.tab-btn').forEach(b=>b.onclick=()=>{$$('.tab-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.day-panel').forEach(x=>x.classList.remove('active'));$('#panel-'+b.dataset.tab)?.classList.add('active')});
+function gameNav(){let n='';for(let i=0;i<7;i++)n+=`<button class="gnav ${!game.bank&&game.day===i?'active':''}" data-gday="${i}">Day ${i+1}</button>`;n+=`<button class="gnav bank ${game.bank==='vocab'?'active':''}" data-bank="vocab">🔤 Vocab</button><button class="gnav bank ${game.bank==='grammar'?'active':''}" data-bank="grammar">📐 Grammar</button>`;$('#game-nav').innerHTML=n;$$('[data-gday]').forEach(b=>b.onclick=()=>{game={day:+b.dataset.gday,ex:0,item:0,bank:null};renderGame()});$$('[data-bank]').forEach(b=>b.onclick=()=>{game.bank=b.dataset.bank;renderGame()})}
+function gameShell(ex,body){return `<div class="game-card"><div class="game-top"><div><div class="game-kicker">Day ${game.day+1} · Exercise ${game.ex+1} · Mission ${game.item+1}</div><div class="game-title">${ex.title}</div><div class="game-inst">${ex.inst}</div></div></div>${fixedBox(ex.fixed)}<div class="game-body">${body}</div><div class="game-feedback"></div><div class="game-actions"></div><div class="game-explain"></div><div class="game-bottom"><button class="gprev">← Previous</button></div></div>`}
+function advance(){let ex=DAYS[game.day].ex[game.ex];if(ex.type!=='writing'&&game.item<ex.items.length-1){game.item++;renderGame();return}mark(exid(game.day,game.ex));if(game.ex<DAYS[game.day].ex.length-1){game.ex++;game.item=0;renderGame();return}if(game.day<6){game.day++;game.ex=0;game.item=0;renderGame()}}
+function back(){if(game.item>0){game.item--;renderGame();return}if(game.ex>0){game.ex--;let ex=DAYS[game.day].ex[game.ex];game.item=ex.type==='writing'?0:ex.items.length-1;renderGame();return}if(game.day>0){game.day--;game.ex=DAYS[game.day].ex.length-1;game.item=0;renderGame()}}
+function renderGame(){gameNav();if(game.bank){let src=$('#panel-'+game.bank).cloneNode(true);src.classList.add('active','game-bank-copy');src.style.display='block';src.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));$('#game-stage').innerHTML='';$('#game-stage').appendChild(src);return}let ex=DAYS[game.day].ex[game.ex];if(ex.type==='writing'){let id=exid(game.day,game.ex);$('#game-stage').innerHTML=`<div class="game-card"><div class="game-kicker">Day 7 · Writing Challenge</div><div class="game-title">${ex.title}</div><div class="game-inst">${ex.inst}</div>${ex.fixed}<textarea class="writing-area" id="gwrite" placeholder="Write your biography here..."></textarea><div class="word-count" id="gwc"></div><div class="game-feedback"></div><div class="game-actions"><button class="game-check">Save writing ✓</button></div><div class="game-bottom"><button class="gprev">← Previous</button></div></div>`;let ta=$('#gwrite');ta.value=state[id]?.text||'';let p=()=>{let z=writingStats(ta.value);$('#gwc').textContent=`${z.words} words · ${z.sentences} sentences`};p();ta.oninput=()=>{state[id]={...(state[id]||{}),text:ta.value};save();p()};$('.game-check').onclick=()=>{let z=writingStats(ta.value),f=$('.game-feedback');if(z.sentences<6||z.sentences>8||z.words<25){f.className='game-feedback show err';f.textContent='✏️ Write 6–8 complete sentences before you finish.'}else{f.className='game-feedback show ok';f.textContent='Excellent! Writing saved. ✓';mark(id)}};$('.gprev').onclick=back;return}let it=ex.items[game.item],body='';if(ex.type==='mc')body=`<div class="q-body">${it[0]}</div><div class="gmc">${it[1].map((o,i)=>`<button class="gopt" data-i="${i}">${o}</button>`).join('')}</div>`;if(ex.type==='tf')body=`<div class="q-body">${it[0]}</div><div class="gtf"><button data-v="true">True</button><button data-v="false">False</button></div>`;if(ex.type==='fill')body=`<div class="q-body">${it[0].replace('___','<input class="gfill" autocomplete="off">')}</div>`;$('#game-stage').innerHTML=gameShell(ex,body);$('.gprev').onclick=back;let locked=false;let check=(ok,why)=>{if(locked)return;let f=$('.game-feedback');if(ok){locked=true;$$('#game-stage .gopt, #game-stage .gtf button, #game-stage .game-check').forEach(b=>b.disabled=true);f.className='game-feedback show ok';f.textContent='Excellent! ✓';setTimeout(advance,650)}else{f.className='game-feedback show err';f.textContent='Try again.';$('.game-actions').innerHTML='<button class="game-try">Try Again</button><button class="game-see">See Answer</button>';$('.game-try').onclick=()=>{f.className='game-feedback';f.textContent='';let e=$('.game-explain');e.classList.remove('show');e.innerHTML='';$('.game-actions').innerHTML=''};$('.game-see').onclick=()=>{let e=$('.game-explain');e.classList.add('show');e.innerHTML=why}}};if(ex.type==='mc')$$('#game-stage .gopt').forEach(b=>b.onclick=()=>check(+b.dataset.i===it[2],it[3]));if(ex.type==='tf')$$('#game-stage .gtf button').forEach(b=>b.onclick=()=>check((b.dataset.v==='true')===it[1],it[2]));if(ex.type==='fill'){let inp=$('#game-stage .gfill');$('.game-actions').innerHTML='<button class="game-check">Check</button>';let go=()=>check(it[1].map(x=>x.toLowerCase()).includes(inp.value.trim().toLowerCase()),it[2]);$('.game-check').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()}}}
+$('#mode-traditional').onclick=()=>{document.body.classList.remove('game-mode');$('#game-area').style.display='none';$('#traditional-root').style.display='block';$('#mode-traditional').classList.add('active');$('#mode-gamified').classList.remove('active')};$('#mode-gamified').onclick=()=>{document.body.classList.add('game-mode');$('#game-area').style.display='block';$('#traditional-root').style.display='none';$('#mode-traditional').classList.remove('active');$('#mode-gamified').classList.add('active');renderGame()};
+function start(){let n=$('#student-name-input').value.trim();if(!n)return;student=n;localStorage.setItem(KEY+'_name',n);$('#welcome-screen').classList.add('hidden');$('#hello-banner').textContent=`Hi, ${n}! Ready for Unit 7A? 🌟`;$('#hello-banner').classList.add('show')}
+$('#welcome-start-btn').onclick=start;$('#student-name-input').onkeydown=e=>{if(e.key==='Enter')start()};if(student){$('#welcome-screen').classList.add('hidden');$('#hello-banner').textContent=`Hi, ${student}! Ready for Unit 7A? 🌟`;$('#hello-banner').classList.add('show')}
+renderTraditional();updateProgress();
+</script></body></html>
