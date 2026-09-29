@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pre-Intermediate 3C – Word Games | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, textarea, select { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; font-weight: 600; color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--teal); font-weight: 800; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+  .done-chip {
+    display: none;
+    font-size: 0.68rem; font-weight: 700;
+    background: #f0fdfa; color: var(--teal);
+    border: 1px solid #99f6e4;
+    border-radius: 99px; padding: 1px 8px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .ex-card.done .done-chip { display: inline-block; }
+
+  /* ── ITEM LAYOUT ── */
+  .item { margin-bottom: 16px; }
+  .q-row { display: flex; gap: 8px; align-items: flex-start; }
+  .q-num { font-weight: 700; color: var(--purple-light); flex-shrink: 0; min-width: 18px; font-size: 0.88rem; line-height: 1.9; }
+  .q-body { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 1.9; }
+  .blank { color: var(--gray); letter-spacing: 1px; font-weight: 600; }
+
+  /* ── DIALOGUE ── */
+  .dlg { display: flex; flex-direction: column; gap: 2px; }
+  .dline { display: flex; gap: 8px; align-items: baseline; }
+  .dline .speaker { color: var(--orange); font-weight: 700; flex-shrink: 0; min-width: 20px; }
+  .dline .say { flex: 1; min-width: 0; }
+
+  /* ── WHY / CORRECTION BOX ── */
+  .why-slot {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    background: #f0fdfa;
+    border-left: 3px solid var(--teal);
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    color: var(--purple);
+  }
+  .why-slot.show { display: block; }
+  .why-slot .bad { color: var(--red); font-weight: 700; }
+  .why-slot .good { color: var(--teal); font-weight: 700; }
+  .why-slot .why { display: block; margin-top: 2px; }
+  .why-slot .row + .row { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #99f6e4; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-options { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .mc-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 500;
+    background: var(--white);
+    line-height: 1.4;
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); font-weight: 700; }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); font-weight: 700; }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); flex-shrink: 0; }
+
+  /* ── FILL IN ── */
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 1px 6px;
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--purple);
+    background: #faf9ff;
+    width: 120px;
+    max-width: 100%;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+    border-radius: 4px 4px 0 0;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); background: #fff5ee; }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── INLINE CHOICE (No / Yes) ── */
+  .ic-opt {
+    display: inline-block;
+    padding: 1px 10px;
+    margin: 0 2px;
+    border-radius: 6px;
+    border: 2px solid var(--purple-light);
+    background: var(--white);
+    color: var(--purple);
+    font-size: 0.86rem; font-weight: 700;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.15s;
+  }
+  .ic-opt:hover { background: #f5f3ff; }
+  .ic-opt.selected { background: var(--purple); color: var(--white); border-color: var(--purple); }
+  .ic-opt.correct { background: var(--teal); border-color: var(--teal); color: var(--white); }
+  .ic-opt.wrong { background: var(--red); border-color: var(--red); color: var(--white); }
+  .ic-sep { color: var(--gray); font-weight: 600; }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 180px;
+    transition: border-color 0.2s;
+    margin-top: 14px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    text-align: center;
+    user-select: none;
+    word-break: break-word;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px;
+  }
+  .cm-tip { font-size: 0.75rem; color: var(--gray); margin-bottom: 10px; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-btns { display: inline-flex; gap: 6px; margin-left: 4px; vertical-align: middle; }
+  .tf-btn {
+    padding: 2px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--purple);
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--purple-light); }
+  .tf-btn.selected { border-color: var(--purple); background: var(--purple); color: #fff; }
+  .tf-btn.correct { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.wrong { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 6px 0 8px; min-height: 40px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); border-style: solid; background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); border-style: solid; background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple); color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.84rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-label { font-size: 0.72rem; font-weight: 700; color: var(--gray); }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text p + p { margin-top: 10px; }
+  .reading-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .listen-btn {
+    background: var(--white); border: 1px solid #99f6e4; cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; color: var(--teal);
+    padding: 3px 10px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+
+  /* ── WRITING ── */
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .checklist { list-style: none; margin: 14px 0 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    font-size: 0.86rem; font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-weight: 800; }
+  .guide-title { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 16px; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--purple);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.86rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 28px; border-radius: 99px;
+    font-size: 1rem; font-weight: 700;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35);
+    z-index: 9999; opacity: 0;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    max-width: 90vw; text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: 100px; font-size: 0.84rem; }
+    .q-body { font-size: 0.85rem; }
+    .cm-wrap { gap: 10px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(min(100px, 100%), 1fr)); gap: 8px; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+  }
+</style>
+
+<style>
+/* TML final dual-mode template additions */
+.mode-switch{display:flex;gap:4px;justify-content:center;margin-top:9px}
+.mode-switch button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:#fff;border-radius:99px;padding:6px 11px;font-size:.7rem;font-weight:700;cursor:pointer}
+.mode-switch button.active{background:var(--orange);border-color:var(--orange)}
+body.game-mode .tabs-wrap{display:none}
+body.game-mode .content>.day-panel{display:none!important}
+.game-area{max-width:780px;margin:0 auto}
+.game-navline{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.gnav{padding:7px 4px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:var(--gray);font-size:.67rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.gnav.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.game-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-left:4px solid var(--orange)}
+.game-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.game-kicker{font-size:.7rem;color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.game-title{font-size:1rem;font-weight:800}
+.game-inst{font-size:.78rem;color:var(--gray);margin-top:3px}
+.game-body{margin-top:14px}
+.game-feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:.8rem;font-weight:600}
+.game-feedback.show{display:block}.game-feedback.ok{background:#f0fdfa;color:var(--teal)}.game-feedback.err{background:#fef2f2;color:var(--red)}
+.game-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.game-actions button,.game-bottom button{border:0;border-radius:99px;padding:8px 13px;font-size:.75rem;font-weight:700;cursor:pointer}
+.game-check{background:var(--orange);color:#fff}.game-try{background:var(--purple);color:#fff}.game-see{background:var(--cream);color:var(--purple)}
+.game-explain{display:none;margin-top:9px;padding:9px 11px;background:#f7f4ff;border-left:3px solid var(--orange);border-radius:0 7px 7px 0;font-size:.78rem;line-height:1.5}.game-explain.show{display:block}
+.game-bottom{display:flex;justify-content:space-between;margin-top:14px}.game-bottom button{background:var(--gray-light);color:var(--purple)}
+.gmc{display:flex;flex-direction:column;gap:8px}.gopt{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--purple)}.gopt.selected{border-color:var(--purple-light);background:#f5f3ff}
+.gfill{border:0;border-bottom:2px solid var(--purple-light);padding:6px;font:inherit;color:var(--purple);outline:none;width:min(240px,100%)}
+.gtf{display:flex;gap:8px}.gtf button{border:2px solid var(--gray-light);background:#fff;border-radius:99px;padding:7px 16px;font-weight:700}.gtf button.selected{background:var(--purple);color:#fff}
+.gwords,.gzone{display:flex;flex-wrap:wrap;gap:7px;padding:8px;border-radius:8px;min-height:44px}.gwords{background:var(--gray-light)}.gzone{border:2px dashed var(--purple-light);margin-top:8px}.gchip{border:0;background:var(--purple);color:#fff;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+.gmatch{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gmatchcol{display:flex;flex-direction:column;gap:7px}.gm{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:9px;text-align:center;font-weight:600;color:var(--purple)}.gm.active{border-color:var(--orange);background:#fff5ee}.gm.linked{border-color:var(--purple-light);background:#f5f3ff}
+.game-bank-copy .day-header{margin-bottom:14px}.game-bank-copy .ex-card{margin-bottom:14px}
+@media(max-width:600px){.game-navline{display:flex;overflow-x:auto}.gnav{min-width:55px}.gnav.bank{min-width:76px}.game-card{padding:14px 12px}.gmatch{gap:8px}}
+</style>
+
+<style>
+.header{padding:16px 20px 13px}.header-logo{height:52px}.header h1{font-size:1.28rem}.progress-section{padding:10px 16px}.motivation-bar{padding:7px 12px}
+.tab-btn{padding:9px 10px;font-size:.7rem}.content{padding-top:16px}
+@media(max-width:600px){.header{padding:13px 12px 11px}.header-logo{height:42px}.tab-btn{padding:8px 8px;font-size:.68rem}}
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>3C – Word Games</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div>
+      <h1>3C Word Games – Weekly Practice</h1>
+      <div class="subtitle">Pre-Intermediate</div>
+      <div class="mode-switch"><button id="mode-traditional" class="active">Traditional</button><button id="mode-gamified">🎮 Gamified</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Your progress this week</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">💬 Day 1</button>
+    <button class="tab-btn" data-tab="day2">🧩 Day 2</button>
+    <button class="tab-btn" data-tab="day3">🧱 Day 3</button>
+    <button class="tab-btn" data-tab="day4">🗣️ Day 4</button>
+    <button class="tab-btn" data-tab="day5">🔎 Day 5</button>
+    <button class="tab-btn" data-tab="day6">📖 Day 6</button>
+    <button class="tab-btn" data-tab="day7">🏆 Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+<div id="game-area" class="game-area" style="display:none;">
+  <div id="game-nav" class="game-navline"></div>
+  <div id="game-stage"></div>
+</div>
+
+
+<div class="day-panel active" id="panel-day1">
+  <div class="day-header"><div class="day-number">1</div><div><div class="day-title">Lost for Words</div><div class="day-desc">Paraphrasing strategies · Meaning from context · Useful language</div></div></div>
+
+  <div class="ex-card " id="card-d1e1">
+    <div class="ex-title">Exercise 1 – Choose the Best Explanation <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Match each word with the explanation that would help another speaker understand it.</div>
+    <div id="d1e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e1-check">✔ Check</button><button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e1-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d1e2">
+    <div class="ex-title">Exercise 2 – What Is the Speaker Trying to Say? <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Read each mini-dialogue and choose the word the speaker is trying to explain.</div>
+    <div id="d1e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e2-check">✔ Check</button><button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e2-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d1e3">
+    <div class="ex-title">Exercise 3 – Paraphrasing Toolkit <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Write ONE word in each gap to complete the useful expressions.</div>
+    <div id="d1e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d1e3-check">✔ Check</button><button class="btn btn-secondary" id="d1e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d1e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day2">
+  <div class="day-header"><div class="day-number">2</div><div><div class="day-title">People, Places & Things</div><div class="day-desc">Notice how definitions identify people, things and places</div></div></div>
+
+  <div class="ex-card " id="card-d2e1">
+    <div class="ex-title">Exercise 1 – The New Office <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Read each office description and choose what kind of word it defines.</div>
+    <div id="d2e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e1-check">✔ Check</button><button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e1-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d2e2">
+    <div class="ex-title">Exercise 2 – Complete the Definition <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Choose who, which or where to complete each definition.</div>
+    <div id="d2e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e2-check">✔ Check</button><button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e2-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d2e3">
+    <div class="ex-title">Exercise 3 – What Are They Talking About? <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Match each short conversation with the word being described.</div>
+    <div id="d2e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d2e3-check">✔ Check</button><button class="btn btn-secondary" id="d2e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d2e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day3">
+  <div class="day-header"><div class="day-number">3</div><div><div class="day-title">Building Definitions</div><div class="day-desc">Combine information · Build relative clauses · Use definitions in context</div></div></div>
+
+  <div class="ex-card " id="card-d3e1">
+    <div class="ex-title">Exercise 1 – From Two Ideas to One <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Put the words in order to make one clear definition.</div>
+    <div id="d3e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e1-check">✔ Check</button><button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e1-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d3e2">
+    <div class="ex-title">Exercise 2 – The Hotel Directory <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Use the directory to choose the description that solves each guest’s problem.</div>
+    <div id="d3e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e2-check">✔ Check</button><button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e2-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d3e3">
+    <div class="ex-title">Exercise 3 – Complete the Travel App <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Write who, which or where to complete the app description.</div>
+    <div id="d3e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d3e3-check">✔ Check</button><button class="btn btn-secondary" id="d3e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d3e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day4">
+  <div class="day-header"><div class="day-number">4</div><div><div class="day-title">Explaining Words Naturally</div><div class="day-desc">Choose useful explanations · Compare meanings · Complete natural definitions</div></div></div>
+
+  <div class="ex-card " id="card-d4e1">
+    <div class="ex-title">Exercise 1 – Can You Help Me with the Word? <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Read the conversations and choose the most natural explanation.</div>
+    <div id="d4e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e1-check">✔ Check</button><button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e1-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d4e2">
+    <div class="ex-title">Exercise 2 – Meaning Connections <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Match each word with a useful paraphrase.</div>
+    <div id="d4e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e2-check">✔ Check</button><button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e2-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d4e3">
+    <div class="ex-title">Exercise 3 – Finish the Explanation <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Choose the continuation that makes each explanation clear and natural.</div>
+    <div id="d4e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d4e3-check">✔ Check</button><button class="btn btn-secondary" id="d4e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d4e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day5">
+  <div class="day-header"><div class="day-number">5</div><div><div class="day-title">Say It Another Way</div><div class="day-desc">Infer meaning · Select useful paraphrases · Reconstruct definitions</div></div></div>
+
+  <div class="ex-card " id="card-d5e1">
+    <div class="ex-title">Exercise 1 – A Message from Brighton <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Match the highlighted vocabulary with its meaning from the message.</div>
+    <div id="d5e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e1-check">✔ Check</button><button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e1-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d5e2">
+    <div class="ex-title">Exercise 2 – Which Explanation Would Actually Help? <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Choose the explanation that gives enough information to understand the word.</div>
+    <div id="d5e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e2-check">✔ Check</button><button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e2-fb"></div>
+  </div>
+  <div class="ex-card " id="card-d5e3">
+    <div class="ex-title">Exercise 3 – Rebuild the Definition <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Put the words in order to create natural definitions.</div>
+    <div id="d5e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d5e3-check">✔ Check</button><button class="btn btn-secondary" id="d5e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d5e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day6">
+  <div class="day-header"><div class="day-number">6</div><div><div class="day-title">Lost for Words</div><div class="day-desc">Read · Infer · Interpret paraphrasing strategies</div></div></div>
+  <div class="ex-card reading"><div class="ex-title">Read the conversation</div><div class="ex-instruction">Ben keeps forgetting words. Read how Nina helps him, then do the three exercises.</div><div class="reading-text" id="rt-wordgame"><button class="listen-btn" data-speak="rt-wordgame-body">🔊 Listen</button><div id="rt-wordgame-body"><div class="reading-title">Lost for words at the airport</div><p><strong>Ben:</strong> Yesterday was chaotic. First, I couldn’t find that piece of paper which shows what you paid for something.</p><p><strong>Nina:</strong> Your receipt?</p><p><strong>Ben:</strong> Yes! Then I went to that place where you can buy medicine because I needed something for a headache.</p><p><strong>Nina:</strong> The drugstore.</p><p><strong>Ben:</strong> Exactly. After that, I met the woman who lives in the flat next to mine.</p><p><strong>Nina:</strong> Your neighbour?</p><p><strong>Ben:</strong> Right. She was going to the airport too. When we arrived, it was really... you know, the opposite of empty.</p><p><strong>Nina:</strong> Crowded?</p><p><strong>Ben:</strong> Yes. And we couldn’t find one of those things which you push with your bags on it.</p><p><strong>Nina:</strong> A trolley.</p><p><strong>Ben:</strong> That’s it. Then we went to the building where our flight was leaving from.</p><p><strong>Nina:</strong> The terminal?</p><p><strong>Ben:</strong> Exactly!</p></div></div></div>
+  <div class="ex-card reading" id="card-d6e1">
+    <div class="ex-title">Exercise 1 – Recover the Missing Words <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Complete the summary with ONE word from the conversation.</div>
+    <div id="d6e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e1-check">✔ Check</button><button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e1-fb"></div>
+  </div>
+  <div class="ex-card reading" id="card-d6e2">
+    <div class="ex-title">Exercise 2 – What Does Ben Mean? <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Choose the meaning of each explanation from the conversation.</div>
+    <div id="d6e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e2-check">✔ Check</button><button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e2-fb"></div>
+  </div>
+  <div class="ex-card reading" id="card-d6e3">
+    <div class="ex-title">Exercise 3 – Match the Strategy <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Match each explanation from the conversation with the strategy Ben uses.</div>
+    <div id="d6e3"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d6e3-check">✔ Check</button><button class="btn btn-secondary" id="d6e3-reset">↺ Reset</button></div>
+    <div class="feedback" id="d6e3-fb"></div>
+  </div>
+</div>
+
+<div class="day-panel" id="panel-day7">
+  <div class="day-header"><div class="day-number">7</div><div><div class="day-title">Complete Review</div><div class="day-desc">Cumulative review · Spot the mistake · Writing Challenge</div></div></div>
+
+  <div class="ex-card grammar" id="card-d7e1">
+    <div class="ex-title">Exercise 1 – Complete Review <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Choose a, b or c. Review grammar, vocabulary and paraphrasing from the whole week.</div>
+    <div id="d7e1"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e1-check">✔ Check</button><button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button></div>
+    <div class="feedback" id="d7e1-fb"></div>
+  </div>
+  <div class="ex-card grammar" id="card-d7e2">
+    <div class="ex-title">Exercise 2 – Spot the Mistake <span class="done-chip">✓ Done</span></div>
+    <div class="ex-instruction">Three sentences are correct. Choose the ONE sentence with a mistake in each group.</div>
+    <div id="d7e2"></div>
+    <div class="btn-row"><button class="btn btn-primary" id="d7e2-check">✔ Check</button><button class="btn btn-secondary" id="d7e2-reset">↺ Reset</button></div>
+    <div class="feedback" id="d7e2-fb"></div>
+  </div>
+
+  <div class="ex-card challenge" id="card-d7w"><div class="ex-title">✍️ Exercise 3 – Writing Challenge: Lost for Words <span class="done-chip">✓ Sent</span></div><div class="ex-instruction">Write five short explanations without writing the target words. Include one person, one place, one object, one adjective and one activity.</div><div class="example-box"><div class="ex-label">MODEL TEXT</div>1. It’s somebody who works in a restaurant and prepares the food.<br>2. It’s somewhere where you can borrow books or study quietly.<br>3. It’s something which you use when it rains. You hold it over your head.<br>4. It’s the opposite of dangerous.<br>5. It’s a kind of holiday activity. You visit famous buildings, museums and interesting places.</div><div class="guide-title">Try to use different strategies:</div><ul class="checklist"><li><span class="check-icon">✓</span> somebody who...</li><li><span class="check-icon">✓</span> somewhere where...</li><li><span class="check-icon">✓</span> something which...</li><li><span class="check-icon">✓</span> the opposite of / similar to / like</li><li><span class="check-icon">✓</span> a kind of / for example</li></ul><textarea class="writing-area" id="d7w-text" placeholder="1. It’s somebody who...
+2. It’s somewhere where..."></textarea><div class="word-count" id="d7w-count">0 words</div><div class="btn-row"><button class="btn btn-whatsapp" id="d7w-send">📲 Send to Teacher Mari</button></div><div class="feedback" id="d7w-fb"></div></div>
+</div>
+
+<!-- ═════════ VOCAB BANK ═════════ -->
+<div class="day-panel" id="panel-vocab"><div class="day-header"><div class="day-number" style="background:var(--purple-light);">🔤</div><div><div class="day-title">Vocabulary Bank</div><div class="day-desc">Tap a word to listen.</div></div></div><div id="vocab-bank"><div class="bank-section"><div class="bank-title">💬 Paraphrasing</div><div class="vocab-grid"><div class="vocab-chip" data-vocab="somebody"><div>🔊</div><div class="vc-en">somebody</div><div class="vc-def">a person</div></div><div class="vocab-chip" data-vocab="something"><div>🔊</div><div class="vc-en">something</div><div class="vc-def">a thing</div></div><div class="vocab-chip" data-vocab="somewhere"><div>🔊</div><div class="vc-en">somewhere</div><div class="vc-def">a place</div></div><div class="vocab-chip" data-vocab="a kind of"><div>🔊</div><div class="vc-en">a kind of</div><div class="vc-def">a type of</div></div><div class="vocab-chip" data-vocab="like"><div>🔊</div><div class="vc-en">like</div><div class="vc-def">similar to</div></div><div class="vocab-chip" data-vocab="the opposite of"><div>🔊</div><div class="vc-en">the opposite of</div><div class="vc-def">reverse meaning</div></div><div class="vocab-chip" data-vocab="for example"><div>🔊</div><div class="vc-en">for example</div><div class="vc-def">introduces an example</div></div><div class="vocab-chip" data-vocab="similar"><div>🔊</div><div class="vc-en">similar</div><div class="vc-def">almost the same</div></div></div></div><div class="bank-section"><div class="bank-title">✈️ Travel & holidays</div><div class="vocab-grid"><div class="vocab-chip" data-vocab="boarding pass"><div>🔊</div><div class="vc-en">boarding pass</div><div class="vc-def">document used before a flight</div></div><div class="vocab-chip" data-vocab="terminal"><div>🔊</div><div class="vc-en">terminal</div><div class="vc-def">airport building</div></div><div class="vocab-chip" data-vocab="passenger"><div>🔊</div><div class="vc-en">passenger</div><div class="vc-def">person travelling in a vehicle</div></div><div class="vocab-chip" data-vocab="luggage"><div>🔊</div><div class="vc-en">luggage</div><div class="vc-def">bags used for travel</div></div><div class="vocab-chip" data-vocab="trolley"><div>🔊</div><div class="vc-en">trolley</div><div class="vc-def">thing you push to carry bags</div></div><div class="vocab-chip" data-vocab="campsite"><div>🔊</div><div class="vc-en">campsite</div><div class="vc-def">place where people stay in tents</div></div><div class="vocab-chip" data-vocab="souvenir"><div>🔊</div><div class="vc-en">souvenir</div><div class="vc-def">thing bought to remember a place</div></div><div class="vocab-chip" data-vocab="sightseeing"><div>🔊</div><div class="vc-en">sightseeing</div><div class="vc-def">visiting interesting places</div></div></div></div><div class="bank-section"><div class="bank-title">👤 People & descriptions</div><div class="vocab-grid"><div class="vocab-chip" data-vocab="colleague"><div>🔊</div><div class="vc-en">colleague</div><div class="vc-def">person who works with you</div></div><div class="vocab-chip" data-vocab="neighbour"><div>🔊</div><div class="vc-en">neighbour</div><div class="vc-def">person who lives near you</div></div><div class="vocab-chip" data-vocab="tour guide"><div>🔊</div><div class="vc-en">tour guide</div><div class="vc-def">person who shows visitors around</div></div><div class="vocab-chip" data-vocab="receptionist"><div>🔊</div><div class="vc-en">receptionist</div><div class="vc-def">person who helps guests or visitors</div></div><div class="vocab-chip" data-vocab="bald"><div>🔊</div><div class="vc-en">bald</div><div class="vc-def">with little or no hair</div></div><div class="vocab-chip" data-vocab="lazy"><div>🔊</div><div class="vc-en">lazy</div><div class="vc-def">not wanting to work</div></div><div class="vocab-chip" data-vocab="generous"><div>🔊</div><div class="vc-en">generous</div><div class="vc-def">opposite of mean</div></div><div class="vocab-chip" data-vocab="reliable"><div>🔊</div><div class="vc-en">reliable</div><div class="vc-def">someone you can trust</div></div></div></div><div class="bank-section"><div class="bank-title">🧠 Useful adjectives</div><div class="vocab-grid"><div class="vocab-chip" data-vocab="crowded"><div>🔊</div><div class="vc-en">crowded</div><div class="vc-def">full of people</div></div><div class="vocab-chip" data-vocab="packed"><div>🔊</div><div class="vc-en">packed</div><div class="vc-def">very crowded</div></div><div class="vocab-chip" data-vocab="tiny"><div>🔊</div><div class="vc-en">tiny</div><div class="vc-def">very small</div></div><div class="vocab-chip" data-vocab="enormous"><div>🔊</div><div class="vc-en">enormous</div><div class="vc-def">very big</div></div><div class="vocab-chip" data-vocab="furious"><div>🔊</div><div class="vc-en">furious</div><div class="vc-def">very angry</div></div><div class="vocab-chip" data-vocab="exhausted"><div>🔊</div><div class="vc-en">exhausted</div><div class="vc-def">very tired</div></div><div class="vocab-chip" data-vocab="gorgeous"><div>🔊</div><div class="vc-en">gorgeous</div><div class="vc-def">very beautiful</div></div><div class="vocab-chip" data-vocab="welcoming"><div>🔊</div><div class="vc-en">welcoming</div><div class="vc-def">friendly to visitors</div></div></div></div></div></div>
+
+<div class="day-panel" id="panel-grammar"><div class="day-header"><div class="day-number">📐</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Defining relative clauses · paraphrasing language</div></div></div><div class="ex-card grammar"><div class="bank-title">🔗 Defining relative clauses</div><div class="table-wrap"><table class="grammar-table"><tr><th>Use</th><th>Relative word</th><th>Example</th></tr><tr><td>people</td><td class="orange">who / that</td><td>A colleague is somebody <strong>who</strong> works with you.</td></tr><tr><td>things</td><td class="orange">which / that</td><td>A receipt is something <strong>which</strong> shows what you paid.</td></tr><tr><td>places</td><td class="orange">where</td><td>A campsite is somewhere <strong>where</strong> people stay in tents.</td></tr></table></div><div class="tip-box">💡 The relative clause gives essential information about the person, thing or place.</div></div><div class="ex-card grammar"><div class="bank-title">💬 Paraphrasing when you don’t know a word</div><div class="table-wrap"><table class="grammar-table"><tr><th>Strategy</th><th>Useful language</th></tr><tr><td>person</td><td>It’s somebody who...</td></tr><tr><td>thing</td><td>It’s something which...</td></tr><tr><td>place</td><td>It’s somewhere where...</td></tr><tr><td>type</td><td>It’s a kind of...</td></tr><tr><td>similarity</td><td>It’s like... / It’s similar to...</td></tr><tr><td>contrast</td><td>It’s the opposite of...</td></tr><tr><td>example</td><td>For example,...</td></tr></table></div></div></div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  STORAGE + STUDENT NAME
+// ══════════════════════════════════════════════
+const FILE_KEY = 'teachermari_preinter_3c_wordgames';
+const WHATSAPP = '5524992723816';
+const $ = id => document.getElementById(id);
+function store(k, v) { try { localStorage.setItem(FILE_KEY + '_' + k, JSON.stringify(v)); } catch (e) {} }
+function load(k, d) { try { const v = localStorage.getItem(FILE_KEY + '_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function norm(s) {
+  return String(s || '').replace(/[\u2018\u2019\u00B4`]/g, "'").toLowerCase().replace(/\s+/g, ' ').trim().replace(/[.?!,]+$/, '').trim();
+}
+
+let studentName = load('student', '');
+function startSession(name) {
+  studentName = name.trim();
+  store('student', studentName);
+  $('welcome-screen').classList.add('hidden');
+  const banner = $('hello-banner');
+  banner.textContent = `Hello, ${studentName}! 👋 Let's study and improve!`;
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+$('welcome-start-btn').addEventListener('click', () => {
+  const inp = $('student-name-input');
+  if (!inp.value.trim()) { inp.focus(); inp.style.borderColor = 'var(--red)'; return; }
+  startSession(inp.value);
+});
+$('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('welcome-start-btn').click(); });
+$('student-name-input').addEventListener('input', e => { e.target.style.borderColor = ''; });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION + TABS
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes help you learn. Read the explanation and try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practise a little every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+$('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS, SCORES, DAY COMPLETION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7w'],
+};
+const ALL_EX = Object.values(DAY_EXERCISES).flat();
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(load('done', []));
+const completedDays = new Set(load('days', []));
+const scores = load('scores', {});
+
+function updateProgress() {
+  const pct = Math.round(([...completedExercises].filter(e => ALL_EX.includes(e)).length / ALL_EX.length) * 100);
+  $('progress-fill').style.width = pct + '%';
+  $('progress-pct').textContent = pct + '%';
+}
+function paintDone() {
+  completedExercises.forEach(ex => { const c = $('card-' + ex); if (c) c.classList.add('done'); });
+  completedDays.forEach(day => { const t = document.querySelector(`.tab-btn[data-tab="${day}"]`); if (t) t.classList.add('done'); });
+  if (completedDays.size === TOTAL_DAYS) showSummary();
+}
+function totals() {
+  let c = 0, t = 0;
+  Object.values(scores).forEach(s => { c += s[0]; t += s[1]; });
+  return { c, t };
+}
+function showSummary() {
+  const { c, t } = totals();
+  $('weekly-summary').style.display = 'block';
+  $('final-score').textContent = `${c}/${t}`;
+}
+function markDone(exId) {
+  if (!completedExercises.has(exId)) {
+    completedExercises.add(exId);
+    store('done', [...completedExercises]);
+  }
+  const card = $('card-' + exId); if (card) card.classList.add('done');
+  updateProgress();
+  for (const [day, list] of Object.entries(DAY_EXERCISES)) {
+    if (!list.includes(exId) || completedDays.has(day)) continue;
+    if (list.every(e => completedExercises.has(e))) {
+      completedDays.add(day);
+      store('days', [...completedDays]);
+      const t = document.querySelector(`.tab-btn[data-tab="${day}"]`); if (t) t.classList.add('done');
+      if (completedDays.size === TOTAL_DAYS) { setTimeout(celebrateWeek, 400); showSummary(); }
+      else setTimeout(celebrateDay, 400);
+    }
+  }
+  if (completedDays.size === TOTAL_DAYS) showSummary();
+}
+function showFeedback(id, msg, type) { const el = $(id); el.textContent = msg; el.className = 'feedback show ' + type; }
+function clearFeedback(id) { $(id).className = 'feedback'; $(id).textContent = ''; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Excellent! You got all ${total} correct! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Well done! ${correct}/${total} correct. Read the corrections and try again!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} correct. Read the explanations and try again. You can do it!`, type: 'err' };
+}
+function finish(exId, fbId, correct, total) {
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  scores[exId] = [correct, total];
+  store('scores', scores);
+  markDone(exId);
+}
+
+// ══════════════════════════════════════════════
+//  SHARED RENDER HELPERS
+// ══════════════════════════════════════════════
+function dlg(...lines) {
+  return '<div class="dlg">' + lines.map(l => {
+    const i = l.indexOf(': ');
+    return `<div class="dline"><span class="speaker">${l.slice(0, i)}:</span><span class="say">${l.slice(i + 2)}</span></div>`;
+  }).join('') + '</div>';
+}
+function row(num, body) { return `<div class="q-row"><span class="q-num">${num}.</span><div class="q-body">${body}</div></div>`; }
+function blanks(s) { return s.replace(/___/g, '<span class="blank">______</span>'); }
+function whyHTML(yours, correct, why) {
+  const y = yours === null ? '<span class="bad">no answer</span>' : `<span class="bad">${yours}</span>`;
+  return `<div class="row">✗ Your answer: ${y} · ✔ Correct: <span class="good">${correct}</span><span class="why">💡 ${why}</span></div>`;
+}
+function setWhy(slot, html) { slot.innerHTML = html; slot.classList.toggle('show', !!html); }
+function shuffleArr(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ══════════════════════════════════════════════
+//  buildMC  (a/b/c options; optional shuffled display order)
+// ══════════════════════════════════════════════
+function buildMC(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const order = item.opts.map((_, j) => j);
+    if (cfg.shuffle) shuffleArr(order);
+    const div = document.createElement('div'); div.className = 'item mc-item';
+    div.innerHTML = row(i + 1, blanks(item.q)) +
+      '<div class="mc-options">' + order.map((j, pos) =>
+        `<label class="mc-option" data-q="${cfg.id}_${i}" data-opt="${j}"><input type="radio" name="${cfg.id}_${i}" value="${j}"> ${String.fromCharCode(97 + pos)}) ${item.opts[j]}</label>`
+      ).join('') + '</div><div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('change', e => {
+    if (!e.target.matches('input[type=radio]')) return;
+    const box = e.target.closest('.mc-options');
+    box.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    e.target.closest('.mc-option').classList.add('selected');
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const opts = wrap.querySelectorAll(`[data-q="${cfg.id}_${i}"]`);
+      const slot = opts[0].closest('.mc-item').querySelector('.why-slot');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+      const sel = wrap.querySelector(`input[name="${cfg.id}_${i}"]:checked`);
+      const v = sel ? parseInt(sel.value, 10) : null;
+      const rightEl = wrap.querySelector(`[data-q="${cfg.id}_${i}"][data-opt="${item.ans}"]`);
+      rightEl.classList.add('correct');
+      if (v === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (v !== null) wrap.querySelector(`[data-q="${cfg.id}_${i}"][data-opt="${v}"]`).classList.add('wrong');
+        setWhy(slot, whyHTML(v === null ? null : item.opts[v], item.opts[item.ans], item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('input[type=radio]').forEach(r => { r.checked = false; });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildFill  (one-word inputs; ans = list of accepted answers, ans[0] = key)
+// ══════════════════════════════════════════════
+function buildFill(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item fill-item';
+    const input = `<input class="fill-input" id="${cfg.id}_${i}" placeholder="..." autocomplete="off" autocapitalize="off" spellcheck="false">`;
+    div.innerHTML = row(i + 1, item.line.replace('___', input)) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const inp = $(`${cfg.id}_${i}`);
+      const slot = inp.closest('.fill-item').querySelector('.why-slot');
+      inp.classList.remove('correct', 'wrong');
+      const val = norm(inp.value);
+      if (item.ans.map(norm).includes(val)) { inp.classList.add('correct'); correct++; setWhy(slot, ''); }
+      else {
+        inp.classList.add('wrong');
+        setWhy(slot, whyHTML(val ? esc(inp.value.trim()) : null, item.ans[0], item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    cfg.data.forEach((_, i) => { const inp = $(`${cfg.id}_${i}`); inp.value = ''; inp.className = 'fill-input'; });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildTF  (True / False buttons)
+// ══════════════════════════════════════════════
+function buildTF(cfg) {
+  const wrap = $(cfg.id);
+  const sel = {};
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item tf-item';
+    div.innerHTML = row(i + 1, `${item.s} <span class="tf-btns"><button class="tf-btn" data-i="${i}" data-val="T">True</button><button class="tf-btn" data-i="${i}" data-val="F">False</button></span>`) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('.tf-btn'); if (!b) return;
+    const i = b.dataset.i;
+    sel[i] = b.dataset.val;
+    wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`).forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    b.classList.add('selected');
+  });
+  const label = v => v === 'T' ? 'True' : 'False';
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const btns = wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`);
+      const slot = btns[0].closest('.tf-item').querySelector('.why-slot');
+      btns.forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+      wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${item.ans}"]`).classList.add('correct');
+      if (sel[i] === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (sel[i]) wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${sel[i]}"]`).classList.add('wrong');
+        setWhy(slot, whyHTML(sel[i] ? label(sel[i]) : null, label(item.ans), item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(sel).forEach(k => delete sel[k]);
+    wrap.querySelectorAll('.tf-btn').forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildInlineChoice  (click one of the words in {a|b} inside the sentence)
+// ══════════════════════════════════════════════
+function buildInlineChoice(cfg) {
+  const wrap = $(cfg.id);
+  const sel = {};
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item ic-item';
+    const html = item.line.replace(/\{([^}]+)\}/, (m, g) =>
+      g.split('|').map((w, j) => `<button class="ic-opt" data-i="${i}" data-j="${j}">${w}</button>`).join('<span class="ic-sep">/</span>'));
+    div.innerHTML = row(i + 1, html) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('.ic-opt'); if (!b) return;
+    const i = b.dataset.i;
+    sel[i] = parseInt(b.dataset.j, 10);
+    wrap.querySelectorAll(`.ic-opt[data-i="${i}"]`).forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    b.classList.add('selected');
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const btns = wrap.querySelectorAll(`.ic-opt[data-i="${i}"]`);
+      const slot = btns[0].closest('.ic-item').querySelector('.why-slot');
+      btns.forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+      btns[item.ans].classList.add('correct');
+      if (sel[i] === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (sel[i] !== undefined) btns[sel[i]].classList.add('wrong');
+        setWhy(slot, whyHTML(sel[i] !== undefined ? btns[sel[i]].textContent : null, btns[item.ans].textContent, item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(sel).forEach(k => delete sel[k]);
+    wrap.querySelectorAll('.ic-opt').forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildSentenceBuilder  (tap words in order; words keep the order given in the task)
+// ══════════════════════════════════════════════
+function buildSentenceBuilder(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item sb-item';
+    div.innerHTML = row(i + 1,
+      `<div class="sb-words" id="${cfg.id}-words-${i}">` +
+        item.words.map((w, k) => `<button class="sb-chip" data-item="${i}" data-tok="${k}" data-word="${esc(w)}">${w}</button>`).join('') +
+      `</div><div class="sb-label">Your sentence:</div><div class="sb-zone" id="${cfg.id}-zone-${i}"></div>`) +
+      '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip'); if (!chip) return;
+    const i = chip.dataset.item;
+    const words = $(`${cfg.id}-words-${i}`), zone = $(`${cfg.id}-zone-${i}`);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    if (chip.parentElement === words) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else {
+      chip.classList.remove('in-zone');
+      const next = [...words.children].find(c => parseInt(c.dataset.tok, 10) > parseInt(chip.dataset.tok, 10));
+      words.insertBefore(chip, next || null);
+    }
+  });
+  const tokens = s => s.map(w => w.toLowerCase()).join(' ');
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const zone = $(`${cfg.id}-zone-${i}`);
+      const slot = zone.closest('.sb-item').querySelector('.why-slot');
+      const built = [...zone.querySelectorAll('.sb-chip')].map(c => c.dataset.word);
+      zone.classList.remove('correct-zone', 'wrong-zone');
+      const ok = item.accept.some(a => tokens(a) === tokens(built));
+      if (ok) { zone.classList.add('correct-zone'); correct++; setWhy(slot, ''); }
+      else {
+        zone.classList.add('wrong-zone');
+        setWhy(slot, whyHTML(built.length ? esc(built.join(' ')) : null, item.display, item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    cfg.data.forEach((_, i) => {
+      const words = $(`${cfg.id}-words-${i}`), zone = $(`${cfg.id}-zone-${i}`);
+      zone.classList.remove('correct-zone', 'wrong-zone');
+      const all = [...words.children, ...zone.children].sort((a, b) => a.dataset.tok - b.dataset.tok);
+      all.forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildClickMatch  (two clickable columns; lefts with the same text are interchangeable)
+// ══════════════════════════════════════════════
+function buildClickMatch(cfg) {
+  const wrap = $(cfg.id);
+  const data = cfg.data;
+  const tip = document.createElement('div'); tip.className = 'cm-tip';
+  tip.textContent = 'Tip: click a matched item again to undo the pair.';
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'L'; d.dataset.idx = i;
+    d.innerHTML = `<span class="cm-txt">${item.left}</span>`; leftCol.appendChild(d);
+  });
+  shuffleArr(data.map((_, i) => i)).forEach(i => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'R'; d.dataset.idx = i;
+    d.innerHTML = `<span class="cm-txt">${data[i].right}</span>`; rightCol.appendChild(d);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol);
+  const slot = document.createElement('div'); slot.className = 'why-slot';
+  wrap.appendChild(tip); wrap.appendChild(cmWrap); wrap.appendChild(slot);
+
+  const L2R = {}, R2L = {};
+  let active = null, counter = 0;
+  const elL = i => leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  const elR = i => rightCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  function clearMarks() { cmWrap.querySelectorAll('.cm-item').forEach(x => x.classList.remove('correct-link', 'wrong-link')); setWhy(slot, ''); }
+  function unlinkLeft(li) {
+    const ri = L2R[li]; if (ri === undefined) return;
+    [elL(li), elR(ri)].forEach(x => { x.classList.remove('linked'); x.querySelectorAll('.cm-pair-num').forEach(b => b.remove()); });
+    delete L2R[li]; delete R2L[ri];
+  }
+  function link(li, ri) {
+    counter++;
+    L2R[li] = ri; R2L[ri] = li;
+    [elL(li), elR(ri)].forEach(x => {
+      x.classList.add('linked'); x.classList.remove('active');
+      const b = document.createElement('span'); b.className = 'cm-pair-num'; b.textContent = counter; x.appendChild(b);
+    });
+  }
+  cmWrap.addEventListener('click', e => {
+    const it = e.target.closest('.cm-item'); if (!it) return;
+    clearMarks();
+    const idx = parseInt(it.dataset.idx, 10);
+    if (it.dataset.side === 'L') {
+      if (L2R[idx] !== undefined) { unlinkLeft(idx); return; }
+      leftCol.querySelectorAll('.cm-item').forEach(x => x.classList.remove('active'));
+      if (active === idx) { active = null; return; }
+      it.classList.add('active'); active = idx;
+    } else {
+      if (R2L[idx] !== undefined) { unlinkLeft(R2L[idx]); return; }
+      if (active === null) return;
+      link(active, idx); active = null;
+    }
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    clearMarks();
+    let correct = 0; const rows = [];
+    data.forEach((item, i) => {
+      const ri = L2R[i];
+      const ok = ri !== undefined && data[ri].left === item.left;
+      if (ok) { correct++; elL(i).classList.add('correct-link'); elR(ri).classList.add('correct-link'); }
+      else {
+        elL(i).classList.add('wrong-link');
+        if (ri !== undefined) elR(ri).classList.add('wrong-link');
+        rows.push(whyHTML(ri !== undefined ? `${item.left} → ${data[ri].right}` : null, `${item.left} → ${item.right}`, item.why));
+      }
+    });
+    setWhy(slot, rows.join(''));
+    finish(cfg.id, cfg.id + '-fb', correct, data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(L2R).forEach(li => unlinkLeft(parseInt(li, 10)));
+    cmWrap.querySelectorAll('.cm-item').forEach(x => x.classList.remove('active'));
+    active = null; counter = 0; clearMarks();
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+
+// NEW TEMPLATE: capture the exact original exercise configs for Gamified Mode.
+const GAME_CFG = {};
+[
+ ['mc','buildMC'],['fill','buildFill'],['tf','buildTF'],
+ ['inline','buildInlineChoice'],['order','buildSentenceBuilder'],['match','buildClickMatch']
+].forEach(([type,name])=>{
+  const original = window[name];
+  window[name] = function(cfg){ GAME_CFG[cfg.id]={type,cfg}; return original(cfg); };
+});
+
+// ══════════════════════════════════════════════
+//  DAY 1 – LOST FOR WORDS
+// ══════════════════════════════════════════════
+buildClickMatch({ id:'d1e1', data:[
+ {left:'furious',right:'It means very angry.',why:'“Very angry” paraphrases furious.'},
+ {left:'drugstore',right:'It’s somewhere you can buy medicine.',why:'A drugstore is a place where you can buy medicine.'},
+ {left:'sweatshirt',right:'It’s like a T-shirt, but warmer.',why:'Similarity helps explain an unfamiliar item of clothing.'},
+ {left:'generous',right:'It’s the opposite of mean.',why:'Using an opposite is a useful paraphrasing strategy.'},
+ {left:'sailing',right:'It’s a kind of sport you do on water.',why:'“A kind of” introduces a category.'},
+ {left:'neighbour',right:'It’s somebody who lives near you.',why:'A neighbour is a person who lives near you.'}
+]});
+buildMC({ id:'d1e2', shuffle:true, data:[
+ {q:dlg('A: What does your new colleague look like?','B: He’s... the opposite of short.'),opts:['bald','tall','slim'],ans:1,why:'The opposite of short is tall.'},
+ {q:dlg('A: Where did you stay on holiday?','B: In one of those places where people sleep in tents.'),opts:['airport','hotel','campsite'],ans:2,why:'People sleep in tents at a campsite.'},
+ {q:dlg('A: What’s Eva like?','B: She’s the kind of person who never wants to work.'),opts:['lazy','serious','quiet'],ans:0,why:'Lazy describes someone who does not want to work.'},
+ {q:dlg('A: How are you getting to the airport?','B: By that car which you pay to take you somewhere.'),opts:['coach','trolley','taxi'],ans:2,why:'A taxi is a car you pay to take you somewhere.'},
+ {q:dlg('A: What did you buy in Lisbon?','B: Just a small thing to remember the city.'),opts:['boarding pass','souvenir','suitcase'],ans:1,why:'A souvenir is something you buy to remember a place.'},
+ {q:dlg('A: What are you looking for?','B: The thing which I use to charge my phone.'),opts:['charger','wallet','headphones'],ans:0,why:'A charger gives power to a phone.'}
+]});
+buildFill({ id:'d1e3', data:[
+ {line:'A hostel is ___ a hotel, but it’s usually cheaper.',ans:['like'],why:'“Like” introduces a similarity.'},
+ {line:'A violin is a ___ of musical instrument.',ans:['kind'],why:'We say “a kind of” to name a category.'},
+ {line:'Quiet is the ___ of noisy.',ans:['opposite'],why:'The expression is “the opposite of”.'},
+ {line:'A mechanic is ___ who repairs cars.',ans:['somebody','someone'],why:'Use somebody/someone for a person.'},
+ {line:'A pharmacy is ___ you can buy medicine.',ans:['somewhere'],why:'Use somewhere for a place.'},
+ {line:'A boarding pass is ___ you need before you get on a plane.',ans:['something'],why:'Use something for a thing.'},
+ {line:'Lisbon is ___ to Porto in some ways.',ans:['similar'],why:'The expression is “similar to”.'},
+ {line:'You can do many activities on holiday. For ___, you can go sightseeing.',ans:['example'],why:'The expression is “for example”.'}
+]});
+
+// DAY 2 – PEOPLE, PLACES & THINGS
+buildMC({ id:'d2e1', shuffle:true, data:[
+ {q:'Carla is the person who organizes all our meetings. Carla is...',opts:['a place','a person','a thing'],ans:1,why:'“The person who...” identifies a person.'},
+ {q:'The meeting room is the place where we usually meet clients. It is...',opts:['a place','a thing','a person'],ans:0,why:'“The place where...” identifies a place.'},
+ {q:'The coffee machine is the thing which makes coffee near reception. It is...',opts:['a person','a place','a thing'],ans:2,why:'“The thing which...” identifies a thing.'},
+ {q:'Daniel is the person who works in IT. Daniel is...',opts:['a thing','a person','a place'],ans:1,why:'Daniel is a person.'},
+ {q:'The storage room is the place where we keep bags and jackets. It is...',opts:['a place','a person','a thing'],ans:0,why:'A room is a place.'},
+ {q:'The access card is the thing which opens the main door. It is...',opts:['a place','a person','a thing'],ans:2,why:'A card is a thing.'}
+]});
+buildInlineChoice({ id:'d2e2', data:[
+ {line:'A colleague is a person {who|where} works with you.',ans:0,why:'Use who for people.'},
+ {line:'A boarding pass is a document {who|which} you show before you get on a plane.',ans:1,why:'Use which for things.'},
+ {line:'A campsite is a place {where|who} people can stay in tents.',ans:0,why:'Use where for places.'},
+ {line:'A receptionist is someone {which|who} answers calls and helps visitors.',ans:1,why:'Use who for people.'},
+ {line:'A suitcase is something {which|where} you use when you travel.',ans:0,why:'Use which for things.'},
+ {line:'A departure lounge is the area {which|where} passengers wait for their flights.',ans:1,why:'Use where for places.'},
+ {line:'A tour guide is a person {who|where} shows visitors around a city.',ans:0,why:'Use who for people.'},
+ {line:'A charger is a device {who|which} gives power to your phone.',ans:1,why:'Use which for things.'}
+]});
+buildClickMatch({ id:'d2e3', data:[
+ {left:'“He works at the desk next to mine.”',right:'colleague',why:'A colleague is somebody who works with you.'},
+ {left:'“It’s the place where you can try on clothes.”',right:'changing room',why:'A changing room is where customers try on clothes.'},
+ {left:'“It’s the paper which shows how much I paid.”',right:'receipt',why:'A receipt shows what you paid.'},
+ {left:'“She’s the person who has seat 14B.”',right:'passenger',why:'A passenger travels in a vehicle.'},
+ {left:'“They’re the bags which we’re taking on holiday.”',right:'luggage',why:'Luggage means the bags you travel with.'},
+ {left:'“It’s the building where our flight leaves from.”',right:'terminal',why:'A terminal is an airport building for arrivals and departures.'}
+]});
+
+// DAY 3 – BUILDING DEFINITIONS
+buildSentenceBuilder({ id:'d3e1', data:[
+ {words:['A','flight','attendant','is','a','person','who','helps','passengers','.'],accept:[['A','flight','attendant','is','a','person','who','helps','passengers','.']],display:'A flight attendant is a person who helps passengers.',why:'Person + who + verb.'},
+ {words:['A','fitting','room','is','a','place','where','customers','try','on','clothes','.'],accept:[['A','fitting','room','is','a','place','where','customers','try','on','clothes','.']],display:'A fitting room is a place where customers try on clothes.',why:'Place + where + clause.'},
+ {words:['A','guidebook','is','a','book','which','gives','tourists','information','.'],accept:[['A','guidebook','is','a','book','which','gives','tourists','information','.']],display:'A guidebook is a book which gives tourists information.',why:'Thing + which + verb.'},
+ {words:['A','neighbour','is','a','person','who','lives','near','you','.'],accept:[['A','neighbour','is','a','person','who','lives','near','you','.']],display:'A neighbour is a person who lives near you.',why:'Use who to define a person.'},
+ {words:['A','terminal','is','a','building','where','passengers','arrive','and','leave','.'],accept:[['A','terminal','is','a','building','where','passengers','arrive','and','leave','.']],display:'A terminal is a building where passengers arrive and leave.',why:'Use where to define a place.'},
+ {words:['A','suitcase','is','a','bag','which','people','use','when','they','travel','.'],accept:[['A','suitcase','is','a','bag','which','people','use','when','they','travel','.']],display:'A suitcase is a bag which people use when they travel.',why:'Use which to define a thing.'}
+]});
+buildMC({ id:'d3e2', shuffle:true, data:[
+ {q:dlg('Guest: I need to print my boarding pass.','Which description should the guest follow?'),opts:['the person who cleans bedrooms','the place where guests can use computers','the thing which opens the bedroom door'],ans:1,why:'The business centre is the place where guests can use computers and print documents.'},
+ {q:dlg('Guest: I can’t open my bedroom door.','Which description identifies what the guest needs?'),opts:['the thing which opens the bedroom door','the place where guests check in','the person who cleans bedrooms'],ans:0,why:'The key card is the thing which opens the bedroom door.'},
+ {q:dlg('Guest: My room hasn’t been cleaned.','Who should the guest contact?'),opts:['the person who helps with computers','the place where guests wait','the person who cleans bedrooms'],ans:2,why:'A housekeeper is the person who cleans bedrooms.'},
+ {q:dlg('Guest: I’ve just arrived and need to check in.','Where should the guest go?'),opts:['the place where guests check in','the thing which opens the door','the person who cleans rooms'],ans:0,why:'Reception is the place where guests check in.'},
+ {q:dlg('Guest: I need to go to the seventh floor.','What should the guest use?'),opts:['the person who helps guests','the thing which takes guests to different floors','the place where documents are printed'],ans:1,why:'The lift is the thing which takes guests to different floors.'},
+ {q:dlg('Guest: I need someone to help me with a problem.','Who does the guest need?'),opts:['the receptionist who helps guests','the key card which opens the door','the business centre where guests print'],ans:0,why:'A receptionist is a person who helps guests.'}
+]});
+buildFill({ id:'d3e3', data:[
+ {line:'The app has local guides ___ speak English.',ans:['who','that'],why:'Guides are people, so who or that is possible.'},
+ {line:'It recommends places ___ you can eat cheaply.',ans:['where'],why:'Use where for places.'},
+ {line:'It shows cafés ___ have live music at the weekend.',ans:['which','that'],why:'Cafés are things/places as the subject of “have”; which or that works here.'},
+ {line:'It connects travellers ___ are visiting the city alone.',ans:['who','that'],why:'Travellers are people.'},
+ {line:'There is a map ___ shows all the main sights.',ans:['which','that'],why:'A map is a thing.'},
+ {line:'It lists hotels ___ you can stay for less than €100.',ans:['where'],why:'The hotel is the place of the action “stay”.'}
+]});
+
+// DAY 4 – EXPLAINING WORDS NATURALLY
+buildMC({ id:'d4e1', shuffle:true, data:[
+ {q:dlg('A: What’s a refund?','B: ___'),opts:['It’s somewhere where you buy something.','It’s money which a shop gives back to you.','It’s somebody who works in a shop.'],ans:1,why:'A refund is money returned to a customer.'},
+ {q:dlg('A: What does bald mean?','B: ___'),opts:['It describes someone who has little or no hair.','It’s a kind of haircut.','It’s the opposite of friendly.'],ans:0,why:'Bald describes a person with little or no hair.'},
+ {q:dlg('A: What’s a hostel?','B: ___'),opts:['It’s something which you pack.','It’s somebody who books holidays.','It’s a kind of cheap accommodation.'],ans:2,why:'A hostel is a type of accommodation.'},
+ {q:dlg('A: I can’t remember the word. It’s that thing you push at the supermarket.','B: ___'),opts:['A trolley?','A receipt?','A gate?'],ans:0,why:'A trolley is something you push at a supermarket.'},
+ {q:dlg('A: What does crowded mean?','B: ___'),opts:['A person who talks a lot.','Full of people.','Similar to empty.'],ans:1,why:'Crowded means full of people.'},
+ {q:dlg('A: What’s sightseeing?','B: ___'),opts:['It’s something you take on a plane.','It’s a person who organizes trips.','It’s when you visit interesting places as a tourist.'],ans:2,why:'Sightseeing means visiting interesting places as a tourist.'}
+]});
+buildClickMatch({ id:'d4e2', data:[
+ {left:'furious',right:'very angry',why:'Furious means very angry.'},
+ {left:'enormous',right:'very big',why:'Enormous means very big.'},
+ {left:'exhausted',right:'very tired',why:'Exhausted means very tired.'},
+ {left:'crowded',right:'full of people',why:'A crowded place has many people.'},
+ {left:'generous',right:'the opposite of mean',why:'Generous and mean are opposites in this context.'},
+ {left:'similar',right:'almost the same',why:'Similar means alike, but not necessarily identical.'}
+]});
+buildInlineChoice({ id:'d4e3', data:[
+ {line:'I don’t know the English word. It’s a person {who|which} works at reception.',ans:0,why:'Use who for a person.'},
+ {line:'We stayed in a place {who|where} you could see the sea from every room.',ans:1,why:'Use where for a place.'},
+ {line:'Take the document {which|where} has your flight information on it.',ans:0,why:'Use which for a thing.'},
+ {line:'He’s very reliable. That means you {can’t|can} trust him.',ans:1,why:'A reliable person can be trusted.'},
+ {line:'It’s a kind of sport {which|who} you do on snow.',ans:0,why:'A sport is a thing/activity, so which works.'},
+ {line:'The café was packed. Packed here is {the opposite of|similar to} crowded.',ans:1,why:'Packed and crowded have similar meanings here.'}
+]});
+
+// DAY 5 – SAY IT ANOTHER WAY
+buildClickMatch({ id:'d5e1', data:[
+ {left:'packed',right:'very crowded',why:'In the message, the city centre had many people.'},
+ {left:'tiny',right:'very small',why:'The café had only six tables.'},
+ {left:'welcoming',right:'friendly to visitors',why:'A welcoming person makes visitors feel comfortable.'},
+ {left:'gorgeous',right:'very beautiful',why:'Gorgeous means very beautiful.'},
+ {left:'a bargain',right:'something bought for a very good price',why:'A bargain costs less than you might expect.'},
+ {left:'exhausted',right:'very tired',why:'Exhausted means very tired.'}
+]});
+buildMC({ id:'d5e2', shuffle:true, data:[
+ {q:'Which explanation would help someone understand “reliable”?',opts:['It describes a person who you can trust.','It’s somebody at work.','It’s similar to a person.'],ans:0,why:'The first option gives the defining meaning.'},
+ {q:'Which explanation would help someone understand “platform”?',opts:['It’s something about trains.','It’s where transport.','It’s the place at a station where you wait for your train.'],ans:2,why:'This definition gives category and function.'},
+ {q:'Which explanation would help someone understand “receipt”?',opts:['It’s a kind of shopping.','It’s the piece of paper which shows what you bought and paid.','It’s something in a shop.'],ans:1,why:'This clearly identifies a receipt.'},
+ {q:'Which explanation would help someone understand “generous”?',opts:['It’s similar to expensive.','It’s a person who has money.','It’s the opposite of mean.'],ans:2,why:'The opposite gives a clear meaning.'},
+ {q:'Which explanation would help someone understand “sweatshirt”?',opts:['It’s like a T-shirt, but warmer and usually with long sleeves.','It’s a kind of weather.','It’s something which is clothes.'],ans:0,why:'The comparison gives useful distinguishing information.'},
+ {q:'Which explanation would help someone understand “gate” at an airport?',opts:['It’s similar to a plane.','It’s the place where passengers wait to get on their flight.','It’s something at an airport.'],ans:1,why:'The second option explains its function clearly.'}
+]});
+buildSentenceBuilder({ id:'d5e3', data:[
+ {words:['A','vegetarian','is','somebody','who','doesn’t','eat','meat','.'],accept:[['A','vegetarian','is','somebody','who','doesn’t','eat','meat','.']],display:'A vegetarian is somebody who doesn’t eat meat.',why:'Person + who.'},
+ {words:['A','changing','room','is','somewhere','where','you','can','try','on','clothes','.'],accept:[['A','changing','room','is','somewhere','where','you','can','try','on','clothes','.']],display:'A changing room is somewhere where you can try on clothes.',why:'Place + where.'},
+ {words:['A','charger','is','something','which','gives','power','to','your','phone','.'],accept:[['A','charger','is','something','which','gives','power','to','your','phone','.']],display:'A charger is something which gives power to your phone.',why:'Thing + which.'},
+ {words:['A','tour','guide','is','somebody','who','shows','visitors','around','a','place','.'],accept:[['A','tour','guide','is','somebody','who','shows','visitors','around','a','place','.']],display:'A tour guide is somebody who shows visitors around a place.',why:'Person + who.'},
+ {words:['A','souvenir','is','something','which','you','buy','to','remember','a','place','.'],accept:[['A','souvenir','is','something','which','you','buy','to','remember','a','place','.']],display:'A souvenir is something which you buy to remember a place.',why:'Thing + which.'},
+ {words:['A','campsite','is','somewhere','where','people','can','stay','in','tents','.'],accept:[['A','campsite','is','somewhere','where','people','can','stay','in','tents','.']],display:'A campsite is somewhere where people can stay in tents.',why:'Place + where.'}
+]});
+
+// DAY 6 – LOST FOR WORDS
+buildFill({ id:'d6e1', data:[
+ {line:'The paper which showed what Ben paid was his ___.',ans:['receipt'],why:'Nina identifies it as his receipt.'},
+ {line:'The place where Ben bought medicine was the ___.',ans:["drugstore"],why:'The conversation names the drugstore.'},
+ {line:'The woman who lives next to Ben is his ___.',ans:['neighbour','neighbor'],why:'A neighbour lives near you.'},
+ {line:'The airport was the opposite of empty: it was ___.',ans:['crowded'],why:'Nina supplies “crowded”.'},
+ {line:'The thing which Ben wanted for his bags was a ___.',ans:['trolley'],why:'A trolley is used to move bags.'},
+ {line:'The building where the flight was leaving from was the ___.',ans:['terminal'],why:'Nina identifies the building as the terminal.'}
+]});
+buildMC({ id:'d6e2', shuffle:true, data:[
+ {q:'“That piece of paper which shows what you paid” means...',opts:['a boarding pass','a receipt','a passport'],ans:1,why:'A receipt records what you paid.'},
+ {q:'“That place where you can buy medicine” means...',opts:['a drugstore','a terminal','a campsite'],ans:0,why:'A drugstore sells medicine.'},
+ {q:'“The woman who lives in the flat next to mine” means...',opts:['a colleague','a passenger','a neighbour'],ans:2,why:'A neighbour lives near you.'},
+ {q:'“The opposite of empty” means...',opts:['quiet','crowded','lazy'],ans:1,why:'A crowded place is full of people.'},
+ {q:'“One of those things which you push with your bags on it” means...',opts:['a trolley','a suitcase','a gate'],ans:0,why:'A trolley is pushed and carries bags.'},
+ {q:'“The building where our flight was leaving from” means...',opts:['a hotel','a platform','a terminal'],ans:2,why:'Flights leave from an airport terminal.'}
+]});
+buildClickMatch({ id:'d6e3', data:[
+ {left:'“the piece of paper which shows what you paid”',right:'defining a thing by its function',why:'Ben explains what the object does.'},
+ {left:'“the place where you can buy medicine”',right:'defining a place by what happens there',why:'Ben explains the place through its use.'},
+ {left:'“the woman who lives in the flat next to mine”',right:'defining a person by identifying information',why:'The relative clause tells us which woman.'},
+ {left:'“the opposite of empty”',right:'using an opposite',why:'Ben uses contrast to reach the word crowded.'},
+ {left:'“one of those things which you push with your bags on it”',right:'describing an object by use',why:'The description focuses on how the trolley is used.'},
+ {left:'“the building where our flight was leaving from”',right:'defining a place by an event there',why:'The flight departure identifies the terminal.'}
+]});
+
+// DAY 7 – COMPLETE REVIEW
+buildMC({ id:'d7e1', shuffle:true, data:[
+ {q:'A mechanic is somebody ___ repairs cars.',opts:['which','who','where'],ans:1,why:'Use who for people.'},
+ {q:'A fitting room is somewhere ___ you can try on clothes.',opts:['where','which','who'],ans:0,why:'Use where for places.'},
+ {q:'A boarding pass is something ___ you need before a flight.',opts:['where','who','which'],ans:2,why:'Use which for things.'},
+ {q:'Which explanation best paraphrases generous?',opts:['It’s somewhere with money.','It’s the opposite of mean.','It’s a kind of expensive.'],ans:1,why:'Generous is the opposite of mean.'},
+ {q:'Which explanation describes luggage?',opts:['The bags and suitcases which you take when you travel.','The place where you wait for a flight.','Somebody who travels by plane.'],ans:0,why:'Luggage means the bags you travel with.'},
+ {q:'“It’s similar to a jacket, but lighter.” Which strategy is used?',opts:['an opposite','a place definition','a comparison'],ans:2,why:'“Similar to” makes a comparison.'},
+ {q:'Which definition describes a colleague?',opts:['something which you use at work','somebody who works with you','somewhere where you work'],ans:1,why:'A colleague is a person who works with you.'},
+ {q:'“The restaurant was packed.” What does packed mean here?',opts:['very crowded','very quiet','very expensive'],ans:0,why:'Packed means very crowded in this context.'},
+ {q:'A campsite is...',opts:['somebody who goes camping','something which you use inside a tent','somewhere where people can stay in tents'],ans:2,why:'A campsite is a place.'},
+ {q:'Which is the clearest explanation of charger?',opts:['It’s something which gives power to your phone.','It’s similar to electricity.','It’s somewhere where your phone is.'],ans:0,why:'The first option gives category and function.'},
+ {q:'“It’s a kind of water sport. You use a boat.” Which activity is it?',opts:['skiing','sailing','sightseeing'],ans:1,why:'Sailing is done on water with a boat.'},
+ {q:dlg('A: Who’s Marta?','B: She’s the woman ___ booked our hotel.'),opts:['where','which','who'],ans:2,why:'Marta is a person, so use who.'},
+ {q:'Which sentence best explains terminal?',opts:['It’s a building at an airport where flights arrive and leave.','It’s somebody who checks your passport.','It’s something which you carry onto the plane.'],ans:0,why:'A terminal is an airport building.'},
+ {q:dlg('A: What does exhausted mean?','B: ___'),opts:['It’s somewhere you can rest.','It means very tired.','It’s a kind of holiday.'],ans:1,why:'Exhausted means very tired.'},
+ {q:'Which expression introduces an example?',opts:['the opposite of','similar to','for example'],ans:2,why:'“For example” introduces an example.'}
+]});
+buildMC({ id:'d7e2', shuffle:true, data:[
+ {q:'Which sentence has a mistake?',opts:['A pilot is somebody who flies a plane.','A pharmacy is somewhere where you can buy medicine.','A neighbour is somebody which lives near you.','A receipt is something which shows how much you paid.'],ans:2,why:'For a person, use who/that: “somebody who lives near you”.'},
+ {q:'Which sentence has a mistake?',opts:['A campsite is somewhere who people sleep in tents.','A colleague is somebody who works with you.','A suitcase is something which you take on holiday.','A terminal is a place where flights arrive and leave.'],ans:0,why:'For a place, use where: “somewhere where people sleep”.'},
+ {q:'Which sentence has a mistake?',opts:['Tiny means very small.','Generous is the opposite of mean.','Crowded is similar to full of people.','Exhausted is a kind of place where you can rest.'],ans:3,why:'Exhausted is an adjective meaning very tired.'},
+ {q:'Which sentence has a mistake?',opts:['A tour guide is somebody who shows visitors around.','A boarding pass is somebody who travels on a plane.','A fitting room is somewhere where you try on clothes.','A charger is something which gives power to your phone.'],ans:1,why:'A boarding pass is a thing/document, not a person.'},
+ {q:'Which sentence has a mistake?',opts:['A chef is somebody who cooks professionally.','A souvenir is something which you buy to remember a place.','A hotel is somewhere where travellers can stay.','A passenger is somewhere where people wait for a flight.'],ans:3,why:'A passenger is somebody who travels in a vehicle.'},
+ {q:'Which sentence has a mistake?',opts:['It’s like a jacket, but lighter.','It’s the opposite of dangerous.','It’s similar where a hotel.','For example, you can go skiing or sailing.'],ans:2,why:'Say “It’s similar to a hotel,” not “similar where”.'}
+]});
+
+// Writing Challenge – single paragraph field, sent to Teacher Mari on WhatsApp
+(function () {
+  const ta = $('d7w-text');
+  ta.value = load('writing', '');
+  const countWords = () => (ta.value.trim().match(/\S+/g) || []).length;
+  const paint = () => { const n = countWords(); $('d7w-count').textContent = n + (n === 1 ? ' word' : ' words'); };
+  paint();
+  ta.addEventListener('input', () => { store('writing', ta.value); paint(); });
+  $('d7w-send').addEventListener('click', () => {
+    if (countWords() < 20) {
+      showFeedback('d7w-fb', '✏️ Please write five short explanations before you send.', 'err');
+      return;
+    }
+    const msg = `Hi Teacher Mari! This is ${studentName || 'your student'}.\nPre-Intermediate 3C – Day 7 – Writing Challenge: Lost for Words\n\n${ta.value.trim()}`;
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+    showFeedback('d7w-fb', '✅ Great! Your writing is ready to send on WhatsApp.', 'ok');
+    markDone('d7w');
+  });
+})();
+
+$('summary-whatsapp').addEventListener('click', () => {
+  const { c, t } = totals();
+  const msg = `🏆 Pre-Intermediate 3C complete!\n\nHi Teacher Mari! This is ${studentName || 'your student'}. I finished all the exercises.\n\nScore: ${c}/${t} correct answers.`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+const VOCAB = [
+ { title:'💬 Paraphrasing', items:[['somebody','a person'],['something','a thing'],['somewhere','a place'],['a kind of','a type of'],['like','similar to'],['the opposite of','reverse meaning'],['for example','introduces an example'],['similar','almost the same']]},
+ { title:'✈️ Travel & holidays', items:[['boarding pass','document used before a flight'],['terminal','airport building'],['passenger','person travelling in a vehicle'],['luggage','bags used for travel'],['trolley','thing you push to carry bags'],['campsite','place where people stay in tents'],['souvenir','thing bought to remember a place'],['sightseeing','visiting interesting places']]},
+ { title:'👤 People & descriptions', items:[['colleague','person who works with you'],['neighbour','person who lives near you'],['tour guide','person who shows visitors around'],['receptionist','person who helps guests or visitors'],['bald','with little or no hair'],['lazy','not wanting to work'],['generous','opposite of mean'],['reliable','someone you can trust']]},
+ { title:'🧠 Useful adjectives', items:[['crowded','full of people'],['packed','very crowded'],['tiny','very small'],['enormous','very big'],['furious','very angry'],['exhausted','very tired'],['gorgeous','very beautiful'],['welcoming','friendly to visitors']]}
+];
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+(function () {
+  const bank = $('vocab-bank');
+  if (!bank) return;
+  bank.querySelectorAll('.vocab-chip').forEach(chip => {
+    chip.addEventListener('click', () => speak(chip.dataset.vocab || chip.querySelector('.vc-en')?.textContent || ''));
+  });
+})();
+document.querySelectorAll('.listen-btn').forEach(b => b.addEventListener('click', () => speak($(b.dataset.speak).innerText)));
+
+function addGrammarBankAudio(root){
+ root.querySelectorAll('.grammar-table td').forEach(td=>{
+   const txt=td.innerText.trim();
+   if(!txt || td.querySelector('.grammar-audio-btn')) return;
+   const hasEnglish=/[A-Za-z]/.test(txt) && (/[.!?]/.test(txt) || /\b(I|you|he|she|it|we|they|my|your|his|her|our|their|this|these|a|an|work|always|usually|sometimes|never)\b/i.test(txt));
+   if(!hasEnglish) return;
+   const b=document.createElement('button');b.type='button';b.className='grammar-audio-btn';b.textContent=' 🔊';b.title='Listen';
+   b.style.cssText='border:0;background:transparent;cursor:pointer;font-size:.78rem;padding:0 2px';
+   b.onclick=e=>{e.stopPropagation();speak(txt.replace(/\s*🔊\s*/g,' '))};
+   td.appendChild(b);
+ });
+}
+addGrammarBankAudio(document.getElementById('panel-grammar'));
+
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+function launchConfetti(count, duration) {
+  const canvas = $('confetti-canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#FF5C23','#1D1050','#04392F','#FAEAD3','#5340c8','#f59e0b','#0d9488'];
+  const ps = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3, c: colors[Math.floor(Math.random() * colors.length)],
+    v: Math.random() * 4 + 1.5, d: (Math.random() - 0.5) * 3, a: Math.random() * 360, s: (Math.random() - 0.5) * 6
+  }));
+  let f = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ps.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a * Math.PI / 180);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
+      p.y += p.v; p.x += p.d; p.a += p.s;
+    });
+    if (++f < duration) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) { toast = document.createElement('div'); toast.className = 'toast'; document.body.appendChild(toast); }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform = 'translateX(-50%) translateY(0)'; toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; toast.style.opacity = '0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() {
+  launchConfetti(260, 320);
+  setTimeout(() => launchConfetti(260, 320), 900);
+  showToast(`🏆 Week complete! Amazing work${studentName ? ', ' + studentName : ''}!`);
+}
+
+updateProgress();
+paintDone();
+</script>
+
+<script>
+(function(){
+const dayMap={1:['d1e1','d1e2','d1e3'],2:['d2e1','d2e2','d2e3'],3:['d3e1','d3e2','d3e3'],4:['d4e1','d4e2','d4e3'],5:['d5e1','d5e2','d5e3'],6:['d6e1','d6e2','d6e3'],7:['d7e1','d7e2','d7w']};
+let gs={day:1,ex:0,item:0,bank:null};
+const stage=document.getElementById('game-stage'), area=document.getElementById('game-area');
+const trad=document.getElementById('mode-traditional'), game=document.getElementById('mode-gamified');
+function nav(){
+ document.getElementById('game-nav').innerHTML=[1,2,3,4,5,6,7].map(d=>`<button class="gnav ${!gs.bank&&gs.day===d?'active':''}" data-day="${d}">Day ${d}</button>`).join('')+
+ `<button class="gnav bank ${gs.bank==='vocab'?'active':''}" data-bank="vocab">🔤 Vocab</button><button class="gnav bank ${gs.bank==='grammar'?'active':''}" data-bank="grammar">📐 Grammar</button>`;
+ document.querySelectorAll('.gnav[data-day]').forEach(b=>b.onclick=()=>{gs={day:+b.dataset.day,ex:0,item:0,bank:null};render()});
+ document.querySelector('[data-bank="vocab"]').onclick=()=>{gs.bank='vocab';render()};
+ document.querySelector('[data-bank="grammar"]').onclick=()=>{gs.bank='grammar';render()};
+}
+function setMode(m){const g=m==='game';document.body.classList.toggle('game-mode',g);area.style.display=g?'block':'none';trad.classList.toggle('active',!g);game.classList.toggle('active',g);if(g)render()}
+trad.onclick=()=>setMode('trad');game.onclick=()=>setMode('game');
+function reaction(ok){return ok?['Good job!','Great!','Excellent!'][Math.floor(Math.random()*3)]:['Try again.','Oops!','Not now!','Not the time.'][Math.floor(Math.random()*4)]}
+function readingFor(day){
+ if(day===6)return document.getElementById('rt-wordgame').outerHTML;
+ return '';
+}
+function bankRender(){
+ nav();const src=document.getElementById('panel-'+gs.bank).cloneNode(true);src.classList.add('active','game-bank-copy');src.style.display='block';src.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));stage.innerHTML='';stage.appendChild(src);
+ src.querySelectorAll('.vocab-chip').forEach((chip,i)=>{const sec=[...document.querySelectorAll('#panel-vocab .vocab-chip')][i];if(sec)chip.onclick=()=>sec.click()});
+ if(gs.bank==='grammar') addGrammarBankAudio(src);
+}
+function explain(html){document.querySelector('.game-explain').innerHTML=html||'Look at the correct answer and try again.';document.querySelector('.game-explain').classList.add('show')}
+function shell(title,inst,body){
+ return `<div class="game-card"><div class="game-top"><div><div class="game-kicker">Day ${gs.day} · Exercise ${gs.ex+1}</div><div class="game-title">${title}</div><div class="game-inst">${inst}</div></div></div>${readingFor(gs.day)}<div class="game-body">${body}</div><div class="game-feedback"></div><div class="game-actions"><button class="game-check">Check</button></div><div class="game-explain"></div><div class="game-bottom"><button class="gprev">← Previous</button><button class="gnext">Next →</button></div></div>`;
+}
+function wrong(why){
+ const f=document.querySelector('.game-feedback');f.className='game-feedback show err';f.textContent=reaction(false);
+ document.querySelector('.game-actions').innerHTML=`<button class="game-try">Try Again</button><button class="game-see">See Answers</button>`;
+ document.querySelector('.game-try').onclick=render;document.querySelector('.game-see').onclick=()=>explain(why);
+}
+function right(){const f=document.querySelector('.game-feedback');f.className='game-feedback show ok';f.textContent=reaction(true);setTimeout(next,700)}
+function next(){const id=dayMap[gs.day][gs.ex], c=GAME_CFG[id];if(c&&c.type!=='match'&&gs.item<c.cfg.data.length-1){gs.item++;render();return}if(gs.ex<dayMap[gs.day].length-1){gs.ex++;gs.item=0;render();return}if(gs.day<7){gs.day++;gs.ex=0;gs.item=0;render()}}
+function prev(){if(gs.item>0){gs.item--;render();return}if(gs.ex>0){gs.ex--;const id=dayMap[gs.day][gs.ex],c=GAME_CFG[id];gs.item=c&&c.type!=='match'?c.cfg.data.length-1:0;render();return}if(gs.day>1){gs.day--;gs.ex=dayMap[gs.day].length-1;gs.item=0;render()}}
+function bindBottom(){document.querySelector('.gprev').onclick=prev;document.querySelector('.gnext').onclick=next}
+function render(){
+ nav();if(gs.bank){bankRender();return}
+ const id=dayMap[gs.day][gs.ex];
+ if(id==='d7w'){
+ const original=document.getElementById('card-d7w').cloneNode(true);
+ original.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
+ stage.innerHTML=`<div class="game-card"><div class="game-kicker">Day 7 · Writing Challenge</div><div class="game-bottom"><button class="gprev">← Previous</button></div></div>`;
+ stage.firstChild.insertBefore(original,stage.firstChild.querySelector('.game-bottom'));
+ const ta=original.querySelector('textarea'),count=original.querySelector('.word-count'),send=original.querySelector('.btn-whatsapp'),fb=original.querySelector('.feedback');
+ ta.value=load('writing','');
+ const wc=()=> (ta.value.trim().match(/\S+/g)||[]).length;
+ const paint=()=>{const n=wc();count.textContent=n+(n===1?' word':' words')};paint();
+ ta.oninput=()=>{store('writing',ta.value);paint()};
+ send.onclick=()=>{
+   if(wc()<20){fb.className='feedback show err';fb.textContent='✏️ Please write five short explanations before you send.';return}
+   const msg=`Hi Teacher Mari! This is ${studentName||'your student'}.\nPre-Intermediate 3C – Day 7 – Writing Challenge: Lost for Words\n\n${ta.value.trim()}`;
+   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,'_blank');
+   fb.className='feedback show ok';fb.textContent='✅ Great! Your writing is ready to send on WhatsApp.';
+   markDone('d7w');
+ };
+ stage.querySelector('.gprev').onclick=prev;
+ return
+}
+ const rec=GAME_CFG[id];if(!rec){stage.innerHTML='<div class="game-card">Loading...</div>';return}
+ const {type,cfg}=rec,item=cfg.data[gs.item];let body='',title=document.querySelector('#card-'+id+' .ex-title').childNodes[0].textContent.trim(),inst=document.querySelector('#card-'+id+' .ex-instruction').textContent;
+ if(type==='mc'){body=`<div>${item.q}</div><div class="gmc">${item.opts.map((o,i)=>`<button class="gopt" data-i="${i}">${o}</button>`).join('')}</div>`}
+ if(type==='fill'){body=`<div>${item.line.replace('___','<input class="gfill" autocomplete="off">')}</div>`}
+ if(type==='tf'){body=`<div>${item.s}</div><div class="gtf"><button data-v="T">True</button><button data-v="F">False</button></div>`}
+ if(type==='inline'){const m=item.line.match(/\{([^|{}]+)\|([^{}]+)\}/);body=item.line.replace(/\{([^|{}]+)\|([^{}]+)\}/,`<span class="gtf"><button data-v="0">${m?m[1]:''}</button><button data-v="1">${m?m[2]:''}</button></span>`)}
+ if(type==='order'){body=`<div class="gwords">${item.words.map((w,i)=>`<button class="gchip" data-i="${i}">${w}</button>`).join('')}</div><div class="gzone"></div>`}
+ if(type==='match'){const rix=shuffleArr(cfg.data.map((_,i)=>i));body=`<div class="gmatch"><div class="gmatchcol">${cfg.data.map((x,i)=>`<button class="gm gl" data-i="${i}">${x.left}</button>`).join('')}</div><div class="gmatchcol">${rix.map(i=>`<button class="gm gr" data-i="${i}">${cfg.data[i].right}</button>`).join('')}</div></div>`}
+ stage.innerHTML=shell(title,inst,body);bindBottom();
+ document.querySelectorAll('#game-stage .listen-btn').forEach(b=>b.onclick=()=>{
+   const source=document.getElementById(b.dataset.speak);
+   if(source) speak(source.innerText);
+ });
+ let sel=null,order=[],links={},active=null;
+ if(type==='fill'){const cb=document.querySelector('.game-check');cb.textContent='Press Enter ↵';cb.style.pointerEvents='none';cb.style.opacity='.65'}else{document.querySelector('.game-check').style.display='none'}
+ if(type==='mc')document.querySelectorAll('.gopt').forEach(b=>b.onclick=()=>{document.querySelectorAll('.gopt').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');sel=+b.dataset.i;document.querySelector('.game-check').click()});
+ if(type==='tf'||type==='inline')document.querySelectorAll('.gtf button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.gtf button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');sel=b.dataset.v;document.querySelector('.game-check').click()});
+ if(type==='fill'){const inp=document.querySelector('.gfill');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.querySelector('.game-check').click()}})}
+ if(type==='order')document.querySelectorAll('.gchip').forEach(b=>b.onclick=()=>{if(b.parentElement.classList.contains('gwords')){document.querySelector('.gzone').appendChild(b);order.push(+b.dataset.i);if(order.length===item.words.length)setTimeout(()=>document.querySelector('.game-check').click(),180)}else{document.querySelector('.gwords').appendChild(b);order=order.filter(x=>x!==+b.dataset.i)}});
+ if(type==='match'){
+   document.querySelectorAll('.gl').forEach(b=>b.onclick=()=>{
+     const li=+b.dataset.i;
+     if(links[li]!==undefined){const ri=links[li];delete links[li];b.classList.remove('linked');const rb=document.querySelector(`.gr[data-i="${ri}"]`);if(rb)rb.classList.remove('linked');active=null;return}
+     document.querySelectorAll('.gl').forEach(x=>x.classList.remove('active'));b.classList.add('active');active=li
+   });
+   document.querySelectorAll('.gr').forEach(b=>b.onclick=()=>{
+     const ri=+b.dataset.i;
+     const owner=Object.keys(links).find(k=>links[k]===ri);
+     if(owner!==undefined){delete links[owner];document.querySelector(`.gl[data-i="${owner}"]`).classList.remove('linked');b.classList.remove('linked');return}
+     if(active===null)return;links[active]=ri;b.classList.add('linked');document.querySelector(`.gl[data-i="${active}"]`).classList.remove('active');document.querySelector(`.gl[data-i="${active}"]`).classList.add('linked');active=null;
+     if(Object.keys(links).length===cfg.data.length)setTimeout(()=>document.querySelector('.game-check').click(),180)
+   })
+ }
+ document.querySelector('.game-check').onclick=()=>{
+  let ok=false,why=item&&item.why;
+  if(type==='mc')ok=sel===item.ans;
+  if(type==='fill')ok=item.ans.map(norm).includes(norm(document.querySelector('.gfill').value));
+  if(type==='tf')ok=sel===item.ans;
+  if(type==='inline')ok=+sel===item.ans;
+  if(type==='order'){const words=order.map(i=>item.words[i]);ok=item.accept.some(a=>norm(a.join(' '))===norm(words.join(' ')));why=item.why+`<br><b>Answer:</b> ${item.display}`}
+  if(type==='match'){ok=cfg.data.every((x,i)=>links[i]!==undefined&&cfg.data[links[i]].left===x.left);why=cfg.data.map(x=>`<b>${x.left}</b> → ${x.right}`).join('<br>')}
+  ok?right():wrong(why);
+ };
+}
+})();
+</script>
+
+</body>
+</html>
