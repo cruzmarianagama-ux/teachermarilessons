@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Beginner — Review up to Unit 8A | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, textarea, select { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; font-weight: 600; color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--teal); font-weight: 800; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+  .done-chip {
+    display: none;
+    font-size: 0.68rem; font-weight: 700;
+    background: #f0fdfa; color: var(--teal);
+    border: 1px solid #99f6e4;
+    border-radius: 99px; padding: 1px 8px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .ex-card.done .done-chip { display: inline-block; }
+
+  /* ── ITEM LAYOUT ── */
+  .item { margin-bottom: 16px; }
+  .q-row { display: flex; gap: 8px; align-items: flex-start; }
+  .q-num { font-weight: 700; color: var(--purple-light); flex-shrink: 0; min-width: 18px; font-size: 0.88rem; line-height: 1.9; }
+  .q-body { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 1.9; }
+  .blank { color: var(--gray); letter-spacing: 1px; font-weight: 600; }
+
+  /* ── DIALOGUE ── */
+  .dlg { display: flex; flex-direction: column; gap: 2px; }
+  .dline { display: flex; gap: 8px; align-items: baseline; }
+  .dline .speaker { color: var(--orange); font-weight: 700; flex-shrink: 0; min-width: 20px; }
+  .dline .say { flex: 1; min-width: 0; }
+
+  /* ── WHY / CORRECTION BOX ── */
+  .why-slot {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    background: #f0fdfa;
+    border-left: 3px solid var(--teal);
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    color: var(--purple);
+  }
+  .why-slot.show { display: block; }
+  .why-slot .bad { color: var(--red); font-weight: 700; }
+  .why-slot .good { color: var(--teal); font-weight: 700; }
+  .why-slot .why { display: block; margin-top: 2px; }
+  .why-slot .row + .row { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #99f6e4; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-options { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .mc-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 500;
+    background: var(--white);
+    line-height: 1.4;
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); font-weight: 700; }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); font-weight: 700; }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); flex-shrink: 0; }
+
+  /* ── FILL IN ── */
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 1px 6px;
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--purple);
+    background: #faf9ff;
+    width: 120px;
+    max-width: 100%;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+    border-radius: 4px 4px 0 0;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); background: #fff5ee; }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── INLINE CHOICE (No / Yes) ── */
+  .ic-opt {
+    display: inline-block;
+    padding: 1px 10px;
+    margin: 0 2px;
+    border-radius: 6px;
+    border: 2px solid var(--purple-light);
+    background: var(--white);
+    color: var(--purple);
+    font-size: 0.86rem; font-weight: 700;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.15s;
+  }
+  .ic-opt:hover { background: #f5f3ff; }
+  .ic-opt.selected { background: var(--purple); color: var(--white); border-color: var(--purple); }
+  .ic-opt.correct { background: var(--teal); border-color: var(--teal); color: var(--white); }
+  .ic-opt.wrong { background: var(--red); border-color: var(--red); color: var(--white); }
+  .ic-sep { color: var(--gray); font-weight: 600; }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 180px;
+    transition: border-color 0.2s;
+    margin-top: 14px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    text-align: center;
+    user-select: none;
+    word-break: break-word;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px;
+  }
+  .cm-tip { font-size: 0.75rem; color: var(--gray); margin-bottom: 10px; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-btns { display: inline-flex; gap: 6px; margin-left: 4px; vertical-align: middle; }
+  .tf-btn {
+    padding: 2px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--purple);
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--purple-light); }
+  .tf-btn.selected { border-color: var(--purple); background: var(--purple); color: #fff; }
+  .tf-btn.correct { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.wrong { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 6px 0 8px; min-height: 40px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); border-style: solid; background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); border-style: solid; background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple); color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.84rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-label { font-size: 0.72rem; font-weight: 700; color: var(--gray); }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text p + p { margin-top: 10px; }
+  .reading-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .listen-btn {
+    background: var(--white); border: 1px solid #99f6e4; cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; color: var(--teal);
+    padding: 3px 10px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+
+  /* ── WRITING ── */
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .checklist { list-style: none; margin: 14px 0 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    font-size: 0.86rem; font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-weight: 800; }
+  .guide-title { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 16px; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--purple);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.86rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 28px; border-radius: 99px;
+    font-size: 1rem; font-weight: 700;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35);
+    z-index: 9999; opacity: 0;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    max-width: 90vw; text-align: center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: 100px; font-size: 0.84rem; }
+    .q-body { font-size: 0.85rem; }
+    .cm-wrap { gap: 10px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(min(100px, 100%), 1fr)); gap: 8px; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+  }
+
+.reading-box{padding:18px;background:#fff8ef;border-radius:12px;line-height:1.8;margin:12px 0}.fill-input,.gfill{max-width:100%;min-width:80px}.vocab-chip{text-align:left;color:var(--purple)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--orange);outline-offset:3px}.game-card .reading-box{max-height:none}.game-body{overflow-wrap:anywhere}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.cm-item:focus-visible{outline:3px solid var(--orange);outline-offset:2px}.fill-input,.gfill{font-size:16px}.game-title{overflow-wrap:anywhere}
+</style>
+
+<style>
+/* TML final dual-mode template additions */
+.mode-switch{display:flex;gap:4px;justify-content:center;margin-top:9px}
+.mode-switch button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:#fff;border-radius:99px;padding:6px 11px;font-size:.7rem;font-weight:700;cursor:pointer}
+.mode-switch button.active{background:var(--orange);border-color:var(--orange)}
+body.game-mode .tabs-wrap{display:none}
+body.game-mode .content>.day-panel{display:none!important}
+.game-area{max-width:780px;margin:0 auto}
+.game-navline{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.gnav{padding:7px 4px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:var(--gray);font-size:.67rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.gnav.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.game-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-left:4px solid var(--orange)}
+.game-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.game-kicker{font-size:.7rem;color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.game-title{font-size:1rem;font-weight:800}
+.game-inst{font-size:.78rem;color:var(--gray);margin-top:3px}
+.game-body{margin-top:14px}
+.game-feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:.8rem;font-weight:600}
+.game-feedback.show{display:block}.game-feedback.ok{background:#f0fdfa;color:var(--teal)}.game-feedback.err{background:#fef2f2;color:var(--red)}
+.game-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.game-actions button,.game-bottom button{border:0;border-radius:99px;padding:8px 13px;font-size:.75rem;font-weight:700;cursor:pointer}
+.game-check{background:var(--orange);color:#fff}.game-try{background:var(--purple);color:#fff}.game-see{background:var(--cream);color:var(--purple)}
+.game-explain{display:none;margin-top:9px;padding:9px 11px;background:#f7f4ff;border-left:3px solid var(--orange);border-radius:0 7px 7px 0;font-size:.78rem;line-height:1.5}.game-explain.show{display:block}
+.game-bottom{display:flex;justify-content:space-between;margin-top:14px}.game-bottom button{background:var(--gray-light);color:var(--purple)}
+.gmc{display:flex;flex-direction:column;gap:8px}.gopt{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--purple)}.gopt.selected{border-color:var(--purple-light);background:#f5f3ff}
+.gfill{border:0;border-bottom:2px solid var(--purple-light);padding:6px;font:inherit;color:var(--purple);outline:none;width:min(240px,100%)}
+.gtf{display:flex;gap:8px}.gtf button{border:2px solid var(--gray-light);background:#fff;border-radius:99px;padding:7px 16px;font-weight:700}.gtf button.selected{background:var(--purple);color:#fff}
+.gwords,.gzone{display:flex;flex-wrap:wrap;gap:7px;padding:8px;border-radius:8px;min-height:44px}.gwords{background:var(--gray-light)}.gzone{border:2px dashed var(--purple-light);margin-top:8px}.gchip{border:0;background:var(--purple);color:#fff;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+.gmatch{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gmatchcol{display:flex;flex-direction:column;gap:7px}.gm{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:9px;text-align:center;font-weight:600;color:var(--purple)}.gm.active{border-color:var(--orange);background:#fff5ee}.gm.linked{border-color:var(--purple-light);background:#f5f3ff}
+.game-bank-copy .day-header{margin-bottom:14px}.game-bank-copy .ex-card{margin-bottom:14px}
+@media(max-width:600px){.game-navline{display:flex;overflow-x:auto}.gnav{min-width:55px}.gnav.bank{min-width:76px}.game-card{padding:14px 12px}.gmatch{gap:8px}}
+</style>
+
+<style>
+.header{padding:16px 20px 13px}.header-logo{height:52px}.header h1{font-size:1.28rem}.progress-section{padding:10px 16px}.motivation-bar{padding:7px 12px}
+.tab-btn{padding:9px 10px;font-size:.7rem}.content{padding-top:16px}
+@media(max-width:600px){.header{padding:13px 12px 11px}.header-logo{height:42px}.tab-btn{padding:8px 8px;font-size:.68rem}}
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <img class="welcome-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div class="welcome-hi">👋 Hello!</div>
+    <div class="welcome-sub">Welcome to your weekly practice<br><strong>Beginner — Review up to Unit 8A</strong>.<br>What's your name?</div>
+    <input class="welcome-input" id="student-name-input" type="text" placeholder="Type your name..." maxlength="40" autocomplete="off"/>
+    <button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+  </div>
+</div>
+
+<div id="hello-banner"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <img class="header-logo" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png" alt="Teacher Mari" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Beginner — Review up to Unit 8A</h1>
+      <div class="subtitle">Beginner</div>
+      <div class="mode-switch"><button id="mode-traditional" class="active">Traditional</button><button id="mode-gamified">🎮 Gamified</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section">
+  <div class="progress-label">
+    <span>Your progress this week</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="day1">📐 Day 1</button>
+    <button class="tab-btn" data-tab="day2">📐 Day 2</button>
+    <button class="tab-btn" data-tab="day3">🔤 Day 3</button>
+    <button class="tab-btn" data-tab="day4">🔤 Day 4</button>
+    <button class="tab-btn" data-tab="day5">🗣️ Day 5</button>
+    <button class="tab-btn" data-tab="day6">📖 Day 6</button>
+    <button class="tab-btn" data-tab="day7">✍️ Day 7</button>
+    <button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+    <button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+  </div>
+</div>
+
+<div class="content">
+<div id="game-area" class="game-area" style="display:none;">
+  <div id="game-nav" class="game-navline"></div>
+  <div id="game-stage"></div>
+</div>
+
+
+<div class="day-panel active" id="panel-day1"><div class="day-header"><div class="day-number">1</div><div><div class="day-title">People, Family and Belongings</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d1e1"><div class="ex-title">Exercise 1 – Meet the Family <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia o texto. Escreva Clara, Daniel, Sofia, Lucas, Teresa ou Paulo.</div><div class="reading-box exercise-context" id="ctx-d1e1">My name is Clara. My husband is Daniel. We have two children: Sofia and Lucas. Sofia is our daughter, and Lucas is our son. My mother is Teresa, and my father is Paulo. They live near our house. Daniel works in a bank. Sofia studies English, and Lucas plays football.</div><button type="button" class="listen-btn" data-speak="ctx-d1e1">🔊 Listen</button><div id="d1e1"></div><div class="btn-row"><button class="btn btn-primary" id="d1e1-check">✔ Check</button><button class="btn btn-secondary" id="d1e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d1e1-fb"></div></div><div class="ex-card grammar" id="card-d1e2"><div class="ex-title">Exercise 2 – Whose Things? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete com my, your, his, her, its, our ou their.</div><div id="d1e2"></div><div class="btn-row"><button class="btn btn-primary" id="d1e2-check">✔ Check</button><button class="btn btn-secondary" id="d1e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d1e2-fb"></div></div><div class="ex-card grammar" id="card-d1e3"><div class="ex-title">Exercise 3 – Who Is Speaking? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia os perfis. Escreva Nina, Bruno ou Nina and Bruno.</div><div class="reading-box exercise-context" id="ctx-d1e3"><div class="table-wrap"><table class="grammar-table"><tr><th>Person</th><th>Information</th></tr><tr><td>Nina</td><td>Brazilian; sister: Alice; favourite colour: green; phone: new</td></tr><tr><td>Bruno</td><td>Italian; brother: Marco; favourite colour: blue; phone: old</td></tr><tr><td>Nina and Bruno</td><td>English classes on Friday; teacher: Emma</td></tr></table></div></div><button type="button" class="listen-btn" data-speak="ctx-d1e3">🔊 Listen</button><div id="d1e3"></div><div class="btn-row"><button class="btn btn-primary" id="d1e3-check">✔ Check</button><button class="btn btn-secondary" id="d1e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d1e3-fb"></div></div></div><div class="day-panel " id="panel-day2"><div class="day-header"><div class="day-number">2</div><div><div class="day-title">Routines, Frequency and Time</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d2e1"><div class="ex-title">Exercise 1 – A Working Day <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete com os verbos entre parênteses no Present Simple.</div><div class="reading-box exercise-context" id="ctx-d2e1">Laura works in a hotel. Her brother, Ben, studies English.</div><button type="button" class="listen-btn" data-speak="ctx-d2e1">🔊 Listen</button><div id="d2e1"></div><div class="btn-row"><button class="btn btn-primary" id="d2e1-check">✔ Check</button><button class="btn btn-secondary" id="d2e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d2e1-fb"></div></div><div class="ex-card grammar" id="card-d2e2"><div class="ex-title">Exercise 2 – Read the Clock <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Associe cada horário à expressão correspondente. Toque em um horário e depois em sua expressão.</div><div id="d2e2"></div><div class="btn-row"><button class="btn btn-primary" id="d2e2-check">✔ Check</button><button class="btn btn-secondary" id="d2e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d2e2-fb"></div></div><div class="ex-card grammar" id="card-d2e3"><div class="ex-title">Exercise 3 – How Often? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia a rotina de Marcos. Marque True ou False.</div><div class="reading-box exercise-context" id="ctx-d2e3">Marcos works from Monday to Friday. On workdays, he always has breakfast at home. He usually goes to work at eight, but on Fridays he goes at nine. He sometimes goes to the gym after work. He never drinks coffee in the evening. On Saturdays, he visits his parents. On Sundays, he stays at home and watches a film.</div><button type="button" class="listen-btn" data-speak="ctx-d2e3">🔊 Listen</button><div id="d2e3"></div><div class="btn-row"><button class="btn btn-primary" id="d2e3-check">✔ Check</button><button class="btn btn-secondary" id="d2e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d2e3-fb"></div></div></div><div class="day-panel " id="panel-day3"><div class="day-header"><div class="day-number">3</div><div><div class="day-title">Questions That Make Sense</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d3e1"><div class="ex-title">Exercise 1 – Find the Question <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Escolha a pergunta que corresponde à resposta.</div><div id="d3e1"></div><div class="btn-row"><button class="btn btn-primary" id="d3e1-check">✔ Check</button><button class="btn btn-secondary" id="d3e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d3e1-fb"></div></div><div class="ex-card grammar" id="card-d3e2"><div class="ex-title">Exercise 2 – Build the Interview <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Ordene todas as palavras para formar a pergunta. Toque nas palavras; toque novamente para devolvê-las.</div><div id="d3e2"></div><div class="btn-row"><button class="btn btn-primary" id="d3e2-check">✔ Check</button><button class="btn btn-secondary" id="d3e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d3e2-fb"></div></div><div class="ex-card grammar" id="card-d3e3"><div class="ex-title">Exercise 3 – Complete the Replies <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete as respostas curtas.</div><div id="d3e3"></div><div class="btn-row"><button class="btn btn-primary" id="d3e3-check">✔ Check</button><button class="btn btn-secondary" id="d3e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d3e3-fb"></div></div></div><div class="day-panel " id="panel-day4"><div class="day-header"><div class="day-number">4</div><div><div class="day-title">Abilities, Preferences and Shared Habits</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d4e1"><div class="ex-title">Exercise 1 – Who Can Help? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia os perfis. Escreva Eva, Tom ou Lia.</div><div class="reading-box exercise-context" id="ctx-d4e1"><div class="table-wrap"><table class="grammar-table"><tr><th>Person</th><th>Abilities</th></tr><tr><td>Eva</td><td>Can cook and speak English. Can’t drive or play the guitar.</td></tr><tr><td>Tom</td><td>Can drive and play the guitar. Can’t cook or sing.</td></tr><tr><td>Lia</td><td>Can sing and swim. Can’t drive or speak English.</td></tr></table></div></div><button type="button" class="listen-btn" data-speak="ctx-d4e1">🔊 Listen</button><div id="d4e1"></div><div class="btn-row"><button class="btn btn-primary" id="d4e1-check">✔ Check</button><button class="btn btn-secondary" id="d4e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d4e1-fb"></div></div><div class="ex-card grammar" id="card-d4e2"><div class="ex-title">Exercise 2 – We Have Something in Common <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete com too, also ou either. Observe a posição e o significado.</div><div id="d4e2"></div><div class="btn-row"><button class="btn btn-primary" id="d4e2-check">✔ Check</button><button class="btn btn-secondary" id="d4e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d4e2-fb"></div></div><div class="ex-card grammar" id="card-d4e3"><div class="ex-title">Exercise 3 – Find a Roommate <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia os perfis. Escreva Alex ou Jo.</div><div class="reading-box exercise-context" id="ctx-d4e3"><strong>Alex</strong><br>I work in the morning. I go to bed at ten. I don’t have pets. I can cook. I listen to music in the afternoon. I don’t watch TV in the evening.<br><br><strong>Jo</strong><br>I work in the afternoon. I go to bed at midnight. I have a cat. I can’t cook. I watch TV in the evening. I don’t listen to music at home.</div><button type="button" class="listen-btn" data-speak="ctx-d4e3">🔊 Listen</button><div id="d4e3"></div><div class="btn-row"><button class="btn btn-primary" id="d4e3-check">✔ Check</button><button class="btn btn-secondary" id="d4e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d4e3-fb"></div></div></div><div class="day-panel " id="panel-day5"><div class="day-header"><div class="day-number">5</div><div><div class="day-title">Movies and Object Pronouns</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d5e1"><div class="ex-title">Exercise 1 – Choose a Film <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Associe cada descrição a um tipo de filme. Use cada opção uma vez.</div><div class="tip-box">action film · animation · comedy · documentary · horror film · science fiction film</div><div id="d5e1"></div><div class="btn-row"><button class="btn btn-primary" id="d5e1-check">✔ Check</button><button class="btn btn-secondary" id="d5e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d5e1-fb"></div></div><div class="ex-card grammar" id="card-d5e2"><div class="ex-title">Exercise 2 – Avoid Repetition <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Reescreva a segunda frase, substituindo somente as palavras em negrito por um object pronoun.</div><div id="d5e2"></div><div class="btn-row"><button class="btn btn-primary" id="d5e2-check">✔ Check</button><button class="btn btn-secondary" id="d5e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d5e2-fb"></div></div><div class="ex-card grammar" id="card-d5e3"><div class="ex-title">Exercise 3 – Complete the Movie Conversation <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete com he, his, him, she, her, it ou them. Algumas opções aparecem mais de uma vez.</div><div class="reading-box exercise-context" id="ctx-d5e3">Mia and Ben are talking about films and actors.</div><button type="button" class="listen-btn" data-speak="ctx-d5e3">🔊 Listen</button><div id="d5e3"></div><div class="btn-row"><button class="btn btn-primary" id="d5e3-check">✔ Check</button><button class="btn btn-secondary" id="d5e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d5e3-fb"></div></div></div><div class="day-panel " id="panel-day6"><div class="day-header"><div class="day-number">6</div><div><div class="day-title">English in Everyday Situations</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d6e1"><div class="ex-title">Exercise 1 – Choose the Right Hotel <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia as informações. Escreva Sun Hotel ou Park Hotel.</div><div class="reading-box exercise-context" id="ctx-d6e1"><div class="table-wrap"><table class="grammar-table"><tr><th>Facility</th><th>Sun Hotel</th><th>Park Hotel</th></tr><tr><td>Pool</td><td>Yes</td><td>No</td></tr><tr><td>Gym</td><td>No</td><td>Yes</td></tr><tr><td>Free breakfast</td><td>Yes</td><td>No</td></tr><tr><td>Free Wi-Fi</td><td>Yes</td><td>Yes</td></tr><tr><td>Balcony</td><td>No</td><td>Yes</td></tr><tr><td>Lift</td><td>Yes</td><td>No</td></tr></table></div></div><button type="button" class="listen-btn" data-speak="ctx-d6e1">🔊 Listen</button><div id="d6e1"></div><div class="btn-row"><button class="btn btn-primary" id="d6e1-check">✔ Check</button><button class="btn btn-secondary" id="d6e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d6e1-fb"></div></div><div class="ex-card grammar" id="card-d6e2"><div class="ex-title">Exercise 2 – Complete the Messages <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete cada mensagem com a opção correta.</div><div id="d6e2"></div><div class="btn-row"><button class="btn btn-primary" id="d6e2-check">✔ Check</button><button class="btn btn-secondary" id="d6e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d6e2-fb"></div></div><div class="ex-card grammar" id="card-d6e3"><div class="ex-title">Exercise 3 – A Plan for Friday <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Leia a conversa. Escolha a resposta correta.</div><div class="reading-box exercise-context" id="ctx-d6e3"><strong>Maya:</strong> Hi, Leo. Are you free on Friday evening?<br><strong>Leo:</strong> Yes. I finish work at half past five.<br><strong>Maya:</strong> Great. My brother, Sam, wants to watch a comedy at home.<br><strong>Leo:</strong> I love comedies. Can I watch it with you and Sam?<br><strong>Maya:</strong> Of course! Come at seven.<br><strong>Leo:</strong> Does Sam speak English?<br><strong>Maya:</strong> Yes, he does. He studies every day.<br><strong>Leo:</strong> Great. I study English, too. We can practise with him.<br><strong>Maya:</strong> Good idea. Sam can cook, so he can make dinner for us.</div><button type="button" class="listen-btn" data-speak="ctx-d6e3">🔊 Listen</button><div id="d6e3"></div><div class="btn-row"><button class="btn btn-primary" id="d6e3-check">✔ Check</button><button class="btn btn-secondary" id="d6e3-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d6e3-fb"></div></div></div><div class="day-panel " id="panel-day7"><div class="day-header"><div class="day-number">7</div><div><div class="day-title">Complete Review</div><div class="day-desc">Beginner · Review up to Unit 8A</div></div></div><div class="ex-card grammar" id="card-d7e1"><div class="ex-title">Exercise 1 – Review Challenge <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Escolha a alternativa correta.</div><div id="d7e1"></div><div class="btn-row"><button class="btn btn-primary" id="d7e1-check">✔ Check</button><button class="btn btn-secondary" id="d7e1-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d7e1-fb"></div></div><div class="ex-card grammar" id="card-d7e2"><div class="ex-title">Exercise 2 – Spot the Mistake <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Em cada grupo, escolha a única frase INCORRETA.</div><div id="d7e2"></div><div class="btn-row"><button class="btn btn-primary" id="d7e2-check">✔ Check</button><button class="btn btn-secondary" id="d7e2-reset">↺ Reset</button></div><div aria-live="polite" class="feedback" id="d7e2-fb"></div></div><div class="ex-card challenge" id="card-d7w"><div class="ex-title">Exercise 3 – Writing Challenge: Someone in My Life <span class="done-chip">✓ Ready</span></div><div class="ex-instruction">Escreva 8–10 frases em inglês sobre você e uma pessoa da sua família ou um amigo.</div><ul class="checklist"><li><span class="check-icon">✓</span>Quem é a pessoa.</li><li><span class="check-icon">✓</span>Duas informações sobre a rotina dela.</li><li><span class="check-icon">✓</span>Um horário.</li><li><span class="check-icon">✓</span>Algo que ela não faz.</li><li><span class="check-icon">✓</span>Uma habilidade com can.</li><li><span class="check-icon">✓</span>Uma informação com my, his, her, our ou their.</li><li><span class="check-icon">✓</span>Uma frase com him, her, it, us ou them.</li><li><span class="check-icon">✓</span>Um hábito ou gosto em comum com too, also ou either.</li></ul><div class="tip-box"><strong>Useful language</strong><br>My … is …<br>He/She works/studies …<br>He/She … at …<br>He/She doesn’t …<br>He/She can …<br>His/Her favourite … is …<br>I call/help/visit him/her …<br>I …, too.<br>We don’t …, either.</div><div class="example-box"><div class="ex-label">Model Text</div>My sister’s name is Julia. She works in a hotel. She starts work at eight o’clock. She usually has breakfast at home. She doesn’t drink coffee in the evening. She can cook very well. Her favourite films are comedies. I watch comedies, too. I visit her on Sundays. We make dinner and watch a film together.</div><textarea class="writing-area" id="d7w-text" placeholder="My … is …" aria-label="Your writing"></textarea><div class="word-count" id="d7w-count">0 words</div><div class="btn-row"><button class="btn btn-primary" id="d7w-save">✓ Finish writing</button><button class="btn btn-whatsapp" id="d7w-send">📲 Send to Teacher Mari</button></div><div aria-live="polite" class="feedback" id="d7w-fb"></div></div><div class="summary-card" id="weekly-summary" style="display:none"><h3>Week complete! 🏆</h3><p>You finished the review up to Unit 8A!</p><div class="score-big" id="final-score"></div><p>Best correct answers per exercise</p><button class="btn btn-whatsapp" id="summary-whatsapp">📲 Share with Teacher Mari</button></div></div>
+<!-- ═════════ VOCAB BANK ═════════ -->
+<div class="day-panel" id="panel-vocab">
+  <div class="day-header">
+    <div class="day-number" style="background:var(--purple-light);">🔤</div>
+    <div>
+      <div class="day-title">Vocabulary Bank</div>
+      <div class="day-desc">Tap a word to listen.</div>
+    </div>
+  </div>
+  <div id="vocab-bank"></div>
+</div>
+
+<!-- ═════════ GRAMMAR BANK ═════════ -->
+<div class="day-panel" id="panel-grammar"><div class="day-header"><div class="day-number">📐</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Your weekly review reference</div></div></div><div class="ex-card grammar"><div class="bank-title">Subject · possessive · object</div><div class="table-wrap"><table class="grammar-table"><tr><th>Subject</th><th>Possessive + noun</th><th>Object</th></tr><tr><td>I</td><td>my phone</td><td>me</td></tr><tr><td>you</td><td>your phone</td><td>you</td></tr><tr><td>he</td><td>his phone</td><td>him</td></tr><tr><td>she</td><td>her phone</td><td>her</td></tr><tr><td>it</td><td>its colour</td><td>it</td></tr><tr><td>we</td><td>our teacher</td><td>us</td></tr><tr><td>they</td><td>their teacher</td><td>them</td></tr></table></div><div class="tip-box">He is my brother. His phone is new. I call him every day.<br>She is my sister. Her phone is new. I call her every day.</div></div><div class="ex-card grammar"><div class="bank-title">Present Simple</div><div class="table-wrap"><table class="grammar-table"><tr><th>Form</th><th>I / you / we / they</th><th>He / she / it</th></tr><tr><td>Affirmative</td><td>I work.</td><td>She works.</td></tr><tr><td>Negative</td><td>They don’t work.</td><td>He doesn’t work.</td></tr><tr><td>Question</td><td>Do you study?</td><td>Does she study?</td></tr><tr><td>Short answer</td><td>Yes, I do. / No, I don’t.</td><td>Yes, she does. / No, she doesn’t.</td></tr></table></div><div class="tip-box">After does / doesn’t, use the base verb. He goes. Does he go? He doesn’t go.</div></div><div class="ex-card grammar"><div class="bank-title">Be and can</div><div class="table-wrap"><table class="grammar-table"><tr><th>Form</th><th>Be</th><th>Can</th></tr><tr><td>Affirmative</td><td>She is at home.</td><td>She can cook.</td></tr><tr><td>Negative</td><td>They aren’t tired.</td><td>He can’t drive.</td></tr><tr><td>Question</td><td>Are they tired?</td><td>Can he drive?</td></tr><tr><td>Short answer</td><td>Yes, they are. / No, they aren’t.</td><td>Yes, he can. / No, he can’t.</td></tr></table></div></div><div class="ex-card grammar"><div class="bank-title">Questions, frequency and time</div><div class="table-wrap"><table class="grammar-table"><tr><th>Expression</th><th>Example</th></tr><tr><td>Who</td><td>Who is she? She is my sister.</td></tr><tr><td>Where</td><td>Where does she work? In a hotel.</td></tr><tr><td>What time</td><td>What time does he start? At eight.</td></tr><tr><td>How often</td><td>How often do you study? Every day.</td></tr><tr><td>Frequency</td><td>She always / usually / sometimes / never drinks tea.</td></tr><tr><td>Quarter past</td><td>6:15 — quarter past six</td></tr><tr><td>Half past</td><td>7:30 — half past seven</td></tr><tr><td>Quarter to</td><td>8:45 — quarter to nine</td></tr><tr><td>O’clock</td><td>12:00 — twelve o’clock</td></tr></table></div></div><div class="ex-card grammar"><div class="bank-title">Too · also · either</div><div class="table-wrap"><table class="grammar-table"><tr><th>Word</th><th>Example</th></tr><tr><td>too</td><td>I study English, too.</td></tr><tr><td>also</td><td>I also study English. / He is also Brazilian.</td></tr><tr><td>either</td><td>I don’t drink coffee, either.</td></tr></table></div><div class="tip-box">Too: end of affirmative sentence. Also: before the main verb or after be. Either: end of negative sentence.</div></div></div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+//  STORAGE + STUDENT NAME
+// ══════════════════════════════════════════════
+const FILE_KEY = 'teachermari_beginner_reviewuptounit8a_v1';
+const WHATSAPP = '5524992723816';
+const $ = id => document.getElementById(id);
+function store(k, v) { try { localStorage.setItem(FILE_KEY + '_' + k, JSON.stringify(v)); } catch (e) {} }
+function load(k, d) { try { const v = localStorage.getItem(FILE_KEY + '_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function writingSentences(text){return (String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[]).map(x=>x.trim()).filter(x=>/[A-Za-z]/.test(x)).length;}
+function validWriting(text){return writingSentences(text)>=8 && (text.trim().match(/\S+/g)||[]).length>=20;}
+function writingCount(text){const w=(text.trim().match(/\S+/g)||[]).length;const n=writingSentences(text);return w+' words · '+n+' sentences';}
+function gapSize(item){const longest=Math.max(...item.ans.map(a=>a.length));return Math.max(8,Math.min(longest+3,longest>25?36:24));}
+function norm(s) {
+  return String(s || '').replace(/[\u2018\u2019\u00B4`]/g, "'").toLowerCase().replace(/\s+/g, ' ').trim().replace(/[.?!,]+$/, '').trim();
+}
+
+let studentName = load('student', '');
+function startSession(name) {
+  studentName = name.trim();
+  store('student', studentName);
+  $('welcome-screen').classList.add('hidden');
+  const banner = $('hello-banner');
+  banner.textContent = `Hello, ${studentName}! 👋 Let's study and improve!`;
+  banner.classList.add('show');
+}
+if (studentName) startSession(studentName);
+$('welcome-start-btn').addEventListener('click', () => {
+  const inp = $('student-name-input');
+  if (!inp.value.trim()) { inp.focus(); inp.style.borderColor = 'var(--red)'; return; }
+  startSession(inp.value);
+});
+$('student-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('welcome-start-btn').click(); });
+$('student-name-input').addEventListener('input', e => { e.target.style.borderColor = ''; });
+
+// ══════════════════════════════════════════════
+//  MOTIVATION + TABS
+// ══════════════════════════════════════════════
+const MOTIVATIONS = [
+  "You are doing great! Keep going!",
+  "Every day you learn something new!",
+  "Small steps, big results!",
+  "Mistakes help you learn. Read the explanation and try again!",
+  "You can do it! Teacher Mari believes in you!",
+  "Practise a little every day and you will improve!",
+  "Great job! Keep up the good work!"
+];
+$('motivation-text').textContent = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ══════════════════════════════════════════════
+//  PROGRESS, SCORES, DAY COMPLETION
+// ══════════════════════════════════════════════
+const DAY_EXERCISES = {
+  day1: ['d1e1','d1e2','d1e3'],
+  day2: ['d2e1','d2e2','d2e3'],
+  day3: ['d3e1','d3e2','d3e3'],
+  day4: ['d4e1','d4e2','d4e3'],
+  day5: ['d5e1','d5e2','d5e3'],
+  day6: ['d6e1','d6e2','d6e3'],
+  day7: ['d7e1','d7e2','d7w'],
+};
+const ALL_EX = Object.values(DAY_EXERCISES).flat();
+const TOTAL_DAYS = Object.keys(DAY_EXERCISES).length;
+const completedExercises = new Set(load('done', []));
+const completedDays = new Set(load('days', []));
+const scores = load('scores', {});
+const gameAnswers=load('gameAnswers',{});
+const drafts=load('drafts',{});
+
+function updateProgress() {
+  const pct = Math.round(([...completedExercises].filter(e => ALL_EX.includes(e)).length / ALL_EX.length) * 100);
+  $('progress-fill').style.width = pct + '%';
+  $('progress-pct').textContent = pct + '%';
+}
+function paintDone() {
+  completedExercises.forEach(ex => { const c = $('card-' + ex); if (c) c.classList.add('done'); });
+  completedDays.forEach(day => { const t = document.querySelector(`.tab-btn[data-tab="${day}"]`); if (t) t.classList.add('done'); });
+  if (completedDays.size === TOTAL_DAYS) showSummary();
+}
+function totals() {
+  let c = 0, t = 0;
+  Object.values(scores).forEach(s => { c += s[0]; t += s[1]; });
+  return { c, t };
+}
+function showSummary() {
+  const { c, t } = totals();
+  $('weekly-summary').style.display = 'block';
+  $('final-score').textContent = `${c}/${t}`;
+}
+function markDone(exId) {
+  if (!completedExercises.has(exId)) {
+    completedExercises.add(exId);
+    store('done', [...completedExercises]);
+  }
+  const card = $('card-' + exId); if (card) card.classList.add('done');
+  updateProgress();
+  for (const [day, list] of Object.entries(DAY_EXERCISES)) {
+    if (!list.includes(exId) || completedDays.has(day)) continue;
+    if (list.every(e => completedExercises.has(e))) {
+      completedDays.add(day);
+      store('days', [...completedDays]);
+      const t = document.querySelector(`.tab-btn[data-tab="${day}"]`); if (t) t.classList.add('done');
+      if (completedDays.size === TOTAL_DAYS) { setTimeout(celebrateWeek, 400); showSummary(); }
+      else setTimeout(celebrateDay, 400);
+    }
+  }
+  if (completedDays.size === TOTAL_DAYS) showSummary();
+}
+function showFeedback(id, msg, type) { const el = $(id); el.textContent = msg; el.className = 'feedback show ' + type; }
+function clearFeedback(id) { $(id).className = 'feedback'; $(id).textContent = ''; }
+function scoreText(correct, total) {
+  if (correct === total) return { msg: `✅ Excellent! You got all ${total} correct! 🎉`, type: 'ok' };
+  if (correct >= total * 0.7) return { msg: `🌟 Well done! ${correct}/${total} correct. Read the corrections and try again!`, type: 'partial' };
+  return { msg: `💪 ${correct}/${total} correct. Read the explanations and try again. You can do it!`, type: 'err' };
+}
+function finish(exId, fbId, correct, total) {
+  const r = scoreText(correct, total);
+  showFeedback(fbId, r.msg, r.type);
+  scores[exId] = [Math.max(correct,(scores[exId]||[0])[0]), total];
+  store('scores', scores);
+  if (correct === total) markDone(exId);
+}
+
+// ══════════════════════════════════════════════
+//  SHARED RENDER HELPERS
+// ══════════════════════════════════════════════
+function dlg(...lines) {
+  return '<div class="dlg">' + lines.map(l => {
+    const i = l.indexOf(': ');
+    return `<div class="dline"><span class="speaker">${l.slice(0, i)}:</span><span class="say">${l.slice(i + 2)}</span></div>`;
+  }).join('') + '</div>';
+}
+function row(num, body) { return `<div class="q-row"><span class="q-num">${num}.</span><div class="q-body">${body}</div></div>`; }
+function blanks(s) { return s.replace(/___/g, '<span class="blank">______</span>'); }
+function whyHTML(yours, correct, why) {
+  const y = yours === null ? '<span class="bad">no answer</span>' : `<span class="bad">${yours}</span>`;
+  return `<div class="row">✗ Your answer: ${y} · ✔ Correct: <span class="good">${correct}</span><span class="why">💡 ${why}</span></div>`;
+}
+function setWhy(slot, html) { slot.innerHTML = html; slot.classList.toggle('show', !!html); }
+function shuffleArr(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ══════════════════════════════════════════════
+//  buildMC  (a/b/c options; optional shuffled display order)
+// ══════════════════════════════════════════════
+function buildMC(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const order = item.opts.map((_, j) => j);
+    if (cfg.shuffle) shuffleArr(order);
+    const div = document.createElement('div'); div.className = 'item mc-item';
+    div.innerHTML = row(i + 1, blanks(item.q)) +
+      '<div class="mc-options">' + order.map((j, pos) =>
+        `<label class="mc-option" data-q="${cfg.id}_${i}" data-opt="${j}"><input type="radio" name="${cfg.id}_${i}" value="${j}"> ${String.fromCharCode(97 + pos)}) ${item.opts[j]}</label>`
+      ).join('') + '</div><div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('change', e => {
+    if (!e.target.matches('input[type=radio]')) return;
+    const box = e.target.closest('.mc-options');
+    box.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    e.target.closest('.mc-option').classList.add('selected');
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const opts = wrap.querySelectorAll(`[data-q="${cfg.id}_${i}"]`);
+      const slot = opts[0].closest('.mc-item').querySelector('.why-slot');
+      opts.forEach(o => o.classList.remove('correct', 'wrong'));
+      const sel = wrap.querySelector(`input[name="${cfg.id}_${i}"]:checked`);
+      const v = sel ? parseInt(sel.value, 10) : null;
+      const rightEl = wrap.querySelector(`[data-q="${cfg.id}_${i}"][data-opt="${item.ans}"]`);
+      rightEl.classList.add('correct');
+      if (v === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (v !== null) wrap.querySelector(`[data-q="${cfg.id}_${i}"][data-opt="${v}"]`).classList.add('wrong');
+        setWhy(slot, whyHTML(v === null ? null : item.opts[v], item.opts[item.ans], item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    wrap.querySelectorAll('.mc-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('input[type=radio]').forEach(r => { r.checked = false; });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildFill  (one-word inputs; ans = list of accepted answers, ans[0] = key)
+// ══════════════════════════════════════════════
+function buildFill(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item fill-item';
+    const input = `<input aria-label="Answer ${i+1}" style="width:${gapSize(item)}ch;max-width:100%;min-width:0" class="fill-input" id="${cfg.id}_${i}" placeholder="..." autocomplete="off" autocapitalize="off" spellcheck="false">`;
+    div.innerHTML = row(i + 1, item.line.replace('___', input)) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const inp = $(`${cfg.id}_${i}`);
+      const slot = inp.closest('.fill-item').querySelector('.why-slot');
+      inp.classList.remove('correct', 'wrong');
+      const val = norm(inp.value);
+      if (item.ans.map(norm).includes(val)) { inp.classList.add('correct'); correct++; setWhy(slot, ''); }
+      else {
+        inp.classList.add('wrong');
+        setWhy(slot, whyHTML(val ? esc(inp.value.trim()) : null, item.ans[0], item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    cfg.data.forEach((_, i) => { const inp = $(`${cfg.id}_${i}`); inp.value = ''; inp.className = 'fill-input'; });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildTF  (True / False buttons)
+// ══════════════════════════════════════════════
+function buildTF(cfg) {
+  const wrap = $(cfg.id);
+  const sel = {};
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item tf-item';
+    div.innerHTML = row(i + 1, `${item.s} <span class="tf-btns"><button class="tf-btn" data-i="${i}" data-val="T">True</button><button class="tf-btn" data-i="${i}" data-val="F">False</button></span>`) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('.tf-btn'); if (!b) return;
+    const i = b.dataset.i;
+    sel[i] = b.dataset.val;
+    wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`).forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    b.classList.add('selected');
+  });
+  const label = v => v === 'T' ? 'True' : 'False';
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const btns = wrap.querySelectorAll(`.tf-btn[data-i="${i}"]`);
+      const slot = btns[0].closest('.tf-item').querySelector('.why-slot');
+      btns.forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+      wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${item.ans}"]`).classList.add('correct');
+      if (sel[i] === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (sel[i]) wrap.querySelector(`.tf-btn[data-i="${i}"][data-val="${sel[i]}"]`).classList.add('wrong');
+        setWhy(slot, whyHTML(sel[i] ? label(sel[i]) : null, label(item.ans), item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(sel).forEach(k => delete sel[k]);
+    wrap.querySelectorAll('.tf-btn').forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildInlineChoice  (click one of the words in {a|b} inside the sentence)
+// ══════════════════════════════════════════════
+function buildInlineChoice(cfg) {
+  const wrap = $(cfg.id);
+  const sel = {};
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item ic-item';
+    const html = item.line.replace(/\{([^}]+)\}/, (m, g) =>
+      g.split('|').map((w, j) => `<button class="ic-opt" data-i="${i}" data-j="${j}">${w}</button>`).join('<span class="ic-sep">/</span>'));
+    div.innerHTML = row(i + 1, html) + '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const b = e.target.closest('.ic-opt'); if (!b) return;
+    const i = b.dataset.i;
+    sel[i] = parseInt(b.dataset.j, 10);
+    wrap.querySelectorAll(`.ic-opt[data-i="${i}"]`).forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    b.classList.add('selected');
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const btns = wrap.querySelectorAll(`.ic-opt[data-i="${i}"]`);
+      const slot = btns[0].closest('.ic-item').querySelector('.why-slot');
+      btns.forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+      btns[item.ans].classList.add('correct');
+      if (sel[i] === item.ans) { correct++; setWhy(slot, ''); }
+      else {
+        if (sel[i] !== undefined) btns[sel[i]].classList.add('wrong');
+        setWhy(slot, whyHTML(sel[i] !== undefined ? btns[sel[i]].textContent : null, btns[item.ans].textContent, item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(sel).forEach(k => delete sel[k]);
+    wrap.querySelectorAll('.ic-opt').forEach(x => x.classList.remove('selected', 'correct', 'wrong'));
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildSentenceBuilder  (tap words in order; words keep the order given in the task)
+// ══════════════════════════════════════════════
+function buildSentenceBuilder(cfg) {
+  const wrap = $(cfg.id);
+  cfg.data.forEach((item, i) => {
+    const div = document.createElement('div'); div.className = 'item sb-item';
+    div.innerHTML = row(i + 1,
+      `<div class="sb-words" id="${cfg.id}-words-${i}">` +
+        item.words.map((w, k) => `<button class="sb-chip" data-item="${i}" data-tok="${k}" data-word="${esc(w)}">${w}</button>`).join('') +
+      `</div><div class="sb-label">Your sentence:</div><div class="sb-zone" id="${cfg.id}-zone-${i}"></div>`) +
+      '<div class="why-slot"></div>';
+    wrap.appendChild(div);
+  });
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.sb-chip'); if (!chip) return;
+    const i = chip.dataset.item;
+    const words = $(`${cfg.id}-words-${i}`), zone = $(`${cfg.id}-zone-${i}`);
+    zone.classList.remove('correct-zone', 'wrong-zone');
+    if (chip.parentElement === words) { chip.classList.add('in-zone'); zone.appendChild(chip); }
+    else {
+      chip.classList.remove('in-zone');
+      const next = [...words.children].find(c => parseInt(c.dataset.tok, 10) > parseInt(chip.dataset.tok, 10));
+      words.insertBefore(chip, next || null);
+    }
+  });
+  const tokens = s => s.map(w => w.toLowerCase()).join(' ');
+  $(cfg.id + '-check').addEventListener('click', () => {
+    let correct = 0;
+    cfg.data.forEach((item, i) => {
+      const zone = $(`${cfg.id}-zone-${i}`);
+      const slot = zone.closest('.sb-item').querySelector('.why-slot');
+      const built = [...zone.querySelectorAll('.sb-chip')].map(c => c.dataset.word);
+      zone.classList.remove('correct-zone', 'wrong-zone');
+      const ok = item.accept.some(a => tokens(a) === tokens(built));
+      if (ok) { zone.classList.add('correct-zone'); correct++; setWhy(slot, ''); }
+      else {
+        zone.classList.add('wrong-zone');
+        setWhy(slot, whyHTML(built.length ? esc(built.join(' ')) : null, item.display, item.why));
+      }
+    });
+    finish(cfg.id, cfg.id + '-fb', correct, cfg.data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    cfg.data.forEach((_, i) => {
+      const words = $(`${cfg.id}-words-${i}`), zone = $(`${cfg.id}-zone-${i}`);
+      zone.classList.remove('correct-zone', 'wrong-zone');
+      const all = [...words.children, ...zone.children].sort((a, b) => a.dataset.tok - b.dataset.tok);
+      all.forEach(c => { c.classList.remove('in-zone'); words.appendChild(c); });
+    });
+    wrap.querySelectorAll('.why-slot').forEach(s => setWhy(s, ''));
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  buildClickMatch  (two clickable columns; lefts with the same text are interchangeable)
+// ══════════════════════════════════════════════
+function buildClickMatch(cfg) {
+  const wrap = $(cfg.id);
+  const data = cfg.data;
+  const tip = document.createElement('div'); tip.className = 'cm-tip';
+  tip.textContent = 'Tip: click a matched item again to undo the pair.';
+  const cmWrap = document.createElement('div'); cmWrap.className = 'cm-wrap';
+  const leftCol = document.createElement('div'); leftCol.className = 'cm-col';
+  const rightCol = document.createElement('div'); rightCol.className = 'cm-col';
+  data.forEach((item, i) => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'L'; d.dataset.idx = i;d.setAttribute('role','button');d.tabIndex=0;d.setAttribute('aria-label',item.left);d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click();}});
+    d.innerHTML = `<span class="cm-txt">${item.left}</span>`; leftCol.appendChild(d);
+  });
+  shuffleArr(data.map((_, i) => i)).forEach(i => {
+    const d = document.createElement('div'); d.className = 'cm-item'; d.dataset.side = 'R'; d.dataset.idx = i;d.setAttribute('role','button');d.tabIndex=0;d.setAttribute('aria-label',data[i].right);d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click();}});
+    d.innerHTML = `<span class="cm-txt">${data[i].right}</span>`; rightCol.appendChild(d);
+  });
+  cmWrap.appendChild(leftCol); cmWrap.appendChild(rightCol);
+  const slot = document.createElement('div'); slot.className = 'why-slot';
+  wrap.appendChild(tip); wrap.appendChild(cmWrap); wrap.appendChild(slot);
+
+  const L2R = {}, R2L = {};
+  let active = null, counter = 0;
+  const elL = i => leftCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  const elR = i => rightCol.querySelector(`.cm-item[data-idx="${i}"]`);
+  function clearMarks() { cmWrap.querySelectorAll('.cm-item').forEach(x => x.classList.remove('correct-link', 'wrong-link')); setWhy(slot, ''); }
+  function unlinkLeft(li) {
+    const ri = L2R[li]; if (ri === undefined) return;
+    [elL(li), elR(ri)].forEach(x => { x.classList.remove('linked'); x.querySelectorAll('.cm-pair-num').forEach(b => b.remove()); });
+    delete L2R[li]; delete R2L[ri];
+  }
+  function link(li, ri) {
+    counter++;
+    L2R[li] = ri; R2L[ri] = li;
+    [elL(li), elR(ri)].forEach(x => {
+      x.classList.add('linked'); x.classList.remove('active');
+      const b = document.createElement('span'); b.className = 'cm-pair-num'; b.textContent = counter; x.appendChild(b);
+    });
+  }
+  cmWrap.addEventListener('click', e => {
+    const it = e.target.closest('.cm-item'); if (!it) return;
+    clearMarks();
+    const idx = parseInt(it.dataset.idx, 10);
+    if (it.dataset.side === 'L') {
+      if (L2R[idx] !== undefined) { unlinkLeft(idx); return; }
+      leftCol.querySelectorAll('.cm-item').forEach(x => x.classList.remove('active'));
+      if (active === idx) { active = null; return; }
+      it.classList.add('active'); active = idx;
+    } else {
+      if (R2L[idx] !== undefined) { unlinkLeft(R2L[idx]); return; }
+      if (active === null) return;
+      link(active, idx); active = null;
+    }
+  });
+  $(cfg.id + '-check').addEventListener('click', () => {
+    clearMarks();
+    let correct = 0; const rows = [];
+    data.forEach((item, i) => {
+      const ri = L2R[i];
+      const ok = ri !== undefined && data[ri].left === item.left;
+      if (ok) { correct++; elL(i).classList.add('correct-link'); elR(ri).classList.add('correct-link'); }
+      else {
+        elL(i).classList.add('wrong-link');
+        if (ri !== undefined) elR(ri).classList.add('wrong-link');
+        rows.push(whyHTML(ri !== undefined ? `${item.left} → ${data[ri].right}` : null, `${item.left} → ${item.right}`, item.why));
+      }
+    });
+    setWhy(slot, rows.join(''));
+    finish(cfg.id, cfg.id + '-fb', correct, data.length);
+  });
+  $(cfg.id + '-reset').addEventListener('click', () => {
+    Object.keys(L2R).forEach(li => unlinkLeft(parseInt(li, 10)));
+    cmWrap.querySelectorAll('.cm-item').forEach(x => x.classList.remove('active'));
+    active = null; counter = 0; clearMarks();
+    clearFeedback(cfg.id + '-fb');
+  });
+}
+
+
+// NEW TEMPLATE: capture the exact original exercise configs for Gamified Mode.
+const GAME_CFG = {};
+[
+ ['mc','buildMC'],['fill','buildFill'],['tf','buildTF'],
+ ['inline','buildInlineChoice'],['order','buildSentenceBuilder'],['match','buildClickMatch']
+].forEach(([type,name])=>{
+  const original = window[name];
+  window[name] = function(cfg){ GAME_CFG[cfg.id]={type,cfg}; return original(cfg); };
+});
+
+const EXERCISE_DATA = [{"id": "d1e1", "title": "Meet the Family", "inst": "Leia o texto. Escreva Clara, Daniel, Sofia, Lucas, Teresa ou Paulo.", "type": "fill", "data": [{"line": "Who is Clara’s husband? ___", "ans": ["Daniel"], "why": "Clara says: “My husband is Daniel.”"}, {"line": "Who is Lucas’s sister? ___", "ans": ["Sofia"], "why": "Sofia and Lucas are Clara’s children."}, {"line": "Who is Sofia’s brother? ___", "ans": ["Lucas"], "why": "Lucas is Clara’s son and Sofia’s brother."}, {"line": "Who is Clara’s mother? ___", "ans": ["Teresa"], "why": "Clara says: “My mother is Teresa.”"}, {"line": "Who is Sofia’s grandfather? ___", "ans": ["Paulo"], "why": "Paulo is Clara’s father and Sofia’s grandfather."}, {"line": "Who works in a bank? ___", "ans": ["Daniel"], "why": "The text says Daniel works in a bank."}], "ctx": "My name is Clara. My husband is Daniel. We have two children: Sofia and Lucas. Sofia is our daughter, and Lucas is our son. My mother is Teresa, and my father is Paulo. They live near our house. Daniel works in a bank. Sofia studies English, and Lucas plays football.", "intro": ""}, {"id": "d1e2", "title": "Whose Things?", "inst": "Complete com my, your, his, her, its, our ou their.", "type": "fill", "data": [{"line": "Julia has a blue bag. ___ bag is blue.", "ans": ["her"], "why": "Julia → she → her bag."}, {"line": "André has a new phone. ___ phone is new.", "ans": ["his"], "why": "André → he → his phone."}, {"line": "My sister and I have an English class today. ___ class is at six.", "ans": ["our"], "why": "My sister and I → we → our class."}, {"line": "“I have a black wallet. This is ___ wallet.”", "ans": ["my"], "why": "I → my wallet."}, {"line": "“You have a red umbrella. Is this ___ umbrella?”", "ans": ["your"], "why": "You → your umbrella."}, {"line": "Pedro and Laura have two children. ___ children study English.", "ans": ["their"], "why": "Pedro and Laura → they → their children."}, {"line": "The hotel has a small gym. ___ gym is open in the morning.", "ans": ["its"], "why": "The hotel → it → its gym. No apostrophe in its."}], "ctx": "", "intro": ""}, {"id": "d1e3", "title": "Who Is Speaking?", "inst": "Leia os perfis. Escreva Nina, Bruno ou Nina and Bruno.", "type": "fill", "data": [{"line": "“My brother’s name is Marco.” ___", "ans": ["Bruno"], "why": "Marco is Bruno’s brother."}, {"line": "“Our teacher’s name is Emma.” ___", "ans": ["Nina and Bruno"], "why": "Emma teaches both Nina and Bruno."}, {"line": "“My favourite colour is green.” ___", "ans": ["Nina"], "why": "Nina’s favourite colour is green."}, {"line": "“My phone is old.” ___", "ans": ["Bruno"], "why": "Bruno has an old phone."}, {"line": "“Our English classes are on Friday.” ___", "ans": ["Nina and Bruno"], "why": "Both have English classes on Friday."}, {"line": "“My sister’s name is Alice.” ___", "ans": ["Nina"], "why": "Alice is Nina’s sister."}], "ctx": "<div class=\"table-wrap\"><table class=\"grammar-table\"><tr><th>Person</th><th>Information</th></tr><tr><td>Nina</td><td>Brazilian; sister: Alice; favourite colour: green; phone: new</td></tr><tr><td>Bruno</td><td>Italian; brother: Marco; favourite colour: blue; phone: old</td></tr><tr><td>Nina and Bruno</td><td>English classes on Friday; teacher: Emma</td></tr></table></div>", "intro": ""}, {"id": "d2e1", "title": "A Working Day", "inst": "Complete com os verbos entre parênteses no Present Simple.", "type": "fill", "data": [{"line": "Laura ___ up at six every morning. (get)", "ans": ["gets"], "why": "Laura = she. Add -s: gets."}, {"line": "She ___ breakfast at half past six. (have)", "ans": ["has"], "why": "With she, have becomes has."}, {"line": "She ___ to work at seven. (go)", "ans": ["goes"], "why": "With she, go becomes goes."}, {"line": "Ben ___ English in the morning. (study)", "ans": ["studies"], "why": "With he, study becomes studies."}, {"line": "Laura and Ben ___ lunch at home. (not / have)", "ans": ["don’t have", "do not have"], "why": "They: don’t + base verb."}, {"line": "Ben ___ TV in the afternoon. (not / watch)", "ans": ["doesn’t watch", "does not watch"], "why": "He: doesn’t + watch, without -es."}, {"line": "Laura ___ work at five. (finish)", "ans": ["finishes"], "why": "Finish → finishes with she."}, {"line": "They ___ dinner at seven. (make)", "ans": ["make"], "why": "With they, use the base verb: make."}], "ctx": "Laura works in a hotel. Her brother, Ben, studies English.", "intro": ""}, {"id": "d2e2", "title": "Read the Clock", "inst": "Associe cada horário à expressão correspondente. Toque em um horário e depois em sua expressão.", "type": "match", "ctx": "", "data": [{"left": "6:15", "right": "Quarter past six in the morning.", "why": "This expression gives the same time."}, {"left": "7:30", "right": "Half past seven in the morning.", "why": "This expression gives the same time."}, {"left": "8:45", "right": "Quarter to nine in the morning.", "why": "This expression gives the same time."}, {"left": "12:00", "right": "Twelve o’clock.", "why": "This expression gives the same time."}, {"left": "17:15", "right": "Quarter past five in the afternoon.", "why": "This expression gives the same time."}, {"left": "21:30", "right": "Half past nine in the evening.", "why": "This expression gives the same time."}]}, {"id": "d2e3", "title": "How Often?", "inst": "Leia a rotina de Marcos. Marque True ou False.", "type": "tf", "ctx": "Marcos works from Monday to Friday. On workdays, he always has breakfast at home. He usually goes to work at eight, but on Fridays he goes at nine. He sometimes goes to the gym after work. He never drinks coffee in the evening. On Saturdays, he visits his parents. On Sundays, he stays at home and watches a film.", "data": [{"s": "Marcos works on Sundays.", "ans": "F", "why": "He works from Monday to Friday."}, {"s": "On workdays, Marcos always has breakfast at home.", "ans": "T", "why": "The text says he always has breakfast at home on workdays."}, {"s": "Marcos goes to work at eight on Fridays.", "ans": "F", "why": "On Fridays, he goes at nine."}, {"s": "Marcos sometimes goes to the gym after work.", "ans": "T", "why": "The text uses sometimes for the gym."}, {"s": "Marcos drinks coffee every evening.", "ans": "F", "why": "He never drinks coffee in the evening."}, {"s": "Marcos visits his parents on Saturdays.", "ans": "T", "why": "He visits his parents on Saturdays."}, {"s": "Marcos watches a film on Sundays.", "ans": "T", "why": "On Sundays, he stays at home and watches a film."}]}, {"id": "d3e1", "title": "Find the Question", "inst": "Escolha a pergunta que corresponde à resposta.", "type": "mc", "data": [{"q": "“She works in a hotel.”", "opts": ["Where does she work?", "What time does she work?", "Where is her phone?"], "ans": 0, "why": "In a hotel is a place: Where does she work?"}, {"q": "“At quarter past seven.”", "opts": ["Who has breakfast with him?", "What time does he have breakfast?", "What does he have for breakfast?"], "ans": 1, "why": "The answer gives a time: What time...?"}, {"q": "“Every day.”", "opts": ["Where do they study English?", "Who is their English teacher?", "How often do they study English?"], "ans": 2, "why": "Every day gives frequency: How often...?"}, {"q": "“No, he doesn’t.”", "opts": ["Does he drink coffee?", "Is he tired?", "Can he cook?"], "ans": 0, "why": "Does questions use does/doesn’t in short answers."}, {"q": "“She is my sister.”", "opts": ["Where is she?", "Who is she?", "How is she?"], "ans": 1, "why": "Who asks about a person’s identity."}, {"q": "“They watch comedies.”", "opts": ["When do they watch films?", "Where do they watch films?", "What films do they watch?"], "ans": 2, "why": "Comedies answers a question about film types."}], "ctx": ""}, {"id": "d3e2", "title": "Build the Interview", "inst": "Ordene todas as palavras para formar a pergunta. Toque nas palavras; toque novamente para devolvê-las.", "type": "order", "ctx": "", "data": [{"words": ["you", "do", "where", "live", "?"], "accept": [["where", "do", "you", "live", "?"]], "display": "where do you live?", "anchor": "Answer: In a flat near the gym.", "why": "Where + do + you + base verb."}, {"words": ["your", "does", "sister", "what time", "finish", "work", "?"], "accept": [["what time", "does", "your", "sister", "finish", "work", "?"]], "display": "what time does your sister finish work?", "anchor": "Answer: At half past five.", "why": "What time + does + subject + base verb."}, {"words": ["they", "are", "tired", "?"], "accept": [["are", "they", "tired", "?"]], "display": "are they tired?", "anchor": "Answer: Yes, they are.", "why": "With be, put are before the subject."}, {"words": ["he", "does", "what", "for breakfast", "have", "?"], "accept": [["what", "does", "he", "have", "for breakfast", "?"]], "display": "what does he have for breakfast?", "anchor": "Answer: Eggs and toast.", "why": "What + does + he + have."}, {"words": ["your", "can", "brother", "cook", "?"], "accept": [["can", "your", "brother", "cook", "?"]], "display": "can your brother cook?", "anchor": "Answer: Yes, he can.", "why": "Can + subject + base verb."}, {"words": ["you", "do", "how often", "your parents", "visit", "?"], "accept": [["how often", "do", "you", "visit", "your parents", "?"]], "display": "how often do you visit your parents?", "anchor": "Answer: Every Sunday.", "why": "How often + do + subject + base verb."}]}, {"id": "d3e3", "title": "Complete the Replies", "inst": "Complete as respostas curtas.", "type": "fill", "data": [{"line": "A: Is your sister at home?<br>B: Yes, ___.", "ans": ["she is"], "why": "Your sister = she. Is → Yes, she is."}, {"line": "A: Do you and Leo study English?<br>B: Yes, ___.", "ans": ["we do"], "why": "You and Leo reply as we. Do → Yes, we do."}, {"line": "A: Does Nina work on Sundays?<br>B: No, ___.", "ans": ["she doesn’t", "she does not"], "why": "Nina = she. Does → No, she doesn’t."}, {"line": "A: Can your parents swim?<br>B: Yes, ___.", "ans": ["they can"], "why": "Your parents = they. Can → Yes, they can."}, {"line": "A: Are the children tired?<br>B: No, ___.", "ans": ["they aren’t", "they are not", "they’re not"], "why": "The children = they. Are → No, they aren’t."}, {"line": "A: Does your brother have a car?<br>B: Yes, ___.", "ans": ["he does"], "why": "Your brother = he. Does → Yes, he does."}, {"line": "A: Can you play the guitar?<br>B: No, ___.", "ans": ["I can’t", "I cannot"], "why": "You reply as I. Can → No, I can’t."}, {"line": "A: Do Laura and Ben drink tea?<br>B: No, ___.", "ans": ["they don’t", "they do not"], "why": "Laura and Ben = they. Do → No, they don’t."}], "ctx": "", "intro": ""}, {"id": "d4e1", "title": "Who Can Help?", "inst": "Leia os perfis. Escreva Eva, Tom ou Lia.", "type": "fill", "data": [{"line": "“We need a person to make dinner.” ___", "ans": ["Eva"], "why": "Eva can cook."}, {"line": "“We need a person to drive us to the hotel.” ___", "ans": ["Tom"], "why": "Tom can drive."}, {"line": "“We need a person to sing a song.” ___", "ans": ["Lia"], "why": "Lia can sing."}, {"line": "“We need a person to speak English to the hotel receptionist.” ___", "ans": ["Eva"], "why": "Eva can speak English."}, {"line": "“We need a person to play the guitar.” ___", "ans": ["Tom"], "why": "Tom can play the guitar."}, {"line": "“We need a person to swim with the children.” ___", "ans": ["Lia"], "why": "Lia can swim."}], "ctx": "<div class=\"table-wrap\"><table class=\"grammar-table\"><tr><th>Person</th><th>Abilities</th></tr><tr><td>Eva</td><td>Can cook and speak English. Can’t drive or play the guitar.</td></tr><tr><td>Tom</td><td>Can drive and play the guitar. Can’t cook or sing.</td></tr><tr><td>Lia</td><td>Can sing and swim. Can’t drive or speak English.</td></tr></table></div>", "intro": ""}, {"id": "d4e2", "title": "We Have Something in Common", "inst": "Complete com too, also ou either. Observe a posição e o significado.", "type": "fill", "data": [{"line": "A: I study English.<br>B: I study English, ___.", "ans": ["too"], "why": "Too goes at the end of an affirmative sentence."}, {"line": "A: My brother doesn’t drink coffee.<br>B: My sister doesn’t drink coffee, ___.", "ans": ["either"], "why": "Either goes at the end of a negative sentence."}, {"line": "A: I work in a hotel.<br>B: I ___ work in a hotel.", "ans": ["also"], "why": "Also goes before the main verb work."}, {"line": "A: Nina is Brazilian.<br>B: Leo is ___ Brazilian.", "ans": ["also"], "why": "Also goes after be: is also."}, {"line": "A: I can’t play the guitar.<br>B: I can’t play the guitar, ___.", "ans": ["either"], "why": "Both sentences are negative: either."}, {"line": "A: My parents watch films on Sundays.<br>B: My parents watch films on Sundays, ___.", "ans": ["too"], "why": "Affirmative sentence, end position: too."}, {"line": "A: Laura goes to the gym after work.<br>B: Ben ___ goes to the gym after work.", "ans": ["also"], "why": "Also goes before goes."}, {"line": "A: I’m not tired.<br>B: I’m not tired, ___.", "ans": ["either"], "why": "Negative sentence, end position: either."}], "ctx": "", "intro": ""}, {"id": "d4e3", "title": "Find a Roommate", "inst": "Leia os perfis. Escreva Alex ou Jo.", "type": "fill", "data": [{"line": "A roommate who has a pet: ___", "ans": ["Jo"], "why": "Jo has a cat."}, {"line": "A roommate who can make dinner: ___", "ans": ["Alex"], "why": "Alex can cook."}, {"line": "A roommate who works in the afternoon: ___", "ans": ["Jo"], "why": "Jo works in the afternoon."}, {"line": "A roommate who goes to bed at ten: ___", "ans": ["Alex"], "why": "Alex goes to bed at ten."}, {"line": "A roommate who watches TV in the evening: ___", "ans": ["Jo"], "why": "Jo watches TV in the evening."}, {"line": "A roommate who listens to music at home: ___", "ans": ["Alex"], "why": "Alex listens to music in the afternoon."}], "ctx": "<strong>Alex</strong><br>I work in the morning. I go to bed at ten. I don’t have pets. I can cook. I listen to music in the afternoon. I don’t watch TV in the evening.<br><br><strong>Jo</strong><br>I work in the afternoon. I go to bed at midnight. I have a cat. I can’t cook. I watch TV in the evening. I don’t listen to music at home.", "intro": ""}, {"id": "d5e1", "title": "Choose a Film", "inst": "Associe cada descrição a um tipo de filme. Use cada opção uma vez.", "type": "fill", "data": [{"line": "A film about life on another planet in the year 2300. ___", "ans": ["science fiction film"], "why": "Future life on another planet: science fiction."}, {"line": "A funny film about two friends on holiday. ___", "ans": ["comedy"], "why": "A funny film is a comedy."}, {"line": "A film with information about real animals and their lives. ___", "ans": ["documentary"], "why": "A documentary presents real information."}, {"line": "A scary film about a family in a dark house. ___", "ans": ["horror film"], "why": "A scary film: horror."}, {"line": "A film with car chases, fights and a police officer. ___", "ans": ["action film"], "why": "Chases and fights are typical of action films."}, {"line": "A film with cartoon characters and a talking dog. ___", "ans": ["animation"], "why": "Cartoon characters: animation."}], "ctx": "", "intro": "action film · animation · comedy · documentary · horror film · science fiction film"}, {"id": "d5e2", "title": "Avoid Repetition", "inst": "Reescreva a segunda frase, substituindo somente as palavras em negrito por um object pronoun.", "type": "fill", "data": [{"line": "Elena is my friend. I call <strong>Elena</strong> every day.<br>___", "ans": ["I call her every day."], "why": "Elena → her after call."}, {"line": "Leo is my brother. I help <strong>Leo</strong> with English.<br>___", "ans": ["I help him with English."], "why": "Leo → him after help."}, {"line": "These films are funny. We watch <strong>these films</strong> on Sundays.<br>___", "ans": ["We watch them on Sundays."], "why": "Plural films → them."}, {"line": "This phone is new. I use <strong>this phone</strong> at work.<br>___", "ans": ["I use it at work."], "why": "Singular phone → it."}, {"line": "My sister and I study English. Our teacher helps <strong>my sister and me</strong>.<br>___", "ans": ["Our teacher helps us."], "why": "My sister and me → us."}, {"line": "I don’t understand this exercise. Can you help <strong>the person speaking</strong>?<br>___", "ans": ["Can you help me?"], "why": "The speaker refers to themselves as me after help."}, {"line": "You work near my house. I see <strong>the person I’m speaking to</strong> every morning.<br>___", "ans": ["I see you every morning."], "why": "The listener is you, also in object position."}], "ctx": "", "intro": ""}, {"id": "d5e3", "title": "Complete the Movie Conversation", "inst": "Complete com he, his, him, she, her, it ou them. Algumas opções aparecem mais de uma vez.", "type": "fill", "data": [{"line": "Mia: I like Daniel Reed. ___ is a good actor.", "ans": ["he"], "why": "He is the subject before is."}, {"line": "Ben: Yes! I watch ___ films with my brother.", "ans": ["his"], "why": "Before films, use possessive his."}, {"line": "Mia: Do you like ___?", "ans": ["him"], "why": "Daniel → him after like."}, {"line": "Ben: Yes, I do. I also like Elena Silva. ___ is very good.", "ans": ["she"], "why": "Elena → she before is."}, {"line": "Mia: I like Elena, too. My sister watches ___ films.", "ans": ["her"], "why": "Before films, use possessive her."}, {"line": "Ben: There’s a new comedy with Elena. Do you want to watch ___?", "ans": ["it"], "why": "A comedy → it after watch."}, {"line": "Mia: Yes! My parents love comedies. I often watch films with ___.", "ans": ["them"], "why": "My parents → them after with."}, {"line": "Ben: Great. I like Elena. Let’s watch a film with ___ tonight.", "ans": ["her"], "why": "Elena → her after with."}], "ctx": "Mia and Ben are talking about films and actors.", "intro": ""}, {"id": "d6e1", "title": "Choose the Right Hotel", "inst": "Leia as informações. Escreva Sun Hotel ou Park Hotel.", "type": "fill", "data": [{"line": "Clara likes swimming. Which hotel has a pool? ___", "ans": ["Sun Hotel"], "why": "Only Sun Hotel has a pool."}, {"line": "Ben wants to do exercise in a gym. Which hotel has a gym? ___", "ans": ["Park Hotel"], "why": "Only Park Hotel has a gym."}, {"line": "Nina wants breakfast at the hotel without paying extra. Which hotel has free breakfast? ___", "ans": ["Sun Hotel"], "why": "Sun Hotel offers free breakfast."}, {"line": "Leo wants a room with a balcony. Which hotel has a balcony? ___", "ans": ["Park Hotel"], "why": "Park Hotel has a balcony."}, {"line": "Eva needs a lift. Which hotel has a lift? ___", "ans": ["Sun Hotel"], "why": "Sun Hotel has a lift."}, {"line": "Tom wants a gym and free Wi-Fi. Which hotel has both? ___", "ans": ["Park Hotel"], "why": "Park Hotel has both a gym and free Wi-Fi."}], "ctx": "<div class=\"table-wrap\"><table class=\"grammar-table\"><tr><th>Facility</th><th>Sun Hotel</th><th>Park Hotel</th></tr><tr><td>Pool</td><td>Yes</td><td>No</td></tr><tr><td>Gym</td><td>No</td><td>Yes</td></tr><tr><td>Free breakfast</td><td>Yes</td><td>No</td></tr><tr><td>Free Wi-Fi</td><td>Yes</td><td>Yes</td></tr><tr><td>Balcony</td><td>No</td><td>Yes</td></tr><tr><td>Lift</td><td>Yes</td><td>No</td></tr></table></div>", "intro": ""}, {"id": "d6e2", "title": "Complete the Messages", "inst": "Complete cada mensagem com a opção correta.", "type": "mc", "data": [{"q": "“Hi, Emma. My brother studies English. Can you help ___?”", "opts": ["his", "him", "he"], "ans": 1, "why": "My brother → him after help."}, {"q": "“We’re at the hotel. ___ room is small, but it’s clean.”", "opts": ["Our", "Us", "We"], "ans": 0, "why": "Before room, use possessive our."}, {"q": "“Nina doesn’t have a car. She ___ to work by bus.”", "opts": ["go", "going", "goes"], "ans": 2, "why": "She + goes in the present simple."}, {"q": "“I’m tired. I don’t want to go out. I want to ___ at home.”", "opts": ["stay", "visit", "arrive"], "ans": 0, "why": "Stay at home means remain at home."}, {"q": "“Leo and I can cook. We can make dinner for ___ and your sister.”", "opts": ["your", "you", "yours"], "ans": 1, "why": "Use object pronoun you after for."}, {"q": "“My parents don’t watch horror films. I don’t watch horror films, ___.”", "opts": ["too", "also", "either"], "ans": 2, "why": "Either adds the same negative information."}, {"q": "“Elena has a new phone. ___ phone is blue.”", "opts": ["She", "Her", "Him"], "ans": 1, "why": "Elena → her before phone."}, {"q": "“Ben finishes work at six. ___ he go to the gym after work?”", "opts": ["Does", "Is", "Do"], "ans": 0, "why": "He + present simple question → Does he go...?"}], "ctx": ""}, {"id": "d6e3", "title": "A Plan for Friday", "inst": "Leia a conversa. Escolha a resposta correta.", "type": "mc", "data": [{"q": "What time does Leo finish work?", "opts": ["At 5:30.", "At 7:00.", "At 5:15."], "ans": 0, "why": "Leo says half past five."}, {"q": "What does Sam want to watch?", "opts": ["A horror film.", "A documentary.", "A comedy."], "ans": 2, "why": "Maya says Sam wants to watch a comedy."}, {"q": "Who does Leo want to watch the film with?", "opts": ["His parents.", "Maya and Sam.", "His English teacher."], "ans": 1, "why": "Leo asks to watch it with Maya and Sam."}, {"q": "What does it mean in “Can I watch it”?", "opts": ["The comedy.", "The dinner.", "The English class."], "ans": 0, "why": "It replaces the comedy."}, {"q": "How often does Sam study English?", "opts": ["On Fridays only.", "Every day.", "On Sundays only."], "ans": 1, "why": "Maya says he studies every day."}, {"q": "What does him mean in “We can practise with him”?", "opts": ["Leo.", "Maya.", "Sam."], "ans": 2, "why": "Sam is the person they can practise with."}, {"q": "Who can cook?", "opts": ["Sam.", "Leo.", "Maya."], "ans": 0, "why": "Maya says Sam can cook."}, {"q": "What does us mean in “make dinner for us”?", "opts": ["Maya and her parents.", "Maya, Leo and Sam.", "Leo and his teacher."], "ans": 1, "why": "Us refers to the group: Maya, Leo and Sam."}], "ctx": "<strong>Maya:</strong> Hi, Leo. Are you free on Friday evening?<br><strong>Leo:</strong> Yes. I finish work at half past five.<br><strong>Maya:</strong> Great. My brother, Sam, wants to watch a comedy at home.<br><strong>Leo:</strong> I love comedies. Can I watch it with you and Sam?<br><strong>Maya:</strong> Of course! Come at seven.<br><strong>Leo:</strong> Does Sam speak English?<br><strong>Maya:</strong> Yes, he does. He studies every day.<br><strong>Leo:</strong> Great. I study English, too. We can practise with him.<br><strong>Maya:</strong> Good idea. Sam can cook, so he can make dinner for us."}, {"id": "d7e1", "title": "Review Challenge", "inst": "Escolha a alternativa correta.", "type": "mc", "data": [{"q": "Nina is my sister. ___ works in a hotel.", "opts": ["Her", "She", "Him"], "ans": 1, "why": "She is the subject before works."}, {"q": "Leo has a daughter. ___ daughter studies English.", "opts": ["He", "Him", "His"], "ans": 2, "why": "His shows possession before daughter."}, {"q": "My parents live near me. I visit ___ on Sundays.", "opts": ["Them", "Their", "They"], "ans": 0, "why": "Use them after visit."}, {"q": "Clara ___ coffee in the evening. She drinks tea.", "opts": ["don’t drink", "doesn’t drink", "doesn’t drinks"], "ans": 1, "why": "Clara = she: doesn’t + drink."}, {"q": "A: ___ does Ben have breakfast?<br>B: At quarter past seven.", "opts": ["Where", "Who", "What time"], "ans": 2, "why": "A clock time answers What time...?"}, {"q": "A: Can your sister swim?<br>B: Yes, ___.", "opts": ["she can", "she does", "she is"], "ans": 0, "why": "Can questions use can in short answers."}, {"q": "A: I don’t watch horror films.<br>B: I don’t watch them, ___.", "opts": ["too", "also", "either"], "ans": 2, "why": "Negative similarity: either."}, {"q": "8:45 is:", "opts": ["Quarter past eight.", "Quarter to nine.", "Half past eight."], "ans": 1, "why": "8:45 is fifteen minutes before nine."}, {"q": "A: ___ do you go to the gym?<br>B: Every Monday and Thursday.", "opts": ["How often", "Where", "Who"], "ans": 0, "why": "The answer gives frequency."}, {"q": "My brother and I have the same mother. His mother is also my ___.", "opts": ["daughter", "wife", "mother"], "ans": 2, "why": "The context says we have the same mother."}, {"q": "A: Does Laura work on Saturdays?<br>B: No, ___.", "opts": ["she isn’t", "she doesn’t", "she can’t"], "ans": 1, "why": "Does → doesn’t in a negative short answer."}, {"q": "We want to swim at the hotel. We need a ___.", "opts": ["pool", "lift", "balcony"], "ans": 0, "why": "You swim in a pool."}, {"q": "I love comedies. My sister ___ loves comedies.", "opts": ["either", "too", "also"], "ans": 2, "why": "Also goes before the main verb loves."}, {"q": "Our teacher helps my brother and me. She helps ___.", "opts": ["our", "us", "we"], "ans": 1, "why": "My brother and me → us."}, {"q": "A film with information about real people and events is a ___.", "opts": ["documentary", "comedy", "science fiction film"], "ans": 0, "why": "A documentary gives real information."}], "ctx": ""}, {"id": "d7e2", "title": "Spot the Mistake", "inst": "Em cada grupo, escolha a única frase INCORRETA.", "type": "mc", "data": [{"q": "Which sentence is incorrect?", "opts": ["She works in a hotel.", "Her brother studies English.", "She don’t work on Sundays."], "ans": 2, "why": "Correction: She doesn’t work on Sundays."}, {"q": "Which sentence is incorrect?", "opts": ["I like he.", "I like his films.", "He is a good actor."], "ans": 0, "why": "Correction: I like him. Use an object pronoun after like."}, {"q": "Which sentence is incorrect?", "opts": ["Can you cook?", "Do you can cook?", "My sister can cook."], "ans": 1, "why": "Correction: Can you cook? Do is not used with can."}, {"q": "Which sentence is incorrect?", "opts": ["Our teacher helps us.", "We study English.", "Us study English."], "ans": 2, "why": "Correction: We study English. Use a subject pronoun."}, {"q": "Which sentence is incorrect?", "opts": ["Does he goes to the gym?", "He goes to the gym.", "He doesn’t go to the gym."], "ans": 0, "why": "Correction: Does he go to the gym? After does, use go."}, {"q": "Which sentence is incorrect?", "opts": ["I don’t drink coffee.", "I don’t drink coffee, too.", "I drink tea, too."], "ans": 1, "why": "Correction: I don’t drink coffee, either."}, {"q": "Which sentence is incorrect?", "opts": ["Her phone is new.", "I call her every day.", "She phone is new."], "ans": 2, "why": "Correction: Her phone is new. Use a possessive before phone."}, {"q": "Which sentence is incorrect?", "opts": ["What time she starts work?", "What time does she start work?", "She starts work at eight."], "ans": 0, "why": "Correction: What time does she start work?"}], "ctx": ""}];
+EXERCISE_DATA.forEach(e => { const builders = {fill:buildFill,mc:buildMC,tf:buildTF,order:buildSentenceBuilder,match:buildClickMatch}; builders[e.type]({id:e.id,data:e.data}); if(e.type==='order') document.querySelectorAll('#'+e.id+' .sb-item').forEach((row,i)=>{row.insertAdjacentHTML('afterbegin','<div class="tip-box">'+e.data[i].anchor+'</div>');}); });
+
+function resetExerciseProgress(id){
+ completedExercises.delete(id);delete scores[id];delete gameAnswers[id];delete drafts[id];
+ completedDays.clear();for(const [day,list] of Object.entries(DAY_EXERCISES))if(list.every(x=>completedExercises.has(x)))completedDays.add(day);
+ store('done',[...completedExercises]);store('scores',scores);store('gameAnswers',gameAnswers);store('drafts',drafts);store('days',[...completedDays]);
+ document.getElementById('card-'+id).classList.remove('done');
+ document.querySelectorAll('.tab-btn[data-tab]').forEach(b=>b.classList.toggle('done',completedDays.has(b.dataset.tab)));
+ $('weekly-summary').style.display=completedDays.size===TOTAL_DAYS?'block':'none';updateProgress();
+}
+function snapshotExercise(e){
+ const root=$(e.id),d={};
+ if(e.type==='fill')d.values=[...root.querySelectorAll('input')].map(x=>x.value);
+ if(e.type==='mc')d.values=e.data.map((_,i)=>root.querySelector('input[name="'+e.id+'_'+i+'"]:checked')?.value??null);
+ if(e.type==='tf')d.values=e.data.map((_,i)=>root.querySelector('.tf-btn.selected[data-i="'+i+'"]')?.dataset.val??null);
+ if(e.type==='order')d.values=e.data.map((_,i)=>[...$(e.id+'-zone-'+i).children].map(b=>b.dataset.tok));
+ if(e.type==='match')d.values=e.data.map((_,i)=>{const n=root.querySelector('.cm-item[data-side="L"][data-idx="'+i+'"] .cm-pair-num')?.textContent;if(!n)return null;return [...root.querySelectorAll('.cm-item[data-side="R"]')].find(x=>x.querySelector('.cm-pair-num')?.textContent===n)?.dataset.idx??null;});
+ drafts[e.id]=d;store('drafts',drafts);
+}
+EXERCISE_DATA.forEach(e=>{
+ const root=$(e.id),saved=drafts[e.id];
+ if(saved?.values)saved.values.forEach((v,i)=>{
+  if(v===null)return;
+  if(e.type==='fill')$(e.id+'_'+i).value=v;
+  if(e.type==='mc')root.querySelector('input[name="'+e.id+'_'+i+'"][value="'+v+'"]').click();
+  if(e.type==='tf')root.querySelector('.tf-btn[data-i="'+i+'"][data-val="'+v+'"]').click();
+  if(e.type==='order')v.forEach(tok=>$(e.id+'-words-'+i).querySelector('[data-tok="'+tok+'"]').click());
+  if(e.type==='match'){root.querySelector('.cm-item[data-side="L"][data-idx="'+i+'"]').click();root.querySelector('.cm-item[data-side="R"][data-idx="'+v+'"]').click();}
+ });
+ root.addEventListener('input',()=>snapshotExercise(e));root.addEventListener('click',()=>queueMicrotask(()=>snapshotExercise(e)));
+ $(e.id+'-reset').addEventListener('click',()=>{resetExerciseProgress(e.id);snapshotExercise(e);});
+});
+
+// Writing Challenge – single paragraph field, sent to Teacher Mari on WhatsApp
+(function () {
+  const ta = $('d7w-text');
+  ta.value = load('writing', '');
+  const countWords = () => (ta.value.trim().match(/\S+/g) || []).length;
+  const paint = () => { const n = countWords(); $('d7w-count').textContent = writingCount(ta.value); };
+  paint();
+  ta.addEventListener('input', () => { store('writing', ta.value); paint(); if(!ta.value.trim()&&completedExercises.has('d7w'))resetExerciseProgress('d7w'); });
+  $('d7w-save').addEventListener('click', () => {if(!validWriting(ta.value)){showFeedback('d7w-fb','Please write your 8–10 sentences first.','err');return;} markDone('d7w'); showFeedback('d7w-fb','Writing saved. Teacher Mari will review your text.','ok');});
+  $('d7w-send').addEventListener('click', () => {
+    if (!validWriting(ta.value)) {
+      showFeedback('d7w-fb', '✏️ Please write 8–10 sentences about yourself and someone in your life before you send.', 'err');
+      return;
+    }
+    const msg = `Hi Teacher Mari! This is ${studentName || 'your student'}.\nBeginner — Review up to Unit 8A – Day 7 – Writing Challenge: Someone in My Life\n\n${ta.value.trim()}`;
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    showFeedback('d7w-fb', '✅ Great! Your writing is ready. Complete sending in WhatsApp.', 'ok');
+    markDone('d7w');
+  });
+})();
+
+$('summary-whatsapp').addEventListener('click', () => {
+  const { c, t } = totals();
+  const msg = `🏆 Beginner — Review up to Unit 8A complete!\n\nHi Teacher Mari! This is ${studentName || 'your student'}. I finished all the exercises.\n\nScore: ${c}/${t} correct answers.`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+});
+
+// ══════════════════════════════════════════════
+//  VOCAB BANK
+// ══════════════════════════════════════════════
+const VOCAB = [{"title": "Family", "items": [["husband", "the man someone is married to"], ["wife", "the woman someone is married to"], ["parents", "mother and father"], ["mother", "a female parent"], ["father", "a male parent"], ["sister", "a female sibling"], ["brother", "a male sibling"], ["son", "a male child"], ["daughter", "a female child"], ["grandmother", "the mother of a parent"], ["grandfather", "the father of a parent"]]}, {"title": "Routine and leisure", "items": [["get up", "leave your bed"], ["have breakfast", "eat the morning meal"], ["have lunch", "eat the midday meal"], ["make dinner", "cook the evening meal"], ["go to work", "travel to your job"], ["finish work", "stop working for the day"], ["go to bed", "get into bed to sleep"], ["do housework", "clean and do tasks at home"], ["go to the gym", "go to a place to exercise"], ["stay at home", "remain at home"], ["visit", "go to see a person or place"], ["watch", "look at something for a period of time"], ["listen to music", "pay attention to music"], ["roommate", "a person you share a home with"], ["cook", "prepare food"], ["swim", "move through water"], ["drive", "control a car"], ["play the guitar", "make music with a guitar"], ["sing", "make music with your voice"], ["tired", "needing rest"], ["free", "available; not busy"]]}, {"title": "Films", "items": [["comedy", "a funny film"], ["horror film", "a scary film"], ["documentary", "a film with real information"], ["action film", "a film with chases or fights"], ["animation", "a film with animated characters"], ["science fiction film", "a film about imagined science or future worlds"], ["actor", "a person who performs in films"]]}, {"title": "Hotels", "items": [["pool", "a place to swim"], ["gym", "a place to exercise"], ["balcony", "an outdoor area attached to a room"], ["lift", "a machine that takes people between floors"], ["free breakfast", "a morning meal included at no extra cost"], ["free Wi-Fi", "internet access at no extra cost"], ["room", "a space inside a building"], ["reservation", "an arrangement to keep a room or table for you"]]}, {"title": "Things, food and description", "items": [["phone", "a device for calls and messages"], ["wallet", "a small holder for money and cards"], ["bag", "a container for carrying things"], ["umbrella", "something that protects you from rain"], ["flat", "a home in a building with other homes"], ["coffee", "a drink made from coffee beans"], ["tea", "a drink made with leaves and hot water"], ["eggs", "food produced by birds"], ["toast", "bread heated until brown"], ["clean", "not dirty"], ["new", "not old"], ["funny", "making people laugh"], ["scary", "making people feel afraid"]]}, {"title": "Frequency", "items": [["always", "every time"], ["usually", "most of the time"], ["sometimes", "on some occasions"], ["never", "not at any time"], ["every day", "each day"], ["too", "also; added at the end of an affirmative sentence"], ["also", "in addition"], ["either", "also, at the end of a negative sentence"]]}];
+function speak(text) {
+  if (!window.speechSynthesis) {showToast('Audio is not available in this browser. Try opening the file in Safari or Chrome.');return;}
+  if (!text || !String(text).trim()) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85; u.onerror=()=>showToast('Audio could not play. Try again in Safari or Chrome.');
+  window.speechSynthesis.speak(u);
+}
+(function () {
+  const bank = $('vocab-bank');
+  VOCAB.forEach(sec => {
+    const s = document.createElement('div'); s.className = 'bank-section';
+    s.innerHTML = `<div class="bank-title">${sec.title}</div>`;
+    const grid = document.createElement('div'); grid.className = 'vocab-grid';
+    sec.items.forEach(([en, def]) => {
+      const chip = document.createElement('button'); chip.type='button'; chip.className = 'vocab-chip'; chip.setAttribute('aria-label','Listen: '+en);
+      chip.innerHTML = `<div>🔊</div><div class="vc-en">${en}</div><div class="vc-def">${def}</div>`;
+      chip.addEventListener('click', () => speak(en.replace(/≠/g, ', ').replace(/–/g, ', ')));
+      grid.appendChild(chip);
+    });
+    s.appendChild(grid); bank.appendChild(s);
+  });
+})();
+document.querySelectorAll('.listen-btn').forEach(b => b.addEventListener('click', () => speak($(b.dataset.speak).innerText)));
+
+function addGrammarBankAudio(root){
+ root.querySelectorAll('.grammar-table td').forEach(td=>{
+   const txt=td.innerText.trim();
+   if(!txt || td.querySelector('.grammar-audio-btn')) return;
+   const hasEnglish=/[A-Za-z]/.test(txt) && (/[.!?]/.test(txt) || /\b(I|you|he|she|it|we|they|my|your|his|her|our|their|this|these|a|an|work|always|usually|sometimes|never)\b/i.test(txt));
+   if(!hasEnglish) return;
+   const b=document.createElement('button');b.type='button';b.className='grammar-audio-btn';b.textContent=' 🔊';b.title='Listen';
+   b.style.cssText='border:0;background:transparent;cursor:pointer;font-size:.78rem;padding:0 2px';
+   b.onclick=e=>{e.stopPropagation();speak(txt.replace(/\s*🔊\s*/g,' '))};
+   td.appendChild(b);
+ });
+}
+addGrammarBankAudio(document.getElementById('panel-grammar'));
+
+
+// ══════════════════════════════════════════════
+//  CONFETTI + CELEBRATION
+// ══════════════════════════════════════════════
+function launchConfetti(count, duration) {
+  const canvas = $('confetti-canvas');
+  const ctx = canvas.getContext && canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#FF5C23','#1D1050','#04392F','#FAEAD3','#5340c8','#f59e0b','#0d9488'];
+  const ps = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+    r: Math.random() * 7 + 3, c: colors[Math.floor(Math.random() * colors.length)],
+    v: Math.random() * 4 + 1.5, d: (Math.random() - 0.5) * 3, a: Math.random() * 360, s: (Math.random() - 0.5) * 6
+  }));
+  let f = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ps.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a * Math.PI / 180);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r); ctx.restore();
+      p.y += p.v; p.x += p.d; p.a += p.s;
+    });
+    if (++f < duration) requestAnimationFrame(draw); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+let toast = null;
+function showToast(msg) {
+  if (!toast) { toast = document.createElement('div'); toast.className = 'toast'; document.body.appendChild(toast); }
+  toast.textContent = msg;
+  requestAnimationFrame(() => { toast.style.transform = 'translateX(-50%) translateY(0)'; toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; toast.style.opacity = '0'; }, 3200);
+}
+function celebrateDay() { launchConfetti(140, 200); showToast('🎉 Day complete! Great job!'); }
+function celebrateWeek() {
+  launchConfetti(260, 320);
+  setTimeout(() => launchConfetti(260, 320), 900);
+  showToast(`🏆 Week complete! Amazing work${studentName ? ', ' + studentName : ''}!`);
+}
+
+updateProgress();
+paintDone();
+</script>
+
+<script>
+(function(){
+const dayMap={1:['d1e1','d1e2','d1e3'],2:['d2e1','d2e2','d2e3'],3:['d3e1','d3e2','d3e3'],4:['d4e1','d4e2','d4e3'],5:['d5e1','d5e2','d5e3'],6:['d6e1','d6e2','d6e3'],7:['d7e1','d7e2','d7w']};
+let gs={day:1,ex:0,item:0,bank:null}; let advanceTimer=null, checkTimer=null;
+const stage=document.getElementById('game-stage'), area=document.getElementById('game-area');
+const trad=document.getElementById('mode-traditional'), game=document.getElementById('mode-gamified');
+function nav(){
+ document.getElementById('game-nav').innerHTML=[1,2,3,4,5,6,7].map(d=>`<button class="gnav ${!gs.bank&&gs.day===d?'active':''}" data-day="${d}">Day ${d}</button>`).join('')+
+ `<button class="gnav bank ${gs.bank==='vocab'?'active':''}" data-bank="vocab">🔤 Vocab</button><button class="gnav bank ${gs.bank==='grammar'?'active':''}" data-bank="grammar">📐 Grammar</button>`;
+ document.querySelectorAll('.gnav[data-day]').forEach(b=>b.onclick=()=>{gs={day:+b.dataset.day,ex:0,item:0,bank:null};render()});
+ document.querySelector('[data-bank="vocab"]').onclick=()=>{gs.bank='vocab';render()};
+ document.querySelector('[data-bank="grammar"]').onclick=()=>{gs.bank='grammar';render()};
+}
+function setMode(m){clearTimeout(advanceTimer);clearTimeout(checkTimer);const g=m==='game';document.body.classList.toggle('game-mode',g);area.style.display=g?'block':'none';trad.classList.toggle('active',!g);game.classList.toggle('active',g);if(g)render()}
+trad.onclick=()=>setMode('trad');game.onclick=()=>setMode('game');
+function reaction(ok){return ok?['Good job!','Great!','Excellent!'][Math.floor(Math.random()*3)]:['Try again.','Read the explanation and try again.','You can do it. Try again.'][Math.floor(Math.random()*4)]}
+function readingFor(day){
+ const id=dayMap[gs.day][gs.ex];
+ const original=document.getElementById('card-'+id);
+ const ctx=original && original.querySelector('.exercise-context');
+ const intro=EXERCISE_DATA.find(e=>e.id===id)?.intro;
+ return (ctx?'<div class="reading-box">'+ctx.innerHTML+'</div><button class="listen-btn" data-speak="ctx-'+id+'">🔊 Listen</button>':'')+(intro?'<div class="tip-box">'+intro+'</div>':'');
+}
+function bankRender(){
+ nav();const src=document.getElementById('panel-'+gs.bank).cloneNode(true);src.removeAttribute('id');src.classList.add('active','game-bank-copy');src.style.display='block';src.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));stage.innerHTML='';stage.appendChild(src);
+ src.querySelectorAll('.vocab-chip').forEach((chip,i)=>{const sec=[...document.querySelectorAll('#panel-vocab .vocab-chip')][i];if(sec)chip.onclick=()=>sec.click()});
+ if(gs.bank==='grammar'){src.querySelectorAll('.grammar-audio-btn').forEach(b=>b.remove());addGrammarBankAudio(src);}
+}
+function explain(html){document.querySelector('.game-explain').innerHTML=html||'Look at the correct answer and try again.';document.querySelector('.game-explain').classList.add('show')}
+function shell(title,inst,body){
+ return `<div class="game-card"><div class="game-top"><div><div class="game-kicker">Day ${gs.day} · Exercise ${gs.ex+1}</div><div class="game-title">${title}</div><div class="game-inst">${inst}</div></div></div>${readingFor(gs.day)}<div class="game-body">${body}</div><div class="game-feedback" aria-live="polite"></div><div class="game-actions"><button class="game-check">Check</button></div><div class="game-explain" aria-live="polite"></div><div class="game-bottom"><button class="gprev">← Previous</button><button class="gnext">Next →</button></div></div>`;
+}
+function wrong(why){
+ const f=document.querySelector('.game-feedback');f.className='game-feedback show err';f.textContent=reaction(false);
+ document.querySelectorAll('.game-body button,.gfill').forEach(b=>b.disabled=true);
+ document.querySelector('.game-actions').innerHTML=`<button class="game-try">Try Again</button><button class="game-see">See Answers</button>`;
+ document.querySelector('.game-try').onclick=render;document.querySelector('.game-see').onclick=()=>explain(why);
+}
+function right(){
+ const id=dayMap[gs.day][gs.ex], rec=GAME_CFG[id];
+ if(!gameAnswers[id])gameAnswers[id]={};
+ if(rec.type==='match'){rec.cfg.data.forEach((_,i)=>gameAnswers[id][i]=true);}else gameAnswers[id][gs.item]=true;
+ store('gameAnswers',gameAnswers);
+ const count=Object.keys(gameAnswers[id]).length;
+ scores[id]=[Math.max(count,(scores[id]||[0])[0]),rec.cfg.data.length];store('scores',scores);
+ if(count===rec.cfg.data.length)markDone(id);
+ const f=document.querySelector('.game-feedback');f.className='game-feedback show ok';f.textContent=reaction(true);
+ document.querySelectorAll('.game-body button,.game-check,.gfill').forEach(b=>b.disabled=true);
+ advanceTimer=setTimeout(next,850);
+}
+function next(){const id=dayMap[gs.day][gs.ex], c=GAME_CFG[id];if(c&&c.type!=='match'&&gs.item<c.cfg.data.length-1){gs.item++;render();return}if(gs.ex<dayMap[gs.day].length-1){gs.ex++;gs.item=0;render();return}if(gs.day<7){gs.day++;gs.ex=0;gs.item=0;render()}}
+function prev(){if(gs.item>0){gs.item--;render();return}if(gs.ex>0){gs.ex--;const id=dayMap[gs.day][gs.ex],c=GAME_CFG[id];gs.item=c&&c.type!=='match'?c.cfg.data.length-1:0;render();return}if(gs.day>1){gs.day--;gs.ex=dayMap[gs.day].length-1;gs.item=0;render()}}
+function bindBottom(){document.querySelector('.gprev').onclick=prev;document.querySelector('.gnext').onclick=next}
+function render(){
+ clearTimeout(advanceTimer);clearTimeout(checkTimer);
+ nav();if(gs.bank){bankRender();return}
+ const id=dayMap[gs.day][gs.ex];
+ if(id==='d7w'){
+ const original=document.getElementById('card-d7w').cloneNode(true);original.removeAttribute('id');
+ original.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
+ stage.innerHTML=`<div class="game-card"><div class="game-kicker">Day 7 · Writing Challenge</div><div class="game-bottom"><button class="gprev">← Previous</button></div></div>`;
+ stage.firstChild.insertBefore(original,stage.firstChild.querySelector('.game-bottom'));
+ const ta=original.querySelector('textarea'),count=original.querySelector('.word-count'),send=original.querySelector('.btn-whatsapp'),fb=original.querySelector('.feedback');
+ ta.value=load('writing','');
+ const wc=()=> (ta.value.trim().match(/\S+/g)||[]).length;
+ const paint=()=>{const n=wc();count.textContent=writingCount(ta.value)};paint();
+ ta.oninput=()=>{if(!ta.value.trim()&&completedExercises.has('d7w'))resetExerciseProgress('d7w');store('writing',ta.value);document.getElementById('d7w-text').value=ta.value;document.getElementById('d7w-count').textContent=writingCount(ta.value);paint()};
+ original.querySelector('.btn-primary').onclick=()=>{if(!validWriting(ta.value)){fb.className='feedback show err';fb.textContent='Please write your 8–10 sentences first.';return;}markDone('d7w');fb.className='feedback show ok';fb.textContent='Writing saved. Teacher Mari will review your text.';};
+ send.onclick=()=>{
+   if(!validWriting(ta.value)){fb.className='feedback show err';fb.textContent='✏️ Please write 8–10 sentences about yourself and someone in your life before you send.';return}
+   const msg=`Hi Teacher Mari! This is ${studentName||'your student'}.\nBeginner — Review up to Unit 8A – Day 7 – Writing Challenge: Someone in My Life\n\n${ta.value.trim()}`;
+   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,'_blank','noopener,noreferrer');
+   fb.className='feedback show ok';fb.textContent='✅ Great! Your writing is ready. Complete sending in WhatsApp.';
+   markDone('d7w');
+ };
+ stage.querySelector('.gprev').onclick=prev;
+ return
+}
+ const rec=GAME_CFG[id];if(!rec){stage.innerHTML='<div class="game-card">Loading...</div>';return}
+ const {type,cfg}=rec,item=cfg.data[gs.item];let body='',title=document.querySelector('#card-'+id+' .ex-title').childNodes[0].textContent.trim(),inst=document.querySelector('#card-'+id+' .ex-instruction').textContent;
+ if(type==='mc'){body=`<div>${item.q}</div><div class="gmc">${item.opts.map((o,i)=>`<button class="gopt" data-i="${i}">${o}</button>`).join('')}</div>`}
+ if(type==='fill'){body=`<div>${item.line.replace('___',`<input class="gfill" style="width:${gapSize(item)}ch;max-width:100%;min-width:0" aria-label="Your answer" autocomplete="off" autocapitalize="off" spellcheck="false">`)}</div>`}
+ if(type==='tf'){body=`<div>${item.s}</div><div class="gtf"><button data-v="T">True</button><button data-v="F">False</button></div>`}
+ if(type==='inline'){const m=item.line.match(/\{([^|{}]+)\|([^{}]+)\}/);body=item.line.replace(/\{([^|{}]+)\|([^{}]+)\}/,`<span class="gtf"><button data-v="0">${m?m[1]:''}</button><button data-v="1">${m?m[2]:''}</button></span>`)}
+ if(type==='order'){body=`<div class="tip-box">${item.anchor||''}</div><div class="gwords">${item.words.map((w,i)=>`<button class="gchip" data-i="${i}">${w}</button>`).join('')}</div><div class="gzone"></div>`}
+ if(type==='match'){const rix=shuffleArr(cfg.data.map((_,i)=>i));body=`<div class="gmatch"><div class="gmatchcol">${cfg.data.map((x,i)=>`<button class="gm gl" data-i="${i}">${x.left}</button>`).join('')}</div><div class="gmatchcol">${rix.map(i=>`<button class="gm gr" data-i="${i}">${cfg.data[i].right}</button>`).join('')}</div></div>`}
+ stage.innerHTML=shell(title,inst,body);bindBottom();
+ document.querySelectorAll('#game-stage .listen-btn').forEach(b=>b.onclick=()=>{
+   const source=document.getElementById(b.dataset.speak);
+   if(source) speak(source.innerText);
+ });
+ let sel=null,order=[],links={},active=null;
+ if(type==='fill'){document.querySelector('.game-check').textContent='Check ✓';}else{document.querySelector('.game-check').style.display='none'}
+ if(type==='mc')document.querySelectorAll('.gopt').forEach(b=>b.onclick=()=>{document.querySelectorAll('.gopt').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');sel=+b.dataset.i;document.querySelector('.game-check').click()});
+ if(type==='tf'||type==='inline')document.querySelectorAll('.gtf button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.gtf button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');sel=b.dataset.v;document.querySelector('.game-check').click()});
+ if(type==='fill'){const inp=document.querySelector('.gfill');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.querySelector('.game-check').click()}})}
+ if(type==='order')document.querySelectorAll('.gchip').forEach(b=>b.onclick=()=>{if(b.parentElement.classList.contains('gwords')){document.querySelector('.gzone').appendChild(b);order.push(+b.dataset.i);if(order.length===item.words.length)checkTimer=setTimeout(()=>{const b=document.querySelector('.game-check');if(b)b.click();},180)}else{document.querySelector('.gwords').appendChild(b);order=order.filter(x=>x!==+b.dataset.i)}});
+ if(type==='match'){
+   document.querySelectorAll('.gl').forEach(b=>b.onclick=()=>{
+     const li=+b.dataset.i;
+     if(links[li]!==undefined){const ri=links[li];delete links[li];b.classList.remove('linked');const rb=document.querySelector(`.gr[data-i="${ri}"]`);if(rb)rb.classList.remove('linked');active=null;return}
+     document.querySelectorAll('.gl').forEach(x=>x.classList.remove('active'));b.classList.add('active');active=li
+   });
+   document.querySelectorAll('.gr').forEach(b=>b.onclick=()=>{
+     const ri=+b.dataset.i;
+     const owner=Object.keys(links).find(k=>links[k]===ri);
+     if(owner!==undefined){delete links[owner];document.querySelector(`.gl[data-i="${owner}"]`).classList.remove('linked');b.classList.remove('linked');return}
+     if(active===null)return;links[active]=ri;b.classList.add('linked');document.querySelector(`.gl[data-i="${active}"]`).classList.remove('active');document.querySelector(`.gl[data-i="${active}"]`).classList.add('linked');active=null;
+     if(Object.keys(links).length===cfg.data.length)checkTimer=setTimeout(()=>{const b=document.querySelector('.game-check');if(b)b.click();},180)
+   })
+ }
+ document.querySelector('.game-check').onclick=()=>{
+  let ok=false,why=item&&item.why; if(type==='mc')why='Answer: '+item.opts[item.ans]+'<br>'+why; if(type==='fill')why='Answer: '+item.ans[0]+'<br>'+why; if(type==='tf')why='Answer: '+(item.ans==='T'?'True':'False')+'<br>'+why;
+  if(type==='mc')ok=sel===item.ans;
+  if(type==='fill')ok=item.ans.map(norm).includes(norm(document.querySelector('.gfill').value));
+  if(type==='tf')ok=sel===item.ans;
+  if(type==='inline')ok=+sel===item.ans;
+  if(type==='order'){const words=order.map(i=>item.words[i]);ok=item.accept.some(a=>norm(a.join(' '))===norm(words.join(' ')));why=item.why+`<br><b>Answer:</b> ${item.display.charAt(0).toUpperCase()+item.display.slice(1)}`}
+  if(type==='match'){ok=cfg.data.every((x,i)=>links[i]!==undefined&&cfg.data[links[i]].left===x.left);why=cfg.data.map(x=>`<b>${x.left}</b> → ${x.right}`).join('<br>')}
+  ok?right():wrong(why);
+ };
+}
+})();
+</script>
+
+</body>
+</html>
