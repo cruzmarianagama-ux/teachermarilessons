@@ -7366,7 +7366,16 @@ Every example sentence must be grammatically and pragmatically perfect — use n
 
 // ---------- USO DE IA PANEL ----------
 // ---------- FLASHCARD DISPLAY HELPERS ----------
-const PRACTICE_INSTRUCTIONS = ["COMPLETE", "MULTIPLE CHOICE", "CHOOSE", "CORRECT IT", "FIX IT", "MAKE IT NEGATIVE", "MAKE A QUESTION", "CHANGE", "ANSWER"];
+const PRACTICE_INSTRUCTIONS = ["MULTIPLE CHOICE", "COMPLETE", "CORRECT IT", "MAKE A QUESTION", "MAKE IT NEGATIVE", "WHAT\'S THE CORRECT SENTENCE?"];
+
+const PRACTICE_META = {
+  "MULTIPLE CHOICE": { icon: "A/B/C", hint: "Choose the best answer" },
+  "COMPLETE": { icon: "___", hint: "Complete the sentence" },
+  "CORRECT IT": { icon: "✎", hint: "Find the mistake and correct it" },
+  "MAKE A QUESTION": { icon: "?", hint: "Change the sentence into a question" },
+  "MAKE IT NEGATIVE": { icon: "−", hint: "Change the sentence into the negative" },
+  "WHAT\'S THE CORRECT SENTENCE?": { icon: "A/B", hint: "Choose the grammatically correct sentence" },
+};
 
 function tipoDeckFlashcard(deck) {
   const nome = (deck?.nome || "").toLowerCase();
@@ -7378,9 +7387,11 @@ function tipoDeckFlashcard(deck) {
 function parsePracticeFront(texto = "") {
   const normalized = String(texto).replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n").trim();
   const firstLine = (normalized.split("\n")[0] || "").trim().replace(/:$/, "").toUpperCase();
-  const instruction = PRACTICE_INSTRUCTIONS.includes(firstLine) ? (firstLine === "FIX IT" ? "CORRECT IT" : firstLine) : "PRACTICE";
+  const legacyMap = { "FIX IT": "CORRECT IT", "CHOOSE": "MULTIPLE CHOICE", "CHANGE": "COMPLETE", "ANSWER": "COMPLETE" };
+  const knownLegacy = ["FIX IT", "CHOOSE", "CHANGE", "ANSWER"].includes(firstLine);
+  const instruction = PRACTICE_INSTRUCTIONS.includes(firstLine) ? firstLine : (legacyMap[firstLine] || "COMPLETE");
   let prompt = normalized;
-  if (PRACTICE_INSTRUCTIONS.includes(firstLine)) prompt = normalized.split("\n").slice(1).join("\n").trim();
+  if (PRACTICE_INSTRUCTIONS.includes(firstLine) || knownLegacy) prompt = normalized.split("\n").slice(1).join("\n").trim();
   return { instruction, prompt: prompt || normalized };
 }
 
@@ -7406,17 +7417,45 @@ function serializePracticeBack(answer, explanation) {
   return e ? `✅ ${a} — ${e}` : `✅ ${a}`;
 }
 
+function parseCorrectSentenceOptions(prompt = "") {
+  const normalized = String(prompt).replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n").trim();
+  const lines = normalized.split("\n").map(x => x.trim()).filter(Boolean);
+  const options = [];
+  for (const line of lines) {
+    const m = line.match(/^([ab])[)\.:]\s*(.+)$/i);
+    if (m) options.push({ label: m[1].toLowerCase(), text: m[2].trim() });
+  }
+  return options.length >= 2 ? options.slice(0, 2) : [];
+}
+
 function textoAudioPracticeAnswer(texto = "") {
   let t = String(texto).replace(/^💬\s*/, "").trim();
   const ex = t.match(/(?:Personal answer\.\s*)?Ex\.:\s*(.+)$/i);
   if (ex) t = ex[1].trim();
-  return t;
+  // Em respostas de WHAT'S THE CORRECT SENTENCE?, A/B são apenas rótulos visuais.
+  t = t.replace(/^\s*[ab]\s*[)\].:]\s*/i, "");
+  return t.trim();
+}
+
+function limparTextoParaAudio(texto = "") {
+  return String(texto)
+    // Remove emojis, pictogramas e símbolos decorativos antes de enviar ao TTS.
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}]/gu, "")
+    .replace(/[\uFE0E\uFE0F\u200D]/g, "")
+    // Nunca deixa o TTS verbalizar lacunas, setas ou separadores de interface.
+    .replace(/_{2,}/g, " ")
+    .replace(/[→←↔✓✔✗✕•]/g, " ")
+    .replace(/\s+[—–-]\s+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function falarFlashcard(texto) {
   if (!texto || !window.speechSynthesis) return;
+  const textoLimpo = limparTextoParaAudio(texto);
+  if (!textoLimpo) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(String(texto));
+  const u = new SpeechSynthesisUtterance(textoLimpo);
   u.lang = "en-US";
   u.rate = 0.85;
   window.speechSynthesis.speak(u);
@@ -7709,6 +7748,14 @@ JSON only, no markdown, no backticks:
   // Salvar card (novo ou edição). Practice Cards continuam compatíveis com o schema atual.
   const salvarCard = async () => {
     const practice = tipoDeckFlashcard(deckAtivo) === "practice";
+    if (practice && formCard.instruction === "WHAT'S THE CORRECT SENTENCE?") {
+      const options = parseCorrectSentenceOptions(formCard.prompt);
+      const labels = options.map(opt => opt.label);
+      if (options.length !== 2 || labels[0] !== "a" || labels[1] !== "b" || !options[0].text || !options[1].text) {
+        flash("Use exatamente duas alternativas válidas: a) ... e b) ...", "erro");
+        return;
+      }
+    }
     const frenteFinal = practice ? serializePracticeFront(formCard.instruction, formCard.prompt) : formCard.frente.trim();
     const versoFinal = practice ? serializePracticeBack(formCard.answer, formCard.explanation) : formCard.verso.trim();
     if (!frenteFinal.trim() || !versoFinal.trim()) { flash("Prompt e resposta são obrigatórios.", "erro"); return; }
@@ -8141,11 +8188,11 @@ JSON only, no markdown, no backticks:
             <>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>INSTRUCTION</label>
               <select value={formCard.instruction} onChange={e => setFormCard(f => ({ ...f, instruction: e.target.value }))} style={inputStyle}>
-                {["COMPLETE","MULTIPLE CHOICE","CHOOSE","CORRECT IT","MAKE IT NEGATIVE","MAKE A QUESTION","CHANGE","ANSWER"].map(x => <option key={x} value={x}>{x}</option>)}
+                {["MULTIPLE CHOICE","COMPLETE","CORRECT IT","MAKE A QUESTION","MAKE IT NEGATIVE","WHAT\'S THE CORRECT SENTENCE?"].map(x => <option key={x} value={x}>{x}</option>)}
               </select>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>PROMPT *</label>
               <textarea value={formCard.prompt} onChange={e => setFormCard(f => ({ ...f, prompt: e.target.value }))} rows={3} style={{...inputStyle, resize:"vertical"}} />
-              <button type="button" onClick={() => falarFlashcard(formCard.prompt)} style={{...btnGhost, marginBottom:"12px", padding:"6px 10px"}}>🔊 Preview prompt</button>
+              {!["COMPLETE","MULTIPLE CHOICE","WHAT\'S THE CORRECT SENTENCE?"].includes(formCard.instruction) && <button type="button" onClick={() => falarFlashcard(formCard.prompt)} style={{...btnGhost, marginBottom:"12px", padding:"6px 10px"}}>🔊 Preview prompt</button>}
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>ANSWER *</label>
               <textarea value={formCard.answer} onChange={e => setFormCard(f => ({ ...f, answer: e.target.value }))} rows={2} style={{...inputStyle, resize:"vertical"}} />
               <button type="button" onClick={() => falarFlashcard(formCard.answer)} style={{...btnGhost, marginBottom:"12px", padding:"6px 10px"}}>🔊 Preview answer</button>
@@ -8153,7 +8200,9 @@ JSON only, no markdown, no backticks:
               <textarea value={formCard.explanation} onChange={e => setFormCard(f => ({ ...f, explanation: e.target.value }))} rows={3} style={{...inputStyle, resize:"vertical"}} />
               <div style={{background:"#FFF", border:`1px solid ${palette.lavender}55`, borderRadius:"12px", padding:"14px", marginBottom:"12px"}}>
                 <p style={{fontSize:"10px",fontWeight:700,color:palette.orange,letterSpacing:".08em",margin:"0 0 8px"}}>{formCard.instruction}</p>
-                <p style={{fontSize:"15px",fontWeight:600,color:palette.purple,whiteSpace:"pre-line",margin:0}}>{formCard.prompt || "Preview do prompt"}</p>
+                {formCard.instruction === "WHAT'S THE CORRECT SENTENCE?" && parseCorrectSentenceOptions(formCard.prompt).length === 2 ? (
+                  <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>{parseCorrectSentenceOptions(formCard.prompt).map(opt => <div key={opt.label} style={{display:"flex",gap:"9px",padding:"9px 10px",borderRadius:"10px",background:palette.cream}}><strong style={{color:palette.orange,textTransform:"uppercase"}}>{opt.label})</strong><span style={{fontSize:"14px",fontWeight:600,color:palette.purple}}>{opt.text}</span></div>)}</div>
+                ) : <p style={{fontSize:"15px",fontWeight:600,color:palette.purple,whiteSpace:"pre-line",margin:0}}>{formCard.prompt || "Preview do prompt"}</p>}
               </div>
             </>
           ) : (
@@ -8718,16 +8767,29 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
 
         {/* Card */}
         <div onClick={() => !virado && setVirado(true)}
-          style={{ minHeight: isPractice ? "260px" : "220px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "18px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "14px", transition: "border-color 0.2s", position: "relative" }}>
+          style={{ minHeight: isPractice ? "260px" : "220px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "20px", padding: "30px 26px", boxShadow: dark ? "none" : "0 10px 28px rgba(62,45,118,.07)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "14px", transition: "border-color 0.2s", position: "relative" }}>
           {isPractice ? (
             !virado ? <>
-              <p style={{fontSize:"11px",fontWeight:800,color:palette.orange,letterSpacing:".10em",margin:0}}>{practiceFront.instruction}</p>
-              <div style={{width:"42px",height:"3px",borderRadius:"3px",background:palette.orange+"55"}} />
-              <p style={{ fontSize: "21px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.45, whiteSpace:"pre-line" }}>{practiceFront.prompt}</p>
-              <button onClick={e => { e.stopPropagation(); falarFlashcard(practiceFront.prompt); }} title="Ouvir somente o exercício" style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "22px", cursor: "pointer", fontSize: "13px", padding: "6px 12px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>
-              <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>Toque pra revelar →</p>
+              {(() => { const meta = PRACTICE_META[practiceFront.instruction] || PRACTICE_META["COMPLETE"]; return <>
+                <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"7px 11px",borderRadius:"999px",background:dark?"#4B3B8F":palette.cream,border:`1px solid ${dark?"#6252A8":palette.lavender+"66"}`}}>
+                  <span style={{fontSize:"11px",fontWeight:800,color:palette.orange}}>{meta.icon}</span>
+                  <span style={{fontSize:"10px",fontWeight:800,color:dark?"#FFF":palette.purple,letterSpacing:".08em"}}>{practiceFront.instruction}</span>
+                </div>
+                <p style={{fontSize:"11px",color:textSecondary,margin:"-4px 0 2px"}}>{meta.hint}</p>
+                <div style={{width:"54px",height:"3px",borderRadius:"3px",background:palette.orange+"55"}} />
+                {practiceFront.instruction === "WHAT'S THE CORRECT SENTENCE?" && parseCorrectSentenceOptions(practiceFront.prompt).length === 2 ? (
+                  <div style={{width:"100%",maxWidth:"460px",display:"flex",flexDirection:"column",gap:"10px",margin:"4px 0"}}>
+                    {parseCorrectSentenceOptions(practiceFront.prompt).map(opt => <div key={opt.label} style={{display:"flex",alignItems:"flex-start",gap:"12px",padding:"14px 16px",borderRadius:"14px",background:dark?"#46368A":palette.cream,border:`1.5px solid ${dark?"#5A4AA0":palette.lavender+"66"}`,textAlign:"left"}}>
+                      <span style={{width:"28px",height:"28px",borderRadius:"50%",display:"inline-flex",alignItems:"center",justifyContent:"center",flex:"0 0 28px",fontSize:"12px",fontWeight:800,background:palette.orange+"22",color:palette.orange,textTransform:"uppercase"}}>{opt.label}</span>
+                      <span style={{fontSize:"17px",fontWeight:600,color:dark?"#FFF":palette.purple,lineHeight:1.5}}>{opt.text}</span>
+                    </div>)}
+                  </div>
+                ) : <p style={{ fontSize: "22px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: "4px 0", lineHeight: 1.5, whiteSpace:"pre-line", maxWidth:"460px" }}>{practiceFront.prompt}</p>}
+                {!["COMPLETE","MULTIPLE CHOICE","WHAT\'S THE CORRECT SENTENCE?"].includes(practiceFront.instruction) && <button onClick={e => { e.stopPropagation(); falarFlashcard(practiceFront.prompt); }} title="Listen" style={{ background: dark?"#49398B":palette.cream, border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "22px", cursor: "pointer", fontSize: "13px", padding: "7px 13px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>}
+                <p style={{ fontSize: "11px", color: textSecondary, margin: "6px 0 0" }}>Solve it first · tap to reveal</p>
+              </>; })()}
             </> : <>
-              <p style={{fontSize:"11px",fontWeight:800,color:palette.green,letterSpacing:".10em",margin:0}}>✓ ANSWER</p>
+              <div style={{padding:"6px 11px",borderRadius:"999px",background:dark?"#294F47":palette.lightGreen+"55"}}><span style={{fontSize:"10px",fontWeight:800,color:palette.green,letterSpacing:".10em"}}>ANSWER</span></div>
               <p style={{ fontSize: "20px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.4, whiteSpace:"pre-line" }}>{practiceBack.answer}</p>
               <button onClick={e => { e.stopPropagation(); falarFlashcard(textoAudioPracticeAnswer(practiceBack.answer)); }} title="Ouvir somente a resposta" style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "22px", cursor: "pointer", fontSize: "13px", padding: "6px 12px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>
               {practiceBack.explanation && <div style={{width:"100%",maxWidth:"420px",borderTop:`1px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`,paddingTop:"14px",marginTop:"2px"}}>
