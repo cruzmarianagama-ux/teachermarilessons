@@ -7376,7 +7376,7 @@ function tipoDeckFlashcard(deck) {
 }
 
 function parsePracticeFront(texto = "") {
-  const normalized = String(texto).replace(/\r\n/g, "\n").trim();
+  const normalized = String(texto).replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n").trim();
   const firstLine = (normalized.split("\n")[0] || "").trim().replace(/:$/, "").toUpperCase();
   const instruction = PRACTICE_INSTRUCTIONS.includes(firstLine) ? (firstLine === "FIX IT" ? "CORRECT IT" : firstLine) : "PRACTICE";
   let prompt = normalized;
@@ -7385,7 +7385,7 @@ function parsePracticeFront(texto = "") {
 }
 
 function parsePracticeBack(texto = "") {
-  let raw = String(texto).replace(/\r\n/g, "\n").trim();
+  let raw = String(texto).replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n").trim();
   raw = raw.replace(/^✅\s*/, "").trim();
   // Os cards existentes usam principalmente "resposta — explicação".
   const parts = raw.split(/\s+[—–]\s+/);
