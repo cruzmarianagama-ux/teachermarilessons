@@ -7365,6 +7365,63 @@ Every example sentence must be grammatically and pragmatically perfect — use n
 }
 
 // ---------- USO DE IA PANEL ----------
+// ---------- FLASHCARD DISPLAY HELPERS ----------
+const PRACTICE_INSTRUCTIONS = ["COMPLETE", "MULTIPLE CHOICE", "CHOOSE", "CORRECT IT", "FIX IT", "MAKE IT NEGATIVE", "MAKE A QUESTION", "CHANGE", "ANSWER"];
+
+function tipoDeckFlashcard(deck) {
+  const nome = (deck?.nome || "").toLowerCase();
+  if (nome.includes("practice cards")) return "practice";
+  if (nome.includes("memory cards")) return "memory";
+  return "other";
+}
+
+function parsePracticeFront(texto = "") {
+  const normalized = String(texto).replace(/\r\n/g, "\n").trim();
+  const firstLine = (normalized.split("\n")[0] || "").trim().replace(/:$/, "").toUpperCase();
+  const instruction = PRACTICE_INSTRUCTIONS.includes(firstLine) ? (firstLine === "FIX IT" ? "CORRECT IT" : firstLine) : "PRACTICE";
+  let prompt = normalized;
+  if (PRACTICE_INSTRUCTIONS.includes(firstLine)) prompt = normalized.split("\n").slice(1).join("\n").trim();
+  return { instruction, prompt: prompt || normalized };
+}
+
+function parsePracticeBack(texto = "") {
+  let raw = String(texto).replace(/\r\n/g, "\n").trim();
+  raw = raw.replace(/^✅\s*/, "").trim();
+  // Os cards existentes usam principalmente "resposta — explicação".
+  const parts = raw.split(/\s+[—–]\s+/);
+  if (parts.length > 1) return { answer: parts.shift().trim(), explanation: parts.join(" — ").trim() };
+  const lines = raw.split("\n").map(x => x.trim()).filter(Boolean);
+  if (lines.length > 1) return { answer: lines[0], explanation: lines.slice(1).join(" ") };
+  return { answer: raw, explanation: "" };
+}
+
+function serializePracticeFront(instruction, prompt) {
+  const inst = (instruction || "PRACTICE").trim().toUpperCase();
+  return `${inst}:\n\n${(prompt || "").trim()}`;
+}
+
+function serializePracticeBack(answer, explanation) {
+  const a = (answer || "").trim();
+  const e = (explanation || "").trim();
+  return e ? `✅ ${a} — ${e}` : `✅ ${a}`;
+}
+
+function textoAudioPracticeAnswer(texto = "") {
+  let t = String(texto).replace(/^💬\s*/, "").trim();
+  const ex = t.match(/(?:Personal answer\.\s*)?Ex\.:\s*(.+)$/i);
+  if (ex) t = ex[1].trim();
+  return t;
+}
+
+function falarFlashcard(texto) {
+  if (!texto || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(String(texto));
+  u.lang = "en-US";
+  u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
 // ---------- FLASHCARD ADMIN PANEL ----------
 function FlashcardAdminPanel({ students }) {
   const { useState, useEffect, useCallback } = React;
@@ -7379,8 +7436,11 @@ function FlashcardAdminPanel({ students }) {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
-  // Busca
+  // Busca e organização visual
   const [busca, setBusca] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("all");
+  const [filtroNivel, setFiltroNivel] = useState("all");
+  const [filtroUnidade, setFiltroUnidade] = useState("all");
 
   // Assign to student
   const [assignDeck, setAssignDeck] = useState(null);
@@ -7393,7 +7453,7 @@ function FlashcardAdminPanel({ students }) {
   const [editandoDeck, setEditandoDeck] = useState(null);
 
   // Form novo card
-  const [formCard, setFormCard] = useState({ frente: "", verso: "", exemplo: "" });
+  const [formCard, setFormCard] = useState({ frente: "", verso: "", exemplo: "", instruction: "COMPLETE", prompt: "", answer: "", explanation: "" });
   const [mostrarFormCard, setMostrarFormCard] = useState(false);
   const [editandoCard, setEditandoCard] = useState(null);
 
@@ -7646,27 +7706,27 @@ JSON only, no markdown, no backticks:
     carregarDecks();
   };
 
-  // Salvar card (novo ou edição)
+  // Salvar card (novo ou edição). Practice Cards continuam compatíveis com o schema atual.
   const salvarCard = async () => {
-    if (!formCard.frente.trim() || !formCard.verso.trim()) { flash("Frente e verso são obrigatórios.", "erro"); return; }
+    const practice = tipoDeckFlashcard(deckAtivo) === "practice";
+    const frenteFinal = practice ? serializePracticeFront(formCard.instruction, formCard.prompt) : formCard.frente.trim();
+    const versoFinal = practice ? serializePracticeBack(formCard.answer, formCard.explanation) : formCard.verso.trim();
+    if (!frenteFinal.trim() || !versoFinal.trim()) { flash("Prompt e resposta são obrigatórios.", "erro"); return; }
     setSalvando(true);
     const payload = {
-      frente: formCard.frente.trim(),
-      verso: formCard.verso.trim(),
+      frente: frenteFinal,
+      verso: versoFinal,
       exemplo: formCard.exemplo.trim() || null,
       deck_id: deckAtivo.id,
       ordem: editandoCard ? editandoCard.ordem : (cards.length + 1),
     };
     let error;
-    if (editandoCard) {
-      ({ error } = await supabase.from("flashcards").update(payload).eq("id", editandoCard.id));
-    } else {
-      ({ error } = await supabase.from("flashcards").insert(payload));
-    }
+    if (editandoCard) ({ error } = await supabase.from("flashcards").update(payload).eq("id", editandoCard.id));
+    else ({ error } = await supabase.from("flashcards").insert(payload));
     setSalvando(false);
     if (error) { flash("Erro ao salvar card: " + error.message, "erro"); return; }
     flash(editandoCard ? "Card atualizado!" : "Card adicionado!");
-    setFormCard({ frente: "", verso: "", exemplo: "" });
+    setFormCard({ frente: "", verso: "", exemplo: "", instruction: "COMPLETE", prompt: "", answer: "", explanation: "" });
     setMostrarFormCard(false);
     setEditandoCard(null);
     abrirDeck(deckAtivo);
@@ -7674,7 +7734,13 @@ JSON only, no markdown, no backticks:
 
   const abrirEdicaoCard = (card) => {
     setEditandoCard(card);
-    setFormCard({ frente: card.frente, verso: card.verso, exemplo: card.exemplo || "" });
+    if (tipoDeckFlashcard(deckAtivo) === "practice") {
+      const f = parsePracticeFront(card.frente);
+      const b = parsePracticeBack(card.verso);
+      setFormCard({ frente: card.frente, verso: card.verso, exemplo: card.exemplo || "", instruction: f.instruction, prompt: f.prompt, answer: b.answer, explanation: b.explanation });
+    } else {
+      setFormCard({ frente: card.frente, verso: card.verso, exemplo: card.exemplo || "", instruction: "COMPLETE", prompt: "", answer: "", explanation: "" });
+    }
     setMostrarFormCard(true);
   };
 
@@ -7724,12 +7790,13 @@ JSON only, no markdown, no backticks:
     carregarDecks();
   };
 
-  const decksFiltrados = decks.filter(d =>
-    !busca.trim() ||
-    d.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    (d.unidade || "").toLowerCase().includes(busca.toLowerCase()) ||
-    (d.descricao || "").toLowerCase().includes(busca.toLowerCase())
-  );
+  const decksFiltrados = decks.filter(d => {
+    const bateBusca = !busca.trim() || d.nome.toLowerCase().includes(busca.toLowerCase()) || (d.unidade || "").toLowerCase().includes(busca.toLowerCase()) || (d.descricao || "").toLowerCase().includes(busca.toLowerCase());
+    const bateTipo = filtroTipo === "all" || tipoDeckFlashcard(d) === filtroTipo;
+    const bateNivel = filtroNivel === "all" || (d.nivel || "") === filtroNivel;
+    const bateUnidade = filtroUnidade === "all" || (d.unidade || "") === filtroUnidade;
+    return bateBusca && bateTipo && bateNivel && bateUnidade;
+  });
 
   const nomeDeckStudent = (student_id) => {
     if (!student_id) return "Base (todos os alunos)";
@@ -7765,6 +7832,19 @@ JSON only, no markdown, no backticks:
       </div>
 
       {msgFeedback}
+
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px", padding: "12px", background: palette.cream, borderRadius: "12px" }}>
+        <button onClick={() => setFiltroTipo("memory")} style={{ ...btnGhost, background: filtroTipo === "memory" ? palette.purple : "#FFF", color: filtroTipo === "memory" ? "#FFF" : palette.purple }}>🧠 Memory Cards</button>
+        <button onClick={() => setFiltroTipo("practice")} style={{ ...btnGhost, background: filtroTipo === "practice" ? palette.orange : "#FFF", color: filtroTipo === "practice" ? "#FFF" : palette.purple }}>✏️ Practice Cards</button>
+        <button onClick={() => setFiltroTipo("all")} style={{ ...btnGhost, opacity: filtroTipo === "all" ? 1 : .7 }}>Todos</button>
+        <select value={filtroNivel} onChange={e => { setFiltroNivel(e.target.value); setFiltroUnidade("all"); }} style={{ ...inputStyle, width: "auto", minWidth: "150px", marginBottom: 0 }}>
+          <option value="all">Todos os níveis</option>{Object.keys(SYLLABUS).map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <select value={filtroUnidade} onChange={e => setFiltroUnidade(e.target.value)} style={{ ...inputStyle, width: "auto", minWidth: "130px", marginBottom: 0 }}>
+          <option value="all">Todas as unidades</option>{(filtroNivel !== "all" ? (SYLLABUS[filtroNivel] || []) : []).map(u => <option key={u.id} value={u.id}>{u.id}</option>)}
+        </select>
+        <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar cards..." style={{ ...inputStyle, width: "190px", marginBottom: 0 }} />
+      </div>
 
       {mostrarFormDeck && (
         <div style={{ background: palette.cream, borderRadius: "12px", padding: "16px", marginBottom: "20px", maxWidth: "540px" }}>
@@ -7915,15 +7995,7 @@ JSON only, no markdown, no backticks:
         </div>
       )}
 
-      {/* Busca */}
-      {!mostrarFormDeck && decks.length > 0 && (
-        <div style={{ position: "relative", marginBottom: "16px", maxWidth: "400px" }}>
-          <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "14px", pointerEvents: "none" }}>🔍</span>
-          <input value={busca} onChange={e => setBusca(e.target.value)}
-            placeholder="Buscar deck por nome, unidade ou descrição..."
-            style={{ ...inputStyle, paddingLeft: "34px", marginBottom: 0 }} />
-        </div>
-      )}
+
 
       {/* Modal Assign to Student */}
       {assignDeck && (
@@ -8055,7 +8127,7 @@ JSON only, no markdown, no backticks:
 
       {msgFeedback}
 
-      <button onClick={() => { setEditandoCard(null); setFormCard({ frente: "", verso: "", exemplo: "" }); setMostrarFormCard(true); }} style={{ ...btnOrange, marginBottom: "16px" }}>
+      <button onClick={() => { setEditandoCard(null); setFormCard({ frente: "", verso: "", exemplo: "", instruction: "COMPLETE", prompt: "", answer: "", explanation: "" }); setMostrarFormCard(true); }} style={{ ...btnOrange, marginBottom: "16px" }}>
         + Adicionar card
       </button>
 
@@ -8065,17 +8137,35 @@ JSON only, no markdown, no backticks:
             {editandoCard ? "Editar card" : "Novo card"}
           </p>
 
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frente (palavra / pergunta) *</label>
-          <input value={formCard.frente} onChange={e => setFormCard(f => ({ ...f, frente: e.target.value }))}
-            placeholder="Ex: a phone" style={inputStyle} />
-
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Verso (tradução / resposta) *</label>
-          <input value={formCard.verso} onChange={e => setFormCard(f => ({ ...f, verso: e.target.value }))}
-            placeholder="Ex: um telefone" style={inputStyle} />
-
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frase de exemplo (opcional)</label>
-          <input value={formCard.exemplo} onChange={e => setFormCard(f => ({ ...f, exemplo: e.target.value }))}
-            placeholder="Ex: Where's my phone?" style={inputStyle} />
+          {tipoDeckFlashcard(deckAtivo) === "practice" ? (
+            <>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>INSTRUCTION</label>
+              <select value={formCard.instruction} onChange={e => setFormCard(f => ({ ...f, instruction: e.target.value }))} style={inputStyle}>
+                {["COMPLETE","MULTIPLE CHOICE","CHOOSE","CORRECT IT","MAKE IT NEGATIVE","MAKE A QUESTION","CHANGE","ANSWER"].map(x => <option key={x} value={x}>{x}</option>)}
+              </select>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>PROMPT *</label>
+              <textarea value={formCard.prompt} onChange={e => setFormCard(f => ({ ...f, prompt: e.target.value }))} rows={3} style={{...inputStyle, resize:"vertical"}} />
+              <button type="button" onClick={() => falarFlashcard(formCard.prompt)} style={{...btnGhost, marginBottom:"12px", padding:"6px 10px"}}>🔊 Preview prompt</button>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>ANSWER *</label>
+              <textarea value={formCard.answer} onChange={e => setFormCard(f => ({ ...f, answer: e.target.value }))} rows={2} style={{...inputStyle, resize:"vertical"}} />
+              <button type="button" onClick={() => falarFlashcard(formCard.answer)} style={{...btnGhost, marginBottom:"12px", padding:"6px 10px"}}>🔊 Preview answer</button>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: palette.purple, marginBottom: "4px" }}>EXPLANATION</label>
+              <textarea value={formCard.explanation} onChange={e => setFormCard(f => ({ ...f, explanation: e.target.value }))} rows={3} style={{...inputStyle, resize:"vertical"}} />
+              <div style={{background:"#FFF", border:`1px solid ${palette.lavender}55`, borderRadius:"12px", padding:"14px", marginBottom:"12px"}}>
+                <p style={{fontSize:"10px",fontWeight:700,color:palette.orange,letterSpacing:".08em",margin:"0 0 8px"}}>{formCard.instruction}</p>
+                <p style={{fontSize:"15px",fontWeight:600,color:palette.purple,whiteSpace:"pre-line",margin:0}}>{formCard.prompt || "Preview do prompt"}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frente (palavra / pergunta) *</label>
+              <input value={formCard.frente} onChange={e => setFormCard(f => ({ ...f, frente: e.target.value }))} placeholder="Ex: a phone" style={inputStyle} />
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Verso (tradução / resposta) *</label>
+              <input value={formCard.verso} onChange={e => setFormCard(f => ({ ...f, verso: e.target.value }))} placeholder="Ex: um telefone" style={inputStyle} />
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: palette.purple, marginBottom: "4px" }}>Frase de exemplo (opcional)</label>
+              <input value={formCard.exemplo} onChange={e => setFormCard(f => ({ ...f, exemplo: e.target.value }))} placeholder="Ex: Where's my phone?" style={inputStyle} />
+            </>
+          )}
 
           {msgFeedback}
           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
@@ -8096,9 +8186,16 @@ JSON only, no markdown, no backticks:
           {cards.map((card, i) => (
             <div key={card.id} style={{ border: `1px solid ${palette.lavender}44`, borderRadius: "10px", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: "180px" }}>
-                <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{card.frente}</p>
-                <p style={{ fontSize: "12px", color: `${palette.purple}88`, margin: "2px 0 0" }}>{card.verso}</p>
-                {card.exemplo && <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "3px 0 0", fontStyle: "italic" }}>"{card.exemplo}"</p>}
+                {tipoDeckFlashcard(deckAtivo) === "practice" ? (() => { const f=parsePracticeFront(card.frente); const b=parsePracticeBack(card.verso); return <>
+                  <span style={{fontSize:"9px",fontWeight:800,letterSpacing:".07em",color:palette.orange}}>{f.instruction}</span>
+                  <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: "3px 0 0", whiteSpace:"pre-line" }}>{f.prompt}</p>
+                  <p style={{ fontSize: "12px", color: palette.green, margin: "5px 0 0" }}><strong>Answer:</strong> {b.answer}</p>
+                  {b.explanation && <p style={{ fontSize: "11px", color: `${palette.purple}77`, margin: "3px 0 0" }}><strong>Why?</strong> {b.explanation}</p>}
+                </>; })() : <>
+                  <p style={{ fontSize: "13px", fontWeight: 600, color: palette.purple, margin: 0 }}>{card.frente}</p>
+                  <p style={{ fontSize: "12px", color: `${palette.purple}88`, margin: "2px 0 0" }}>{card.verso}</p>
+                  {card.exemplo && <p style={{ fontSize: "11px", color: `${palette.purple}66`, margin: "3px 0 0", fontStyle: "italic" }}>"{card.exemplo}"</p>}
+                </>}
               </div>
               <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                 <button onClick={() => abrirEdicaoCard(card)} style={btnGhost}>Editar</button>
@@ -8179,6 +8276,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
   const [resultados, setResultados] = useState([]);
   const [erro, setErro] = useState("");
   const [mostrarModoLivre, setMostrarModoLivre] = useState(false);
+  const [modalidade, setModalidade] = useState("memory"); // memory | practice
 
   const hoje = new Date().toISOString().slice(0, 10);
 
@@ -8374,7 +8472,8 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
     setCarregando(true);
     setErro("");
     try {
-      const todosCardIds = decks.flatMap(d => (d.flashcards || []).map(c => c.id));
+      const decksRevisao = decks.filter(d => modalidade === "practice" ? tipoDeckFlashcard(d) === "practice" : tipoDeckFlashcard(d) !== "practice");
+      const todosCardIds = decksRevisao.flatMap(d => (d.flashcards || []).map(c => c.id));
       if (todosCardIds.length === 0) { setCardsHoje([]); setModoSelecionado("revisao_geral"); setTela("semCards"); setCarregando(false); return; }
       const { data: cards } = await supabase.from("flashcards").select("*").in("id", todosCardIds);
       const { data: progressos } = await supabase.from("flashcard_progress").select("*").eq("student_id", student.id).in("flashcard_id", todosCardIds);
@@ -8384,7 +8483,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
       if (cardsParaHoje.length === 0) { setModoSelecionado("revisao_geral"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
       const embaralhados = [...cardsParaHoje].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
       setCardsHoje(embaralhados);
-      setDeckSelecionado({ nome: "Revisão Geral 🌟" });
+      setDeckSelecionado({ nome: modalidade === "practice" ? "Practice Cards — Revisão Geral 🌟" : "Memory Cards — Revisão Geral 🌟" });
       setModoSelecionado("revisao_geral");
       setIndiceAtual(0); setVirado(false); setResultados([]);
       setTela("sessao");
@@ -8397,7 +8496,8 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
     setCarregando(true);
     setErro("");
     try {
-      const todosCardIds = decks.flatMap(d => (d.flashcards || []).map(c => c.id));
+      const decksRevisao = decks.filter(d => modalidade === "practice" ? tipoDeckFlashcard(d) === "practice" : tipoDeckFlashcard(d) !== "practice");
+      const todosCardIds = decksRevisao.flatMap(d => (d.flashcards || []).map(c => c.id));
       if (todosCardIds.length === 0) { setModoSelecionado("revisao_dificeis"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
       const { data: progressosDificeis } = await supabase.from("flashcard_progress").select("*").eq("student_id", student.id).eq("ultima_avaliacao", "dificil").in("flashcard_id", todosCardIds);
       if (!progressosDificeis || progressosDificeis.length === 0) { setModoSelecionado("revisao_dificeis"); setCardsHoje([]); setTela("semCards"); setCarregando(false); return; }
@@ -8407,7 +8507,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
       progressosDificeis.forEach(p => { mapaProgresso[p.flashcard_id] = p; });
       const embaralhados = [...(cards || [])].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
       setCardsHoje(embaralhados);
-      setDeckSelecionado({ nome: "Revisão Rápida 💪" });
+      setDeckSelecionado({ nome: modalidade === "practice" ? "Practice Cards — Revisão Rápida 💪" : "Memory Cards — Revisão Rápida 💪" });
       setModoSelecionado("revisao_dificeis");
       setIndiceAtual(0); setVirado(false); setResultados([]);
       setTela("sessao");
@@ -8427,7 +8527,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
       (progressos || []).forEach(p => { mapaProgresso[p.flashcard_id] = p; });
       const embaralhados = [...(cards || [])].sort(() => Math.random() - 0.5).map(c => ({ ...c, progresso: mapaProgresso[c.id] || null }));
       setCardsHoje(embaralhados);
-      setDeckSelecionado({ nome: `Modo Livre (${decksLivreSelecionados.length} decks)` });
+      setDeckSelecionado({ nome: modalidade === "practice" ? `Practice Cards — Modo Livre (${decksLivreSelecionados.length} decks)` : `Memory Cards — Modo Livre (${decksLivreSelecionados.length} decks)` });
       setModoSelecionado("modo_livre");
       setIndiceAtual(0); setVirado(false); setResultados([]);
       setTela("sessao");
@@ -8461,11 +8561,12 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
       return label;
     };
     const unidadeAtual = labelParaCodigo(turma && turma.unidade_atual) || labelParaCodigo(student.unidade_atual) || null;
-    // Separa deck da unidade atual dos anteriores
-    const deckAtual = decks.filter(d => d.unidade === unidadeAtual && !d.student_id);
-    const deckPersonalizado = decks.filter(d => d.student_id === student.id);
+    // Separa Memory e Practice antes de organizar por unidade. Decks legados ficam em Memory para não desaparecerem.
+    const decksDaModalidade = decks.filter(d => { const t = tipoDeckFlashcard(d); return modalidade === "practice" ? t === "practice" : t !== "practice"; });
+    const deckAtual = decksDaModalidade.filter(d => d.unidade === unidadeAtual && !d.student_id);
+    const deckPersonalizado = decksDaModalidade.filter(d => d.student_id === student.id);
     const todasUnidadesSyllabus = (SYLLABUS[student.nivel || "Beginner"] || []).map(u => u.id);
-    const deckAnteriores = decks
+    const deckAnteriores = decksDaModalidade
       .filter(d => d.unidade !== unidadeAtual && !d.student_id)
       .sort((a, b) => {
         const idxA = todasUnidadesSyllabus.indexOf(a.unidade);
@@ -8479,13 +8580,18 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
         {/* Header */}
         <div>
           <h2 style={{ fontSize: "17px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, marginBottom: "4px" }}>🃏 Flashcards</h2>
-          <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>Continue de onde parou.</p>
+          <p style={{ fontSize: "13px", color: textSecondary, margin: 0 }}>Practice a little every day ✨</p>
         </div>
 
-        {decks.length === 0 ? (
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+          <button onClick={() => setModalidade("memory")} style={{padding:"14px 10px",borderRadius:"14px",border:`1.5px solid ${modalidade === "memory" ? palette.purple : (dark ? "#5A4AA0" : "#E8E0FF")}`,background:modalidade === "memory" ? palette.purple : (dark ? "#3A2B7A" : "#FFF"),color:modalidade === "memory" ? "#FFF" : (dark ? "#FFF" : palette.purple),fontWeight:700,cursor:"pointer",fontFamily:"'Poppins', sans-serif"}}>🧠 MEMORY CARDS</button>
+          <button onClick={() => setModalidade("practice")} style={{padding:"14px 10px",borderRadius:"14px",border:`1.5px solid ${modalidade === "practice" ? palette.orange : (dark ? "#5A4AA0" : "#E8E0FF")}`,background:modalidade === "practice" ? palette.orange : (dark ? "#3A2B7A" : "#FFF"),color:modalidade === "practice" ? "#FFF" : (dark ? "#FFF" : palette.purple),fontWeight:700,cursor:"pointer",fontFamily:"'Poppins', sans-serif"}}>✏️ PRACTICE CARDS</button>
+        </div>
+
+        {decksDaModalidade.length === 0 ? (
           <div style={{ background: dark ? "#3A2B7A" : palette.cream, borderRadius: "14px", padding: "28px", textAlign: "center" }}>
             <p style={{ fontSize: "24px", marginBottom: "8px" }}>📭</p>
-            <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck disponível ainda. A Teacher Mari vai adicionar em breve!</p>
+            <p style={{ fontSize: "14px", color: textSecondary }}>Nenhum deck desta modalidade disponível ainda.</p>
           </div>
         ) : (
           <>
@@ -8528,7 +8634,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
                 <div style={{ background: dark ? "#2A1D66" : "#F9F5E8", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
                   <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.purple, margin: 0 }}>Selecione os decks:</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {decks.map(d => (
+                    {decksDaModalidade.map(d => (
                       <label key={d.id} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", padding: "10px 12px", borderRadius: "10px", background: dark ? "#3A2B7A" : "#FFF", border: `1.5px solid ${decksLivreSelecionados.includes(d.id) ? palette.orange : "transparent"}` }}>
                         <input type="checkbox" checked={decksLivreSelecionados.includes(d.id)}
                           onChange={e => setDecksLivreSelecionados(prev => e.target.checked ? [...prev, d.id] : prev.filter(id => id !== d.id))}
@@ -8592,6 +8698,9 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
     const card = cardsHoje[indiceAtual];
     const total = cardsHoje.length;
     const pct = Math.round((indiceAtual / total) * 100);
+    const isPractice = tipoDeckFlashcard(deckSelecionado) === "practice";
+    const practiceFront = isPractice ? parsePracticeFront(card?.frente) : null;
+    const practiceBack = isPractice ? parsePracticeBack(card?.verso) : null;
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -8609,31 +8718,30 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
 
         {/* Card */}
         <div onClick={() => !virado && setVirado(true)}
-          style={{ minHeight: "200px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "16px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "12px", transition: "border-color 0.2s", position: "relative" }}>
-          <p style={{ fontSize: "11px", fontWeight: 600, color: palette.orange, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>
-            {virado ? "Resposta" : "Palavra / Pergunta"}
-          </p>
-          <p style={{ fontSize: "22px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.3 }}>
-            {virado ? card.verso : card.frente}
-          </p>
-          {/* TTS — só mostra frente em inglês; verso é português, mas exemplo é inglês */}
-          <button onClick={e => { e.stopPropagation(); window.speechSynthesis?.cancel(); const u = new SpeechSynthesisUtterance(virado ? card.frente : card.frente); u.lang = "en-US"; u.rate = 0.85; window.speechSynthesis?.speak(u); }}
-            title="Ouvir pronúncia em inglês"
-            style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "20px", cursor: "pointer", fontSize: "13px", padding: "4px 12px", color: dark ? "#FFF" : palette.purple, display: "flex", alignItems: "center", gap: "4px" }}>
-            🔊 <span style={{ fontSize: "11px", fontWeight: 600 }}>{card.frente}</span>
-          </button>
-          {virado && card.exemplo && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-              <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, maxWidth: "320px", lineHeight: 1.5 }}>
-                "{card.exemplo}"
-              </p>
-              <button onClick={e => { e.stopPropagation(); const u = new SpeechSynthesisUtterance(card.exemplo); u.lang = "en-US"; u.rate = 0.85; window.speechSynthesis?.speak(u); }}
-                title="Ouvir exemplo" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: textSecondary, padding: 0 }}>🔊 ouvir exemplo</button>
-            </div>
-          )}
-          {!virado && (
-            <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>Toque pra revelar →</p>
-          )}
+          style={{ minHeight: isPractice ? "260px" : "220px", background: dark ? "#3A2B7A" : "#FFF", border: `2px solid ${virado ? palette.orange : (dark ? "#5A4AA0" : palette.lavender + "55")}`, borderRadius: "18px", padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", cursor: virado ? "default" : "pointer", gap: "14px", transition: "border-color 0.2s", position: "relative" }}>
+          {isPractice ? (
+            !virado ? <>
+              <p style={{fontSize:"11px",fontWeight:800,color:palette.orange,letterSpacing:".10em",margin:0}}>{practiceFront.instruction}</p>
+              <div style={{width:"42px",height:"3px",borderRadius:"3px",background:palette.orange+"55"}} />
+              <p style={{ fontSize: "21px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.45, whiteSpace:"pre-line" }}>{practiceFront.prompt}</p>
+              <button onClick={e => { e.stopPropagation(); falarFlashcard(practiceFront.prompt); }} title="Ouvir somente o exercício" style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "22px", cursor: "pointer", fontSize: "13px", padding: "6px 12px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>
+              <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>Toque pra revelar →</p>
+            </> : <>
+              <p style={{fontSize:"11px",fontWeight:800,color:palette.green,letterSpacing:".10em",margin:0}}>✓ ANSWER</p>
+              <p style={{ fontSize: "20px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.4, whiteSpace:"pre-line" }}>{practiceBack.answer}</p>
+              <button onClick={e => { e.stopPropagation(); falarFlashcard(textoAudioPracticeAnswer(practiceBack.answer)); }} title="Ouvir somente a resposta" style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "22px", cursor: "pointer", fontSize: "13px", padding: "6px 12px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>
+              {practiceBack.explanation && <div style={{width:"100%",maxWidth:"420px",borderTop:`1px solid ${dark ? "#5A4AA0" : palette.lavender + "55"}`,paddingTop:"14px",marginTop:"2px"}}>
+                <p style={{fontSize:"10px",fontWeight:800,color:palette.orange,letterSpacing:".09em",margin:"0 0 6px"}}>WHY?</p>
+                <p style={{fontSize:"13px",color:textSecondary,lineHeight:1.55,margin:0}}>{practiceBack.explanation}</p>
+              </div>}
+            </>
+          ) : <>
+            <p style={{ fontSize: "11px", fontWeight: 700, color: palette.orange, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>{virado ? "Meaning" : "Memory Card"}</p>
+            <p style={{ fontSize: "22px", fontWeight: 700, color: dark ? "#FFF" : palette.purple, margin: 0, lineHeight: 1.3 }}>{virado ? card.verso : card.frente}</p>
+            <button onClick={e => { e.stopPropagation(); falarFlashcard(virado && card.exemplo ? card.exemplo : card.frente); }} title="Ouvir pronúncia em inglês" style={{ background: "none", border: `1.5px solid ${dark ? "#5A4AA0" : palette.lavender + "88"}`, borderRadius: "20px", cursor: "pointer", fontSize: "13px", padding: "5px 12px", color: dark ? "#FFF" : palette.purple }}>🔊 Listen</button>
+            {virado && card.exemplo && <p style={{ fontSize: "13px", color: textSecondary, fontStyle: "italic", margin: 0, maxWidth: "320px", lineHeight: 1.5 }}>“{card.exemplo}”</p>}
+            {!virado && <p style={{ fontSize: "12px", color: textSecondary, margin: "4px 0 0" }}>Toque pra revelar →</p>}
+          </>}
         </div>
 
         {/* Botões de avaliação */}
@@ -8653,7 +8761,7 @@ function FlashcardTab({ student, turma, dark, palette, textSecondary, cardBg }) 
         )}
 
         <p style={{ fontSize: "11px", color: textSecondary, textAlign: "center", margin: 0 }}>
-          {virado ? "Como foi lembrar essa palavra?" : "Pense na resposta antes de revelar."}
+          {virado ? (isPractice ? "Como foi fazer este exercício?" : "Como foi lembrar essa palavra?") : (isPractice ? "Resolva antes de revelar a resposta." : "Pense na resposta antes de revelar.")}
         </p>
       </div>
     );
