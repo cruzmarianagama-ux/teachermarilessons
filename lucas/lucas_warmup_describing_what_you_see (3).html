@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warm-up · Pathology Recall</title>
+<style>
+:root{
+ --bg:#fbfaf8; --paper:#fff; --ink:#18171b; --muted:#706d76; --line:#e8e4e8;
+ --purple:#7a55a5; --purpleSoft:#f0e9f6; --green:#648b72; --greenSoft:#eaf2ec;
+ --orange:#c77c43; --orangeSoft:#f8eee5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}
+.topbar{height:8px;background:linear-gradient(90deg,var(--purple) 0 33.33%,var(--green) 33.33% 66.66%,var(--orange) 66.66%)}
+header{max-width:1180px;margin:auto;padding:28px 38px 15px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--purple)}
+h1{font-size:32px;margin:6px 0 5px;letter-spacing:-.03em}
+.subtitle{margin:0;color:var(--muted);font-size:14px}
+main{max-width:1180px;margin:auto;padding:10px 38px 45px}
+.progress{display:flex;align-items:center;gap:14px;margin:12px 0 18px}
+.track{height:6px;background:#ece9ed;border-radius:99px;flex:1;overflow:hidden}
+.fill{height:100%;background:var(--purple);width:0;transition:.25s}
+.count{font-size:12px;font-weight:800;color:var(--muted);min-width:55px;text-align:right}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:24px;min-height:520px;padding:42px 54px;box-shadow:0 12px 35px rgba(35,25,45,.05);display:flex;flex-direction:column}
+.wordline{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.word{font-size:47px;line-height:1;font-weight:900;letter-spacing:-.04em}
+.speaker{border:0;background:var(--ink);color:#fff;border-radius:50%;width:47px;height:47px;font-size:20px;cursor:pointer}
+.speaker.playing{outline:5px solid var(--purpleSoft)}
+.pron{display:flex;gap:11px;flex-wrap:wrap;margin-top:17px}
+.pill{padding:8px 12px;border-radius:999px;font-size:14px;font-weight:800}
+.ipa{background:var(--purpleSoft);color:#57387b}.sounds{background:var(--greenSoft);color:#41634d}
+.rule{height:1px;background:var(--line);margin:30px 0}
+.challenge-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:900;color:var(--orange)}
+.challenge-title{font-size:17px;font-weight:900;margin-top:7px}
+.question{font-size:28px;font-weight:750;line-height:1.25;max-width:880px;margin:12px 0 0}
+.answer-area{margin-top:auto;padding-top:30px}
+.reveal{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 16px;font-weight:850;cursor:pointer}
+.answer{display:none;margin-top:13px;background:var(--orangeSoft);border-left:5px solid var(--orange);border-radius:12px;padding:17px 19px}
+.answer.open{display:block}
+.answer small{display:block;font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:900;color:#98613a;margin-bottom:7px}
+.answer p{margin:0;font-size:17px;line-height:1.45;font-weight:650}
+.answer .note{font-size:12px;color:var(--muted);font-weight:600;margin-top:7px}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px}
+.nav{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 17px;font-weight:850;cursor:pointer}
+.nav.next{background:var(--ink);color:#fff;border-color:var(--ink)}
+.nav:disabled{opacity:.35;cursor:default}
+.dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}.dot{width:7px;height:7px;border-radius:50%;background:#d8d4da}.dot.on{background:var(--purple)}
+.footer{font-size:11px;color:var(--muted);text-align:center;margin-top:18px}
+@media(max-width:700px){
+ header,main{padding-left:17px;padding-right:17px}.card{padding:30px 24px;min-height:560px}
+ .word{font-size:38px}.question{font-size:23px}.pron{gap:7px}.dots{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<header>
+ <div class="eyebrow">Technical English · Veterinary Pathology</div>
+ <h1>Warm-up · Pathology Recall</h1>
+ <p class="subtitle">Pronounce it. Recall it. Use it.</p>
+</header>
+<main>
+ <div class="progress"><div class="track"><div class="fill" id="fill"></div></div><div class="count" id="count"></div></div>
+ <article class="card">
+   <div class="wordline"><div class="word" id="word"></div><button class="speaker" id="speaker" onclick="speakWord()">🔊</button></div>
+   <div class="pron"><span class="pill ipa" id="ipa"></span><span class="pill sounds" id="sounds"></span></div>
+   <div class="rule"></div>
+   <div class="challenge-label">Quick Challenge</div>
+   <div class="challenge-title" id="type"></div>
+   <div class="question" id="question"></div>
+   <div class="answer-area">
+     <button class="reveal" onclick="toggleAnswer()">Show suggested answer</button>
+     <div class="answer" id="answer"><small>Suggested answer</small><p id="answerText"></p><div class="note">Other accurate explanations may also be accepted.</div></div>
+   </div>
+ </article>
+ <div class="controls">
+   <button class="nav" id="prev" onclick="move(-1)">← Previous</button>
+   <div class="dots" id="dots"></div>
+   <button class="nav next" id="next" onclick="move(1)">Next →</button>
+ </div>
+ <div class="footer">Use ← and → on the keyboard to move between cards.</div>
+</main>
+<script>
+const cards=[
+{w:"HEPATITIS",ipa:"/ˌhɛpəˈtaɪtɪs/",sound:"hep-uh-TY-tis",type:"Break the word down",
+ q:"Which organ is affected, and what type of process does -itis indicate?",
+ a:"The liver is affected, and -itis indicates inflammation. Hepatitis means inflammation of the liver."},
+
+{w:"NEPHRITIS",ipa:"/nəˈfraɪtɪs/",sound:"nuh-FRY-tis",type:"Break the word down",
+ q:"Which organ is affected, and what type of process does -itis indicate?",
+ a:"The kidney is affected, and -itis indicates inflammation. Nephritis means inflammation of the kidney."},
+
+{w:"HEMORRHAGIC",ipa:"/ˌhɛm əˈrædʒɪk/",sound:"hem-uh-RAJ-ik",type:"Noun → adjective",
+ q:"What is the noun form of hemorrhagic?",
+ a:"Hemorrhage. Example: There was hemorrhage in the brain / There was a hemorrhagic lesion in the brain."},
+
+{w:"BENIGN",ipa:"/bɪˈnaɪn/",sound:"bih-NYNE",type:"Opposite",
+ q:"What is the opposite tumor-behavior term?",
+ a:"Malignant."},
+
+{w:"NECROSIS",ipa:"/nəˈkroʊsɪs/",sound:"nuh-KROH-sis",type:"Noun → adjective",
+ q:"Complete the phrase: necrosis → ______ tissue.",
+ a:"Necrotic tissue."},
+
+{w:"FIBROSIS",ipa:"/faɪˈbroʊsɪs/",sound:"fy-BROH-sis",type:"Noun → adjective",
+ q:"Complete the phrase: fibrosis → ______ tissue.",
+ a:"Fibrotic tissue."},
+
+{w:"MULTIFOCAL",ipa:"/ˌmʌltiˈfoʊkəl/",sound:"mul-tee-FOH-kul",type:"Quick concept",
+ q:"In lesion distribution, what does multifocal mean?",
+ a:"It means there are multiple separate, non-contiguous areas of lesion within a tissue or organ."},
+
+{w:"HISTOPATHOLOGY",ipa:"/ˌhɪstoʊpəˈθɑːlədʒi/",sound:"his-toh-puh-THOL-uh-jee",type:"Explain it",
+ q:"What does a histopathologist examine?",
+ a:"A histopathologist examines diseased tissues microscopically to identify and characterize pathological changes."},
+
+{w:"AUTOLYSIS",ipa:"/ɔːˈtɑːləsɪs/",sound:"aw-TOL-uh-sis",type:"Quick concept",
+ q:"What happens to tissue during autolysis?",
+ a:"The tissue undergoes self-digestion after death due to the action of its own enzymes."},
+
+{w:"PSEUDOMELANOSIS",ipa:"/ˌsuːdoʊˌmɛləˈnoʊsɪs/",sound:"SOO-doh-mel-uh-NOH-sis",type:"Quick concept",
+ q:"Is pseudomelanosis a true lesion or a post-mortem change?",
+ a:"It is a post-mortem change, not a true lesion. It causes dark discoloration of tissues after death."}
+];
+let idx=0,voices=[];
+function loadVoices(){voices=speechSynthesis.getVoices()} loadVoices();speechSynthesis.onvoiceschanged=loadVoices;
+function render(){
+ const c=cards[idx];
+ word.textContent=c.w;ipa.textContent="IPA  "+c.ipa;sounds.textContent="HOW IT SOUNDS  "+c.sound;
+ type.textContent=c.type;question.textContent=c.q;answerText.textContent=c.a;
+ answer.classList.remove("open");document.querySelector(".reveal").textContent="Show suggested answer";
+ count.textContent=(idx+1)+" / "+cards.length;fill.style.width=((idx+1)/cards.length*100)+"%";
+ prev.disabled=idx===0;next.disabled=idx===cards.length-1;
+ dots.innerHTML=cards.map((_,i)=>`<span class="dot ${i===idx?'on':''}"></span>`).join("");
+}
+function move(n){const ni=idx+n;if(ni<0||ni>=cards.length)return;speechSynthesis.cancel();idx=ni;render();window.scrollTo({top:0,behavior:"smooth"})}
+function toggleAnswer(){answer.classList.toggle("open");document.querySelector(".reveal").textContent=answer.classList.contains("open")?"Hide suggested answer":"Show suggested answer"}
+function speakWord(){
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cards[idx].w.toLowerCase());u.lang="en-US";u.rate=.78;
+ const v=voices.find(x=>/^en-US/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang));if(v)u.voice=v;
+ speaker.classList.add("playing");u.onend=()=>speaker.classList.remove("playing");u.onerror=()=>speaker.classList.remove("playing");speechSynthesis.speak(u)
+}
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")move(1);if(e.key==="ArrowLeft")move(-1)});
+render();
+</script>
+</body></html>
