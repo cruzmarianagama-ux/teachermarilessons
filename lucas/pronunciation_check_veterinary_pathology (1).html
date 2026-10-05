@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pronunciation Check · Veterinary Pathology</title>
+<style>
+:root{--bg:#f7f7f5;--ink:#171717;--muted:#686868;--line:#deded9;--card:#fff;--dark:#171717;}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:rgba(247,247,245,.96);border-bottom:1px solid var(--line);padding:18px 5vw 14px}
+.top{display:flex;justify-content:space-between;align-items:end;gap:20px}
+.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+h1{font-size:30px;margin:4px 0 0;line-height:1}
+.hint{font-size:13px;color:var(--muted);margin:5px 0 0}
+nav{display:flex;gap:7px;overflow:auto;padding-top:13px}
+nav button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:700}
+nav button.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+main{padding:28px 5vw 90px;max-width:1180px;margin:auto}
+section{display:none}
+section.active{display:block}
+.section-head{margin-bottom:18px}
+.section-head h2{font-size:26px;margin:0 0 5px}
+.section-head p{margin:0;color:var(--muted)}
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;letter-spacing:.12em;color:var(--muted);padding:13px 18px;border-bottom:1px solid var(--line)}
+td{padding:14px 18px;border-bottom:1px solid #ecece8;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.word{font-weight:800;font-size:18px}
+.ipa{font-family:"Noto Sans",Arial,sans-serif;font-size:16px}
+.sound{font-weight:700}
+.listen{text-align:center;width:90px}
+.speak{border:0;background:#171717;color:#fff;width:42px;height:42px;border-radius:50%;font-size:19px;cursor:pointer;transition:.15s}
+.speak:hover{transform:scale(1.06)}
+.speak:active{transform:scale(.95)}
+.speak.playing{outline:4px solid #d9d9d3}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+.controls button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 15px;font-weight:800;cursor:pointer}
+.counter{color:var(--muted);font-size:13px}
+.notice{margin-top:16px;font-size:12px;color:var(--muted)}
+@media(max-width:700px){
+  header{padding-left:18px;padding-right:18px}
+  main{padding-left:12px;padding-right:12px}
+  th,td{padding:11px 9px}
+  .word{font-size:15px}.ipa{font-size:13px}.sound{font-size:13px}
+  .listen{width:55px}.speak{width:36px;height:36px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="top">
+   <div><div class="eyebrow">Technical English · Veterinary Pathology</div><h1>Pronunciation Check</h1><p class="hint">Read → check the IPA → listen → repeat.</p></div>
+ </div>
+ <nav id="nav"></nav>
+</header>
+<main id="app"></main>
+<script>
+const sections = [
+ {title:"How Cells Change", items:[
+ ["atrophy","/ˈætrəfi/","AT-ruh-fee"],["hypertrophy","/haɪˈpɝːtrəfi/","hy-PER-truh-fee"],
+ ["hyperplasia","/ˌhaɪpərˈpleɪʒə/","hy-per-PLAY-zhuh"],["metaplasia","/ˌmɛtəˈpleɪʒə/","met-uh-PLAY-zhuh"],
+ ["dysplasia","/dɪsˈpleɪʒə/","dis-PLAY-zhuh"],["metastasis","/məˈtæstəsɪs/","muh-TAS-tuh-sis"],
+ ["ischemia","/ɪˈskiːmiə/","iss-KEE-mee-uh"],["infarct","/ˈɪnfɑːrkt/","IN-farkt"]]},
+ {title:"Categorize", items:[
+ ["virus","/ˈvaɪrəs/","VY-rus"],["bacterium","/bækˈtɪriəm/","bak-TEER-ee-um"],["fungus","/ˈfʌŋɡəs/","FUN-gus"],
+ ["protozoan","/ˌproʊtəˈzoʊən/","proh-tuh-ZOH-un"],["neutrophil","/ˈnuːtrəfɪl/","NOO-truh-fil"],
+ ["macrophage","/ˈmækroʊfeɪdʒ/","MAK-roh-fayj"],["lymphocyte","/ˈlɪmfəsaɪt/","LIM-foh-site"],
+ ["eosinophil","/ˌiːəˈsɪnəfɪl/","ee-uh-SIN-uh-fil"],["purulent","/ˈpjʊrələnt/","PURE-uh-lent"],
+ ["serous","/ˈsɪrəs/","SEER-us"],["fibrinous","/ˈfaɪbrɪnəs/","FY-brin-us"],["hemorrhagic","/ˌhɛməˈrædʒɪk/","hem-uh-RAJ-ik"],
+ ["PCR","/ˌpiː siː ˈɑːr/","P-C-R"],["culture","/ˈkʌltʃər/","KUL-cher"],
+ ["immunohistochemistry","/ɪˌmjuːnoʊˌhɪstoʊˈkɛmɪstri/","ih-MYOO-noh-his-toh-KEM-iss-tree"],
+ ["electron microscopy","/ɪˌlɛktrɑːn maɪˈkrɑːskəpi/","ih-LEK-tron my-KROS-kuh-pee"]]},
+ {title:"Prefixes", items:[
+ ["hyperplasia","/ˌhaɪpərˈpleɪʒə/","hy-per-PLAY-zhuh"],["hypoplasia","/ˌhaɪpoʊˈpleɪʒə/","hy-poh-PLAY-zhuh"],
+ ["aplasia","/əˈpleɪʒə/","uh-PLAY-zhuh"],["polyuria","/ˌpɑːliˈjʊriə/","pol-ee-YUR-ee-uh"],["dysplasia","/dɪsˈpleɪʒə/","dis-PLAY-zhuh"],
+ ["hypertrophy","/haɪˈpɝːtrəfi/","hy-PER-truh-fee"],["hypoglycemia","/ˌhaɪpoʊɡlaɪˈsiːmiə/","hy-poh-gly-SEE-mee-uh"],
+ ["anorexia","/ˌænəˈrɛksiə/","an-uh-REK-see-uh"],["polydipsia","/ˌpɑːlidɪpˈsiːə/","pol-ee-dip-SEE-uh"],["dyspnea","/dɪspˈniːə/","disp-NEE-uh"]]},
+ {title:"Word Families", items:[
+ ["infect","/ɪnˈfɛkt/","in-FEKT"],["inflame","/ɪnˈfleɪm/","in-FLAYM"],["metastasize","/məˈtæstəsaɪz/","muh-TAS-tuh-size"],
+ ["ulcerate","/ˈʌlsəreɪt/","UL-suh-rayt"],["calcify","/ˈkælsɪfaɪ/","KAL-sih-fy"],["degenerate","/dɪˈdʒɛnəreɪt/","dih-JEN-uh-rayt"],
+ ["proliferate","/prəˈlɪfəreɪt/","pruh-LIF-uh-rayt"],["diagnose","/ˌdaɪəɡˈnoʊz/","dy-ug-NOHZ"]]},
+ {title:"Verbs", items:[
+ ["cause","/kɔːz/","kawz"],["spread","/sprɛd/","spred"],["invade","/ɪnˈveɪd/","in-VAYD"],
+ ["confirm","/kənˈfɝːm/","kun-FERM"],["collect","/kəˈlɛkt/","kuh-LEKT"],["summarize","/ˈsʌməraɪz/","SUM-uh-ryze"]]},
+ {title:"Odd One Out", items:[
+ ["fibrosis","/faɪˈbroʊsɪs/","fy-BROH-sis"],["edema","/ɪˈdiːmə/","ih-DEE-muh"],["infarct","/ˈɪnfɑːrkt/","IN-farkt"],
+ ["abscess","/ˈæbsɛs/","AB-sess"],["purulent","/ˈpjʊrələnt/","PURE-uh-lent"],["serous","/ˈsɪrəs/","SEER-us"],
+ ["fibrinous","/ˈfaɪbrɪnəs/","FY-brin-us"],["benign","/bɪˈnaɪn/","bih-NYNE"]]}
+];
+
+let current=0, voices=[];
+const nav=document.getElementById("nav"), app=document.getElementById("app");
+
+function esc(s){return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function render(){
+ nav.innerHTML=sections.map((s,i)=>`<button class="${i===current?'active':''}" onclick="go(${i})">${i+1}. ${esc(s.title)}</button>`).join("");
+ app.innerHTML=sections.map((s,i)=>`
+ <section class="${i===current?'active':''}">
+  <div class="section-head"><div class="eyebrow">Pronunciation check · ${i+1}/${sections.length}</div><h2>${esc(s.title)}</h2><p>Click 🔊 to hear only the word in American English.</p></div>
+  <div class="table-wrap"><table>
+   <thead><tr><th>WORD</th><th>IPA</th><th>HOW IT SOUNDS</th><th class="listen">LISTEN</th></tr></thead>
+   <tbody>${s.items.map(x=>`<tr><td class="word">${esc(x[0])}</td><td class="ipa">${esc(x[1])}</td><td class="sound">${esc(x[2])}</td><td class="listen"><button class="speak" aria-label="Listen to ${esc(x[0])}" onclick="speak('${x[0].replaceAll("'","\\'")}',this)">🔊</button></td></tr>`).join("")}</tbody>
+  </table></div>
+  <div class="controls"><button onclick="go(${Math.max(0,i-1)})" ${i===0?'disabled':''}>← Previous</button><span class="counter">${i+1} / ${sections.length}</span><button onclick="go(${Math.min(sections.length-1,i+1)})" ${i===sections.length-1?'disabled':''}>Next →</button></div>
+  <div class="notice">Audio uses your browser's built-in English voice; no MP3 files or internet audio links are required.</div>
+ </section>`).join("");
+}
+function go(i){current=i; speechSynthesis.cancel(); render(); window.scrollTo({top:0,behavior:"smooth"})}
+function loadVoices(){voices=speechSynthesis.getVoices()}
+loadVoices(); speechSynthesis.onvoiceschanged=loadVoices;
+function speak(word,btn){
+ speechSynthesis.cancel();
+ document.querySelectorAll(".speak").forEach(b=>b.classList.remove("playing"));
+ const u=new SpeechSynthesisUtterance(word);
+ u.lang="en-US"; u.rate=.78; u.pitch=1;
+ const preferred=voices.find(v=>/^en-US/i.test(v.lang)) || voices.find(v=>/^en/i.test(v.lang));
+ if(preferred)u.voice=preferred;
+ btn.classList.add("playing");
+ u.onend=()=>btn.classList.remove("playing");
+ u.onerror=()=>btn.classList.remove("playing");
+ speechSynthesis.speak(u);
+}
+render();
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight"&&current<sections.length-1)go(current+1);if(e.key==="ArrowLeft"&&current>0)go(current-1)});
+</script>
+</body>
+</html>
