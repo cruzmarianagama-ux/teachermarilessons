@@ -638,12 +638,18 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   max-width:980px;
   font-size:clamp(34px,4vw,54px);
   line-height:1.16;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:-.035em;
   padding:10px 24px 8px;
   margin:0 auto;
   text-wrap:balance;
 }
+/* Rich-text emphasis must remain visible in presentation. */
+.prompt-text strong,.prompt-text b{font-weight:800}
+.prompt-text em,.prompt-text i{font-style:italic}
+.prompt-text span[style]{box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.prompt-text span[style*="background"]{padding:.02em .12em;border-radius:.16em}
+
 /* Image-only cards keep the immersive visual treatment. */
 .big-card.image-only{padding:14px 18px}
 .big-card.image-only .media-frame{
@@ -1582,7 +1588,7 @@ document.getElementById('addCardBtn').onclick = ()=>{
 };
 
 function promptLooksLikeHtml(value){
-  return /<\/?(?:b|strong|i|em|span|br)\b/i.test(String(value||''));
+  return /<\/?(?:b|strong|i|em|span|font|br|div|p)\b/i.test(String(value||''));
 }
 function promptToEditorHtml(value){
   const raw = String(value||'');
@@ -1597,22 +1603,35 @@ function sanitizePromptHtml(value){
   if(!promptLooksLikeHtml(raw)) return escapeHtml(raw).replace(/\n/g,'<br>');
   const doc = new DOMParser().parseFromString('<div>'+raw+'</div>', 'text/html');
   const root = doc.body.firstElementChild;
-  const allowed = new Set(['B','STRONG','I','EM','SPAN','BR']);
+  const allowed = new Set(['B','STRONG','I','EM','SPAN','BR','FONT']);
+  const isSafeColor = value => !!value && /^(#[0-9a-f]{3,8}|rgb\(|rgba\(|hsl\(|hsla\(|[a-z]+$)/i.test(String(value).trim());
   const cleanNode = (node)=>{
     if(node.nodeType===Node.TEXT_NODE) return doc.createTextNode(node.textContent || '');
     if(node.nodeType!==Node.ELEMENT_NODE) return doc.createTextNode('');
     const tag = node.tagName.toUpperCase();
+
+    // contenteditable commonly creates DIV/P blocks for Enter. Preserve them as line breaks.
+    if(tag==='DIV' || tag==='P'){
+      const frag = doc.createDocumentFragment();
+      [...node.childNodes].forEach(ch=>frag.appendChild(cleanNode(ch)));
+      frag.appendChild(doc.createElement('br'));
+      return frag;
+    }
     if(!allowed.has(tag)){
       const frag = doc.createDocumentFragment();
       [...node.childNodes].forEach(ch=>frag.appendChild(cleanNode(ch)));
       return frag;
     }
-    const el = doc.createElement(tag.toLowerCase());
-    if(tag==='SPAN'){
-      const color = node.style.color;
-      const bg = node.style.backgroundColor;
-      if(color && /^(#[0-9a-f]{3,8}|rgb\(|rgba\()/i.test(color)) el.style.color=color;
-      if(bg && /^(#[0-9a-f]{3,8}|rgb\(|rgba\()/i.test(bg)) el.style.backgroundColor=bg;
+    if(tag==='BR') return doc.createElement('br');
+
+    // execCommand('foreColor') still emits <font color=...> in Chromium/WebKit.
+    // Normalize it to a safe span so presentation and editing render identically.
+    const el = doc.createElement(tag==='FONT' ? 'span' : tag.toLowerCase());
+    if(tag==='SPAN' || tag==='FONT'){
+      const color = node.style.color || node.getAttribute('color') || '';
+      const bg = node.style.backgroundColor || node.style.background || '';
+      if(isSafeColor(color)) el.style.color=color;
+      if(isSafeColor(bg)) el.style.backgroundColor=bg;
     }
     [...node.childNodes].forEach(ch=>el.appendChild(cleanNode(ch)));
     return el;
@@ -1621,6 +1640,70 @@ function sanitizePromptHtml(value){
   [...root.childNodes].forEach(ch=>holder.appendChild(cleanNode(ch)));
   return holder.innerHTML;
 }
+function renderRichPrompt(container, value){
+  container.replaceChildren();
+  const raw = String(value || '');
+  if(!raw) return;
+  if(!promptLooksLikeHtml(raw)){
+    const parts = raw.split(/\n/);
+    parts.forEach((part, i)=>{
+      if(i) container.appendChild(document.createElement('br'));
+      container.appendChild(document.createTextNode(part));
+    });
+    return;
+  }
+
+  const parsed = new DOMParser().parseFromString('<div>'+raw+'</div>', 'text/html');
+  const source = parsed.body.firstElementChild;
+  const safeColor = value => !!value && /^(#[0-9a-f]{3,8}|rgb\(|rgba\(|hsl\(|hsla\(|[a-z]+$)/i.test(String(value).trim());
+
+  function appendSafe(node, target){
+    if(node.nodeType === Node.TEXT_NODE){
+      target.appendChild(document.createTextNode(node.textContent || ''));
+      return;
+    }
+    if(node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName.toUpperCase();
+    if(tag === 'BR'){
+      target.appendChild(document.createElement('br'));
+      return;
+    }
+    if(tag === 'DIV' || tag === 'P'){
+      [...node.childNodes].forEach(ch=>appendSafe(ch,target));
+      target.appendChild(document.createElement('br'));
+      return;
+    }
+
+    let el = null;
+    if(tag === 'B' || tag === 'STRONG'){
+      el = document.createElement('strong');
+      el.style.setProperty('font-weight','800','important');
+    }else if(tag === 'I' || tag === 'EM'){
+      el = document.createElement('em');
+      el.style.setProperty('font-style','italic','important');
+    }else if(tag === 'SPAN' || tag === 'FONT'){
+      el = document.createElement('span');
+      const color = node.style.color || node.getAttribute('color') || '';
+      const bg = node.style.backgroundColor || node.style.background || '';
+      if(safeColor(color)) el.style.setProperty('color', color, 'important');
+      if(safeColor(bg)){
+        el.style.setProperty('background-color', bg, 'important');
+        el.style.setProperty('padding', '.02em .12em');
+        el.style.setProperty('border-radius', '.16em');
+        el.style.setProperty('box-decoration-break', 'clone');
+        el.style.setProperty('-webkit-box-decoration-break', 'clone');
+      }
+    }else{
+      // Unknown tags do not survive, but their text/allowed descendants do.
+      [...node.childNodes].forEach(ch=>appendSafe(ch,target));
+      return;
+    }
+    [...node.childNodes].forEach(ch=>appendSafe(ch,el));
+    target.appendChild(el);
+  }
+  [...source.childNodes].forEach(ch=>appendSafe(ch,container));
+}
+
 function promptToPlainText(value){
   const raw = String(value||'');
   if(!raw) return '';
@@ -2189,7 +2272,7 @@ function renderCardOnStage(card, finished){
   if(hasPrompt){
     const p = document.createElement('p');
     p.className = 'prompt-text';
-    p.innerHTML = sanitizePromptHtml(card.prompt);
+    renderRichPrompt(p, card.prompt);
     bigCard.appendChild(p);
   }
 
@@ -2937,3 +3020,9 @@ document.getElementById('refetchImagesBtn').onclick = async ()=>{
 </script>
 </body>
 </html>
+
+<style id="rich-prompt-presentation-final">
+.prompt-text{font-weight:600 !important;}
+.prompt-text strong,.prompt-text b{font-weight:800 !important;}
+.prompt-text em,.prompt-text i{font-style:italic !important;}
+</style>
