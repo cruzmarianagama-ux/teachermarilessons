@@ -1498,7 +1498,12 @@ function exportSetAsPDF(id){
       <h1>${escapeHtml(set.name)}</h1>
       <p class="subtitle">${set.cards.length} card${set.cards.length===1?'':'s'} — Teacher Mari Speaking Cards</p>
       <div class="pdf-grid">${cardsHtml}</div>
-    </body>
+    
+<style id="prompt-auto-fit-final">
+.prompt-text{overflow-wrap:anywhere;word-break:normal;max-height:100%;box-sizing:border-box;}
+.big-card.text-only .prompt-text{min-height:0;}
+</style>
+</body>
     </html>
   `);
   win.document.close();
@@ -2212,6 +2217,61 @@ function showPrevCard(){
   updateCounter();
 }
 
+// Automatically scale presentation text so long review prompts always fit on screen.
+// Short prompts keep the large display size; only overflowing prompts are reduced.
+let promptFitRaf = 0;
+function fitPromptToStage(){
+  cancelAnimationFrame(promptFitRaf);
+  promptFitRaf = requestAnimationFrame(()=>{
+    const bigCard = document.getElementById('bigCard');
+    const promptEl = bigCard && bigCard.querySelector('.prompt-text');
+    if(!bigCard || !promptEl || !promptEl.isConnected) return;
+
+    const hasImage = bigCard.classList.contains('image-with-prompt');
+    const isMobile = window.matchMedia('(max-width:700px)').matches;
+    // Preserve the current visual hierarchy for normal questions.
+    const maxSize = hasImage ? (isMobile ? 40 : 54) : (isMobile ? 40 : 58);
+    const minSize = isMobile ? 15 : 17;
+
+    promptEl.style.fontSize = maxSize + 'px';
+    promptEl.style.lineHeight = hasImage ? '1.16' : '1.18';
+
+    const fits = ()=>{
+      // bigCard is overflow:hidden, so compare its real content size with the visible box.
+      const verticalOK = bigCard.scrollHeight <= bigCard.clientHeight + 1;
+      const horizontalOK = promptEl.scrollWidth <= promptEl.clientWidth + 1;
+      return verticalOK && horizontalOK;
+    };
+
+    if(fits()) return;
+
+    // Binary search finds the largest readable size that fits, avoiding visible step-by-step shrinking.
+    let low = minSize, high = maxSize, best = minSize;
+    while(high - low > 0.5){
+      const mid = (low + high) / 2;
+      promptEl.style.fontSize = mid + 'px';
+      if(fits()) { best = mid; low = mid; }
+      else high = mid;
+    }
+    promptEl.style.fontSize = best + 'px';
+
+    // Extremely long content: tighten line-height/padding before ever allowing clipping.
+    if(!fits()){
+      promptEl.style.lineHeight = '1.08';
+      promptEl.style.paddingTop = '4px';
+      promptEl.style.paddingBottom = '4px';
+      promptEl.style.fontSize = minSize + 'px';
+    }
+  });
+}
+
+function schedulePromptFit(){
+  fitPromptToStage();
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(()=>fitPromptToStage()).catch(()=>{});
+  }
+}
+
 function renderCardOnStage(card, finished){
   const stage = document.querySelector('#stageArea .stage');
   const bigCard = document.getElementById('bigCard');
@@ -2257,7 +2317,7 @@ function renderCardOnStage(card, finished){
       if(settled) return; settled = true;
       img.remove(); showStageImageError(mediaFrame, card);
     }, 8000);
-    img.onload  = ()=>{ settled = true; clearTimeout(failTimeout); };
+    img.onload  = ()=>{ settled = true; clearTimeout(failTimeout); schedulePromptFit(); };
     img.onerror = ()=>{
       if(settled) return; settled = true;
       clearTimeout(failTimeout); img.remove();
@@ -2283,6 +2343,9 @@ function renderCardOnStage(card, finished){
     msg.textContent = hasAudio ? 'Audio-only card — press play' : '(empty card)';
     bigCard.appendChild(msg);
   }
+
+  // Measure only after the new card has entered the DOM.
+  schedulePromptFit();
 }
 
 function showStageImageError(container, card){
@@ -2290,6 +2353,7 @@ function showStageImageError(container, card){
   errEl.className = 'stage-error';
   errEl.textContent = '⚠ This image could not be loaded. Edit the card and check the image link.';
   container.appendChild(errEl);
+  schedulePromptFit();
 }
 
 function playCardAudio(card){
@@ -2582,6 +2646,9 @@ function updateStickyOffsets(){
   }
 }
 window.addEventListener('resize', updateStickyOffsets);
+window.addEventListener('resize', schedulePromptFit);
+document.addEventListener('fullscreenchange', schedulePromptFit);
+document.addEventListener('webkitfullscreenchange', schedulePromptFit);
 window.addEventListener('orientationchange', updateStickyOffsets);
 updateStickyOffsets();
 
