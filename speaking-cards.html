@@ -697,6 +697,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 @keyframes cardReveal{from{opacity:0;transform:scale(.965) rotateY(-4deg)}to{opacity:1;transform:none}}
 @media(max-width:700px){.class-overlay-bar{padding:0 12px;height:auto;min-height:58px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}.class-set-info{max-width:160px}.present-topbar .mode-pills{order:3;width:100%;margin-left:0}.present-stage-wrap{padding:10px}.stage,#presentView.active:has(.stage.box-mode) .stage.box-mode{border-radius:20px}.big-card{padding:14px 12px 8px}.prompt-text{font-size:24px;padding:14px 14px 18px}.box-grid{grid-template-columns:repeat(3,1fr);gap:9px}.pick-screen{padding:20px 14px}.pick-subtitle{margin-bottom:18px}.box{border-radius:15px}}
 
+.flashcard-controls{display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0;margin:8px 0 12px}
+.flashcard-controls span{font:700 12px Poppins,sans-serif;color:var(--purple);opacity:.6}
+.flashcard-instruction{font:600 18px Poppins,sans-serif;color:var(--purple);margin:0 12px 8px;text-align:center;flex-shrink:0}
+.big-card.flashcard .prompt-text{max-height:calc(100% - 100px)}
+.big-card.flashcard-back{background:#f2ebfa}
+[data-field="back-section"][hidden]{display:none}
 </style>
 </head>
 <body>
@@ -1471,6 +1477,7 @@ function exportSetAsPDF(id){
       <div class="pdf-card-num">${i+1}</div>
       ${card.image ? `<img src="${card.image}" alt="">` : `<div class="pdf-no-image">No image</div>`}
       ${card.prompt ? `<p class="pdf-prompt">${sanitizePromptHtml(card.prompt)}</p>` : ''}
+      ${card.type==='flashcard' ? `<hr><small>BACK</small><p class="pdf-prompt">${sanitizePromptHtml(card.back || '')}</p><p>${escapeHtml(card.backInstruction || '')}</p>` : ''}
     </div>
   `).join('');
   win.document.write(`
@@ -1742,7 +1749,12 @@ function renderCardEditorList(){
         <span class="img-status" data-field="upload-status"></span>
       </div>
       <div class="col">
-        <small>QUESTION / PROMPT (optional)</small>
+        <small>CARD TYPE</small>
+        <select data-field="card-type" aria-label="Card type">
+          <option value="standard" ${card.type!=='flashcard'?'selected':''}>Question / prompt</option>
+          <option value="flashcard" ${card.type==='flashcard'?'selected':''}>Front &amp; back</option>
+        </select>
+        <small data-field="front-label">${card.type==='flashcard'?'FRONT':'QUESTION / PROMPT (optional)'}</small>
         <div class="rich-prompt-wrap">
           <div class="rich-toolbar" data-field="rich-toolbar">
             <button type="button" class="rich-tool" data-cmd="bold" title="Bold"><b>B</b></button>
@@ -1752,6 +1764,21 @@ function renderCardEditorList(){
             <button type="button" class="rich-tool" data-cmd="removeFormat" title="Clear formatting">Clear</button>
           </div>
           <div class="rich-prompt" data-field="prompt" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="E.g.: What is this? / Describe it.">${promptToEditorHtml(card.prompt||'')}</div>
+        </div>
+        <div data-field="back-section" ${card.type==='flashcard'?'':'hidden'}>
+          <small>BACK</small>
+        <div class="rich-prompt-wrap">
+          <div class="rich-toolbar" data-field="back-toolbar">
+            <button type="button" class="rich-tool" data-cmd="bold" title="Bold"><b>B</b></button>
+            <button type="button" class="rich-tool" data-cmd="italic" title="Italic"><i>I</i></button>
+            <span class="rich-label">TEXT</span><input class="rich-color" type="color" data-cmd="foreColor" value="#1d1050" title="Text color">
+            <span class="rich-label">HIGHLIGHT</span><input class="rich-color" type="color" data-cmd="hiliteColor" value="#ffe29a" title="Highlight color">
+            <button type="button" class="rich-tool" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+          </div>
+          <div class="rich-prompt" data-field="back" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="E.g.: BOUGHT — Make a sentence.">${promptToEditorHtml(card.back||'')}</div>
+        </div>
+          <small>INSTRUCTION ON BACK (optional)</small>
+          <input type="text" data-field="back-instruction" placeholder="Make a sentence." value="${escapeAttr(card.backInstruction ?? 'Make a sentence.')}">
         </div>
       </div>
       <div class="col">
@@ -1839,10 +1866,18 @@ function renderCardEditorList(){
         uploadStatus.className = 'img-status error';
       }
     };
-    const promptEditor = row.querySelector('[data-field="prompt"]');
-    const promptToolbar = row.querySelector('[data-field="rich-toolbar"]');
+    row.querySelector('[data-field="card-type"]').onchange = e=>{
+      card.type = e.target.value;
+      row.querySelector('[data-field="back-section"]').hidden = card.type !== 'flashcard';
+      row.querySelector('[data-field="front-label"]').textContent = card.type === 'flashcard' ? 'FRONT' : 'QUESTION / PROMPT (optional)';
+      if(card.type === 'flashcard' && card.backInstruction == null) card.backInstruction = 'Make a sentence.';
+    };
+    row.querySelector('[data-field="back-instruction"]').oninput = e=> card.backInstruction = e.target.value;
+    [['prompt','rich-toolbar'],['back','back-toolbar']].forEach(([field, toolbarField])=>{
+      const promptEditor = row.querySelector('[data-field="'+field+'"]');
+      const promptToolbar = row.querySelector('[data-field="'+toolbarField+'"]');
     promptEditor.oninput = ()=>{
-      card.prompt = sanitizePromptHtml(promptEditor.innerHTML);
+      card[field] = sanitizePromptHtml(promptEditor.innerHTML);
     };
     promptEditor.onpaste = (e)=>{
       e.preventDefault();
@@ -1855,17 +1890,19 @@ function renderCardEditorList(){
         btn.onclick = ()=>{
           promptEditor.focus();
           document.execCommand(btn.dataset.cmd, false, null);
-          card.prompt = sanitizePromptHtml(promptEditor.innerHTML);
+          card[field] = sanitizePromptHtml(promptEditor.innerHTML);
         };
       });
       promptToolbar.querySelectorAll('input[type="color"][data-cmd]').forEach(input=>{
         input.oninput = ()=>{
           promptEditor.focus();
           document.execCommand(input.dataset.cmd, false, input.value);
-          card.prompt = sanitizePromptHtml(promptEditor.innerHTML);
+          card[field] = sanitizePromptHtml(promptEditor.innerHTML);
         };
       });
     }
+
+    });
 
     row.querySelector('[data-field="audio-text"]').oninput = (e)=>{
       card.audioText = e.target.value;
@@ -1907,6 +1944,10 @@ document.getElementById('saveSetBtn').onclick = async ()=>{
   if(!name){ alert('Give the set a name before saving.'); return; }
   if(editorCards.length===0){ alert('Add at least one card before saving.'); return; }
 
+  if(editorCards.some(c=>c.type==='flashcard' && (!promptToPlainText(c.prompt) || !promptToPlainText(c.back)))){
+    alert('Add text to the front and back of each front & back card before saving.');
+    return;
+  }
   const saveBtn = document.getElementById('saveSetBtn');
   saveBtn.disabled = true;
   // Check if any card still has a raw base64 (shouldn't happen — upload is now inline — but guard anyway)
@@ -2154,7 +2195,7 @@ function renderRandomOrOrderStage(){
     </div>
     <div style="display:flex;align-items:center;gap:16px;width:100%;max-width:900px;">
       <div class="counter" id="counterText" style="flex:1;text-align:left;"></div>
-      <div class="kbd-hint" style="flex:1;text-align:right;">Space = next · ← = prev</div>
+      <div class="kbd-hint" style="flex:1;text-align:right;">Space = next · ← = prev · F = flip</div>
     </div>
   `;
   document.getElementById('nextBtn').onclick = showNextCard;
@@ -2272,7 +2313,7 @@ function schedulePromptFit(){
   }
 }
 
-function renderCardOnStage(card, finished){
+function renderCardOnStage(card, finished, showingBack = false){
   const stage = document.querySelector('#stageArea .stage');
   const bigCard = document.getElementById('bigCard');
   if(!bigCard) return;
@@ -2282,10 +2323,16 @@ function renderCardOnStage(card, finished){
     return;
   }
   bigCard.innerHTML = '';
+  const flashcard = card.type === 'flashcard';
+  const face = flashcard && showingBack
+    ? {...card, image:'', prompt:card.back || '', audioFile:'', audioText:''}
+    : card;
+  bigCard.classList.toggle('flashcard', flashcard);
+  bigCard.classList.toggle('flashcard-back', flashcard && showingBack);
 
-  const hasImage  = !!card.image;
-  const hasPrompt = !!card.prompt;
-  const hasAudio  = !!(card.audioFile || card.audioText);
+  const hasImage  = !!face.image;
+  const hasPrompt = !!face.prompt;
+  const hasAudio  = !!(face.audioFile || face.audioText);
 
   bigCard.classList.toggle('image-only', hasImage && !hasPrompt);
   bigCard.classList.toggle('text-only', !hasImage && hasPrompt);
@@ -2302,7 +2349,7 @@ function renderCardOnStage(card, finished){
     speakBtn.className = 'speak-btn';
     speakBtn.textContent = '🔊';
     speakBtn.title = 'Play audio';
-    speakBtn.onclick = ()=> playCardAudio(card);
+    speakBtn.onclick = ()=> playCardAudio(flashcard ? {...face, audioFile:'', audioText:''} : card);
     audioWrap.appendChild(speakBtn);
     bigCard.appendChild(audioWrap);
   }
@@ -2315,15 +2362,15 @@ function renderCardOnStage(card, finished){
     let settled = false;
     const failTimeout = setTimeout(()=>{
       if(settled) return; settled = true;
-      img.remove(); showStageImageError(mediaFrame, card);
+      img.remove(); showStageImageError(mediaFrame, face);
     }, 8000);
     img.onload  = ()=>{ settled = true; clearTimeout(failTimeout); schedulePromptFit(); };
     img.onerror = ()=>{
       if(settled) return; settled = true;
       clearTimeout(failTimeout); img.remove();
-      showStageImageError(mediaFrame, card);
+      showStageImageError(mediaFrame, face);
     };
-    img.src = card.image;
+    img.src = face.image;
     mediaFrame.appendChild(img);
     bigCard.appendChild(mediaFrame);
   }
@@ -2332,7 +2379,7 @@ function renderCardOnStage(card, finished){
   if(hasPrompt){
     const p = document.createElement('p');
     p.className = 'prompt-text';
-    renderRichPrompt(p, card.prompt);
+    renderRichPrompt(p, face.prompt);
     bigCard.appendChild(p);
   }
 
@@ -2342,6 +2389,31 @@ function renderCardOnStage(card, finished){
     msg.className = 'placeholder';
     msg.textContent = hasAudio ? 'Audio-only card — press play' : '(empty card)';
     bigCard.appendChild(msg);
+  }
+
+  if(flashcard){
+    if(showingBack && card.backInstruction){
+      const instruction = document.createElement('p');
+      instruction.className = 'flashcard-instruction';
+      instruction.textContent = card.backInstruction;
+      bigCard.appendChild(instruction);
+    }
+    const controls = document.createElement('div');
+    controls.className = 'flashcard-controls';
+    const label = document.createElement('span');
+    label.textContent = showingBack ? 'Back' : 'Front';
+    const flip = document.createElement('button');
+    flip.type = 'button';
+    flip.id = 'flipCardBtn';
+    flip.className = 'btn btn-primary btn-sm';
+    flip.textContent = showingBack ? '↻ Show front' : '↻ Flip card';
+    flip.onclick = ()=>{
+      if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      renderCardOnStage(card, false, !showingBack);
+      document.getElementById('flipCardBtn').focus({preventScroll:true});
+    };
+    controls.append(label, flip);
+    bigCard.appendChild(controls);
   }
 
   // Measure only after the new card has entered the DOM.
@@ -2594,6 +2666,10 @@ function escapeAttr(str){ return escapeHtml(str); }
 document.addEventListener('keydown', (e)=>{
   if(!presentView.classList.contains('active')) return;
   const tag = document.activeElement.tagName;
+  if(e.code==='KeyF' && !e.ctrlKey && !e.metaKey && !e.altKey && !document.activeElement.isContentEditable && !['INPUT','TEXTAREA','SELECT'].includes(tag)){
+    const flip = document.getElementById('flipCardBtn');
+    if(flip){ e.preventDefault(); flip.click(); return; }
+  }
   if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT') return;
 
   if(e.code === 'Space' && tag!=='BUTTON' && (currentMode==='random' || currentMode==='order')){
