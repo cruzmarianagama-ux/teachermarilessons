@@ -216,7 +216,6 @@ const tabs = [
   { id: "home", label: "Home" },
   { id: "homework", label: "Aulas + Homework" },
   { id: "flashcards", label: "🃏 Flashcards" },
-  { id: "practice", label: "🎮 Practice Hub" },
   { id: "ia", label: "✨ Praticar com IA" },
   { id: "calendario", label: "Calendar" },
   { id: "materiais", label: "Materiais" },
@@ -2094,37 +2093,55 @@ function PracticePreview({ activity, questions }) {
   return <div style={{maxWidth:"680px",margin:"0 auto",background:"#FFF",borderRadius:"16px",padding:"24px",border:"1px solid #EAE3F4"}}><p style={{fontSize:"11px",fontWeight:700,color:palette.orange,margin:0}}>STUDENT PREVIEW</p><h2 style={{color:palette.purple,margin:"5px 0"}}>{activity.title}</h2><p style={{fontSize:"12px",color:"#786F8D"}}>{questions.length} questions · {activity.topic||"Practice"}</p><div style={{marginTop:"18px",display:"grid",gap:"9px"}}>{questions.map((q,i)=><div key={q.id} style={{padding:"12px",borderRadius:"10px",background:"#FBF8F2"}}><strong style={{fontSize:"12px",color:palette.purple}}>{i+1}. {q.prompt}</strong><div style={{fontSize:"10px",color:"#786F8D",marginTop:"4px"}}>{q.question_type.replaceAll("_"," ")}</div></div>)}</div></div>;
 }
 
-function StudentPracticeHub({ student, dark }) {
+function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=null }) {
   const { useEffect } = React;
   const [activities,setActivities]=useState([]), [loading,setLoading]=useState(true), [current,setCurrent]=useState(null), [questions,setQuestions]=useState([]);
   const [idx,setIdx]=useState(0), [attempt,setAttempt]=useState(null), [selected,setSelected]=useState(null), [feedback,setFeedback]=useState(null), [score,setScore]=useState(0), [finished,setFinished]=useState(false);
   const [matchAnswers,setMatchAnswers]=useState({}), [order,setOrder]=useState([]);
   const cardBg=dark?"#2D215F":"#FFF", text=dark?"#FFF":palette.purple, muted=dark?"#C9C0E8":"#786F8D";
-  useEffect(()=>{load();},[student.id]);
-  const load=async()=>{setLoading(true);const {data,error}=await supabase.from("practice_activities").select("id,title,topic,activity_date,status").eq("student_id",student.id).eq("status","published").order("activity_date",{ascending:false});setLoading(false);if(error){console.error(error);return;}setActivities(data||[]);};
+  useEffect(()=>{load();},[student.id,lessonRecordId,activityDate]);
+  const load=async()=>{
+    setLoading(true);
+    let query=supabase.from("practice_activities").select("id,title,topic,activity_date,status,lesson_record_id").eq("student_id",student.id).eq("status","published");
+    if(lessonRecordId) query=query.or(`lesson_record_id.eq.${lessonRecordId}${activityDate?`,and(lesson_record_id.is.null,activity_date.eq.${activityDate})`:""}`);
+    else if(activityDate) query=query.eq("activity_date",activityDate);
+    const {data,error}=await query.order("activity_date",{ascending:false});
+    setLoading(false);if(error){console.error(error);return;}setActivities(data||[]);
+  };
   const start=async(a)=>{const {data:q,error}=await supabase.from("practice_questions").select("*").eq("activity_id",a.id).order("position");if(error||!q?.length){alert("Esta prática ainda não tem questões disponíveis.");return;}const {data:att,error:ae}=await supabase.from("practice_attempts").insert({activity_id:a.id,student_id:student.id,total_questions:q.length,score:0}).select().single();if(ae){alert("Não consegui iniciar: "+ae.message);return;}setCurrent(a);setQuestions(q);setAttempt(att);setIdx(0);setScore(0);setFinished(false);resetAnswer();};
   const resetAnswer=()=>{setSelected(null);setFeedback(null);setMatchAnswers({});setOrder([]);};
   const q=questions[idx];
   const shuffled=(arr,seed)=>[...(arr||[])].sort((a,b)=>String(a).localeCompare(String(b))*(seed%2?1:-1));
-  const check=async()=>{if(!q||feedback)return;let ans,ok=false;
-    if(q.question_type==="match"){ans=matchAnswers;ok=(q.options||[]).every(p=>matchAnswers[p.left]===p.right);}
-    else if(q.question_type==="unscramble"){ans=order;ok=JSON.stringify(order)===JSON.stringify(q.correct_answer||q.options);}
-    else {ans=selected;ok=selected===q.correct_answer;}
-    if(ans==null || (q.question_type==="match"&&Object.keys(matchAnswers).length<(q.options||[]).length) || (q.question_type==="unscramble"&&order.length<(q.options||[]).length)){alert("Escolha uma resposta primeiro.");return;}
-    setFeedback(ok?"correct":"wrong"); if(ok)setScore(s=>s+1);
+  const submitAnswer=async(ans)=>{
+    if(!q||feedback)return;
+    let ok=false;
+    if(q.question_type==="match") ok=(q.options||[]).every(p=>ans[p.left]===p.right);
+    else if(q.question_type==="unscramble") ok=JSON.stringify(ans)===JSON.stringify(q.correct_answer||q.options);
+    else ok=ans===q.correct_answer;
+    setFeedback(ok?"correct":"wrong");
+    const newScore=score+(ok?1:0);
+    if(ok)setScore(newScore);
     await supabase.from("practice_answers").upsert({attempt_id:attempt.id,question_id:q.id,student_id:student.id,answer:ans,is_correct:ok},{onConflict:"attempt_id,question_id"});
+    window.setTimeout(async()=>{
+      if(idx<questions.length-1){setIdx(i=>i+1);resetAnswer();return;}
+      const pct=Math.round((newScore/questions.length)*100);
+      await supabase.from("practice_attempts").update({completed_at:new Date().toISOString(),score:newScore,total_questions:questions.length,percentage:pct}).eq("id",attempt.id);
+      setScore(newScore);setFinished(true);
+    },900);
   };
-  const next=async()=>{if(!feedback)return;if(idx<questions.length-1){setIdx(i=>i+1);resetAnswer();return;}const finalScore=score+(feedback==="correct"?0:0);const pct=Math.round((finalScore/questions.length)*100);await supabase.from("practice_attempts").update({completed_at:new Date().toISOString(),score:finalScore,total_questions:questions.length,percentage:pct}).eq("id",attempt.id);setFinished(true);};
-  if(loading)return <p style={{color:muted}}>Loading practices...</p>;
-  if(!current)return <div><div style={{marginBottom:"18px"}}><h2 style={{color:text,margin:"0 0 4px"}}>Practice Hub</h2><p style={{color:muted,fontSize:"12px",margin:0}}>Quick practice based on what you have been learning.</p></div>{activities.length===0?<div style={{padding:"28px",textAlign:"center",background:dark?"#3A2B7A":palette.cream,borderRadius:"14px",color:muted}}>No practice available yet.</div>:<div style={{display:"grid",gap:"10px"}}>{activities.map(a=><div key={a.id} style={{padding:"15px",borderRadius:"12px",background:dark?"#3A2B7A":"#FBF8F2",display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",flexWrap:"wrap"}}><div><strong style={{color:text,fontSize:"14px"}}>{a.title}</strong><div style={{fontSize:"11px",color:muted,marginTop:"3px"}}>{a.topic||"Practice"} · {formatarDataBR(a.activity_date)}</div></div><button onClick={()=>start(a)} style={{border:"none",borderRadius:"9px",padding:"9px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>START →</button></div>)}</div>}</div>;
-  if(finished){const pct=Math.round((score/questions.length)*100);return <div style={{maxWidth:"560px",margin:"20px auto",textAlign:"center"}}><div style={{fontSize:"48px"}}>🎉</div><h2 style={{color:text}}>Practice complete!</h2><div style={{fontSize:"42px",fontWeight:700,color:palette.orange}}>{score}/{questions.length}</div><p style={{color:muted}}>{pct}% · Keep practicing and improving your English.</p><div style={{display:"flex",gap:"8px",justifyContent:"center"}}><button onClick={()=>start(current)} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>Try again</button><button onClick={()=>{setCurrent(null);setFinished(false);load();}} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:dark?"#5A4AA0":palette.cream,color:text,fontWeight:700,cursor:"pointer"}}>Other practices</button></div></div>}
+  const chooseOption=(o)=>{if(feedback)return;setSelected(o);submitAnswer(o);};
+  const chooseMatch=(left,value)=>{if(feedback)return;const next={...matchAnswers,[left]:value};setMatchAnswers(next);if(value && (q.options||[]).every(p=>next[p.left])) submitAnswer(next);};
+  const chooseWord=(w)=>{if(feedback)return;const next=[...order,w];setOrder(next);if(next.length===(q.options||[]).length) submitAnswer(next);};
+  if(loading)return null;
+  if(!current && activities.length===0)return null;
+  if(!current)return <div style={{marginBottom:"18px",padding:"14px 16px",borderRadius:"12px",background:dark?"#2F2466":"#FFF7ED",borderLeft:`3px solid ${palette.orange}`}}><div style={{marginBottom:"18px"}}><h2 style={{color:text,margin:"0 0 4px",fontSize:"16px"}}>🎮 Practice</h2><p style={{color:muted,fontSize:"12px",margin:0}}>Quick practice from this lesson.</p></div>{activities.length===0?<div style={{padding:"28px",textAlign:"center",background:dark?"#3A2B7A":palette.cream,borderRadius:"14px",color:muted}}>No practice for this lesson.</div>:<div style={{display:"grid",gap:"10px"}}>{activities.map(a=><div key={a.id} style={{padding:"15px",borderRadius:"12px",background:dark?"#3A2B7A":"#FBF8F2",display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",flexWrap:"wrap"}}><div><strong style={{color:text,fontSize:"14px"}}>{a.title}</strong><div style={{fontSize:"11px",color:muted,marginTop:"3px"}}>{a.topic||"Practice"} · {formatarDataBR(a.activity_date)}</div></div><button onClick={()=>start(a)} style={{border:"none",borderRadius:"9px",padding:"9px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>START →</button></div>)}</div>}</div>;
+  if(finished){const pct=Math.round((score/questions.length)*100);return <div style={{maxWidth:"560px",margin:"20px auto",textAlign:"center"}}><div style={{fontSize:"48px"}}>🎉</div><h2 style={{color:text}}>Practice complete!</h2><div style={{fontSize:"42px",fontWeight:700,color:palette.orange}}>{score}/{questions.length}</div><p style={{color:muted}}>{pct}% · Keep practicing and improving your English.</p><div style={{display:"flex",gap:"8px",justifyContent:"center"}}><button onClick={()=>start(current)} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>Try again</button><button onClick={()=>{setCurrent(null);setFinished(false);load();}} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:dark?"#5A4AA0":palette.cream,color:text,fontWeight:700,cursor:"pointer"}}>Back to lesson</button></div></div>}
   const progress=((idx+1)/questions.length)*100;
   return <div style={{maxWidth:"680px",margin:"0 auto"}}><button onClick={()=>setCurrent(null)} style={{border:"none",background:"transparent",color:palette.orange,fontWeight:700,cursor:"pointer",padding:0}}>← Back</button><div style={{margin:"14px 0 18px"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:"11px",color:muted,marginBottom:"6px"}}><span>{current.title}</span><span>{idx+1}/{questions.length}</span></div><div style={{height:"7px",background:dark?"#4B3D7E":"#EEE7DA",borderRadius:"9px",overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:palette.orange}}/></div></div><div style={{background:dark?"#3A2B7A":"#FBF8F2",borderRadius:"16px",padding:"22px"}}><p style={{fontSize:"11px",fontWeight:700,color:palette.orange,margin:"0 0 8px"}}>QUESTION {idx+1}</p><h3 style={{color:text,fontSize:"18px",lineHeight:1.45,margin:"0 0 18px"}}>{q.prompt}</h3>
-    {(q.question_type==="multiple_choice"||q.question_type==="choose_correct_sentence"||q.question_type==="true_false")&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((o,i)=><button key={i} disabled={!!feedback} onClick={()=>setSelected(o)} style={{padding:"12px",borderRadius:"10px",border:selected===o?`2px solid ${palette.orange}`:"1px solid #DDD3C7",background:selected===o?(dark?"#51428B":"#FFF4EC"):cardBg,color:text,textAlign:"left",fontWeight:600,cursor:feedback?"default":"pointer"}}>{o}</button>)}</div>}
-    {q.question_type==="match"&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((p,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",alignItems:"center"}}><div style={{padding:"10px",background:cardBg,borderRadius:"8px",color:text,fontWeight:600,fontSize:"12px"}}>{p.left}</div><select disabled={!!feedback} value={matchAnswers[p.left]||""} onChange={e=>setMatchAnswers(m=>({...m,[p.left]:e.target.value}))} style={{padding:"10px",borderRadius:"8px",border:"1px solid #DDD3C7"}}><option value="">Choose...</option>{shuffled((q.options||[]).map(x=>x.right),i).map((r,j)=><option key={j}>{r}</option>)}</select></div>)}</div>}
-    {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,idx).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>setOrder(a=>[...a,w])} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
+    {(q.question_type==="multiple_choice"||q.question_type==="choose_correct_sentence"||q.question_type==="true_false")&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((o,i)=><button key={i} disabled={!!feedback} onClick={()=>chooseOption(o)} style={{padding:"12px",borderRadius:"10px",border:selected===o?`2px solid ${palette.orange}`:"1px solid #DDD3C7",background:selected===o?(dark?"#51428B":"#FFF4EC"):cardBg,color:text,textAlign:"left",fontWeight:600,cursor:feedback?"default":"pointer"}}>{o}</button>)}</div>}
+    {q.question_type==="match"&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((p,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",alignItems:"center"}}><div style={{padding:"10px",background:cardBg,borderRadius:"8px",color:text,fontWeight:600,fontSize:"12px"}}>{p.left}</div><select disabled={!!feedback} value={matchAnswers[p.left]||""} onChange={e=>chooseMatch(p.left,e.target.value)} style={{padding:"10px",borderRadius:"8px",border:"1px solid #DDD3C7"}}><option value="">Choose...</option>{shuffled((q.options||[]).map(x=>x.right),i).map((r,j)=><option key={j}>{r}</option>)}</select></div>)}</div>}
+    {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,idx).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>chooseWord(w)} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
     {feedback&&<div style={{marginTop:"14px",padding:"12px",borderRadius:"10px",background:feedback==="correct"?"#EAF7D2":"#FDECEC",color:feedback==="correct"?palette.green:"#9B2C2C",fontSize:"12px",fontWeight:600}}>{feedback==="correct"?"Correct! Great job!":(q.feedback||"Not quite. Check the correct form and try to remember it for next time.")}</div>}
-    <div style={{display:"flex",justifyContent:"flex-end",marginTop:"16px"}}>{!feedback?<button onClick={check} style={{border:"none",borderRadius:"9px",padding:"10px 16px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>CHECK</button>:<button onClick={next} style={{border:"none",borderRadius:"9px",padding:"10px 16px",background:palette.green,color:"#FFF",fontWeight:700,cursor:"pointer"}}>{idx===questions.length-1?"SEE RESULT":"NEXT →"}</button>}</div>
   </div></div>;
 }
 
@@ -6092,6 +6109,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(cronogramaAberto.data)}</p>
                       <p style={{ marginBottom: "14px", fontSize: "16px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{cronogramaAberto.assunto}</p>
 
+                      {role !== "admin" && (
+                        <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
+                      )}
+
                       {cronogramaAberto.materiaisAula && cronogramaAberto.materiaisAula.length > 0 && (
                         <div style={{ marginBottom: "18px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.lightGreen + "33", borderLeft: `3px solid ${palette.green}` }}>
                           <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.green, marginBottom: "8px", letterSpacing: "0.05em", textTransform: "uppercase" }}>📎 Materiais mostrados em aula</p>
@@ -6643,10 +6664,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               })()}
               </div>
             </div>
-          )}
-
-          {active === "practice" && (
-            <StudentPracticeHub student={student} dark={dark} />
           )}
 
           {active === "flashcards" && (
