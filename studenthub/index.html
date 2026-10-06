@@ -216,6 +216,7 @@ const tabs = [
   { id: "home", label: "Home" },
   { id: "homework", label: "Aulas + Homework" },
   { id: "flashcards", label: "🃏 Flashcards" },
+  { id: "practice", label: "🎮 Practice Hub" },
   { id: "ia", label: "✨ Praticar com IA" },
   { id: "calendario", label: "Calendar" },
   { id: "materiais", label: "Materiais" },
@@ -1960,6 +1961,173 @@ function GeradorProposta({ students }) {
   return null;
 }
 
+
+function PracticeHubAdmin({ students, onSelectStudent }) {
+  const { useEffect } = React;
+  const [studentId, setStudentId] = useState("");
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [topic, setTopic] = useState("");
+  const [error, setError] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [qLoading, setQLoading] = useState(false);
+  const [savingId, setSavingId] = useState(null);
+  const [preview, setPreview] = useState(false);
+  const [resultsFor, setResultsFor] = useState(null);
+  const [results, setResults] = useState([]);
+
+  const selectedStudent = (students || []).find((s) => s.id === studentId);
+  const field = { width:"100%", padding:"9px 10px", borderRadius:"8px", border:`1px solid ${palette.lavender}66`, fontFamily:"Poppins", fontSize:"12px", color:palette.purple, background:"#FFF" };
+  const btn = (bg=palette.purple) => ({ border:"none", borderRadius:"8px", padding:"8px 11px", background:bg, color:"#FFF", fontWeight:700, fontSize:"11px", cursor:"pointer", fontFamily:"Poppins" });
+
+  const loadActivities = async (id) => {
+    if (!id) { setActivities([]); return; }
+    setLoading(true); setError("");
+    const { data, error } = await supabase.from("practice_activities")
+      .select("id, student_id, title, topic, activity_date, status, created_at, updated_at")
+      .eq("student_id", id).order("created_at", { ascending: false });
+    setLoading(false);
+    if (error) { setError("Não consegui carregar as práticas: " + error.message); return; }
+    setActivities(data || []);
+  };
+  useEffect(() => { loadActivities(studentId); setEditing(null); }, [studentId]);
+
+  const createPractice = async () => {
+    if (!studentId || !title.trim()) return;
+    setCreating(true); setError("");
+    const { data, error } = await supabase.from("practice_activities").insert({
+      student_id: studentId, title: title.trim(), topic: topic.trim() || null, status: "draft"
+    }).select().single();
+    setCreating(false);
+    if (error) { setError("Não consegui criar a prática: " + error.message); return; }
+    setTitle(""); setTopic(""); await loadActivities(studentId); await openEditor(data);
+  };
+
+  const loadQuestions = async (activityId) => {
+    setQLoading(true);
+    const { data, error } = await supabase.from("practice_questions").select("*").eq("activity_id", activityId).order("position");
+    setQLoading(false);
+    if (error) { setError("Erro ao carregar questões: " + error.message); return []; }
+    setQuestions(data || []); return data || [];
+  };
+  const openEditor = async (a) => { setEditing(a); setPreview(false); setResultsFor(null); await loadQuestions(a.id); };
+
+  const defaultsFor = (type, pos) => ({
+    id:`local-${Date.now()}-${Math.random()}`, activity_id:editing.id, position:pos, question_type:type,
+    prompt:"", options:type==="match" ? [{left:"",right:""},{left:"",right:""}] : type==="true_false" ? ["True","False"] : type==="unscramble" ? ["",""] : ["","",""],
+    correct_answer:type==="match" ? [{left:"",right:""},{left:"",right:""}] : type==="unscramble" ? [] : "", feedback:""
+  });
+  const addQuestion = (type) => setQuestions(q => [...q, defaultsFor(type, q.length+1)]);
+  const patchQ = (id, patch) => setQuestions(q => q.map(x => x.id===id ? {...x,...patch} : x));
+
+  const saveQuestion = async (q) => {
+    if (!q.prompt.trim()) { alert("Escreva o enunciado da questão."); return; }
+    let payload={ activity_id:editing.id, position:q.position, question_type:q.question_type, prompt:q.prompt.trim(), options:q.options, correct_answer:q.correct_answer, feedback:q.feedback || null };
+    if (q.question_type==="true_false" && !payload.correct_answer) payload.correct_answer="True";
+    if (q.question_type==="unscramble" && (!Array.isArray(payload.correct_answer) || !payload.correct_answer.length)) payload.correct_answer=(q.options||[]).filter(Boolean);
+    if (q.question_type==="match") payload.correct_answer=q.options;
+    setSavingId(q.id);
+    let res;
+    if (String(q.id).startsWith("local-")) res=await supabase.from("practice_questions").insert(payload).select().single();
+    else res=await supabase.from("practice_questions").update(payload).eq("id",q.id).select().single();
+    setSavingId(null);
+    if (res.error) { alert("Erro ao salvar: "+res.error.message); return; }
+    setQuestions(prev=>prev.map(x=>x.id===q.id?res.data:x));
+  };
+  const deleteQuestion = async (q) => {
+    if (!confirm("Excluir esta questão?")) return;
+    if (!String(q.id).startsWith("local-")) { const {error}=await supabase.from("practice_questions").delete().eq("id",q.id); if(error){alert(error.message);return;} }
+    const rest=questions.filter(x=>x.id!==q.id).map((x,i)=>({...x,position:i+1})); setQuestions(rest);
+    for (const x of rest.filter(x=>!String(x.id).startsWith("local-"))) await supabase.from("practice_questions").update({position:x.position}).eq("id",x.id);
+  };
+  const publish = async () => {
+    const unsaved=questions.some(q=>String(q.id).startsWith("local-"));
+    if (unsaved) { alert("Salve todas as questões antes de publicar."); return; }
+    if (!questions.length) { alert("Adicione pelo menos uma questão."); return; }
+    const next=editing.status==="published"?"draft":"published";
+    const {error}=await supabase.from("practice_activities").update({status:next,updated_at:new Date().toISOString()}).eq("id",editing.id);
+    if(error){alert(error.message);return;} const updated={...editing,status:next}; setEditing(updated); await loadActivities(studentId);
+  };
+  const archive = async () => { const {error}=await supabase.from("practice_activities").update({status:"archived",updated_at:new Date().toISOString()}).eq("id",editing.id); if(error){alert(error.message);return;} setEditing({...editing,status:"archived"}); await loadActivities(studentId); };
+  const deleteActivity = async (a) => { if(!confirm(`Excluir a prática “${a.title}” e todos os resultados dela?`)) return; const {error}=await supabase.from("practice_activities").delete().eq("id",a.id); if(error){alert(error.message);return;} if(editing?.id===a.id)setEditing(null); await loadActivities(studentId); };
+  const showResults = async (a) => { setResultsFor(a); setEditing(null); const {data,error}=await supabase.from("practice_attempts").select("id,started_at,completed_at,score,total_questions,percentage").eq("activity_id",a.id).order("started_at",{ascending:false}); if(error){alert(error.message);return;} setResults(data||[]); };
+
+  const typeLabel={multiple_choice:"Multiple Choice",true_false:"True or False",match:"Match",unscramble:"Unscramble",choose_correct_sentence:"Choose the Correct Sentence"};
+  const pill = (status) => ({ display:"inline-flex", padding:"4px 9px", borderRadius:"999px", fontSize:"10px", fontWeight:700, background:status==="published"?palette.lightGreen:status==="archived"?"#E7E2F7":palette.cream, color:status==="published"?palette.green:palette.purple });
+
+  const QuestionEditor = ({q}) => {
+    const setOpt=(i,v)=>{const arr=[...(q.options||[])];arr[i]=v;patchQ(q.id,{options:arr});};
+    return <div style={{border:"1px solid #EAE3F4",borderRadius:"12px",padding:"13px",background:"#FFF"}}>
+      <div style={{display:"flex",justifyContent:"space-between",gap:"8px",alignItems:"center",marginBottom:"9px"}}><strong style={{fontSize:"12px",color:palette.purple}}>#{q.position} · {typeLabel[q.question_type]}</strong><button onClick={()=>deleteQuestion(q)} style={{...btn("#FDECEC"),color:"#A22"}}>Excluir</button></div>
+      <textarea value={q.prompt} onChange={e=>patchQ(q.id,{prompt:e.target.value})} placeholder="Enunciado" rows="2" style={{...field,resize:"vertical",marginBottom:"8px"}} />
+      {(q.question_type==="multiple_choice"||q.question_type==="choose_correct_sentence") && <div style={{display:"grid",gap:"6px"}}>{(q.options||[]).map((o,i)=><div key={i} style={{display:"flex",gap:"6px"}}><input value={o} onChange={e=>setOpt(i,e.target.value)} placeholder={`Opção ${i+1}`} style={field}/><input type="radio" name={`correct-${q.id}`} checked={q.correct_answer===o && !!o} onChange={()=>patchQ(q.id,{correct_answer:o})} title="Resposta correta"/></div>)}</div>}
+      {q.question_type==="true_false" && <select value={q.correct_answer||"True"} onChange={e=>patchQ(q.id,{correct_answer:e.target.value})} style={field}><option>True</option><option>False</option></select>}
+      {q.question_type==="unscramble" && <div><p style={{fontSize:"10px",color:"#786F8D",margin:"0 0 5px"}}>Digite as palavras já na ordem correta. O aluno receberá embaralhado.</p><input value={(q.options||[]).join(" ")} onChange={e=>{const arr=e.target.value.split(/\s+/).filter(Boolean);patchQ(q.id,{options:arr,correct_answer:arr});}} placeholder="She goes to work at eight" style={field}/></div>}
+      {q.question_type==="match" && <div style={{display:"grid",gap:"6px"}}>{(q.options||[]).map((pair,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px"}}><input value={pair.left||""} onChange={e=>{const a=q.options.map((p,j)=>j===i?{...p,left:e.target.value}:p);patchQ(q.id,{options:a,correct_answer:a});}} placeholder="Item" style={field}/><input value={pair.right||""} onChange={e=>{const a=q.options.map((p,j)=>j===i?{...p,right:e.target.value}:p);patchQ(q.id,{options:a,correct_answer:a});}} placeholder="Par" style={field}/></div>)}</div>}
+      <input value={q.feedback||""} onChange={e=>patchQ(q.id,{feedback:e.target.value})} placeholder="Feedback se errar (opcional)" style={{...field,marginTop:"8px"}} />
+      <div style={{display:"flex",justifyContent:"flex-end",marginTop:"8px"}}><button onClick={()=>saveQuestion(q)} style={btn(palette.green)}>{savingId===q.id?"Salvando...":"Salvar questão"}</button></div>
+    </div>;
+  };
+
+  return <div style={{display:"flex",flexDirection:"column",gap:"18px"}}>
+    <div style={{background:palette.purple,borderRadius:"18px",padding:"22px",color:"#FFF",position:"relative",overflow:"hidden"}}><div style={{position:"absolute",width:"150px",height:"150px",borderRadius:"50%",background:palette.orange,opacity:.18,right:"-45px",top:"-55px"}}/><div style={{position:"relative"}}><p style={{fontSize:"11px",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:palette.lightGreen,margin:"0 0 5px"}}>Teacher Mari Lessons</p><h2 style={{fontSize:"22px",margin:0}}>🎮 Practice Hub</h2><p style={{fontSize:"12px",opacity:.82,margin:"6px 0 0"}}>Crie, edite, publique e acompanhe práticas personalizadas.</p></div></div>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(220px,.8fr) minmax(300px,1.2fr)",gap:"14px"}}>
+      <div style={{background:"#FFF",borderRadius:"14px",padding:"16px",border:"1px solid #EEE7DA"}}><label style={{display:"block",fontSize:"11px",fontWeight:700,color:palette.purple,marginBottom:"7px"}}>ALUNO</label><select value={studentId} onChange={e=>setStudentId(e.target.value)} style={field}><option value="">Selecione um aluno</option>{(students||[]).slice().sort((a,b)=>(a.nome||"").localeCompare(b.nome||"")).map(s=><option key={s.id} value={s.id}>{s.nome}</option>)}</select>{selectedStudent&&<button onClick={()=>onSelectStudent&&onSelectStudent(selectedStudent)} style={{marginTop:"10px",border:"none",background:"transparent",color:palette.orange,fontWeight:700,fontSize:"11px",cursor:"pointer",padding:0}}>Abrir perfil do aluno →</button>}</div>
+      <div style={{background:"#FFF",borderRadius:"14px",padding:"16px",border:"1px solid #EEE7DA"}}><p style={{fontSize:"12px",fontWeight:700,color:palette.purple,margin:"0 0 10px"}}>+ NEW PRACTICE</p><div style={{display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:"8px"}}><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Título da prática" style={field}/><input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Tópico (opcional)" style={field}/><button onClick={createPractice} disabled={!studentId||!title.trim()||creating} style={btn((!studentId||!title.trim())?"#D8D3E6":palette.orange)}>{creating?"Criando...":"Criar"}</button></div></div>
+    </div>
+    {error&&<div style={{background:"#FDECEC",color:"#9B2C2C",borderRadius:"10px",padding:"10px 12px",fontSize:"12px"}}>{error}</div>}
+    {editing ? <div style={{background:"#FBF8F2",borderRadius:"16px",padding:"16px",border:"1px solid #EAE1D3"}}>
+      <div style={{display:"flex",justifyContent:"space-between",gap:"10px",alignItems:"center",flexWrap:"wrap",marginBottom:"14px"}}><div><button onClick={()=>setEditing(null)} style={{border:"none",background:"transparent",color:palette.orange,fontWeight:700,cursor:"pointer",padding:0,fontSize:"11px"}}>← Voltar</button><h3 style={{margin:"4px 0 0",color:palette.purple}}>{editing.title}</h3><span style={pill(editing.status)}>{editing.status}</span></div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}><button onClick={()=>setPreview(!preview)} style={btn("#6B5AA6")}>{preview?"Fechar preview":"Preview"}</button><button onClick={publish} style={btn(editing.status==="published"?"#8B7D6B":palette.orange)}>{editing.status==="published"?"Voltar para Draft":"Publish"}</button><button onClick={archive} style={btn("#8B7D6B")}>Archive</button></div></div>
+      {preview ? <PracticePreview activity={editing} questions={questions.filter(q=>!String(q.id).startsWith("local-"))}/> : <>
+        <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"12px"}}>{Object.entries(typeLabel).map(([k,v])=><button key={k} onClick={()=>addQuestion(k)} style={{...btn("#FFF"),color:palette.purple,border:`1px solid ${palette.lavender}`}}>+ {v}</button>)}</div>
+        {qLoading?<p>Carregando...</p>:questions.length===0?<p style={{fontSize:"12px",color:"#786F8D"}}>Adicione a primeira questão usando um dos formatos acima.</p>:<div style={{display:"grid",gap:"10px"}}>{questions.map(q=><QuestionEditor key={q.id} q={q}/>)}</div>}
+      </>}
+    </div> : resultsFor ? <div style={{background:"#FFF",borderRadius:"14px",padding:"16px",border:"1px solid #EEE7DA"}}><button onClick={()=>setResultsFor(null)} style={{border:"none",background:"transparent",color:palette.orange,fontWeight:700,cursor:"pointer",padding:0}}>← Voltar</button><h3 style={{color:palette.purple}}>Results · {resultsFor.title}</h3>{results.length===0?<p style={{fontSize:"12px",color:"#786F8D"}}>Ainda não há tentativas concluídas.</p>:<div style={{display:"grid",gap:"8px"}}>{results.map(r=><div key={r.id} style={{display:"flex",justifyContent:"space-between",padding:"10px",background:"#FBF8F2",borderRadius:"9px",fontSize:"12px"}}><span>{new Date(r.started_at).toLocaleString("pt-BR")}</span><strong style={{color:palette.purple}}>{r.score}/{r.total_questions} · {Number(r.percentage||0).toFixed(0)}%</strong></div>)}</div>}</div> :
+    <div style={{background:"#FFF",borderRadius:"14px",padding:"16px",border:"1px solid #EEE7DA"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:"12px"}}><h3 style={{margin:0,color:palette.purple,fontSize:"15px"}}>{selectedStudent?`Practices · ${selectedStudent.nome}`:"Practices"}</h3>{studentId&&<span style={{fontSize:"11px",color:"#786F8D"}}>{activities.length} atividades</span>}</div>{!studentId?<p style={{fontSize:"12px",color:"#786F8D"}}>Selecione um aluno.</p>:loading?<p>Carregando...</p>:activities.length===0?<p style={{fontSize:"12px",color:"#786F8D"}}>Nenhuma prática criada ainda.</p>:<div style={{display:"grid",gap:"8px"}}>{activities.map(a=><div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",padding:"12px",borderRadius:"11px",background:"#FBF8F2",flexWrap:"wrap"}}><div><div style={{fontSize:"13px",fontWeight:700,color:palette.purple}}>{a.title}</div><div style={{fontSize:"10px",color:"#786F8D"}}>{a.topic||"Sem tópico"} · {formatarDataBR(a.activity_date)}</div></div><div style={{display:"flex",gap:"5px",alignItems:"center",flexWrap:"wrap"}}><span style={pill(a.status)}>{a.status}</span><button onClick={()=>openEditor(a)} style={btn(palette.purple)}>Edit</button><button onClick={()=>showResults(a)} style={btn(palette.green)}>Results</button><button onClick={()=>deleteActivity(a)} style={{...btn("#FDECEC"),color:"#A22"}}>Delete</button></div></div>)}</div>}</div>}
+  </div>;
+}
+
+function PracticePreview({ activity, questions }) {
+  return <div style={{maxWidth:"680px",margin:"0 auto",background:"#FFF",borderRadius:"16px",padding:"24px",border:"1px solid #EAE3F4"}}><p style={{fontSize:"11px",fontWeight:700,color:palette.orange,margin:0}}>STUDENT PREVIEW</p><h2 style={{color:palette.purple,margin:"5px 0"}}>{activity.title}</h2><p style={{fontSize:"12px",color:"#786F8D"}}>{questions.length} questions · {activity.topic||"Practice"}</p><div style={{marginTop:"18px",display:"grid",gap:"9px"}}>{questions.map((q,i)=><div key={q.id} style={{padding:"12px",borderRadius:"10px",background:"#FBF8F2"}}><strong style={{fontSize:"12px",color:palette.purple}}>{i+1}. {q.prompt}</strong><div style={{fontSize:"10px",color:"#786F8D",marginTop:"4px"}}>{q.question_type.replaceAll("_"," ")}</div></div>)}</div></div>;
+}
+
+function StudentPracticeHub({ student, dark }) {
+  const { useEffect } = React;
+  const [activities,setActivities]=useState([]), [loading,setLoading]=useState(true), [current,setCurrent]=useState(null), [questions,setQuestions]=useState([]);
+  const [idx,setIdx]=useState(0), [attempt,setAttempt]=useState(null), [selected,setSelected]=useState(null), [feedback,setFeedback]=useState(null), [score,setScore]=useState(0), [finished,setFinished]=useState(false);
+  const [matchAnswers,setMatchAnswers]=useState({}), [order,setOrder]=useState([]);
+  const cardBg=dark?"#2D215F":"#FFF", text=dark?"#FFF":palette.purple, muted=dark?"#C9C0E8":"#786F8D";
+  useEffect(()=>{load();},[student.id]);
+  const load=async()=>{setLoading(true);const {data,error}=await supabase.from("practice_activities").select("id,title,topic,activity_date,status").eq("student_id",student.id).eq("status","published").order("activity_date",{ascending:false});setLoading(false);if(error){console.error(error);return;}setActivities(data||[]);};
+  const start=async(a)=>{const {data:q,error}=await supabase.from("practice_questions").select("*").eq("activity_id",a.id).order("position");if(error||!q?.length){alert("Esta prática ainda não tem questões disponíveis.");return;}const {data:att,error:ae}=await supabase.from("practice_attempts").insert({activity_id:a.id,student_id:student.id,total_questions:q.length,score:0}).select().single();if(ae){alert("Não consegui iniciar: "+ae.message);return;}setCurrent(a);setQuestions(q);setAttempt(att);setIdx(0);setScore(0);setFinished(false);resetAnswer();};
+  const resetAnswer=()=>{setSelected(null);setFeedback(null);setMatchAnswers({});setOrder([]);};
+  const q=questions[idx];
+  const shuffled=(arr,seed)=>[...(arr||[])].sort((a,b)=>String(a).localeCompare(String(b))*(seed%2?1:-1));
+  const check=async()=>{if(!q||feedback)return;let ans,ok=false;
+    if(q.question_type==="match"){ans=matchAnswers;ok=(q.options||[]).every(p=>matchAnswers[p.left]===p.right);}
+    else if(q.question_type==="unscramble"){ans=order;ok=JSON.stringify(order)===JSON.stringify(q.correct_answer||q.options);}
+    else {ans=selected;ok=selected===q.correct_answer;}
+    if(ans==null || (q.question_type==="match"&&Object.keys(matchAnswers).length<(q.options||[]).length) || (q.question_type==="unscramble"&&order.length<(q.options||[]).length)){alert("Escolha uma resposta primeiro.");return;}
+    setFeedback(ok?"correct":"wrong"); if(ok)setScore(s=>s+1);
+    await supabase.from("practice_answers").upsert({attempt_id:attempt.id,question_id:q.id,student_id:student.id,answer:ans,is_correct:ok},{onConflict:"attempt_id,question_id"});
+  };
+  const next=async()=>{if(!feedback)return;if(idx<questions.length-1){setIdx(i=>i+1);resetAnswer();return;}const finalScore=score+(feedback==="correct"?0:0);const pct=Math.round((finalScore/questions.length)*100);await supabase.from("practice_attempts").update({completed_at:new Date().toISOString(),score:finalScore,total_questions:questions.length,percentage:pct}).eq("id",attempt.id);setFinished(true);};
+  if(loading)return <p style={{color:muted}}>Loading practices...</p>;
+  if(!current)return <div><div style={{marginBottom:"18px"}}><h2 style={{color:text,margin:"0 0 4px"}}>Practice Hub</h2><p style={{color:muted,fontSize:"12px",margin:0}}>Quick practice based on what you have been learning.</p></div>{activities.length===0?<div style={{padding:"28px",textAlign:"center",background:dark?"#3A2B7A":palette.cream,borderRadius:"14px",color:muted}}>No practice available yet.</div>:<div style={{display:"grid",gap:"10px"}}>{activities.map(a=><div key={a.id} style={{padding:"15px",borderRadius:"12px",background:dark?"#3A2B7A":"#FBF8F2",display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",flexWrap:"wrap"}}><div><strong style={{color:text,fontSize:"14px"}}>{a.title}</strong><div style={{fontSize:"11px",color:muted,marginTop:"3px"}}>{a.topic||"Practice"} · {formatarDataBR(a.activity_date)}</div></div><button onClick={()=>start(a)} style={{border:"none",borderRadius:"9px",padding:"9px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>START →</button></div>)}</div>}</div>;
+  if(finished){const pct=Math.round((score/questions.length)*100);return <div style={{maxWidth:"560px",margin:"20px auto",textAlign:"center"}}><div style={{fontSize:"48px"}}>🎉</div><h2 style={{color:text}}>Practice complete!</h2><div style={{fontSize:"42px",fontWeight:700,color:palette.orange}}>{score}/{questions.length}</div><p style={{color:muted}}>{pct}% · Keep practicing and improving your English.</p><div style={{display:"flex",gap:"8px",justifyContent:"center"}}><button onClick={()=>start(current)} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>Try again</button><button onClick={()=>{setCurrent(null);setFinished(false);load();}} style={{border:"none",borderRadius:"9px",padding:"10px 14px",background:dark?"#5A4AA0":palette.cream,color:text,fontWeight:700,cursor:"pointer"}}>Other practices</button></div></div>}
+  const progress=((idx+1)/questions.length)*100;
+  return <div style={{maxWidth:"680px",margin:"0 auto"}}><button onClick={()=>setCurrent(null)} style={{border:"none",background:"transparent",color:palette.orange,fontWeight:700,cursor:"pointer",padding:0}}>← Back</button><div style={{margin:"14px 0 18px"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:"11px",color:muted,marginBottom:"6px"}}><span>{current.title}</span><span>{idx+1}/{questions.length}</span></div><div style={{height:"7px",background:dark?"#4B3D7E":"#EEE7DA",borderRadius:"9px",overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:palette.orange}}/></div></div><div style={{background:dark?"#3A2B7A":"#FBF8F2",borderRadius:"16px",padding:"22px"}}><p style={{fontSize:"11px",fontWeight:700,color:palette.orange,margin:"0 0 8px"}}>QUESTION {idx+1}</p><h3 style={{color:text,fontSize:"18px",lineHeight:1.45,margin:"0 0 18px"}}>{q.prompt}</h3>
+    {(q.question_type==="multiple_choice"||q.question_type==="choose_correct_sentence"||q.question_type==="true_false")&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((o,i)=><button key={i} disabled={!!feedback} onClick={()=>setSelected(o)} style={{padding:"12px",borderRadius:"10px",border:selected===o?`2px solid ${palette.orange}`:"1px solid #DDD3C7",background:selected===o?(dark?"#51428B":"#FFF4EC"):cardBg,color:text,textAlign:"left",fontWeight:600,cursor:feedback?"default":"pointer"}}>{o}</button>)}</div>}
+    {q.question_type==="match"&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((p,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",alignItems:"center"}}><div style={{padding:"10px",background:cardBg,borderRadius:"8px",color:text,fontWeight:600,fontSize:"12px"}}>{p.left}</div><select disabled={!!feedback} value={matchAnswers[p.left]||""} onChange={e=>setMatchAnswers(m=>({...m,[p.left]:e.target.value}))} style={{padding:"10px",borderRadius:"8px",border:"1px solid #DDD3C7"}}><option value="">Choose...</option>{shuffled((q.options||[]).map(x=>x.right),i).map((r,j)=><option key={j}>{r}</option>)}</select></div>)}</div>}
+    {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,idx).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>setOrder(a=>[...a,w])} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
+    {feedback&&<div style={{marginTop:"14px",padding:"12px",borderRadius:"10px",background:feedback==="correct"?"#EAF7D2":"#FDECEC",color:feedback==="correct"?palette.green:"#9B2C2C",fontSize:"12px",fontWeight:600}}>{feedback==="correct"?"Correct! Great job!":(q.feedback||"Not quite. Check the correct form and try to remember it for next time.")}</div>}
+    <div style={{display:"flex",justifyContent:"flex-end",marginTop:"16px"}}>{!feedback?<button onClick={check} style={{border:"none",borderRadius:"9px",padding:"10px 16px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>CHECK</button>:<button onClick={next} style={{border:"none",borderRadius:"9px",padding:"10px 16px",background:palette.green,color:"#FFF",fontWeight:700,cursor:"pointer"}}>{idx===questions.length-1?"SEE RESULT":"NEXT →"}</button>}</div>
+  </div></div>;
+}
+
 function AdminPanel({ onLogout, onSelectStudent, session }) {
   const [pixForm, setPixForm] = useState({ chave: "", nome: "MARIANA CRUZ", cidade: "" });
   const [pixSalvo, setPixSalvo] = useState(false);
@@ -2697,7 +2865,7 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
             { id: "alunos", label: "🎓 Portais", badge: null },
             { id: "aulasHoje", label: "📅 Aulas de Hoje", badge: aulasHoje.filter(a => { const [h,m]=(a.horario||"00:00").split(":").map(Number); return (new Date().getHours()*60+new Date().getMinutes())>h*60+m && a.status==="agendada"; }).length || null },
             { id: "calendario", label: "📆 Calendário" },
-            { id: "planejador", label: "📋 Planejador" },
+            { id: "practiceHub", label: "🎮 Practice Hub" },
             { id: "materiais", label: "📁 Materiais" },
             { id: "certificados", label: "🎓 Certificados" },
             { id: "flashcards", label: "🃏 Flashcards" },
@@ -2719,8 +2887,8 @@ function AdminPanel({ onLogout, onSelectStudent, session }) {
           ))}
         </div>
 
-        {abaAdmin === "planejador" && (
-          <PlanejadorSemanalEnxuto students={students} onSelectStudent={onSelectStudent} />
+        {abaAdmin === "practiceHub" && (
+          <PracticeHubAdmin students={students} onSelectStudent={onSelectStudent} />
         )}
 
         {abaAdmin === "aulasHoje" && (
@@ -6475,6 +6643,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
               })()}
               </div>
             </div>
+          )}
+
+          {active === "practice" && (
+            <StudentPracticeHub student={student} dark={dark} />
           )}
 
           {active === "flashcards" && (
