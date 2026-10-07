@@ -2102,16 +2102,53 @@ function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=n
   useEffect(()=>{load();},[student.id,lessonRecordId,activityDate]);
   const load=async()=>{
     setLoading(true);
-    let query=supabase.from("practice_activities").select("id,title,topic,activity_date,status,lesson_record_id").eq("student_id",student.id).eq("status","published");
-    if(lessonRecordId) query=query.or(`lesson_record_id.eq.${lessonRecordId}${activityDate?`,and(lesson_record_id.is.null,activity_date.eq.${activityDate})`:""}`);
-    else if(activityDate) query=query.eq("activity_date",activityDate);
-    const {data,error}=await query.order("activity_date",{ascending:false});
-    setLoading(false);if(error){console.error(error);return;}setActivities(data||[]);
+    let data=[], error=null;
+    // Primary rule: a practice belongs to the exact lesson record.
+    // RLS already restricts students to their own published practices.
+    if(lessonRecordId){
+      const primary=await supabase.from("practice_activities")
+        .select("id,title,topic,activity_date,status,lesson_record_id")
+        .eq("status","published")
+        .eq("lesson_record_id",lessonRecordId)
+        .order("created_at",{ascending:false});
+      data=primary.data||[]; error=primary.error;
+      // Backward compatibility for older practices created before lesson_record_id existed.
+      if(!error && data.length===0 && activityDate){
+        const legacy=await supabase.from("practice_activities")
+          .select("id,title,topic,activity_date,status,lesson_record_id")
+          .eq("status","published")
+          .is("lesson_record_id",null)
+          .eq("activity_date",activityDate)
+          .order("created_at",{ascending:false});
+        data=legacy.data||[]; error=legacy.error;
+      }
+    } else if(activityDate){
+      const legacy=await supabase.from("practice_activities")
+        .select("id,title,topic,activity_date,status,lesson_record_id")
+        .eq("status","published")
+        .eq("activity_date",activityDate)
+        .order("created_at",{ascending:false});
+      data=legacy.data||[]; error=legacy.error;
+    }
+    setLoading(false);
+    if(error){console.error("Practice load error:",error);setActivities([]);return;}
+    setActivities(data||[]);
   };
   const start=async(a)=>{const {data:q,error}=await supabase.from("practice_questions").select("*").eq("activity_id",a.id).order("position");if(error||!q?.length){alert("Esta prática ainda não tem questões disponíveis.");return;}const {data:att,error:ae}=await supabase.from("practice_attempts").insert({activity_id:a.id,student_id:student.id,total_questions:q.length,score:0}).select().single();if(ae){alert("Não consegui iniciar: "+ae.message);return;}setCurrent(a);setQuestions(q);setAttempt(att);setIdx(0);setScore(0);setFinished(false);resetAnswer();};
   const resetAnswer=()=>{setSelected(null);setFeedback(null);setMatchAnswers({});setOrder([]);};
   const q=questions[idx];
-  const shuffled=(arr,seed)=>[...(arr||[])].sort((a,b)=>String(a).localeCompare(String(b))*(seed%2?1:-1));
+  const shuffled=(arr,seed=1)=>{
+    const out=[...(arr||[])];
+    let x=(Number(seed)||1)+out.length*997;
+    for(let i=out.length-1;i>0;i--){
+      x=(x*1664525+1013904223)>>>0;
+      const j=x%(i+1);
+      [out[i],out[j]]=[out[j],out[i]];
+    }
+    // Avoid presenting the original order when possible.
+    if(out.length>1 && out.every((v,i)=>v===(arr||[])[i])) [out[0],out[1]]=[out[1],out[0]];
+    return out;
+  };
   const submitAnswer=async(ans)=>{
     if(!q||feedback)return;
     let ok=false;
@@ -2140,7 +2177,7 @@ function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=n
   return <div style={{maxWidth:"680px",margin:"0 auto"}}><button onClick={()=>setCurrent(null)} style={{border:"none",background:"transparent",color:palette.orange,fontWeight:700,cursor:"pointer",padding:0}}>← Back</button><div style={{margin:"14px 0 18px"}}><div style={{display:"flex",justifyContent:"space-between",fontSize:"11px",color:muted,marginBottom:"6px"}}><span>{current.title}</span><span>{idx+1}/{questions.length}</span></div><div style={{height:"7px",background:dark?"#4B3D7E":"#EEE7DA",borderRadius:"9px",overflow:"hidden"}}><div style={{height:"100%",width:`${progress}%`,background:palette.orange}}/></div></div><div style={{background:dark?"#3A2B7A":"#FBF8F2",borderRadius:"16px",padding:"22px"}}><p style={{fontSize:"11px",fontWeight:700,color:palette.orange,margin:"0 0 8px"}}>QUESTION {idx+1}</p><h3 style={{color:text,fontSize:"18px",lineHeight:1.45,margin:"0 0 18px"}}>{q.prompt}</h3>
     {(q.question_type==="multiple_choice"||q.question_type==="choose_correct_sentence"||q.question_type==="true_false")&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((o,i)=><button key={i} disabled={!!feedback} onClick={()=>chooseOption(o)} style={{padding:"12px",borderRadius:"10px",border:selected===o?`2px solid ${palette.orange}`:"1px solid #DDD3C7",background:selected===o?(dark?"#51428B":"#FFF4EC"):cardBg,color:text,textAlign:"left",fontWeight:600,cursor:feedback?"default":"pointer"}}>{o}</button>)}</div>}
     {q.question_type==="match"&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((p,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",alignItems:"center"}}><div style={{padding:"10px",background:cardBg,borderRadius:"8px",color:text,fontWeight:600,fontSize:"12px"}}>{p.left}</div><select disabled={!!feedback} value={matchAnswers[p.left]||""} onChange={e=>chooseMatch(p.left,e.target.value)} style={{padding:"10px",borderRadius:"8px",border:"1px solid #DDD3C7"}}><option value="">Choose...</option>{shuffled((q.options||[]).map(x=>x.right),i).map((r,j)=><option key={j}>{r}</option>)}</select></div>)}</div>}
-    {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,idx).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>chooseWord(w)} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
+    {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,(idx+1)*7919).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>chooseWord(w)} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
     {feedback&&<div style={{marginTop:"14px",padding:"12px",borderRadius:"10px",background:feedback==="correct"?"#EAF7D2":"#FDECEC",color:feedback==="correct"?palette.green:"#9B2C2C",fontSize:"12px",fontWeight:600}}>{feedback==="correct"?"Correct! Great job!":(q.feedback||"Not quite. Check the correct form and try to remember it for next time.")}</div>}
   </div></div>;
 }
@@ -6124,10 +6161,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                         </div>
                       )}
 
-                      {role !== "admin" && !((cronogramaAberto.cronogramasUrl || []).some(u => u && u.trim()) || cronogramaAberto.cronogramaUrl) && (
-                        <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
-                      )}
-
                       {role !== "admin" && (
                         <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", cursor: "pointer" }}>
                           <input type="checkbox" checked={!!homeworkStatus[cronogramaAberto.rowId]} onChange={() => alternarHomeworkConcluido(cronogramaAberto.rowId)}
@@ -6175,7 +6208,7 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                     );
                   })()}
 
-                  {role !== "admin" && ((cronogramaAberto.cronogramasUrl || []).some(u => u && u.trim()) || cronogramaAberto.cronogramaUrl) && (
+                  {role !== "admin" && (
                     <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
                   )}
 
