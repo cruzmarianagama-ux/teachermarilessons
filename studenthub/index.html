@@ -6109,10 +6109,6 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <p style={{ fontSize: "11px", color: palette.orange, fontWeight: 600 }}>{formatarDataBR(cronogramaAberto.data)}</p>
                       <p style={{ marginBottom: "14px", fontSize: "16px", fontWeight: 600, color: dark ? "#FFF" : palette.purple }}>{cronogramaAberto.assunto}</p>
 
-                      {role !== "admin" && (
-                        <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
-                      )}
-
                       {cronogramaAberto.materiaisAula && cronogramaAberto.materiaisAula.length > 0 && (
                         <div style={{ marginBottom: "18px", padding: "14px 16px", borderRadius: "12px", background: dark ? "#3A2B7A" : palette.lightGreen + "33", borderLeft: `3px solid ${palette.green}` }}>
                           <p style={{ fontSize: "12px", fontWeight: 600, color: dark ? "#FFF" : palette.green, marginBottom: "8px", letterSpacing: "0.05em", textTransform: "uppercase" }}>📎 Materiais mostrados em aula</p>
@@ -6126,6 +6122,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                             ))}
                           </div>
                         </div>
+                      )}
+
+                      {role !== "admin" && !((cronogramaAberto.cronogramasUrl || []).some(u => u && u.trim()) || cronogramaAberto.cronogramaUrl) && (
+                        <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
                       )}
 
                       {role !== "admin" && (
@@ -6174,6 +6174,10 @@ function StudentDashboard({ onLogout, role, student, onBack, onSwitchStudent, on
                       <SemanasTabView semanas={semanas} dark={dark} palette={palette} />
                     );
                   })()}
+
+                  {role !== "admin" && ((cronogramaAberto.cronogramasUrl || []).some(u => u && u.trim()) || cronogramaAberto.cronogramaUrl) && (
+                    <StudentPracticeHub student={student} dark={dark} lessonRecordId={cronogramaAberto.rowId} activityDate={cronogramaAberto.data} />
+                  )}
 
                   {cronogramaAberto.embeds && cronogramaAberto.embeds.length > 0 && cronogramaAberto.embeds.map((em, i) => (
                     <div key={i} style={{ marginBottom: "20px" }}>
