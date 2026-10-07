@@ -2150,6 +2150,12 @@ function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=n
     if(out.length>1 && out.every((v,i)=>v===(arr||[])[i])) [out[0],out[1]]=[out[1],out[0]];
     return out;
   };
+  const advanceAfterAnswer=async(finalScore)=>{
+    if(idx<questions.length-1){setIdx(i=>i+1);resetAnswer();return;}
+    const pct=Math.round((finalScore/questions.length)*100);
+    if(!isPreview){const {error:finishError}=await supabase.from("practice_attempts").update({completed_at:new Date().toISOString(),score:finalScore,total_questions:questions.length,percentage:pct}).eq("id",attempt.id);if(finishError){console.error("Practice finish save error:",finishError);}}
+    setScore(finalScore);setFinished(true);
+  };
   const submitAnswer=async(ans)=>{
     if(!q||feedback)return;
     let ok=false;
@@ -2160,13 +2166,11 @@ function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=n
     const newScore=score+(ok?1:0);
     if(ok)setScore(newScore);
     if(!isPreview){const {error:answerError}=await supabase.from("practice_answers").upsert({attempt_id:attempt.id,question_id:q.id,student_id:student.id,answer:ans,is_correct:ok},{onConflict:"attempt_id,question_id"});if(answerError){console.error("Practice answer save error:",answerError);}}
-    window.setTimeout(async()=>{
-      if(idx<questions.length-1){setIdx(i=>i+1);resetAnswer();return;}
-      const pct=Math.round((newScore/questions.length)*100);
-      if(!isPreview){const {error:finishError}=await supabase.from("practice_attempts").update({completed_at:new Date().toISOString(),score:newScore,total_questions:questions.length,percentage:pct}).eq("id",attempt.id);if(finishError){console.error("Practice finish save error:",finishError);}}
-      setScore(newScore);setFinished(true);
-    },900);
+    if(ok){
+      window.setTimeout(()=>advanceAfterAnswer(newScore),900);
+    }
   };
+  const nextAfterWrong=()=>{if(feedback!=="wrong")return;advanceAfterAnswer(score);};
   const chooseOption=(o)=>{if(feedback)return;setSelected(o);submitAnswer(o);};
   const chooseMatch=(left,value)=>{if(feedback)return;const next={...matchAnswers,[left]:value};setMatchAnswers(next);if(value && (q.options||[]).every(p=>next[p.left])) submitAnswer(next);};
   const chooseWord=(w)=>{if(feedback)return;const next=[...order,w];setOrder(next);if(next.length===(q.options||[]).length) submitAnswer(next);};
@@ -2180,6 +2184,7 @@ function StudentPracticeHub({ student, dark, lessonRecordId=null, activityDate=n
     {q.question_type==="match"&&<div style={{display:"grid",gap:"8px"}}>{(q.options||[]).map((p,i)=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",alignItems:"center"}}><div style={{padding:"10px",background:cardBg,borderRadius:"8px",color:text,fontWeight:600,fontSize:"12px"}}>{p.left}</div><select disabled={!!feedback} value={matchAnswers[p.left]||""} onChange={e=>chooseMatch(p.left,e.target.value)} style={{padding:"10px",borderRadius:"8px",border:"1px solid #DDD3C7"}}><option value="">Choose...</option>{shuffled((q.options||[]).map(x=>x.right),i).map((r,j)=><option key={j}>{r}</option>)}</select></div>)}</div>}
     {q.question_type==="unscramble"&&<div><div style={{minHeight:"50px",padding:"9px",border:`1px dashed ${palette.lavender}`,borderRadius:"10px",marginBottom:"10px",display:"flex",gap:"6px",flexWrap:"wrap"}}>{order.map((w,i)=><button key={i} disabled={!!feedback} onClick={()=>setOrder(a=>a.filter((_,j)=>j!==i))} style={{border:"none",borderRadius:"7px",padding:"7px 9px",background:palette.purple,color:"#FFF"}}>{w}</button>)}</div><div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>{shuffled(q.options,(idx+1)*7919).map((w,i)=>{const used=order.filter(x=>x===w).length, total=(q.options||[]).slice(0,i+1).filter(x=>x===w).length; const disabled=feedback||used>= (q.options||[]).filter(x=>x===w).length;return <button key={i} disabled={disabled} onClick={()=>chooseWord(w)} style={{border:"1px solid #DDD3C7",borderRadius:"7px",padding:"7px 9px",background:cardBg,color:text,opacity:disabled?0.45:1}}>{w}</button>})}</div></div>}
     {feedback&&<div style={{marginTop:"14px",padding:"12px",borderRadius:"10px",background:feedback==="correct"?"#EAF7D2":"#FDECEC",color:feedback==="correct"?palette.green:"#9B2C2C",fontSize:"12px",fontWeight:600}}>{feedback==="correct"?"Correct! Great job!":(q.feedback||"Not quite. Check the correct form and try to remember it for next time.")}</div>}
+    {feedback==="wrong"&&<div style={{display:"flex",justifyContent:"flex-end",marginTop:"12px"}}><button onClick={nextAfterWrong} style={{border:"none",borderRadius:"9px",padding:"10px 16px",background:palette.orange,color:"#FFF",fontWeight:700,cursor:"pointer"}}>NEXT →</button></div>}
   </div></div>;
 }
 
