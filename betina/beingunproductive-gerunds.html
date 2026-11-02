@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Being Unproductive – Weekly Practice | Teacher Mari</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #FF5C23;
+    --purple: #1D1050;
+    --purple-light: #5340c8;
+    --green: #04392F;
+    --cream: #FAEAD3;
+    --cream-light: #fff8f0;
+    --white: #ffffff;
+    --gray: #6b7280;
+    --gray-light: #f3f4f6;
+    --red: #ef4444;
+    --teal: #0d9488;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 20px rgba(29,16,80,0.10);
+    --shadow-sm: 0 2px 8px rgba(29,16,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--cream-light);
+    color: var(--purple);
+    min-height: 100vh;
+  }
+  button, input, textarea, select { font-family: 'Poppins', sans-serif; }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  #welcome-screen.hidden { display: none; }
+  .welcome-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 36px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .welcome-logo { height: 48px; max-width: 100%; object-fit: contain; margin-bottom: 16px; }
+  .welcome-hi { font-size: 1.5rem; font-weight: 800; color: var(--purple); margin-bottom: 6px; }
+  .welcome-sub { font-size: 0.82rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+  .welcome-input {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-align: center;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .welcome-input:focus { border-color: var(--purple-light); }
+  .welcome-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,92,35,0.35);
+    transition: all 0.2s;
+  }
+  .welcome-btn:hover { background: #e84d18; transform: translateY(-1px); }
+
+  /* ── HELLO BANNER ── */
+  #hello-banner {
+    display: none;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    color: var(--white);
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  #hello-banner.show { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+    padding: 28px 24px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,92,35,0.18);
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,92,35,0.12);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-logo { height: 72px; max-width: 100%; object-fit: contain; }
+  .header h1 { font-size: 1.5rem; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .header .subtitle {
+    font-size: 0.82rem; font-weight: 500;
+    color: rgba(255,255,255,0.70);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { background: var(--white); padding: 16px 20px; box-shadow: var(--shadow-sm); }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; font-weight: 600; color: var(--purple);
+    margin-bottom: 8px;
+  }
+  .progress-track { height: 10px; background: var(--gray-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ff8c5a);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── MOTIVATION ── */
+  .motivation-bar {
+    background: linear-gradient(90deg, var(--green), #0a6655);
+    color: var(--white);
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    background: var(--white);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-light);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs { display: flex; min-width: max-content; padding: 0 8px; }
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--gray);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--purple-light); }
+  .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--teal); font-weight: 800; }
+
+  /* ── CONTENT ── */
+  .content { max-width: 780px; margin: 0 auto; padding: 24px 16px 60px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .day-number {
+    background: var(--orange); color: var(--white);
+    font-size: 1.1rem; font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255,92,35,0.3);
+  }
+  .day-title { font-size: 1.2rem; font-weight: 700; color: var(--purple); }
+  .day-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; }
+
+  /* ── EXERCISE CARD ── */
+  .ex-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--purple-light);
+  }
+  .ex-card.grammar { border-left-color: var(--orange); }
+  .ex-card.reading { border-left-color: var(--teal); }
+  .ex-card.writing { border-left-color: var(--green); }
+  .ex-card.challenge { border-left-color: var(--orange); background: linear-gradient(135deg, #fff8f0, #fff); }
+  .ex-title { font-size: 0.98rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+  .ex-instruction { font-size: 0.82rem; color: var(--gray); margin-bottom: 18px; line-height: 1.5; }
+  .done-chip {
+    display: none;
+    font-size: 0.68rem; font-weight: 700;
+    background: #f0fdfa; color: var(--teal);
+    border: 1px solid #99f6e4;
+    border-radius: 99px; padding: 1px 8px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .ex-card.done .done-chip { display: inline-block; }
+
+  /* ── ITEM LAYOUT ── */
+  .item { margin-bottom: 16px; }
+  .q-row { display: flex; gap: 8px; align-items: flex-start; }
+  .q-num { font-weight: 700; color: var(--purple-light); flex-shrink: 0; min-width: 18px; font-size: 0.88rem; line-height: 1.9; }
+  .q-body { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 500; color: var(--purple); line-height: 1.9; }
+  .blank { color: var(--gray); letter-spacing: 1px; font-weight: 600; }
+
+  /* ── DIALOGUE ── */
+  .dlg { display: flex; flex-direction: column; gap: 2px; }
+  .dline { display: flex; gap: 8px; align-items: baseline; }
+  .dline .speaker { color: var(--orange); font-weight: 700; flex-shrink: 0; min-width: 20px; }
+  .dline .say { flex: 1; min-width: 0; }
+
+  /* ── WHY / CORRECTION BOX ── */
+  .why-slot {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    background: #f0fdfa;
+    border-left: 3px solid var(--teal);
+    padding: 8px 10px;
+    border-radius: 0 6px 6px 0;
+    color: var(--purple);
+  }
+  .why-slot.show { display: block; }
+  .why-slot .bad { color: var(--red); font-weight: 700; }
+  .why-slot .good { color: var(--teal); font-weight: 700; }
+  .why-slot .why { display: block; margin-top: 2px; }
+  .why-slot .row + .row { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #99f6e4; }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; align-items: stretch; }
+  .mc-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 500;
+    background: var(--white);
+    line-height: 1.4; min-width: 0; overflow-wrap: anywhere;
+  }
+  .mc-option:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.selected { border-color: var(--purple-light); background: #f5f3ff; }
+  .mc-option.correct { border-color: var(--teal); background: #f0fdfa; color: var(--teal); font-weight: 700; }
+  .mc-option.wrong { border-color: var(--red); background: #fef2f2; color: var(--red); font-weight: 700; }
+  .mc-option input[type=radio] { accent-color: var(--purple-light); flex-shrink: 0; }
+
+  /* ── FILL IN ── */
+  .fill-input {
+    border: none;
+    border-bottom: 2px solid var(--purple-light);
+    padding: 1px 6px;
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--purple);
+    background: #faf9ff;
+    width: 84px;
+    max-width: 100%;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+    border-radius: 4px 4px 0 0;
+  }
+  .fill-input:focus { border-bottom-color: var(--orange); background: #fff5ee; }
+  .fill-input.correct { border-bottom-color: var(--teal); color: var(--teal); background: #f0fdfa; }
+  .fill-input.wrong { border-bottom-color: var(--red); color: var(--red); background: #fef2f2; }
+
+  /* ── INLINE CHOICE (No / Yes) ── */
+  .ic-opt {
+    display: inline-block;
+    padding: 1px 10px;
+    margin: 0 2px;
+    border-radius: 6px;
+    border: 2px solid var(--purple-light);
+    background: var(--white);
+    color: var(--purple);
+    font-size: 0.86rem; font-weight: 700;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.15s;
+  }
+  .ic-opt:hover { background: #f5f3ff; }
+  .ic-opt.selected { background: var(--purple); color: var(--white); border-color: var(--purple); }
+  .ic-opt.correct { background: var(--teal); border-color: var(--teal); color: var(--white); }
+  .ic-opt.wrong { background: var(--red); border-color: var(--red); color: var(--white); }
+  .ic-sep { color: var(--gray); font-weight: 600; }
+
+  /* ── TEXTAREA ── */
+  .writing-area {
+    width: 100%;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--purple);
+    resize: vertical;
+    outline: none;
+    min-height: 180px;
+    transition: border-color 0.2s;
+    margin-top: 14px;
+  }
+  .writing-area:focus { border-color: var(--purple-light); }
+  .word-count { font-size: 0.75rem; color: var(--gray); margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(255,92,35,0.25); }
+  .btn-primary:hover { background: #e84d18; transform: translateY(-1px); }
+  .btn-secondary { background: var(--gray-light); color: var(--purple); }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-whatsapp { background: #25D366; color: var(--white); box-shadow: 0 4px 12px rgba(37,211,102,0.25); }
+  .btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem; font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #f0fdfa; color: var(--teal); border: 1px solid #99f6e4; }
+  .feedback.err { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .feedback.partial { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* ── CLICK-MATCH ── */
+  .cm-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .cm-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cm-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gray-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem; font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    text-align: center;
+    user-select: none;
+    word-break: break-word;
+  }
+  .cm-item:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.active { border-color: var(--orange); background: #fff5ee; outline: 2px solid var(--orange); }
+  .cm-item.linked { border-color: var(--purple-light); background: #f5f3ff; }
+  .cm-item.correct-link { border-color: var(--teal); background: #f0fdfa; color: var(--teal); }
+  .cm-item.wrong-link { border-color: var(--red); background: #fef2f2; color: var(--red); }
+  .cm-pair-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--purple-light); color: #fff;
+    font-size: 0.65rem; font-weight: 700;
+    margin-left: 6px;
+  }
+  .cm-tip { font-size: 0.75rem; color: var(--gray); margin-bottom: 10px; }
+
+  /* ── TRUE / FALSE ── */
+  .tf-btns { display: inline-flex; gap: 6px; margin-left: 4px; vertical-align: middle; }
+  .tf-btn {
+    padding: 2px 14px;
+    border-radius: 99px;
+    border: 2px solid var(--gray-light);
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--purple);
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--purple-light); }
+  .tf-btn.selected { border-color: var(--purple); background: var(--purple); color: #fff; }
+  .tf-btn.correct { border-color: var(--teal); background: var(--teal); color: #fff; }
+  .tf-btn.wrong { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── SENTENCE BUILDER ── */
+  .sb-words {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 6px 0 8px; min-height: 40px;
+    padding: 8px; background: var(--gray-light);
+    border-radius: var(--radius-sm);
+  }
+  .sb-zone {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 44px; padding: 8px 10px;
+    background: var(--white);
+    border: 2px dashed var(--purple-light);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+  }
+  .sb-zone.correct-zone { border-color: var(--teal); border-style: solid; background: #f0fdfa; }
+  .sb-zone.wrong-zone { border-color: var(--red); border-style: solid; background: #fef2f2; }
+  .sb-chip {
+    background: var(--purple); color: var(--white);
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 0.84rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sb-chip:hover { background: var(--purple-light); }
+  .sb-chip.in-zone { background: var(--orange); }
+  .sb-label { font-size: 0.72rem; font-weight: 700; color: var(--gray); }
+
+  /* ── READING ── */
+  .reading-text {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: var(--purple);
+    font-weight: 500;
+    border-left: 4px solid var(--teal);
+  }
+  .reading-text p + p { margin-top: 10px; }
+  .reading-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .listen-btn {
+    background: var(--white); border: 1px solid #99f6e4; cursor: pointer;
+    font-size: 0.75rem; font-weight: 700; color: var(--teal);
+    padding: 3px 10px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+
+  /* ── WRITING ── */
+  .example-box {
+    background: linear-gradient(135deg, var(--cream), #fff5e6);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--purple);
+    font-weight: 500;
+    border: 2px dashed var(--orange);
+  }
+  .example-box .ex-label { font-size: 0.72rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .checklist { list-style: none; margin: 14px 0 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    font-size: 0.86rem; font-weight: 500;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { color: var(--teal); font-weight: 800; }
+  .guide-title { font-size: 0.82rem; font-weight: 700; color: var(--purple); margin-top: 16px; }
+
+  /* ── BANKS ── */
+  .bank-section { margin-bottom: 28px; }
+  .bank-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--purple);
+    margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--gray-light);
+  }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 10px; }
+  .vocab-chip {
+    background: var(--white);
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--purple);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vocab-chip:hover { border-color: var(--purple-light); background: #f5f3ff; }
+  .vocab-chip .vc-en { font-weight: 700; font-size: 0.86rem; }
+  .vocab-chip .vc-def { font-size: 0.72rem; color: var(--gray); font-weight: 500; margin-top: 2px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
+  .grammar-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .grammar-table th { background: var(--purple); color: var(--white); padding: 8px 12px; text-align: left; font-weight: 600; }
+  .grammar-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-light); color: var(--purple); font-weight: 500; }
+  .grammar-table tr:nth-child(even) td { background: var(--cream-light); }
+  .grammar-table .orange { color: var(--orange); font-weight: 700; }
+  .grammar-table .teal { color: var(--teal); font-weight: 700; }
+  .grammar-table .red { color: var(--red); font-weight: 700; }
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ── SUMMARY / CONFETTI ── */
+  .summary-card {
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-top: 10px;
+  }
+  .summary-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .summary-card p { font-size: 0.82rem; opacity: 0.85; margin-bottom: 16px; }
+  .score-big { font-size: 2.8rem; font-weight: 800; color: var(--orange); }
+  #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    color: #fff; padding: 14px 28px; border-radius: 99px;
+    font-size: 1rem; font-weight: 700;
+    box-shadow: 0 8px 30px rgba(29,16,80,0.35);
+    z-index: 9999; opacity: 0;
+    transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+    max-width: 90vw; text-align: center;
+  }
+
+  @media (max-width: 760px) { .mc-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 420px) { .mc-options { grid-template-columns: 1fr; } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.1rem; }
+    .header { padding: 20px 16px 16px; }
+    .header-logo { height: 56px; }
+    .content { padding: 14px 10px 50px; }
+    .ex-card { padding: 14px 12px; }
+    .day-header { gap: 10px; margin-bottom: 16px; }
+    .day-number { width: 42px; height: 42px; font-size: 0.95rem; }
+    .day-title { font-size: 1rem; }
+    .tab-btn { padding: 12px 10px; font-size: 0.72rem; }
+    .mc-option { font-size: 0.82rem; padding: 8px 10px; }
+    .btn { font-size: 0.78rem; padding: 9px 16px; }
+    .fill-input { width: 100px; font-size: 0.84rem; }
+    .q-body { font-size: 0.85rem; }
+    .cm-wrap { gap: 10px; }
+    .cm-item { font-size: 0.78rem; padding: 8px 8px; }
+    .grammar-table { font-size: 0.75rem; }
+    .grammar-table th, .grammar-table td { padding: 6px 8px; }
+    .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(min(100px, 100%), 1fr)); gap: 8px; }
+    .reading-text { font-size: 0.85rem; padding: 14px; }
+    .example-box { font-size: 0.82rem; padding: 12px; }
+    .summary-card { padding: 18px; }
+    .score-big { font-size: 2.2rem; }
+    .progress-section { padding: 12px 14px; }
+  }
+.opt:focus-visible,.gnav:focus-visible,.mini-input:focus-visible,.game-actions button:focus-visible{outline:3px solid #0d9488;outline-offset:2px}.opt:disabled{cursor:default}.q-body{line-height:2.6}.writing-area{width:100%;box-sizing:border-box}.context{overflow-wrap:anywhere}@media(max-width:600px){.question{padding:10px}.q-body{line-height:2.9}} 
+.mini-input { width: 84px !important; max-width: min(84px, 30vw) !important; min-width: 0 !important; box-sizing: border-box; }
+.sb-chip { touch-action: manipulation; }
+@media(max-width:480px){.mini-input{width:72px !important;max-width:72px !important}}
+.match-select{display:block;width:min(100%,320px);min-height:42px;margin:8px 0 14px;padding:9px 12px;border:1.5px solid #d9d4e8;border-radius:9px;background:#fff;color:#352a57;font:inherit;cursor:pointer}.match-select:focus-visible{outline:3px solid #f4ad76;outline-offset:2px}.match-select:disabled{opacity:.7;cursor:default}
+
+/* Compact, aligned dropdown matching rows — Day 1, Exercise 1 */
+#d1e1 .question { display:grid; grid-template-columns:minmax(0,1fr) 176px; align-items:center; column-gap:18px; row-gap:5px; margin:7px 0; padding:10px 13px; }
+#d1e1 .question p { margin:0; line-height:1.45; font-size:.85rem; font-weight:500; }
+#d1e1 .match-select { display:block; width:100%; min-width:0; min-height:35px; height:35px; margin:0; padding:5px 9px; border-radius:7px; font-size:.82rem; }
+#d1e1 .q-feedback { grid-column:1 / -1; margin-top:0; }
+@media(max-width:560px){
+  #d1e1 .question { grid-template-columns:minmax(0,1fr); row-gap:7px; padding:10px 12px; }
+  #d1e1 .match-select { width:min(100%,230px); }
+}
+
+.q-body,.question>p{white-space:pre-wrap}.context{white-space:pre-wrap;line-height:1.8}
+.sentence-input{display:block!important;width:100%!important;max-width:100%!important;margin-top:10px!important;min-height:46px}
+.match-select{max-width:100%;width:100%;white-space:normal;font-size:16px}
+.opt{text-align:left;white-space:normal;overflow-wrap:anywhere;min-height:44px}
+.vocab-chip{min-height:100px}.mini-input{font-size:16px}.question{overflow-wrap:anywhere}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #FF5C23;outline-offset:3px}
+@media(max-width:600px){.header h1{font-size:1.2rem}.context{font-size:.9rem}.game-card{padding:18px}.opt{flex:1 1 100%!important}.ex-title{line-height:1.6}.sentence-input{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+/* TML final dual-mode template additions */
+.mode-switch{display:flex;gap:4px;justify-content:center;margin-top:9px}
+.mode-switch button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);color:#fff;border-radius:99px;padding:6px 11px;font-size:.7rem;font-weight:700;cursor:pointer}
+.mode-switch button.active{background:var(--orange);border-color:var(--orange)}
+body.game-mode .tabs-wrap{display:none}
+body.game-mode .content>.day-panel{display:none!important}
+.game-area{max-width:780px;margin:0 auto}
+.game-navline{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.gnav{padding:7px 4px;border:1px solid #e5e7eb;border-radius:9px;background:#fff;color:var(--gray);font-size:.67rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.gnav.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.game-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-left:4px solid var(--orange)}
+.game-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.game-kicker{font-size:.7rem;color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.game-title{font-size:1rem;font-weight:800}
+.game-inst{font-size:.78rem;color:var(--gray);margin-top:3px}
+.game-body{margin-top:14px}
+.game-feedback{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:.8rem;font-weight:600}
+.game-feedback.show{display:block}.game-feedback.ok{background:#f0fdfa;color:var(--teal)}.game-feedback.err{background:#fef2f2;color:var(--red)}
+.game-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.game-actions button,.game-bottom button{border:0;border-radius:99px;padding:8px 13px;font-size:.75rem;font-weight:700;cursor:pointer}
+.game-check{background:var(--orange);color:#fff}.game-try{background:var(--purple);color:#fff}.game-see{background:var(--cream);color:var(--purple)}
+.game-explain{display:none;margin-top:9px;padding:9px 11px;background:#f7f4ff;border-left:3px solid var(--orange);border-radius:0 7px 7px 0;font-size:.78rem;line-height:1.5}.game-explain.show{display:block}
+.game-bottom{display:flex;justify-content:space-between;margin-top:14px}.game-bottom button{background:var(--gray-light);color:var(--purple)}
+.gmc{display:flex;flex-direction:column;gap:8px}.gopt{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--purple)}.gopt.selected{border-color:var(--purple-light);background:#f5f3ff}
+.gfill{border:0;border-bottom:2px solid var(--purple-light);padding:6px;font:inherit;color:var(--purple);outline:none;width:min(240px,100%)}
+.gtf{display:flex;gap:8px}.gtf button{border:2px solid var(--gray-light);background:#fff;border-radius:99px;padding:7px 16px;font-weight:700}.gtf button.selected{background:var(--purple);color:#fff}
+.gwords,.gzone{display:flex;flex-wrap:wrap;gap:7px;padding:8px;border-radius:8px;min-height:44px}.gwords{background:var(--gray-light)}.gzone{border:2px dashed var(--purple-light);margin-top:8px}.gchip{border:0;background:var(--purple);color:#fff;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
+.gmatch{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gmatchcol{display:flex;flex-direction:column;gap:7px}.gm{border:2px solid var(--gray-light);background:#fff;border-radius:8px;padding:9px;text-align:center;font-weight:600;color:var(--purple)}.gm.active{border-color:var(--orange);background:#fff5ee}.gm.linked{border-color:var(--purple-light);background:#f5f3ff}
+.game-bank-copy .day-header{margin-bottom:14px}.game-bank-copy .ex-card{margin-bottom:14px}
+@media(max-width:600px){.game-navline{display:flex;overflow-x:auto}.gnav{min-width:55px}.gnav.bank{min-width:76px}.game-card{padding:14px 12px}.gmatch{gap:8px}}
+</style>
+<style>
+.header{padding:16px 20px 13px}.header-logo{height:52px}.header h1{font-size:1.28rem}.progress-section{padding:10px 16px}.motivation-bar{padding:7px 12px}
+.tab-btn{padding:9px 10px;font-size:.7rem}.content{padding-top:16px}
+@media(max-width:600px){.header{padding:13px 12px 11px}.header-logo{height:42px}.tab-btn{padding:8px 8px;font-size:.68rem}}
+</style>
+<style>.game-area{display:none}.question{margin:13px 0;padding:12px;border:1px solid #e9e6f4;border-radius:9px}.question p{font-size:.88rem;font-weight:600;margin-bottom:8px}.opt{display:block;width:84px;text-align:center;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#1D1050;padding:9px 12px;margin:5px 0;cursor:pointer}.opt.selected{background:#eeeaff;border-color:#5340c8}.opt.correct{background:#e7f9f2;border-color:#0d9488}.opt.wrong{background:#fff0f0;border-color:#ef4444}.q-feedback{font-size:.78rem;margin-top:6px;font-weight:600}.context{white-space:pre-line;background:#FAEAD3;border-left:4px solid #0d9488;padding:15px;border-radius:8px;font-size:.84rem;line-height:1.8;margin:12px 0}.mini-input{width:clamp(92px,14vw,135px);max-width:100%;border:0;border-bottom:2px solid #5340c8;padding:6px;background:#faf9ff;border-radius:4px;font-size:.85rem}.game-card{background:#fff;border-left:4px solid #FF5C23;padding:20px;border-radius:12px;box-shadow:0 4px 20px #1d10501a}.game-navline{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;margin-bottom:12px}.gnav{font-size:.68rem;padding:8px 2px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer}.gnav.active{background:#1D1050;color:white}.game-kicker{font-size:.75rem;color:#FF5C23;font-weight:800}.game-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.game-actions button{border:0;border-radius:99px;background:#FF5C23;color:#fff;padding:9px 16px;cursor:pointer;font-weight:700}.game-actions button.secondary{background:#eee;color:#1D1050}body.game-mode .tabs-wrap{display:none}body.game-mode .day-panel{display:none!important}body.game-mode #game-area{display:block!important}.banks h3{margin:16px 0 8px}.banks p{line-height:1.8}.writing-area{min-height:180px}@media(max-width:500px){.game-navline{grid-template-columns:repeat(5,1fr)}.mini-input{width:95px}}</style><style id="traditional-compact-layout">
+/* Compact traditional view: no effect on the gamified interface. */
+body:not(.game-mode) .content {max-width:900px;padding:14px 18px 38px}
+body:not(.game-mode) .day-header {margin-bottom:12px;gap:10px}
+body:not(.game-mode) .day-number {width:42px;height:42px;font-size:1rem}
+body:not(.game-mode) .day-title {font-size:1.04rem}
+body:not(.game-mode) .ex-card {padding:14px 17px;margin-bottom:12px;border-radius:11px;box-shadow:0 2px 10px rgba(29,16,80,.06)}
+body:not(.game-mode) .ex-title {font-size:.91rem;margin-bottom:2px}
+body:not(.game-mode) .ex-instruction {font-size:.79rem;margin-bottom:9px;line-height:1.45}
+body:not(.game-mode) .question {margin:6px 0;padding:9px 11px;border-radius:8px}
+body:not(.game-mode) .question p {font-size:.83rem;line-height:1.45;margin:0 0 6px;font-weight:550}
+body:not(.game-mode) .q-body {line-height:1.75;font-size:.84rem}
+body:not(.game-mode) .context {padding:11px 13px;margin:8px 0;font-size:.81rem;line-height:1.6}
+body:not(.game-mode) .question:has(> .opt) {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 8px}
+body:not(.game-mode) .question:has(> .opt)>p,
+body:not(.game-mode) .question:has(> .opt)>.q-feedback {grid-column:1/-1}
+body:not(.game-mode) .question>.opt {width:100%;min-width:0;margin:0;padding:7px 9px;text-align:left;font-size:.78rem;line-height:1.35;white-space:normal;overflow-wrap:break-word}
+body:not(.game-mode) .match-select {min-height:34px;height:34px;margin:0;padding:5px 8px;font-size:.8rem}
+body:not(.game-mode) .mini-input {padding:3px 5px;font-size:.82rem}
+body:not(.game-mode) .sb-words,body:not(.game-mode) .sb-zone {padding:7px;gap:5px;min-height:36px}
+body:not(.game-mode) .sb-chip {padding:5px 9px;font-size:.79rem}
+body:not(.game-mode) .btn-row {margin-top:9px;gap:7px}
+body:not(.game-mode) .btn-row .btn {padding:8px 13px;font-size:.76rem}
+body:not(.game-mode) .writing-area {min-height:140px}
+@media(max-width:690px){body:not(.game-mode) .question:has(> .opt){grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:450px){body:not(.game-mode) .content{padding:10px 9px 28px}body:not(.game-mode) .ex-card{padding:11px 10px}body:not(.game-mode) .question{padding:8px}body:not(.game-mode) .question:has(> .opt){grid-template-columns:1fr}body:not(.game-mode) #d1e1 .question{grid-template-columns:1fr}}
+</style><style id="gamified-mc-horizontal-fix">
+/* Gamified multiple-choice: compact options arranged side by side. */
+body.game-mode #game-stage .question:has(> .opt) {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  align-items:stretch;
+}
+body.game-mode #game-stage .question:has(> .opt) > p,
+body.game-mode #game-stage .question:has(> .opt) > .q-feedback {
+  grid-column:1/-1;
+}
+body.game-mode #game-stage .question > .opt {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding:9px 11px;
+  text-align:left;
+  line-height:1.4;
+  font-size:.82rem;
+  overflow-wrap:anywhere;
+  white-space:normal;
+}
+body.game-mode #game-stage .context {overflow-wrap:anywhere;white-space:pre-line;}
+@media(max-width:700px){body.game-mode #game-stage .question:has(> .opt){grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:430px){body.game-mode #game-stage .question:has(> .opt){grid-template-columns:1fr;}}
+</style><style id="audit-accessibility">
+.q-feedback{line-height:1.65}.is-correct{color:#045c4b}.is-wrong{color:#a52323}.is-hint{color:#5340c8}
+.target-gerund{background:#eee7ff;color:#1D1050;padding:1px 4px;border-radius:4px}
+.match-value{font-size:.83rem;line-height:1.6;margin-top:6px;overflow-wrap:anywhere}
+.writing-label{display:block;font-weight:700;margin:12px 0 6px}.writing-note{font-size:.82rem;line-height:1.6;margin:10px 0}
+.writing-feedback{font-weight:600;line-height:1.6;color:#04392F;margin-top:10px}.outside-range{color:#903915}
+button:disabled{cursor:not-allowed!important;opacity:.48}.game-bank{display:block}.game-bank .vocab-grid{margin-bottom:15px}
+@media(max-width:600px){.game-navline{grid-template-columns:repeat(5,minmax(0,1fr))}.match-select{height:44px!important}.mini-input{min-height:44px}.question>.opt{min-height:44px!important}.game-actions button{min-height:44px}}
+</style></head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+<div class="welcome-card">
+<img alt="Teacher Mari" class="welcome-logo" onerror="this.style.display='none'" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png"/>
+<div class="welcome-hi">👋 Hello!</div>
+<div class="welcome-sub">Welcome to your weekly practice<br/><strong>Being Unproductive</strong>.<br/>What's your name?</div>
+<input autocomplete="off" class="welcome-input" id="student-name-input" maxlength="40" placeholder="Type your name..." type="text"/>
+<button class="welcome-btn" id="welcome-start-btn">Start! 🚀</button>
+</div>
+</div>
+<div id="hello-banner"></div>
+<!-- HEADER -->
+<div class="header">
+<div class="header-inner">
+<img alt="Teacher Mari" class="header-logo" onerror="this.style.display='none'" src="https://raw.githubusercontent.com/cruzmarianagama-ux/logos/main/1%20(3).png"/>
+<div>
+<h1>Being Unproductive – Weekly Practice</h1>
+<div class="subtitle">Pre-intermediate · Uses of gerund</div>
+<div class="mode-switch"><button class="active" id="mode-traditional">Traditional</button><button id="mode-gamified">🎮 Gamified</button></div>
+</div>
+</div>
+</div>
+<!-- PROGRESS -->
+<div class="progress-section">
+<div class="progress-label">
+<span>Your progress this week</span>
+<span id="progress-pct">0%</span>
+</div>
+<div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+<div class="motivation-bar">🌟 <span id="motivation-text"></span></div>
+<!-- TABS -->
+<div class="tabs-wrap">
+<div class="tabs">
+<button class="tab-btn active" data-tab="day1">🌿 Day 1</button>
+<button class="tab-btn" data-tab="day2">📅 Day 2</button>
+<button class="tab-btn" data-tab="day3">🕒 Day 3</button>
+<button class="tab-btn" data-tab="day4">🔄 Day 4</button>
+<button class="tab-btn" data-tab="day5">🗣️ Day 5</button>
+<button class="tab-btn" data-tab="day6">📖 Day 6</button>
+<button class="tab-btn" data-tab="day7">✍️ Day 7</button>
+<button class="tab-btn" data-tab="vocab">🔤 Vocab Bank</button>
+<button class="tab-btn" data-tab="grammar">📐 Grammar Bank</button>
+</div>
+</div>
+<div class="content">
+<div class="game-area" id="game-area" style="display:none;">
+<div class="game-navline" id="game-nav"></div>
+<div id="game-stage"></div>
+</div>
+<div class="day-panel active" id="panel-day1"><div class="day-header"><div class="day-number">1</div><div><div class="day-title">Making Time for Yourself</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d1e1"><div class="ex-title">Exercise 1 – What Does It Mean? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Match each expression to its meaning.</div><div id="d1e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d1e1">✔ Check</button><button class="btn btn-secondary" data-reset="d1e1">↺ Reset</button></div><div class="feedback" id="d1e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d1e2"><div class="ex-title">Exercise 2 – Choose the Expression <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the expression that fits each situation.</div><div id="d1e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d1e2">✔ Check</button><button class="btn btn-secondary" data-reset="d1e2">↺ Reset</button></div><div class="feedback" id="d1e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d1e3"><div class="ex-title">Exercise 3 – Notice the Gerunds <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Look at the gerund in each sentence. Match it to its use.</div><div id="d1e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d1e3">✔ Check</button><button class="btn btn-secondary" data-reset="d1e3">↺ Reset</button></div><div class="feedback" id="d1e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day2"><div class="day-header"><div class="day-number">2</div><div><div class="day-title">What People Enjoy Doing</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d2e1"><div class="ex-title">Exercise 1 – Complete the Sentences <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete each sentence with the gerund form of the verb in brackets.</div><div id="d2e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d2e1">✔ Check</button><button class="btn btn-secondary" data-reset="d2e1">↺ Reset</button></div><div class="feedback" id="d2e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d2e2"><div class="ex-title">Exercise 2 – Build the Sentences <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Put the words in the correct order. Start with the capitalised word.</div><div id="d2e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d2e2">✔ Check</button><button class="btn btn-secondary" data-reset="d2e2">↺ Reset</button></div><div class="feedback" id="d2e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d2e3"><div class="ex-title">Exercise 3 – Match the Meaning <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Match each statement to the sentence that expresses the same meaning.</div><div id="d2e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d2e3">✔ Check</button><button class="btn btn-secondary" data-reset="d2e3">↺ Reset</button></div><div class="feedback" id="d2e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day3"><div class="day-header"><div class="day-number">3</div><div><div class="day-title">Different Ways to Use Gerunds</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d3e1"><div class="ex-title">Exercise 1 – Complete the Phrases <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose a preposition. You can use a preposition more than once. Some items accept two answers.</div><div id="d3e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d3e1">✔ Check</button><button class="btn btn-secondary" data-reset="d3e1">↺ Reset</button></div><div class="feedback" id="d3e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d3e2"><div class="ex-title">Exercise 2 – Start with the Activity <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Rewrite each sentence using the verb in brackets as a gerund at the beginning. Keep the rest of the sentence.</div><div id="d3e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d3e2">✔ Check</button><button class="btn btn-secondary" data-reset="d3e2">↺ Reset</button></div><div class="feedback" id="d3e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d3e3"><div class="ex-title">Exercise 3 – A Quieter Sunday <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Read the text. Choose True or False.</div><div id="d3e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d3e3">✔ Check</button><button class="btn btn-secondary" data-reset="d3e3">↺ Reset</button></div><div class="feedback" id="d3e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day4"><div class="day-header"><div class="day-number">4</div><div><div class="day-title">Changing Weekend Habits</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d4e1"><div class="ex-title">Exercise 1 – Understand the Change <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Match each sentence to its meaning.</div><div id="d4e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d4e1">✔ Check</button><button class="btn btn-secondary" data-reset="d4e1">↺ Reset</button></div><div class="feedback" id="d4e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d4e2"><div class="ex-title">Exercise 2 – Complete the Conversations <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Complete the gaps with the gerund form of the verbs in brackets.</div><div id="d4e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d4e2">✔ Check</button><button class="btn btn-secondary" data-reset="d4e2">↺ Reset</button></div><div class="feedback" id="d4e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d4e3"><div class="ex-title">Exercise 3 – What Does the Speaker Mean? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the correct interpretation.</div><div id="d4e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d4e3">✔ Check</button><button class="btn btn-secondary" data-reset="d4e3">↺ Reset</button></div><div class="feedback" id="d4e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day5"><div class="day-header"><div class="day-number">5</div><div><div class="day-title">Finding the Right Activity</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d5e1"><div class="ex-title">Exercise 1 – Who Is It? <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Read the profiles. Choose Anna, Bruno or Clare.</div><div id="d5e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d5e1">✔ Check</button><button class="btn btn-secondary" data-reset="d5e1">↺ Reset</button></div><div class="feedback" id="d5e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d5e2"><div class="ex-title">Exercise 2 – Connect the Action to the Result <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Rewrite each pair as one sentence. Use By + gerund, followed by the person + can + the result. Keep the words from the prompts.</div><div id="d5e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d5e2">✔ Check</button><button class="btn btn-secondary" data-reset="d5e2">↺ Reset</button></div><div class="feedback" id="d5e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d5e3"><div class="ex-title">Exercise 3 – Choose a Suitable Suggestion <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the suggestion that best matches each situation.</div><div id="d5e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d5e3">✔ Check</button><button class="btn btn-secondary" data-reset="d5e3">↺ Reset</button></div><div class="feedback" id="d5e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day6"><div class="day-header"><div class="day-number">6</div><div><div class="day-title">A Weekend with Less Pressure</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d6e1"><div class="ex-title">Exercise 1 – Read the Message <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Read the text. Choose True or False.</div><div id="d6e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d6e1">✔ Check</button><button class="btn btn-secondary" data-reset="d6e1">↺ Reset</button></div><div class="feedback" id="d6e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d6e2"><div class="ex-title">Exercise 2 – Complete the Ideas <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Match the beginnings and endings.</div><div id="d6e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d6e2">✔ Check</button><button class="btn btn-secondary" data-reset="d6e2">↺ Reset</button></div><div class="feedback" id="d6e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d6e3"><div class="ex-title">Exercise 3 – Choose the Best Response <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the response that makes sense in each conversation.</div><div id="d6e3"></div><div class="btn-row"><button class="btn btn-primary" data-check="d6e3">✔ Check</button><button class="btn btn-secondary" data-reset="d6e3">↺ Reset</button></div><div class="feedback" id="d6e3-fb" aria-live="polite"></div></div></div><div class="day-panel " id="panel-day7"><div class="day-header"><div class="day-number">7</div><div><div class="day-title">Consolidation</div><div class="day-desc">3 exercises</div></div></div><div class="ex-card" id="card-d7e1"><div class="ex-title">Exercise 1 – Complete Review <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the correct answer.</div><div id="d7e1"></div><div class="btn-row"><button class="btn btn-primary" data-check="d7e1">✔ Check</button><button class="btn btn-secondary" data-reset="d7e1">↺ Reset</button></div><div class="feedback" id="d7e1-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d7e2"><div class="ex-title">Exercise 2 – Spot the Mistake <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Choose the ONE incorrect sentence in each group.</div><div id="d7e2"></div><div class="btn-row"><button class="btn btn-primary" data-check="d7e2">✔ Check</button><button class="btn btn-secondary" data-reset="d7e2">↺ Reset</button></div><div class="feedback" id="d7e2-fb" aria-live="polite"></div></div><div class="ex-card" id="card-d7e3"><div class="ex-title">Exercise 3 – Writing Challenge <span class="done-chip">✓ Done</span></div><div class="ex-instruction">Write 70–100 words about a weekend with less pressure to be productive.</div><div id="d7e3"></div><div class="btn-row"><button class="btn btn-primary" id="writing-complete">Mark as complete</button><button class="btn btn-secondary" data-reset="d7e3">↺ Reset</button></div><div class="feedback" id="d7e3-fb" aria-live="polite"></div></div></div><div class="day-panel banks" id="panel-vocab"><div class="day-header"><div class="day-number">🔤</div><div><div class="day-title">Vocabulary Bank</div><div class="day-desc">Tap a card to hear the pronunciation.</div></div></div><div class="vocab-grid"><button type="button" class="vocab-chip" data-speak="days off" aria-label="Listen to days off"><div>🔊</div><div class="vc-en">days off</div><div class="vc-def">days when you do not work</div></button><button type="button" class="vocab-chip" data-speak="productive" aria-label="Listen to productive"><div>🔊</div><div class="vc-en">productive</div><div class="vc-def">producing or achieving a lot</div></button><button type="button" class="vocab-chip" data-speak="unproductive" aria-label="Listen to unproductive"><div>🔊</div><div class="vc-en">unproductive</div><div class="vc-def">not producing or achieving much</div></button><button type="button" class="vocab-chip" data-speak="burnout" aria-label="Listen to burnout"><div>🔊</div><div class="vc-en">burnout</div><div class="vc-def">extreme tiredness caused by too much work or stress</div></button><button type="button" class="vocab-chip" data-speak="self-care" aria-label="Listen to self-care"><div>🔊</div><div class="vc-en">self-care</div><div class="vc-def">looking after yourself</div></button><button type="button" class="vocab-chip" data-speak="a source of pleasure" aria-label="Listen to a source of pleasure"><div>🔊</div><div class="vc-en">a source of pleasure</div><div class="vc-def">something that makes you feel happy</div></button><button type="button" class="vocab-chip" data-speak="disconnect from work" aria-label="Listen to disconnect from work"><div>🔊</div><div class="vc-en">disconnect from work</div><div class="vc-def">stop thinking about your job</div></button><button type="button" class="vocab-chip" data-speak="responsibilities" aria-label="Listen to responsibilities"><div>🔊</div><div class="vc-en">responsibilities</div><div class="vc-def">things you need to do</div></button><button type="button" class="vocab-chip" data-speak="give up doing" aria-label="Listen to give up doing"><div>🔊</div><div class="vc-en">give up doing</div><div class="vc-def">stop doing something</div></button><button type="button" class="vocab-chip" data-speak="take up doing" aria-label="Listen to take up doing"><div>🔊</div><div class="vc-en">take up doing</div><div class="vc-def">start an activity or hobby</div></button><button type="button" class="vocab-chip" data-speak="put off doing" aria-label="Listen to put off doing"><div>🔊</div><div class="vc-en">put off doing</div><div class="vc-def">delay doing something</div></button><button type="button" class="vocab-chip" data-speak="look forward to doing" aria-label="Listen to look forward to doing"><div>🔊</div><div class="vc-en">look forward to doing</div><div class="vc-def">feel happy about a future activity</div></button><button type="button" class="vocab-chip" data-speak="do not mind doing" aria-label="Listen to do not mind doing"><div>🔊</div><div class="vc-en">do not mind doing</div><div class="vc-def">be comfortable with doing something</div></button><button type="button" class="vocab-chip" data-speak="cannot stand doing" aria-label="Listen to cannot stand doing"><div>🔊</div><div class="vc-en">cannot stand doing</div><div class="vc-def">strongly dislike doing something</div></button><button type="button" class="vocab-chip" data-speak="consider doing" aria-label="Listen to consider doing"><div>🔊</div><div class="vc-en">consider doing</div><div class="vc-def">think about a possibility</div></button><button type="button" class="vocab-chip" data-speak="spend time outdoors" aria-label="Listen to spend time outdoors"><div>🔊</div><div class="vc-en">spend time outdoors</div><div class="vc-def">be outside for part of your day</div></button></div></div><div class="day-panel banks" id="panel-grammar"><div class="day-header"><div class="day-number">📐</div><div><div class="day-title">Grammar Bank</div><div class="day-desc">Uses of gerund</div></div></div><div class="ex-card grammar"><div class="bank-title">Gerunds as subjects</div><div class="tip-box">Use the -ing form as the subject of a sentence.<br><strong>Walking</strong> helps me relax.<br><strong>Creating</strong> something is enjoyable.</div></div><div class="ex-card grammar"><div class="bank-title">After certain verbs</div><div class="tip-box">enjoy / consider / do not mind / cannot stand / cannot imagine / practise + <strong>verb-ing</strong><br>She enjoys <strong>painting</strong>.<br>We considered <strong>taking</strong> a break.</div></div><div class="ex-card grammar"><div class="bank-title">After phrasal verbs</div><div class="tip-box">give up / take up / put off + <strong>verb-ing</strong><br>He gave up <strong>working</strong> on Sundays.<br>She took up <strong>drawing</strong>.</div></div><div class="ex-card grammar"><div class="bank-title">After prepositions</div><div class="tip-box">by / without / about / in / at / of + <strong>verb-ing</strong><br>You can relax by <strong>walking</strong>.<br>She is interested in <strong>painting</strong>.</div></div><div class="ex-card grammar"><div class="bank-title">Look forward to + gerund</div><div class="tip-box">In <strong>look forward to</strong>, to is a preposition.<br>I look forward to <strong>meeting</strong> my friends.</div></div><div class="ex-card grammar"><div class="bank-title">Spelling reminders</div><div class="tip-box">make → making · take → taking · receive → receiving<br>sit → sitting · plan → planning<br>play → playing · study → studying</div></div></div></div><!-- /content --><script>
+const DATA=[{"day": 1, "title": "What Does It Mean?", "kind": "match", "instruction": "Match each expression to its meaning.", "items": [["days off", "Days when you do not work."], ["burnout", "Extreme tiredness caused by too much work or stress."], ["self-care", "Activities that help you look after yourself."], ["put off", "Move something you need to do to a later time."], ["disconnect from work", "Stop thinking about your job during your free time."], ["productive", "Producing or achieving a lot."]], "context": "", "why": ["Days off are days when a person does not work.", "Burnout is extreme tiredness linked to too much work or stress.", "Self-care means looking after yourself.", "Put off means delay an activity until later.", "Disconnecting from work means leaving work tasks and thoughts behind during free time.", "Productive describes a person or period that produces or achieves a lot."]}, {"day": 1, "title": "Choose the Expression", "kind": "mc", "instruction": "Choose the expression that fits each situation.", "items": [{"q": "Leo finishes several important tasks before lunch. His morning is…", "options": ["productive", "a source of pleasure", "a day off"], "answer": 0}, {"q": "Nina moves cleaning the garage from Saturday to next weekend. She decides to…", "options": ["take up cleaning", "put off cleaning", "enjoy cleaning"], "answer": 1}, {"q": "After months of working without enough rest, a person may experience…", "options": ["self-care", "pleasure", "burnout"], "answer": 2}, {"q": "A warm bath and a quiet evening help Eva look after herself. These are examples of…", "options": ["self-care", "housework", "responsibilities"], "answer": 0}, {"q": "Tom closes his work apps and stops checking office messages. He wants to…", "options": ["participate in work", "disconnect from work", "put off his weekend"], "answer": 1}, {"q": "Playing the guitar makes Mia feel happy. For her, it is…", "options": ["a source of pleasure", "a responsibility", "burnout"], "answer": 0}], "context": "", "why": ["Leo finishes several important tasks, so his morning is productive.", "Nina moves the task to next weekend. Put off means delay.", "The situation describes extreme tiredness after too much work: burnout.", "Eva is looking after herself. This is self-care.", "Closing work apps helps Tom disconnect from work.", "Playing the guitar makes Mia happy, so it is a source of pleasure."]}, {"day": 1, "title": "Notice the Gerunds", "kind": "match", "instruction": "Look at the gerund in each sentence. Match it to its use.", "items": [["Cooking helps Ben forget about work.", "As the subject of the sentence."], ["Sara enjoys painting.", "After a verb."], ["They gave up working on Sundays.", "After a phrasal verb."], ["We relax by walking near the river.", "After a preposition."], ["Dancing is a source of pleasure for Eva.", "As the subject of the sentence."], ["He considers spending more time outdoors.", "After a verb."], ["Nina took up drawing last year.", "After a phrasal verb."], ["They are interested in exploring the city.", "After a preposition."]], "context": "", "targets": ["Cooking", "painting", "working", "walking", "Dancing", "spending", "drawing", "exploring"], "why": ["Cooking is the subject: it names the activity that helps Ben.", "Painting follows the verb enjoy. Use enjoy + verb-ing.", "Working follows the phrasal verb give up.", "Walking follows the preposition by.", "Dancing is the subject: it names a source of pleasure.", "Spending follows the verb consider. Use consider + verb-ing.", "Drawing follows the phrasal verb take up.", "Exploring follows the preposition in."]}, {"day": 2, "title": "Complete the Sentences", "kind": "fill", "instruction": "Complete each sentence with the gerund form of the verb in brackets.", "items": [{"q": "Lara enjoys ___ dinner when she has plenty of time. (make)", "answer": "making"}, {"q": "We considered ___ the weekend in the countryside. (spend)", "answer": "spending"}, {"q": "I do not mind ___ the kitchen after dinner. (clean)", "answer": "cleaning"}, {"q": "Max cannot stand ___ work emails during a film. (receive)", "answer": "receiving"}, {"q": "They cannot imagine ___ every weekend at the office. (work)", "answer": "working"}, {"q": "Eva practises ___ the guitar on Saturday mornings. (play)", "answer": "playing"}, {"q": "Ben hates ___ in traffic on his days off. (sit)", "answer": "sitting"}, {"q": "The children enjoy ___ pictures with their grandparents. (draw)", "answer": "drawing"}], "context": "", "why": ["Use enjoy + verb-ing: enjoys making. Drop the final e in make.", "Use consider + verb-ing: considered spending.", "Use do not mind + verb-ing: do not mind cleaning.", "Use cannot stand + verb-ing: cannot stand receiving. Drop the final e in receive.", "Use cannot imagine + verb-ing: cannot imagine working.", "Use practise + verb-ing: practises playing.", "Use hate + verb-ing in this exercise: hates sitting. Double the final t.", "Use enjoy + verb-ing: enjoy drawing."]}, {"day": 2, "title": "Build the Sentences", "kind": "order", "instruction": "Put the words in the correct order. Start with the capitalised word.", "items": [{"answer": "Carla enjoys cooking simple meals."}, {"answer": "We do not mind waiting."}, {"answer": "Alex considers taking a break."}, {"answer": "She cannot stand being late."}, {"answer": "They cannot imagine spending Sunday indoors."}, {"answer": "He practises speaking English regularly.", "alternatives": ["He regularly practises speaking English."]}], "context": "", "why": ["Carla is the subject; enjoys is followed by cooking; simple meals is the object.", "Use subject + do not mind + verb-ing: We do not mind waiting.", "Use subject + considers + verb-ing + object: Alex considers taking a break.", "Use cannot stand + verb-ing: She cannot stand being late.", "Use cannot imagine + verb-ing: They cannot imagine spending Sunday indoors.", "Use practises + verb-ing. Regularly can appear before practises or at the end of this sentence."]}, {"day": 2, "title": "Match the Meaning", "kind": "match", "instruction": "Match each statement to the sentence that expresses the same meaning.", "items": [["Cleaning does not bother Adam.", "Adam does not mind cleaning."], ["Cooking makes Jo feel happy.", "Jo enjoys cooking."], ["Waiting in long queues really annoys Liz.", "Liz cannot stand waiting in long queues."], ["Dan is thinking about starting painting classes.", "Dan considers taking painting classes."], ["For Ruth, a weekend without seeing friends is impossible to imagine.", "Ruth cannot imagine spending a weekend without meeting friends."], ["Kim repeats guitar exercises regularly to improve.", "Kim practises playing the guitar."]], "context": "", "why": ["Does not mind means the activity does not bother the person.", "Enjoys means likes doing something or gets pleasure from it.", "Cannot stand expresses strong dislike or annoyance.", "Considers means thinks about a possibility.", "Cannot imagine expresses that Ruth finds a weekend without friends difficult to picture.", "Practises means repeats an activity to improve a skill."]}, {"day": 3, "title": "Complete the Phrases", "kind": "fill", "instruction": "Choose a preposition. You can use a preposition more than once. Some items accept two answers.", "items": [{"q": "Maya is interested ___ learning a new dance.", "answer": "in"}, {"q": "Tom is good ___ creating things with his hands.", "answer": "at"}, {"q": "Nina dreams ___ spending a month near the ocean.", "answer": "of", "alternatives": [["about"]]}, {"q": "Spending time in nature is one way to reduce stress. We can reduce stress ___ spending time in nature.", "answer": "by"}, {"q": "Turning off his work phone is necessary for him to relax. He cannot relax ___ turning off his work phone.", "answer": "without"}, {"q": "They are thinking ___ taking a hiking trip.", "answer": "about", "alternatives": [["of"]]}], "context": "WORD BANK: about · at · by · in · of · without", "why": ["The phrase is interested in + verb-ing.", "The phrase is good at + verb-ing.", "Both dream of + verb-ing and dream about + verb-ing are correct here.", "By + verb-ing explains how people can reduce stress.", "Without + verb-ing describes the action he needs in order to relax.", "Both think about + verb-ing and think of + verb-ing are correct here."]}, {"day": 3, "title": "Start with the Activity", "kind": "fill", "instruction": "Rewrite each sentence using the verb in brackets as a gerund at the beginning. Keep the rest of the sentence.", "items": [{"q": "It is enjoyable to cook with friends. (cook)\n___", "answer": "Cooking with friends is enjoyable."}, {"q": "It is useful to learn a new skill. (learn)\n___", "answer": "Learning a new skill is useful."}, {"q": "It is tiring to work without breaks. (work)\n___", "answer": "Working without breaks is tiring."}, {"q": "It is exciting to explore a new city. (explore)\n___", "answer": "Exploring a new city is exciting."}, {"q": "It is difficult to disconnect from work. (disconnect)\n___", "answer": "Disconnecting from work is difficult."}, {"q": "It is important to spend time on self-care. (spend)\n___", "answer": "Spending time on self-care is important."}], "context": "EXAMPLE\nIt is relaxing to paint. → Painting is relaxing.", "why": ["Cooking with friends is the subject. Keep is enjoyable after it.", "Learning a new skill is the subject. Keep is useful after it.", "Working without breaks is the subject. Keep is tiring after it.", "Exploring a new city is the subject. Keep is exciting after it.", "Disconnecting from work is the subject. Keep is difficult after it.", "Spending time on self-care is the subject. Keep is important after it."]}, {"day": 3, "title": "A Quieter Sunday", "kind": "tf", "instruction": "Read the text. Choose True or False.", "items": [["Marcus plans many tasks for Sunday.", false], ["He likes taking his time over breakfast.", true], ["Walking helps him stop thinking about work.", true], ["Creating a perfect picture is his main goal.", false], ["He sometimes draws on Sundays.", true], ["He believes a day off must be very productive.", false]], "context": "On Sundays, Marcus does not make a long list of tasks. He enjoys preparing breakfast slowly and listening to music. Walking near his home helps him disconnect from work. He sometimes spends an hour drawing, but he does not worry about creating a perfect picture. For Marcus, doing something enjoyable is more important than achieving a lot on his day off.", "why": ["The text says Marcus does not make a long list of tasks.", "Preparing breakfast slowly means taking his time over breakfast.", "The text says walking helps Marcus disconnect from work.", "He does not worry about creating a perfect picture.", "The text says he sometimes spends an hour drawing.", "For Marcus, enjoyment is more important than achieving a lot on his day off."]}, {"day": 4, "title": "Understand the Change", "kind": "match", "instruction": "Match each sentence to its meaning.", "items": [["Iris gave up checking work messages at dinner.", "She stopped doing it."], ["Paul took up painting.", "He started a new activity."], ["Sara put off cleaning the spare room.", "She delayed the activity."], ["Ben looks forward to meeting his friends.", "He feels happy about a future activity."], ["Jo keeps working during lunch.", "She continues doing it."], ["Leo thinks about spending more time outside.", "He considers the possibility."]], "context": "", "why": ["Gave up checking means Iris stopped checking.", "Took up painting means Paul started painting as an activity.", "Put off cleaning means Sara delayed cleaning.", "Looks forward to meeting expresses positive feelings about a future meeting.", "Keeps working means Jo continues working.", "Thinks about spending means Leo considers this possibility."]}, {"day": 4, "title": "Complete the Conversations", "kind": "fill", "instruction": "Complete the gaps with the gerund form of the verbs in brackets.", "items": [{"q": "A: Do you still work every Sunday?\nB: No. I gave up ___ that last month. (do)", "answer": "doing"}, {"q": "A: Why do you have a new camera?\nB: I took up ___ photos in my free time. (take)", "answer": "taking"}, {"q": "A: Are you excited about Saturday?\nB: Yes! I look forward to ___ my old friends. (see)", "answer": "seeing"}, {"q": "A: Why is the garage still dirty?\nB: We keep putting off ___ it. (clean)", "answer": "cleaning"}, {"q": "A: Does Ana stop thinking about work at home?\nB: Not really. She keeps ___ her messages. (check)", "answer": "checking"}, {"q": "A: What can we do on our next day off?\nB: How about ___ a new part of the city? (explore)", "answer": "exploring"}], "context": "", "why": ["Use give up + verb-ing: gave up doing.", "Use take up + verb-ing: took up taking photos.", "To is a preposition in look forward to. Use seeing after it.", "Use put off + verb-ing: putting off cleaning.", "Use keep + verb-ing: keeps checking.", "About is a preposition. Use exploring after how about."]}, {"day": 4, "title": "What Does the Speaker Mean?", "kind": "mc", "instruction": "Choose the correct interpretation.", "items": [{"q": "“I gave up working at weekends.”", "options": ["I stopped working at weekends.", "I started working at weekends."], "answer": 0}, {"q": "“I do not mind spending Saturday at home.”", "options": ["Staying home is a problem for me.", "Staying home does not bother me."], "answer": 1}, {"q": "“I keep thinking about my responsibilities.”", "options": ["The thoughts continue.", "The thoughts stopped."], "answer": 0}, {"q": "“I look forward to spending time with my family.”", "options": ["I feel positive about the future activity.", "I want to delay the activity."], "answer": 0}, {"q": "“I put off doing the housework.”", "options": ["I started a new hobby.", "I delayed the housework."], "answer": 1}, {"q": "“I took up hiking.”", "options": ["I started hiking as an activity.", "I stopped hiking."], "answer": 0}], "context": "", "why": ["Give up doing something means stop doing it.", "Do not mind means the activity does not bother the speaker.", "Keep doing describes an action or thought that continues.", "Look forward to expresses positive feelings about a future activity.", "Put off doing something means delay doing it.", "Take up an activity means start doing it as a hobby or regular activity."]}, {"day": 5, "title": "Who Is It?", "kind": "mc", "instruction": "Read the profiles. Choose Anna, Bruno or Clare.", "items": [{"q": "Who started a new creative activity?", "options": ["Anna", "Bruno", "Clare"], "answer": 1}, {"q": "Who prefers spending free time outdoors?", "options": ["Anna", "Bruno", "Clare"], "answer": 0}, {"q": "Who stopped a work-related habit?", "options": ["Anna", "Bruno", "Clare"], "answer": 2}, {"q": "Who enjoys cooking with other people?", "options": ["Anna", "Bruno", "Clare"], "answer": 2}, {"q": "Who is comfortable spending a long time on one picture?", "options": ["Anna", "Bruno", "Clare"], "answer": 1}, {"q": "Who dislikes staying indoors all weekend?", "options": ["Anna", "Bruno", "Clare"], "answer": 0}], "context": "ANNA\nI work indoors all week. On my days off, I enjoy hiking and exploring places near my city. I cannot stand spending the whole weekend inside.\n\nBRUNO\nCreating things with my hands helps me relax. I took up painting recently. I do not mind spending a whole afternoon on one picture.\n\nCLARE\nI work alone, so I look forward to meeting people at weekends. I enjoy preparing meals with friends. I gave up checking my work phone during these meals.", "why": ["Bruno says he took up painting recently.", "Anna enjoys hiking and exploring places outdoors.", "Clare gave up checking her work phone during meals with friends.", "Clare enjoys preparing meals with friends.", "Bruno does not mind spending a whole afternoon on one picture.", "Anna cannot stand spending the whole weekend inside."]}, {"day": 5, "title": "Connect the Action to the Result", "kind": "fill", "instruction": "Rewrite each pair as one sentence. Use By + gerund, followed by the person + can + the result. Keep the words from the prompts.", "items": [{"q": "Tom walks in nature. This helps him reduce stress.\n___", "answer": "By walking in nature, Tom can reduce stress."}, {"q": "Mia practises regularly. This helps her improve her dancing.\n___", "answer": "By practising regularly, Mia can improve her dancing.", "alternatives": [["By practicing regularly, Mia can improve her dancing."]]}, {"q": "Leo cooks at home. This helps him spend less money.\n___", "answer": "By cooking at home, Leo can spend less money."}, {"q": "Nina joins a painting class. This helps her meet new people.\n___", "answer": "By joining a painting class, Nina can meet new people."}, {"q": "Ben takes regular breaks. This helps him look after himself.\n___", "answer": "By taking regular breaks, Ben can look after himself."}, {"q": "Jo explores the city on foot. This helps her discover new places.\n___", "answer": "By exploring the city on foot, Jo can discover new places."}], "context": "EXAMPLE\nEva turns off her work phone. This helps her disconnect.\n→ By turning off her work phone, Eva can disconnect.", "why": ["Use By walking in nature to explain how Tom can reduce stress.", "Use By practising regularly to explain how Mia can improve her dancing.", "Use By cooking at home to explain how Leo can spend less money.", "Use By joining a painting class to explain how Nina can meet new people.", "Use By taking regular breaks to explain how Ben can look after himself.", "Use By exploring the city on foot to explain how Jo can discover new places."]}, {"day": 5, "title": "Choose a Suitable Suggestion", "kind": "mc", "instruction": "Choose the suggestion that best matches each situation.", "items": [{"q": "Rita wants an activity that involves creating something with her hands.", "options": ["Consider taking a painting class.", "Consider visiting an art exhibition."], "answer": 0}, {"q": "Paulo wants to spend time with a friend who enjoys being outdoors.", "options": ["Think about watching a nature documentary together.", "Think about going hiking together."], "answer": 1}, {"q": "Eva wants to disconnect from work during dinner.", "options": ["Consider putting your work phone away.", "Consider leaving your work phone on the dinner table."], "answer": 0}, {"q": "Max enjoys cooking and wants to spend more time with his family.", "options": ["Think about preparing a meal together.", "Think about ordering separate meals to eat at different times."], "answer": 0}, {"q": "Nina wants to explore a new city’s history.", "options": ["Consider visiting a modern shopping centre.", "Consider visiting the old castle."], "answer": 1}, {"q": "Dan wants a quiet activity at home after a busy week.", "options": ["Think about going to a crowded concert.", "Think about drawing while listening to soft music."], "answer": 1}], "context": "", "why": ["A painting class involves making something with your hands; visiting an exhibition mainly involves looking at art.", "Hiking lets the friends spend time together outdoors.", "Putting the work phone away helps Eva avoid work messages during dinner.", "Preparing a meal together combines cooking with family time.", "An old castle is connected to the city’s history.", "Drawing with soft music is a quiet activity that Dan can do at home."]}, {"day": 6, "title": "Read the Message", "kind": "tf", "instruction": "Read the text. Choose True or False.", "items": [["Alex wants a Saturday full of activities.", false], ["Alex is interested in seeing some art.", true], ["Staying home is an acceptable option for Alex.", true], ["Alex suggests cooking if they stay home.", true], ["Alex still tries to fit everything into one day.", false], ["Alex wants Sam to work during the visit.", false]], "context": "Hi, Sam!\nI do not feel like planning a busy Saturday. I am interested in visiting the small art exhibition near the station, but I do not mind staying home if it rains. We can enjoy cooking something together instead. I gave up trying to do everything in one day. Spending time with a friend is enough for me! Please do not bring your laptop — let’s disconnect from work.\nAlex", "why": ["Alex says he does not feel like planning a busy Saturday.", "Alex is interested in visiting the art exhibition.", "Alex says he does not mind staying home if it rains.", "Alex suggests enjoying cooking something together instead.", "Alex gave up trying to do everything in one day.", "Alex asks Sam not to bring a laptop because they want to disconnect from work."]}, {"day": 6, "title": "Complete the Ideas", "kind": "match", "instruction": "Match the beginnings and endings.", "items": [["Creating something with your hands…", "helps some people relax."], ["We can disconnect from work by…", "turning off work notifications."], ["Lara cannot imagine…", "spending every day off at the office."], ["Our neighbours look forward to…", "meeting their friends at the weekend."], ["Tom is interested in…", "learning more about the city’s history."], ["Mia gave up…", "working through lunch because she needs a proper break."]], "context": "", "why": ["The subject Creating something with your hands connects to the benefit helps some people relax.", "By needs an -ing form: by turning off work notifications.", "Cannot imagine is followed by spending, describing the weekend situation Lara cannot picture.", "Look forward to is followed by meeting, a future activity the neighbours feel positive about.", "Interested in is followed by learning, the topic Tom wants to explore.", "Gave up is followed by working, the habit Mia stopped."]}, {"day": 6, "title": "Choose the Best Response", "kind": "mc", "instruction": "Choose the response that makes sense in each conversation.", "items": [{"q": "A: I cannot stand checking work emails on Sundays.\nB: …", "options": ["Then consider turning off your work notifications.", "Then keep checking them all afternoon."], "answer": 0}, {"q": "A: What do you enjoy about painting?\nB: …", "options": ["I put off cleaning the kitchen.", "Creating something helps me forget about work."], "answer": 1}, {"q": "A: Does staying home at the weekend bother you?\nB: …", "options": ["No, I do not mind spending a quiet day at home.", "Yes, I really enjoy staying home."], "answer": 0}, {"q": "A: Why did you take up hiking?\nB: …", "options": ["Because I wanted to stop going outdoors.", "Because spending time in nature helps me relax."], "answer": 1}, {"q": "A: I keep putting off meeting my friends because of work.\nB: …", "options": ["Consider planning some time with them on your next day off.", "Give up seeing them and work every weekend."], "answer": 0}, {"q": "A: How can we create some family memories this weekend?\nB: …", "options": ["By spending the whole weekend answering office messages.", "By preparing a meal and doing something enjoyable together."], "answer": 1}], "context": "", "why": ["Turning off work notifications addresses the problem of checking emails on Sundays.", "The question asks what the speaker enjoys about painting; creating something explains the benefit.", "No, I do not mind answers the question directly and means staying home does not bother the speaker.", "The question asks for a reason. Enjoying nature explains why the speaker started hiking.", "Planning time with friends addresses the problem of delaying meetings because of work.", "By preparing a meal and doing something together explains how the family can create memories."]}, {"day": 7, "title": "Complete Review", "kind": "mc", "instruction": "Choose the correct answer.", "items": [{"q": "___ a quiet breakfast helps Nina start her day slowly.", "options": ["Having", "Have", "Has"], "answer": 0}, {"q": "Ben enjoys ___ things with his hands.", "options": ["create", "creating", "to creating"], "answer": 1}, {"q": "We are interested ___ joining the walking group.", "options": ["at", "about", "in"], "answer": 2}, {"q": "“I put off cleaning the garage” means…", "options": ["I delayed cleaning it.", "I started cleaning it.", "I enjoyed cleaning it."], "answer": 0}, {"q": "Eva gave up ___ work messages during meals.", "options": ["check", "checking", "to check"], "answer": 1}, {"q": "You can disconnect from work ___ turning off notifications.", "options": ["by", "at", "of"], "answer": 0}, {"q": "“I do not mind waiting” means…", "options": ["Waiting really annoys me.", "I refuse to wait.", "Waiting does not bother me."], "answer": 2}, {"q": "We look forward to ___ the new exhibition.", "options": ["visit", "visiting", "visited"], "answer": 1}, {"q": "Activities that help you look after yourself are examples of…", "options": ["burnout", "self-care", "housework"], "answer": 1}, {"q": "“Mark took up drawing” means…", "options": ["He started drawing as an activity.", "He stopped drawing.", "He delayed drawing."], "answer": 0}, {"q": "A: I want to spend more time outdoors.\nB: …", "options": ["Consider taking a hiking trip.", "Consider staying inside all weekend.", "Consider checking your office messages."], "answer": 0}, {"q": "She cannot stand ___ about work on her days off.", "options": ["to thinking", "think", "thinking"], "answer": 2}], "context": "", "why": ["Having is a gerund used as the subject of the sentence.", "Use enjoy + verb-ing: enjoys creating.", "Use interested in + verb-ing: interested in joining.", "Put off means delay an activity.", "Use give up + verb-ing: gave up checking.", "By + verb-ing explains how: by turning off notifications.", "Do not mind means the activity does not bother the speaker.", "In look forward to, to is a preposition. Use visiting.", "Self-care means looking after yourself.", "Take up an activity means start doing it as a hobby.", "A hiking trip lets the person spend time outdoors.", "Use cannot stand + verb-ing: cannot stand thinking."]}, {"day": 7, "title": "Spot the Mistake", "kind": "mc", "instruction": "Choose the ONE incorrect sentence in each group.", "items": [{"q": "Choose the incorrect sentence.", "options": ["Walking helps me relax.", "Walk helps me relax.", "Walking is a simple activity."], "answer": 1, "correction": "Walking helps me relax."}, {"q": "Choose the incorrect sentence.", "options": ["She enjoys cooking.", "She enjoys painting.", "She enjoys to dance."], "answer": 2, "correction": "She enjoys dancing."}, {"q": "Choose the incorrect sentence.", "options": ["He is interested in learn a new skill.", "He is interested in learning a new skill.", "He is interested in taking a class."], "answer": 0, "correction": "He is interested in learning a new skill."}, {"q": "Choose the incorrect sentence.", "options": ["We gave up working on Sundays.", "We gave up checking emails at dinner.", "We gave up to work on Saturdays."], "answer": 2, "correction": "We gave up working on Saturdays."}, {"q": "Choose the incorrect sentence.", "options": ["I look forward to meet my friends.", "I look forward to meeting my friends.", "I look forward to spending time outdoors."], "answer": 0, "correction": "I look forward to meeting my friends."}, {"q": "Choose the incorrect sentence.", "options": ["She relaxes by drawing.", "She relaxes by listen to music.", "She relaxes by walking."], "answer": 1, "correction": "She relaxes by listening to music."}, {"q": "Choose the incorrect sentence.", "options": ["They do not mind waiting.", "They do not mind staying home.", "They do not mind to wait."], "answer": 2, "correction": "They do not mind waiting."}, {"q": "Choose the incorrect sentence.", "options": ["He took up to paint last year.", "He took up painting last year.", "He took up dancing last year."], "answer": 0, "correction": "He took up painting last year."}], "context": "", "why": ["The activity is the subject, so use Walking helps me relax.", "Use enjoy + verb-ing: She enjoys dancing.", "Use a gerund after in: He is interested in learning a new skill.", "Use give up + verb-ing: We gave up working on Saturdays.", "Use a gerund after look forward to: I look forward to meeting my friends.", "Use a gerund after by: She relaxes by listening to music.", "Use do not mind + verb-ing: They do not mind waiting.", "Use take up + verb-ing: He took up painting last year."]}, {"day": 7, "title": "Writing Challenge", "kind": "writing", "instruction": "Write 70–100 words about a weekend with less pressure to be productive.", "items": [], "context": "Include:\n• Two activities you enjoy doing.\n• One activity you do not mind doing or cannot stand doing.\n• One habit you want to give up.\n• One way to relax, using by + gerund.\n• One sentence beginning with a gerund.\n\nUSEFUL LANGUAGE\nI enjoy… / I do not mind… / I cannot stand… / I want to give up… / I can relax by… / … helps me…\n\nMODEL TEXT\nMy ideal weekend is simple. I enjoy cooking a slow breakfast and spending time outdoors. Walking in the park helps me forget about work. I do not mind doing a little housework, but I cannot stand checking office messages all day. I want to give up working during meals. I can relax by listening to music or drawing something just for fun. I also look forward to meeting a friend for coffee. For me, enjoying my time is more important than finishing a long list of tasks."}];
+const KEY='tml_being_unproductive_weekly_v1';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??'').normalize('NFKC').toLowerCase().replace(/[’‘]/g,"'").replace(/[,.;:!?]/g,'').replace(/\s+/g,' ').trim();
+const initial={name:'',mode:'traditional',done:{},responses:{},checked:{},attempts:{},writing:'',writingComplete:false,day:1,ex:0,item:0,tab:'day1'};
+let state=structuredClone(initial),storageAvailable=true;
+try{const old=JSON.parse(localStorage.getItem(KEY)||'{}');if(old&&typeof old==='object'&&!Array.isArray(old))state={...state,...old};}catch(e){storageAvailable=false;}
+for(const prop of ['done','responses','checked','attempts'])if(!state[prop]||typeof state[prop]!=='object'||Array.isArray(state[prop]))state[prop]={};
+state.name=typeof state.name==='string'?state.name.slice(0,40):'';state.writing=typeof state.writing==='string'?state.writing:'';
+state.day=Math.min(7,Math.max(1,Number(state.day)||1));state.ex=Math.min(2,Math.max(0,Number(state.ex)||0));
+if(!['traditional','gamified'].includes(state.mode))state.mode='traditional';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){storageAvailable=false;}};
+// Use the same deterministic option order in both modes and on every reload.
+DATA.forEach((x,ei)=>{if(x.kind==='mc')x.items.forEach((it,j)=>{const shift=(ei+j)%it.options.length;if(shift){it.options=[...it.options.slice(-shift),...it.options.slice(0,-shift)];it.answer=(it.answer+shift)%it.options.length;}});});
+const id=(d,i)=>`d${d}e${i+1}`;
+const get=(d,i)=>DATA[(d-1)*3+i];
+const exercise=e=>{const m=e.match(/^d([1-7])e([1-3])$/);return m?get(+m[1],+m[2]-1):null;};
+const arr=e=>state.responses[e]||(state.responses[e]={});
+const options=x=>[...new Set(x.items.map(z=>z[1]))].sort((a,b)=>a.localeCompare(b));
+const totalItems=x=>x.kind==='writing'?1:x.items.length;
+const words=()=>state.writing.trim()?state.writing.trim().split(/\s+/).length:0;
+const validWriting=()=>words()>=70&&words()<=100;
+function correct(x,j,v){
+ const it=x.items[j];if(v===undefined||v===null||v==='')return false;
+ if(x.kind==='mc')return Number.isInteger(Number(v))&&Number(v)===it.answer;
+ if(x.kind==='tf')return Number(v)===(it[1]?0:1);
+ if(x.kind==='match')return options(x)[Number(v)]===it[1];
+ if(x.kind==='fill'){const expected=it.answer.split('|');return Array.isArray(v)&&expected.length===v.length&&expected.every((a,k)=>[a,...(it.alternatives?.[k]||[])].some(z=>norm(z)===norm(v[k])));}
+ if(x.kind==='order'){const w=it.answer.trim().split(/\s+/);return Array.isArray(v)&&v.length===w.length&&new Set(v).size===w.length&&v.every(i=>Number.isInteger(i)&&i>=0&&i<w.length)&&[it.answer,...(it.alternatives||[])].some(a=>norm(v.map(i=>w[i]).join(' '))===norm(a));}
+ return false;
+}
+function answered(x,j,v){return x.kind==='order'?Array.isArray(v)&&v.length===x.items[j].answer.split(/\s+/).length:x.kind==='fill'?Array.isArray(v)&&v.length===x.items[j].answer.split('|').length&&v.every(s=>String(s).trim()):v!==undefined&&v!==null&&v!=='';}
+function answer(x,j){const it=x.items[j];return x.kind==='mc'?it.options[it.answer]:x.kind==='tf'?(it[1]?'True':'False'):x.kind==='match'?it[1]:it.answer.replaceAll('|',' / ');}
+function explanation(x,j){return x.why?.[j]||'';}
+function progress(){
+ DATA.forEach((x,k)=>{const e=id(x.day,k%3);state.done[e]=x.kind==='writing'?!!state.writingComplete&&validWriting():x.items.every((_,j)=>state.checked[e]?.[j]&&correct(x,j,arr(e)[j]));});
+ const count=DATA.filter((x,k)=>state.done[id(x.day,k%3)]).length,p=Math.round(count/21*100);
+ $('progress-fill').style.width=p+'%';$('progress-pct').textContent=p+'%';$('progress-fill').parentElement.setAttribute('aria-label',`${count} of 21 exercises complete`);
+ for(let d=1;d<=7;d++){const b=document.querySelector(`[data-tab="day${d}"]`);if(b)b.classList.toggle('done',[0,1,2].every(i=>state.done[id(d,i)]));}
+ DATA.forEach((x,k)=>$('card-'+id(x.day,k%3))?.classList.toggle('done',!!state.done[id(x.day,k%3)]));save();return count;
+}
+function statusText(e,j,x){
+ const v=arr(e)[j];if(!state.checked[e]?.[j])return '';
+ if(!answered(x,j,v))return 'Choose or complete an answer first.';
+ if(correct(x,j,v))return 'Correct! '+explanation(x,j);
+ return 'Not yet. '+(state.attempts[e]?.[j]>1?'Answer: '+answer(x,j).replace(/[.!?]+$/,'')+'. ':'')+explanation(x,j);
+}
+function questionText(x,j){const it=x.items[j];let t=x.kind==='match'||x.kind==='tf'?it[0]:it.q||'';let h=esc(t);if(x.targets?.[j])h=h.replace(esc(x.targets[j]),'<strong class="target-gerund">'+esc(x.targets[j])+'</strong>');return h;}
+function context(x){return x.context?`<div class="context">${esc(x.context)}</div>`:'';}
+function orderWords(it){const w=it.answer.trim().split(/\s+/);return w.map((word,i)=>({word,i})).sort((a,b)=>((a.i*7+3)%w.length)-((b.i*7+3)%w.length)||b.i-a.i);}
+function renderBuilder(x,e,j,v){const it=x.items[j],w=it.answer.trim().split(/\s+/),chosen=Array.isArray(v)?v:[];
+ return `<div class="sb-label">Tap the words in the correct order:</div><div class="sb-words">${orderWords(it).filter(z=>!chosen.includes(z.i)).map(z=>`<button type="button" class="sb-chip" data-add="${z.i}" data-e="${e}" data-j="${j}">${esc(z.word.replace(/[.!?]+$/,''))}</button>`).join('')}</div><div class="sb-label">Your sentence (tap a word to remove it):</div><div class="sb-zone">${chosen.map((i,k)=>`<button type="button" class="sb-chip in-zone" data-remove="${k}" data-e="${e}" data-j="${j}">${esc(w[i].replace(/[.!?]+$/,''))}${chosen.length===w.length&&k===chosen.length-1?'.':''}</button>`).join('')}</div>`;
+}
+function renderQuestion(x,e,j,game=false){
+ const it=x.items[j],v=arr(e)[j],checked=state.checked[e]?.[j],ok=checked&&correct(x,j,v);let out=`<div class="question" data-item="${j}"><p>${j+1}.${x.kind==='order'||x.kind==='fill'?'':' '+questionText(x,j)}</p>`;
+ if(x.kind==='match')out+=`<select class="match-select" data-e="${e}" data-j="${j}" aria-label="Exercise ${e}, item ${j+1}: choose an answer"><option value="">Select an answer…</option>${options(x).map((o,k)=>`<option value="${k}" ${String(v)===String(k)?'selected':''}>${esc(o)}</option>`).join('')}</select><div class="match-value">${v!==null&&v!==undefined&&v!==''?esc(options(x)[Number(v)]):''}</div>`;
+ else if(x.kind==='mc'||x.kind==='tf')out+=(x.kind==='mc'?it.options:['True','False']).map((o,k)=>`<button type="button" class="opt ${String(v)===String(k)?'selected':''} ${checked&&String(v)===String(k)?ok?'correct':'wrong':''}" aria-pressed="${String(v)===String(k)}" data-pick="${k}" data-e="${e}" data-j="${j}">${String.fromCharCode(65+k)}. ${esc(o)}</button>`).join('');
+ else if(x.kind==='fill'){const parts=it.q.split('___');out+='<div class="q-body">'+parts.map((p,k)=>esc(p)+(k<parts.length-1?`<input autocomplete="off" spellcheck="false" class="mini-input ${it.q.endsWith('\n___')?'sentence-input':''}" data-e="${e}" data-j="${j}" data-gap="${k}" aria-label="Exercise ${e}, item ${j+1}, answer ${k+1}" value="${esc((Array.isArray(v)?v:[])[k]||'')}">`:'')).join('')+'</div>';}
+ else if(x.kind==='order')out+=renderBuilder(x,e,j,v);
+ return out+`<div class="q-feedback ${checked?(ok?'is-correct':'is-wrong'):''}" aria-live="polite">${esc(statusText(e,j,x))}</div></div>`;
+}
+function invalidate(e,j){if(state.checked[e])delete state.checked[e][j];delete state.done[e];save();progress();}
+function setResponse(e,j,value){arr(e)[j]=value;invalidate(e,j);}
+function feedbackElement(root,j){return root.querySelector(`.question[data-item="${j}"] .q-feedback`);}
+function showFeedback(root,x,e,j){const f=feedbackElement(root,j);if(f){f.className='q-feedback '+(correct(x,j,arr(e)[j])?'is-correct':'is-wrong');f.textContent=statusText(e,j,x);}}
+function checkItem(root,x,e,j){state.checked[e]??={};state.checked[e][j]=true;state.attempts[e]??={};if(answered(x,j,arr(e)[j]))state.attempts[e][j]=(state.attempts[e][j]||0)+1;showFeedback(root,x,e,j);progress();if(state.mode==='gamified')updateContinue(x,e,j);}
+function clearLocalFeedback(root,e,j){const f=feedbackElement(root,j);if(f){f.textContent='';f.className='q-feedback';}const sum=$(e+'-fb');if(sum){sum.textContent='';sum.className='feedback';}}
+function wire(root,x,e,game){
+ root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const j=+b.dataset.j;setResponse(e,j,+b.dataset.pick);b.parentElement.querySelectorAll('.opt').forEach(z=>{z.classList.toggle('selected',z===b);z.classList.remove('correct','wrong');z.setAttribute('aria-pressed',z===b?'true':'false');});clearLocalFeedback(root,e,j);if(game)checkItem(root,x,e,j);});
+ root.querySelectorAll('.match-select').forEach(b=>b.onchange=()=>{const j=+b.dataset.j;setResponse(e,j,b.value===''?null:Number(b.value));b.nextElementSibling.textContent=b.value===''?'':options(x)[Number(b.value)];clearLocalFeedback(root,e,j);if(game){if(b.value!=='')checkItem(root,x,e,j);else updateContinue(x,e,j);}});
+ root.querySelectorAll('.mini-input').forEach(b=>{b.oninput=()=>{const j=+b.dataset.j;const v=Array.isArray(arr(e)[j])?[...arr(e)[j]]:[];v[+b.dataset.gap]=b.value;setResponse(e,j,v);clearLocalFeedback(root,e,j);if(game)updateContinue(x,e,j);};b.onkeydown=ev=>{if(game&&ev.key==='Enter'){ev.preventDefault();checkItem(root,x,e,+b.dataset.j);}};});
+ root.querySelectorAll('[data-add],[data-remove]').forEach(b=>b.onclick=()=>{const j=+b.dataset.j,v=Array.isArray(arr(e)[j])?[...arr(e)[j]]:[];if(b.hasAttribute('data-add')){if(!v.includes(+b.dataset.add))v.push(+b.dataset.add);}else v.splice(+b.dataset.remove,1);setResponse(e,j,v);const q=root.querySelector(`.question[data-item="${j}"]`);q.outerHTML=renderQuestion(x,e,j,game);wire(root,x,e,game);clearLocalFeedback(root,e,j);if(game)updateContinue(x,e,j);});
+}
+function writingMarkup(game){return context(get(7,2))+`<label class="writing-label" for="${game?'game-writing':'writing'}">Your paragraph (70–100 words)</label><textarea class="writing-area" id="${game?'game-writing':'writing'}" placeholder="Write your paragraph here...">${esc(state.writing)}</textarea><div class="word-count" id="${game?'game-words':'words'}" aria-live="polite"></div><p class="writing-note">Your text is saved on this browser. Your teacher will review the language; this activity is not automatically graded.</p><div class="btn-row"><button type="button" class="btn btn-whatsapp" id="${game?'game-send':'send-writing'}">Open WhatsApp draft</button></div><div class="writing-feedback" aria-live="polite"></div>`;}
+function wireWriting(root,game){const w=root.querySelector('textarea');const wc=root.querySelector('.word-count'),fb=root.querySelector('.writing-feedback');function update(){wc.textContent=words()+' / 70–100 words';wc.classList.toggle('outside-range',!validWriting());}w.oninput=()=>{state.writing=w.value;state.writingComplete=false;save();progress();fb.textContent='';update();};update();
+ root.querySelector(game?'#game-send':'#send-writing').onclick=()=>{if(!validWriting()){fb.textContent='Please write 70–100 words before opening the WhatsApp draft.';w.focus();return;}window.open('https://wa.me/5524992723816?text='+encodeURIComponent('✍️ Weekly Practice — Being Unproductive\n'+state.name+'\n\n'+state.writing),'_blank','noopener');fb.textContent='WhatsApp draft opened. Review it there and choose whether to send. Your work is still saved here.';};
+}
+function completeWriting(root,game){if(!validWriting()){root.querySelector('.writing-feedback').textContent='Please write 70–100 words before marking this activity as complete.';root.querySelector('textarea').focus();return;}state.writingComplete=true;save();const count=progress();root.querySelector('.writing-feedback').textContent=count===21?'All 21 activities are complete. Your teacher will review your writing.':`Writing activity complete. ${count} of 21 activities complete. Your teacher will review your writing.`;if(game)$('game-finish').textContent='Writing complete ✓';}
+function renderExercise(x,e){const root=$(e);root.innerHTML=x.kind==='writing'?writingMarkup(false):context(x)+x.items.map((_,j)=>renderQuestion(x,e,j)).join('');if(x.kind==='writing')wireWriting(root,false);else wire(root,x,e,false);}
+function renderTrad(){DATA.forEach((x,k)=>renderExercise(x,id(x.day,k%3)));progress();}
+document.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{const e=b.dataset.check,x=exercise(e),root=$(e);x.items.forEach((_,j)=>checkItem(root,x,e,j));const n=x.items.filter((_,j)=>correct(x,j,arr(e)[j])).length;const f=$(e+'-fb');f.className='feedback show '+(n===x.items.length?'ok':'partial');f.textContent=`Score: ${n}/${x.items.length}. ${n===x.items.length?'Exercise complete.':'Read the feedback and try again. Check again to see the answer if needed.'}`;});
+function resetExercise(e){delete state.responses[e];delete state.checked[e];delete state.attempts[e];delete state.done[e];if(e==='d7e3'){state.writing='';state.writingComplete=false;}save();const f=$(e+'-fb');if(f){f.className='feedback';f.textContent='';}renderExercise(exercise(e),e);progress();}
+document.querySelectorAll('[data-reset]').forEach(b=>b.onclick=()=>resetExercise(b.dataset.reset));
+$('writing-complete').onclick=()=>completeWriting($('d7e3'),false);
+function selectTab(t){if(/^day[1-7]$/.test(t))state.day=Number(t.slice(3));state.tab=t;save();document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t);b.setAttribute('aria-pressed',b.dataset.tab===t?'true':'false');});document.querySelectorAll('.day-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+t));window.scrollTo({top:0,behavior:'auto'});}
+function nav(bank=''){const a=$('game-nav');a.innerHTML=[1,2,3,4,5,6,7].map(d=>`<button type="button" class="gnav ${!bank&&d===state.day?'active':''}" data-day="${d}" aria-pressed="${!bank&&d===state.day}">Day ${d}</button>`).join('')+['vocab','grammar'].map(t=>`<button type="button" class="gnav ${bank===t?'active':''}" data-bank="${t}" aria-pressed="${bank===t}">${t==='vocab'?'Vocab':'Grammar'}</button>`).join('');a.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.day=+b.dataset.day;state.ex=0;state.item=0;state.tab='day'+state.day;save();renderGame();});a.querySelectorAll('[data-bank]').forEach(b=>b.onclick=()=>renderBank(b.dataset.bank));}
+function renderBank(t){state.tab=t;save();nav(t);const copy=$('panel-'+t).cloneNode(true);copy.removeAttribute('id');copy.className='game-bank';copy.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));$('game-stage').replaceChildren(copy);}
+function updateContinue(x,e,j){const b=$('game-next');if(b)b.disabled=!state.checked[e]?.[j]||!correct(x,j,arr(e)[j]);}
+function next(){const x=get(state.day,state.ex),e=id(state.day,state.ex);if(!state.checked[e]?.[state.item]||!correct(x,state.item,arr(e)[state.item]))return;if(state.item+1<totalItems(x))state.item++;else if(state.ex<2){state.ex++;state.item=0;}else if(state.day<7){state.day++;state.ex=0;state.item=0;}save();progress();renderGame();}
+function previous(){if(state.item>0)state.item--;else if(state.ex>0){state.ex--;state.item=totalItems(get(state.day,state.ex))-1;}else if(state.day>1){state.day--;state.ex=2;state.item=totalItems(get(state.day,2))-1;}save();renderGame();}
+function renderGame(){state.tab='day'+state.day;state.item=Math.max(0,Math.min(state.item,totalItems(get(state.day,state.ex))-1));save();nav();const x=get(state.day,state.ex),e=id(state.day,state.ex),j=state.item;
+ let s=`<div class="game-card"><div class="game-kicker">Day ${state.day} · Exercise ${state.ex+1} of 3 · ${x.kind==='writing'?'Writing':`Question ${j+1} of ${x.items.length}`}</div><h3 class="game-title">${esc(x.title)}</h3><p class="game-inst">${esc(x.instruction)}</p>`;
+ if(x.kind==='writing')s+=writingMarkup(true)+`<div class="game-actions"><button type="button" id="game-finish">${state.done[e]?'Writing complete ✓':'Mark as complete'}</button><button type="button" class="secondary" id="game-reset-writing">Reset writing</button></div>`;
+ else s+=context(x)+renderQuestion(x,e,j,true)+`<div class="game-actions">${['fill','order','match'].includes(x.kind)?'<button type="button" id="game-check">Check ↵</button>':''}<button type="button" class="secondary" id="game-see">See answer</button><button type="button" id="game-next">Continue →</button></div>`;
+ s+=`<div class="game-actions"><button type="button" class="secondary" id="game-back" ${state.day===1&&state.ex===0&&j===0?'disabled':''}>← Previous</button></div></div>`;$('game-stage').innerHTML=s;const root=$('game-stage');
+ if(x.kind==='writing'){wireWriting(root,true);$('game-finish').onclick=()=>completeWriting(root,true);$('game-reset-writing').onclick=()=>{resetExercise('d7e3');renderGame();};}
+ else{wire(root,x,e,true);if($('game-check'))$('game-check').onclick=()=>checkItem(root,x,e,j);$('game-see').onclick=()=>{const f=feedbackElement(root,j);f.className='q-feedback is-hint';f.textContent='Answer: '+answer(x,j).replace(/[.!?]+$/,'')+'. '+explanation(x,j)+' Enter or select it yourself, then check to continue.';};$('game-next').onclick=next;updateContinue(x,e,j);}
+ $('game-back').onclick=previous;
+}
+function mode(m){state.mode=m;save();document.body.classList.toggle('game-mode',m==='gamified');$('mode-traditional').classList.toggle('active',m==='traditional');$('mode-gamified').classList.toggle('active',m==='gamified');$('mode-traditional').setAttribute('aria-pressed',m==='traditional');$('mode-gamified').setAttribute('aria-pressed',m==='gamified');if(m==='gamified'){if(['vocab','grammar'].includes(state.tab))renderBank(state.tab);else renderGame();}else{renderTrad();selectTab(['vocab','grammar'].includes(state.tab)?state.tab:'day'+state.day);}}
+$('mode-traditional').onclick=()=>mode('traditional');$('mode-gamified').onclick=()=>mode('gamified');
+document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(state.mode==='gamified'){if(t.startsWith('day')){state.day=+t.slice(3);state.ex=0;state.item=0;renderGame();}else renderBank(t);}else selectTab(t);});
+function start(){const n=$('student-name-input').value.trim();if(!n){$('student-name-input').focus();return;}state.name=n;save();$('welcome-screen').classList.add('hidden');$('hello-banner').textContent=`Hello, ${n}! 👋 Let's study and improve!`;$('hello-banner').classList.add('show');if(!storageAvailable)$('motivation-text').textContent='Progress cannot be saved in this browser. Keep this page open while you practise.';}
+$('student-name-input').setAttribute('aria-label','Your name');$('welcome-start-btn').onclick=start;$('student-name-input').onkeydown=e=>{if(e.key==='Enter')start();};
+$('motivation-text').textContent='Read the feedback, try again, and practise a little every day.';
+renderTrad();mode(state.mode);if(state.name){$('student-name-input').value=state.name;start();}
+</script><script>
+(function(){
+ document.addEventListener('click',function(e){const chip=e.target.closest('.vocab-chip[data-speak]');if(!chip)return;const grid=chip.closest('.vocab-grid');let info=grid.parentElement.querySelector('.speech-feedback');if(!info){info=document.createElement('p');info.className='speech-feedback';info.setAttribute('role','status');grid.after(info);}if(!('speechSynthesis' in window)){info.textContent='Pronunciation audio is not supported by this browser.';return;}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(chip.dataset.speak);u.lang='en-US';u.rate=.85;u.onstart=()=>{info.textContent='Playing: '+chip.dataset.speak;};u.onend=()=>{info.textContent='Pronunciation finished.';};u.onerror=()=>{info.textContent='Audio could not play. Check your device sound and available English voices.';};window.speechSynthesis.speak(u);});
+})();
+</script></body></html>
